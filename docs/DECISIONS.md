@@ -210,6 +210,89 @@ a text-only check has nothing to say about them. Identifiers and credentials in 
 are still caught, because those scans still run. A regression case in `make test-hook`
 stages a real PNG and expects PASS.
 
+## D-013 Where the mock, harnesses and build system live, and where their dependencies live
+
+**Date** 2026-09-10 · **Reversal** cheap
+
+**Decided.** Source is tracked; dependencies are not.
+- `tools/ui/mock/` the mock device (Node, needs the `ws` package), tracked.
+- `tools/ui/harness/` harness sources (Node; the browser ones need Playwright), tracked, with
+  **no `package.json` in the tree**.
+- `tools/ui/build/` the page assembler (Python, standard library), tracked.
+- `private/uiwork/` gitignored: the dev `package.json`, `node_modules/`, screenshots, real
+  captures, scratch. `tools/ui/harness/run.sh` sets `NODE_PATH` to it, relative to the repo root.
+
+**Alternatives.** Everything under `private/uiwork/`, as the run brief's Q3 wording says; or a
+tracked `package.json` listing Playwright.
+
+**Why.** Three constraints pull in different directions. The brief says commit after every
+item and says contributors must be able to build and run the harnesses; a mock nobody can
+check out is not a mock. The standing rule that Playwright never enters a tracked
+`package.json` is absolute. And the brief's reason for `private/` is quarantine of material
+that has been near vendor files. Nothing written tonight is ported by copying; it is written
+fresh from the porting notes, so it is clean-room from birth and has nothing to quarantine.
+Tracking the source and ignoring the dependencies satisfies all three. `README.md`'s
+`private/` table is corrected to match.
+
+**Also decided here: fixture hygiene.** Every secret-shaped field in a tracked fixture is a
+`<PLACEHOLDER>` token, which the hook's allowlist accepts and the page renders harmlessly;
+every address is a documentation address. The redacted capture in the working area, which
+holds the owner's real LAN addresses and hostname, is never copied into a fixture.
+
+## D-014 What the mock assumes where the bench has not measured
+
+**Date** 2026-09-10 · **Reversal** cheap, each is one knob
+
+**Decided.** Six behaviours the protocol doc leaves open are implemented as a default plus an
+environment knob for the other reading, so the bench can flip each without a code change:
+
+| Open question | Default | Knob |
+|---|---|---|
+| change push carries all six roots or only the changed one | all six | `PS_PUSH_CHANGED_ONLY` |
+| change push reaches other clients | sender only, matching measured connect behaviour | `PS_BROADCAST` |
+| `rgb_reset` received in Music mode | no-op, no push, matching the observed end-to-end behaviour | `PS_RGB_RESET_MUSIC_APPLIES` |
+| `rgb_info_speed` echoed back in `list2` | stored, not emitted, matching the observed push | `PS_EMIT_SPEED` |
+| `img_version` in the connect push | absent, matching the observed push | `PS_IMG_VERSION` |
+| a GIF upload's response | `{type:"ota_img", ok, gif:<slot>}` | none; INFERENCE stated in the header |
+
+**Why.** A mock that picks one reading silently becomes a spec by accident. Each default is
+the reading closest to what was measured; each knob makes the other reading one env var
+away; the mock's header lists all of them as INFERENCE. When ladder reads A to D come back,
+each row here becomes a fact or a fix.
+
+**Would change it.** The bench session, item by item.
+
+## D-015 Two secret patterns made precise; code that handles a field is not a leak
+
+**Date** 2026-09-10 · **Reversal** cheap
+
+**What happened.** The pre-commit hook refused the Q2 commit on seven hits in the mock and the
+wire harness: `w.password = String(m.password)`, the property path `d.wifi.password`, a test
+frame `{ ssid: 'net', password: 'pw' }`, and the enum label `password error`. The residue
+sweep had passed. Every hit was code that stores or names the field, not code that contains
+a value.
+
+**Decided.** The credential-assignment pattern now requires the value to end at a literal
+boundary: a quote, punctuation, whitespace, or end of line. `String(` ends in `(` and is an
+identifier, not a value. The network-key proximity heuristic now requires a value-shaped
+token of eight or more characters after the keyword; the bare words on one line are a field
+path or a label. Six regression cases added, four negative and two positive, so both patterns
+still catch a quoted sixteen-character value assigned to a password field, and a network key
+written beside a value with no separator.
+
+**A note on this entry itself.** Its first draft quoted the two positive test fixtures
+verbatim to illustrate what still blocks, and the hook refused the commit on exactly those
+two lines. That was correct: a document that contains a credential-shaped literal is
+indistinguishable from a leak, whatever the surrounding prose says. The examples now are
+descriptions.
+
+**Alternatives.** Exempt `tools/ui/`; exempt `*.js`.
+
+**Why.** Part 4 of the run brief, third time tonight: a check that has to be weakened to do
+normal work stops being read. An exemption by path would have to grow with every harness
+and every module that handles a credential field, which is most of the page. The precise
+statement of what was wrong fits in one regex each.
+
 ---
 
 *Entries continue below as the run proceeds.*

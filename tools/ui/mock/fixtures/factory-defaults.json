@@ -1,0 +1,148 @@
+{
+  "wifi": {
+    "ssid": "",
+    "password": "",
+    "scan": 0
+  },
+  "sta": {
+    "hostname": "ps-factory",
+    "ip": "",
+    "state": 1,
+    "auth_err_reason": 0
+  },
+  "ap": {
+    "ssid": "<AP_SSID_FACTORY>",
+    "password": "<AP_PASSWORD_FACTORY>",
+    "ip": "192.0.2.1",
+    "on": 1
+  },
+  "printer": {
+    "name": "",
+    "sn": "",
+    "access_code": "",
+    "ip": "",
+    "state": 1,
+    "scan": 0
+  },
+  "settings": {
+    "list2": [
+      {
+        "brightness": 50,
+        "rgb_rgba": [
+          "FFFFFF",
+          "FFFFFF",
+          "FF0000"
+        ]
+      },
+      {
+        "brightness": 50,
+        "speed": 100,
+        "rgb_rgba": [
+          "#FFFFFFFF",
+          "#FFFFFFFF",
+          "#FF0000FF"
+        ]
+      }
+    ],
+    "current_mode": 1,
+    "fw_version": "V1.0.0",
+    "language": "en",
+    "img_version": "V1.0.0"
+  },
+  "block": {
+    "blocklist": [
+      {
+        "blockID": 0,
+        "blockrgba": "#FFFFFFFF"
+      }
+    ]
+  },
+  "__mock": {
+    "note": "INFERENCE THROUGHOUT. What the device reports after its own factory reset is Phase 0 ladder read D and has not been captured. Lighting values are the UI's client-side reset expectations, which the protocol doc marks as UI values, not proven compiled-in defaults. Network values assume everything is erased and the hotspot comes up. Replace every value here from ladder read D. Scrubbed fixture. Every secret-shaped field is a <PLACEHOLDER> token the pre-commit hook allows; every address is a documentation address (RFC 5737 192.0.2.0/24). Never put a real SSID, password, serial, access code, MAC or LAN address in a fixture. The __mock section is not protocol; it holds what the mock needs to answer scans and uploads. Where a shape is INFERENCE it says so.",
+    "wifi_scan_results_shape": "INFERENCE: entry shape unknown until the bench; {ssid, rssi} assumed",
+    "wifi_scan_results": [
+      {
+        "ssid": "<SCAN_SSID_A>",
+        "rssi": -48
+      },
+      {
+        "ssid": "<SCAN_SSID_B>",
+        "rssi": -71
+      }
+    ],
+    "printer_scan_results_shape": "INFERENCE: entry shape unknown until the bench; {name, ip} assumed",
+    "printer_scan_results": [
+      {
+        "name": "Mock P2S",
+        "ip": "192.0.2.20"
+      }
+    ],
+    "ws_theme": {
+      "preview": "standby",
+      "list": [
+        {
+          "gif": "standby",
+          "rgba": "#FFFFFFFF"
+        },
+        {
+          "gif": "nozzle_heating",
+          "rgba": "#FFFFFFFF"
+        },
+        {
+          "gif": "bed_heating",
+          "rgba": "#FFFFFFFF"
+        },
+        {
+          "gif": "bed_leveling",
+          "rgba": "#FFFFFFFF"
+        },
+        {
+          "gif": "homing",
+          "rgba": "#FFFFFFFF"
+        },
+        {
+          "gif": "nozzle_cleaning",
+          "rgba": "#FFFFFFFF"
+        },
+        {
+          "gif": "calibrating_flow",
+          "rgba": "#FFFFFFFF"
+        },
+        {
+          "gif": "xy_mesh_mode_sweep",
+          "rgba": "#FFFFFFFF"
+        },
+        {
+          "gif": "filament_check_location",
+          "rgba": "#FFFFFFFF"
+        },
+        {
+          "gif": "filament_cut",
+          "rgba": "#FFFFFFFF"
+        },
+        {
+          "gif": "filament_pull_back_cur",
+          "rgba": "#FFFFFFFF"
+        },
+        {
+          "gif": "filament_push_new",
+          "rgba": "#FFFFFFFF"
+        },
+        {
+          "gif": "filament_purge_old",
+          "rgba": "#FFFFFFFF"
+        },
+        {
+          "gif": "printing_ok",
+          "rgba": "#FFFFFFFF"
+        },
+        {
+          "gif": "printing",
+          "rgba": "#FFFFFFFF"
+        }
+      ]
+    },
+    "gif_uploads": {},
+    "next_img_version": "V1.0.1"
+  }
+}

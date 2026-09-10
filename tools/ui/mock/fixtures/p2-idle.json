@@ -1,0 +1,147 @@
+{
+  "wifi": {
+    "ssid": "<WIFI_SSID>",
+    "password": "<WIFI_PASSWORD>",
+    "scan": 0
+  },
+  "sta": {
+    "hostname": "ps-mock",
+    "ip": "192.0.2.10",
+    "state": 3,
+    "auth_err_reason": 0
+  },
+  "ap": {
+    "ssid": "<AP_SSID>",
+    "password": "<AP_PASSWORD>",
+    "ip": "192.0.2.1",
+    "on": 1
+  },
+  "printer": {
+    "name": "Mock P2S",
+    "sn": "<PRINTER_SN>",
+    "access_code": "<PRINTER_ACCESS_CODE>",
+    "ip": "192.0.2.20",
+    "state": 3,
+    "scan": 5
+  },
+  "settings": {
+    "list2": [
+      {
+        "brightness": 50,
+        "rgb_rgba": [
+          "FFFFFF",
+          "FFFFFF",
+          "FFFFFF"
+        ]
+      },
+      {
+        "brightness": 50,
+        "rgb_rgba": [
+          "#FFFFFFFF",
+          "#1B00FFFF",
+          "#FF0000FF"
+        ]
+      }
+    ],
+    "current_mode": 1,
+    "fw_version": "V1.0.0",
+    "language": "en",
+    "img_version": "V1.0.0"
+  },
+  "block": {
+    "blocklist": [
+      {
+        "blockID": 0,
+        "blockrgba": "#FFFFFFFF"
+      }
+    ]
+  },
+  "__mock": {
+    "note": "Scrubbed fixture. Every secret-shaped field is a <PLACEHOLDER> token the pre-commit hook allows; every address is a documentation address (RFC 5737 192.0.2.0/24). Never put a real SSID, password, serial, access code, MAC or LAN address in a fixture. The __mock section is not protocol; it holds what the mock needs to answer scans and uploads. Where a shape is INFERENCE it says so.",
+    "wifi_scan_results_shape": "INFERENCE: entry shape unknown until the bench; {ssid, rssi} assumed",
+    "wifi_scan_results": [
+      {
+        "ssid": "<SCAN_SSID_A>",
+        "rssi": -48
+      },
+      {
+        "ssid": "<SCAN_SSID_B>",
+        "rssi": -71
+      }
+    ],
+    "printer_scan_results_shape": "INFERENCE: entry shape unknown until the bench; {name, ip} assumed",
+    "printer_scan_results": [
+      {
+        "name": "Mock P2S",
+        "ip": "192.0.2.20"
+      }
+    ],
+    "ws_theme": {
+      "preview": "standby",
+      "list": [
+        {
+          "gif": "standby",
+          "rgba": "#FFFFFFFF"
+        },
+        {
+          "gif": "nozzle_heating",
+          "rgba": "#FFFFFFFF"
+        },
+        {
+          "gif": "bed_heating",
+          "rgba": "#FFFFFFFF"
+        },
+        {
+          "gif": "bed_leveling",
+          "rgba": "#FFFFFFFF"
+        },
+        {
+          "gif": "homing",
+          "rgba": "#FFFFFFFF"
+        },
+        {
+          "gif": "nozzle_cleaning",
+          "rgba": "#FFFFFFFF"
+        },
+        {
+          "gif": "calibrating_flow",
+          "rgba": "#FFFFFFFF"
+        },
+        {
+          "gif": "xy_mesh_mode_sweep",
+          "rgba": "#FFFFFFFF"
+        },
+        {
+          "gif": "filament_check_location",
+          "rgba": "#FFFFFFFF"
+        },
+        {
+          "gif": "filament_cut",
+          "rgba": "#FFFFFFFF"
+        },
+        {
+          "gif": "filament_pull_back_cur",
+          "rgba": "#FFFFFFFF"
+        },
+        {
+          "gif": "filament_push_new",
+          "rgba": "#FFFFFFFF"
+        },
+        {
+          "gif": "filament_purge_old",
+          "rgba": "#FFFFFFFF"
+        },
+        {
+          "gif": "printing_ok",
+          "rgba": "#FFFFFFFF"
+        },
+        {
+          "gif": "printing",
+          "rgba": "#FFFFFFFF"
+        }
+      ]
+    },
+    "gif_uploads": {},
+    "next_img_version": "V1.0.1"
+  }
+}

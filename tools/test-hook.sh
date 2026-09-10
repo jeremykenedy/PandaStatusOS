@@ -47,6 +47,14 @@ check "placeholder token"          'connect to <DEVICE_HOST> now'               
 check "empty marker"               '"ssid": "<EMPTY>"'                                 PASS
 check "prose naming a field"       'The `access_code` field is 8 characters.'          PASS
 check "plain prose no backtick"    'The access code field is eight characters long.'   PASS
+# Code that HANDLES a credential field is not a credential. These four blocked the mock
+# device's first commit; the patterns were made precise rather than the files exempted.
+check "code storing a field passes" 'w.password = String(m.password);'                  PASS
+check "field paths on a line pass"  '[d.wifi.password, d.ap.ssid, d.printer.sn]'         PASS
+check "short fake in a frame passes" "{ ssid: 'net', password: 'pw' }"                   PASS
+check "enum label passes"          "t('sta.state 5 password error', ok)"                PASS
+check "wifi psk with a value still blocks" 'set WiFi psk = Tr0ub4dor3x'                   BLOCK
+check "quoted value still blocks"  'password = "hunter2swordfish"'                       BLOCK
 
 # --- vendor residue, not secrets ---------------------------------------------
 # Element IDs and CSS class names are names inside THEIR document, not names on the

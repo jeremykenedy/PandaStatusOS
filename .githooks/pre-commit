@@ -78,7 +78,11 @@ ALLOW_PATTERNS='f317a8a76f1b575467bec007a9768e7951c51603dfdf9de68c4152721a573732
 # a bare backticked identifier. One unbackticked assignment and the line is scanned.
 # A credential ASSIGNMENT: a sensitive key, optionally quoted or backticked, then
 # : or =, then a value of real length. Naming a field is not assigning it.
-SENS_ASSIGN='(password|passwd|psk|pwd|secret|token|api[_-]?key|access[_-]?code|ssid|serial)["'"'"'`]?[[:space:]]*[:=][[:space:]]*["'"'"'`]?[A-Za-z0-9._~+/-]{6,}'
+# The value must END at a literal boundary: a quote, punctuation, whitespace, or the end
+# of the line. Code that handles a field, like  password = String(m.password), has an
+# identifier followed by "(" where a value would end, and is not an assignment of a secret.
+# That distinction is what stopped the mock device from committing.
+SENS_ASSIGN='(password|passwd|psk|pwd|secret|token|api[_-]?key|access[_-]?code|ssid|serial)["'"'"'`]?[[:space:]]*[:=][[:space:]]*["'"'"'`]?[A-Za-z0-9._~+/-]{6,}(["'"'"'`;,)}[:space:]]|$)'
 
 # Is this staged file a gzip member? Magic bytes first, so a gzip under a name that
 # does not say .gz is still caught; extension as a second trigger.
@@ -194,7 +198,11 @@ scan_vendor_text_only() {
 scan_vendor_text_only "CJK source text" '[^[:print:][:space:]]*[一-龥ぁ-ヿ가-힣]'
 
 scan_pattern "MAC address"            '([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}'
-scan_pattern "wifi/psk proximity"     '[Ww][Ii]-?[Ff][Ii].*(pass|psk|pwd)'
+# Proximity heuristic for prose and configs that say "wifi ... psk <value>" with no
+# separator. It needs a VALUE after the keyword: eight or more plain characters following
+# whitespace, a colon or an equals. The bare words "wifi" and "password" on one line are
+# a field path or an enum label, not a leak.
+scan_pattern "wifi/psk proximity"     '[Ww][Ii]-?[Ff][Ii].*(pass|psk|pwd)[a-z]*[[:space:]:=]+["'"'"'`]?[A-Za-z0-9_~+-]{8,}'
 scan_pattern "credential assignment"  "$SENS_ASSIGN"
 scan_pattern "bearer token"           'Bearer[[:space:]]+[A-Za-z0-9._~+/-]{16,}'
 scan_pattern "private key block"      'BEGIN [A-Z ]*PRIVATE KEY'

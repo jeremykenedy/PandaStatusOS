@@ -64,10 +64,15 @@ mkdir -p private/{build,harness,factory}
 
 | Path | What goes there |
 |---|---|
-| `private/build/` | the page build system: the assembler, the i18n pipeline, the generators |
-| `private/harness/` | browser harnesses, the mock device, the wire-assertion suite for Phase 2 gate 1 |
+| `private/uiwork/package.json`, `node_modules/` | the dev-only dependencies of the mock and the harnesses. Playwright never enters a tracked `package.json` |
+| `private/uiwork/shots/` | screenshots, every page, both themes, both widths |
+| `private/uiwork/captures/` | anything captured from real hardware, which carries secrets |
 | `private/factory/` | factory reference material, consulted and never copied |
-| `private/secret-scan.sh` | the standalone secret sweep |
+
+The mock device, the harness sources and the page build system are **tracked**, under
+`tools/ui/`. They were written fresh for this project from porting notes, so there is nothing
+in them to quarantine; what stays out of the tree is their dependencies and their outputs.
+See `docs/DECISIONS.md` D-013.
 
 Two independent controls keep it out: `.gitignore` excludes `private/`, and
 `.githooks/pre-commit` hard fails if any path under it is staged. One of those being wrong
