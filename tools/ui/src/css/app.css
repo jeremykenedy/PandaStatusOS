@@ -5,6 +5,10 @@
 html, body { min-height: 100%; }
 body { background: var(--surface); color: var(--on-surface); }
 
+/* The hidden attribute always wins. Any author display rule on an element beats the UA's
+   [hidden]{display:none}; the fault banner was flex and therefore visible while hidden. */
+[hidden] { display: none !important; }
+
 /* --- waiting state: nothing below is trusted until the first state document lands --- */
 body.ps-waiting .ps-needs-state { opacity: .55; pointer-events: none; }
 body.ps-waiting #ps-banner-waiting { display: flex; }
@@ -22,7 +26,8 @@ body.ps-waiting #ps-banner-waiting { display: flex; }
 
 /* --- top bar --- */
 .ps-topbar { gap: 10px; }
-.ps-brand { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; color: inherit; min-width: 0; }
+/* Beer lays every nav link out as an icon over a label, 3.5rem wide. The brand is a row. */
+nav.top.ps-topbar > a.ps-brand { display: inline-flex; flex-direction: row; align-items: center; gap: 10px; inline-size: auto; font-size: inherit; text-decoration: none; color: inherit; min-width: 0; }
 .ps-brand-name { font-weight: 600; letter-spacing: .01em; white-space: nowrap; }
 .ps-mark { width: 40px; height: 40px; flex: none; }
 body.light .ps-mark-dark { display: none; }
@@ -58,16 +63,21 @@ article[data-ps-card] {
   padding: 16px;
   margin: 0 0 var(--ps-gap);
 }
-article[data-ps-card][hidden] { display: none !important; }
 .ps-card-title { margin: 0 0 12px; font-size: 1.05rem; font-weight: 600; }
 .ps-grid { display: grid; grid-template-columns: 1fr; gap: var(--ps-gap); }
 @media (min-width: 700px) { .ps-grid-2 { grid-template-columns: 1fr 1fr; } }
+/* Card content is one column with one gap; tiles are columns with one smaller gap. Beer's
+   sibling-margin heuristic (1rem above p, .field, h1..h6 and so on) is switched off inside
+   a tile so the rhythm is the gap and nothing else. */
+.ps-needs-state { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--ps-gap); }
 .ps-tile {
+  display: flex; flex-direction: column; gap: 8px;
   background: var(--surface-container);
   border-radius: var(--ps-radius-sm);
   padding: 14px;
 }
-.ps-tile-label { font-size: .8rem; color: var(--on-surface-variant); margin-bottom: 4px; }
+.ps-tile > *, .ps-grid > * { margin-block: 0 !important; }
+.ps-tile-label { font-size: .8rem; color: var(--on-surface-variant); }
 .ps-tile-value { font-size: 1.25rem; font-weight: 600; word-break: break-word; }
 .ps-tile-value.ps-unset { color: var(--on-surface-variant); font-weight: 400; }
 .ps-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
@@ -77,6 +87,12 @@ article[data-ps-card][hidden] { display: none !important; }
 
 /* the state dot: the bar's three states and the printer's, as a coloured dot beside text */
 .ps-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; background: var(--ps-led-dim); flex: none; }
+
+/* a colour field: Beer's prefix slot, with the dot where the prefix icon would sit, showing
+   the colour the device holds. Coloris is bound without its wrapper so Beer still styles
+   the input; the picker is the only thing Coloris adds. */
+.ps-colour-field { position: relative; }
+.ps-colour-field > .ps-dot { position: absolute; inset-inline-start: 1.1rem; inset-block-start: calc(var(--_input, 2.5rem) / 2 - 7px); width: 14px; height: 14px; box-shadow: 0 0 0 1px var(--outline); z-index: 10; pointer-events: none; }
 .ps-dot-on    { background: var(--ps-led-lit); }
 .ps-dot-warn  { background: var(--tertiary); }
 .ps-dot-error { background: var(--error); }

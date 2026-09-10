@@ -326,4 +326,60 @@ call site if the dump says flash is tight.
 
 ---
 
+## D-017 Page furniture lives inside main; the hidden attribute always wins
+
+**Date** 2026-09-10 · **Reversal** cheap
+
+**Decided.**
+- Beer CSS lays `<body>` out as a grid with named areas for `nav.left/right/top/bottom`,
+  `header`, `main`, `footer`. Any other in-flow child of `<body>` is auto-placed into a spare
+  cell of that grid and takes width from the page. So: the only in-flow children of
+  `<body>` are Beer's areas. Everything else shared by every page is either inside `<main>`
+  (the waiting and fault banners) or out of flow (the dialog, the toast, the file input;
+  all `position: fixed` or `display: none` until used). The build's frame is the one place
+  this shape is written.
+- `[hidden] { display: none !important; }` in `app.css`. Any author `display` rule beats the
+  UA's `[hidden]`, so a component whose class says `display: flex` was visible while hidden.
+  The narrower rule for cards is replaced by this one.
+
+**Evidence.** The first phone-width screenshot of the lighting page: the fault banner
+(hidden, but `display: flex`) was placed in the grid's left column at full width, and the
+top bar, `main` and the bottom bar were 16 px wide beside it. 77 of the harness's
+assertions still passed; none of them measures a width, by design (Q8), and the page was
+unusable. Q6's screenshot rule exists for exactly this.
+
+**Alternatives.** Position the banners `fixed`; give the banners a Beer area class they do
+not belong to; assert widths in the harness.
+
+**Why.** Fixed banners cover content, and every page would need a spacer. Borrowing a Beer
+area name is a lie the next Beer release breaks. Width assertions are the styling police Q8
+forbids. Putting the shared furniture where the layout system expects it costs nothing and
+holds for every page after this one.
+
+---
+
+## D-018 Coloris is bound to our own attributes, unwrapped
+
+**Date** 2026-09-10 · **Reversal** cheap
+
+**Decided.** Colour fields carry `data-ps-colour` or `data-ps-block` (Rule 8), never
+Coloris's own `data-coloris`. Coloris binds those selectors explicitly with `wrap: false`
+on **every** bind call, including the re-bind after block fields are created.
+
+**Evidence.** Coloris initialises itself on `DOMContentLoaded` and wraps every
+`[data-coloris]` field in a div of its own with a swatch button. That wrapper puts the
+input one level below Beer's `.field > input` selector, so Beer stopped styling the three
+state colour fields while it styled the dynamically created block field, which Coloris had
+never seen. `wrap` is read per bind call (`coloris.min.js`: `case "el": ... !1 !== t.wrap &&
+H(t.el)`), so a global `wrap: false` does not exist.
+
+**Alternatives.** Keep `data-coloris` and set `wrap: false` before load (there is no
+before-load hook that reaches the auto-init); restyle Coloris's wrapper to look like a Beer
+field (two components pretending to be one).
+
+**Why.** The swatch is ours (the `.ps-dot` in Beer's prefix slot, showing the colour the
+device holds), the input is Beer's, the picker is Coloris's. One job each.
+
+---
+
 *Entries continue below as the run proceeds.*

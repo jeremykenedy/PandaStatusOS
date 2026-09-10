@@ -1,13 +1,8 @@
 <!-- Furniture shared by every page. One dialog, filled by whoever opens it; one toast; the
-     banners that cannot be dismissed because the fault they describe has not gone away. -->
-
-<div class="ps-banner ps-banner-waiting" id="ps-banner-waiting" role="status">
-  <span data-ps-str="ps_global_waiting">Waiting for the device to send its state.</span>
-</div>
-
-<div class="ps-banner ps-banner-fault" id="ps-banner-fault" role="alert" hidden>
-  <span id="ps-banner-fault-text" data-ps-str="ps_global_fault">The device reported that a setting could not be saved.</span>
-</div>
+     hidden file input. Everything here is out of the document flow (fixed, or display:none
+     until used). That matters: Beer CSS lays <body> out as a grid with named areas for the
+     navs and <main>, and any other in-flow child of <body> is auto-placed into a spare grid
+     cell and steals width from the page. The banners live inside <main> for that reason. -->
 
 <dialog class="ps-dialog" id="ps-dialog" data-ps-no-i18n>
   <h5 id="ps-dialog-title" data-ps-str="ps_global_dialog_title">Notice</h5>

@@ -30,5 +30,12 @@
   "ps_dashboard_pill_ready": "Printer connected",
   "ps_dashboard_pill_connecting": "Printer connecting",
   "ps_dashboard_pill_error": "Printer error",
-  "ps_dashboard_pill_unbound": "No printer"
+  "ps_dashboard_pill_unbound": "No printer",
+  "ps_lighting_speed_default": "default 100%",
+  "ps_lighting_reset_music": "Reset applies in H2D mode. Switch the mode first.",
+  "ps_lighting_reset_title": "Reset lighting?",
+  "ps_lighting_reset_text": "Brightness, speed and the three state colours go back to their defaults. Wi-Fi, the printer and the hostname are not touched.",
+  "ps_lighting_reset_confirm": "Reset",
+  "ps_lighting_block": "Segment",
+  "ps_lighting_block_aria": "Segment colour"
 }

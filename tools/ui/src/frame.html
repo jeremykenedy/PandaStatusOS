@@ -42,14 +42,22 @@
 
 <nav class="left ps-rail" id="ps-rail" data-ps-str-aria="ps_frame_nav" aria-label="Pages">
   <a href="#dashboard" data-ps-nav="dashboard"><svg class="ps-icon"><use href="#ps-icon-home"/></svg><div data-ps-str="ps_frame_nav_dashboard">Dashboard</div></a>
+  <a href="#lighting"  data-ps-nav="lighting"><svg class="ps-icon"><use href="#ps-icon-light-bulb"/></svg><div data-ps-str="ps_frame_nav_lighting">Lighting</div></a>
 </nav>
 
 <main class="responsive ps-main" id="ps-main">
+<div class="ps-banner ps-banner-waiting" id="ps-banner-waiting" role="status">
+  <span data-ps-str="ps_global_waiting">Waiting for the device to send its state.</span>
+</div>
+<div class="ps-banner ps-banner-fault" id="ps-banner-fault" role="alert" hidden>
+  <span id="ps-banner-fault-text" data-ps-str="ps_global_fault">The device reported that a setting could not be saved.</span>
+</div>
 <!--@@PAGES@@-->
 </main>
 
 <nav class="bottom ps-bottombar" id="ps-bottombar" data-ps-str-aria="ps_frame_nav_2" aria-label="Pages">
   <a href="#dashboard" data-ps-nav="dashboard"><svg class="ps-icon"><use href="#ps-icon-home"/></svg><div data-ps-str="ps_frame_nav_dashboard_2">Dashboard</div></a>
+  <a href="#lighting"  data-ps-nav="lighting"><svg class="ps-icon"><use href="#ps-icon-light-bulb"/></svg><div data-ps-str="ps_frame_nav_lighting_2">Lighting</div></a>
 </nav>
 
 <!--@@GLOBAL@@-->

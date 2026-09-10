@@ -27,6 +27,9 @@ ROWS=(
   # The mock under PS_NO_WS cannot be exercised by wire.js (it needs the socket); that
   # mode is covered by nows.js, which asserts the upgrade is refused.
   "p2-idle.json      | nows.js | PS_NO_WS=1"
+  # --- pages, in the browser. One row per lie the page must survive. ---
+  "p2-idle.json      | page-lighting.js | "
+  "p2-idle.json      | page-lighting.js | PS_EMIT_SPEED=1"
 )
 
 pass=0; fail=0; failed=()

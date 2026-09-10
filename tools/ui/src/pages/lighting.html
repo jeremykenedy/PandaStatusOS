@@ -1,0 +1,79 @@
+<article data-ps-card id="ps-card-lighting" hidden>
+  <h2 class="ps-card-title" data-ps-str="ps_lighting_title">Lighting</h2>
+
+  <div class="ps-needs-state">
+
+    <div class="ps-tile" id="ps-lighting-mode-tile">
+      <div class="ps-tile-label" data-ps-str="ps_lighting_mode">Mode</div>
+      <div class="field suffix border small" data-ps-no-i18n>
+        <select id="ps-lighting-mode" data-ps-str-aria="ps_lighting_mode_aria" aria-label="Lighting mode">
+          <option value="0" data-ps-str="ps_lighting_mode_music">Music</option>
+          <option value="1" data-ps-str="ps_lighting_mode_h2d">H2D</option>
+        </select>
+        <svg class="ps-icon"><use href="#ps-icon-chevron-down"/></svg>
+      </div>
+      <div class="ps-tile-label" data-ps-str="ps_lighting_mode_help">Music reacts to sound. H2D shows the printer's state with three colours.</div>
+    </div>
+
+    <div class="ps-grid ps-grid-2">
+      <div class="ps-tile">
+        <div class="ps-row">
+          <span class="ps-tile-label" data-ps-str="ps_lighting_brightness">Brightness</span>
+          <span class="max"></span>
+          <span class="ps-tile-label" id="ps-lighting-brightness-value" data-ps-no-i18n>—</span>
+        </div>
+        <label class="slider" data-ps-no-i18n>
+          <input type="range" min="0" max="100" step="5" id="ps-lighting-brightness" data-ps-str-aria="ps_lighting_brightness_aria" aria-label="Brightness">
+          <span></span>
+        </label>
+      </div>
+
+      <div class="ps-tile">
+        <div class="ps-row">
+          <span class="ps-tile-label" data-ps-str="ps_lighting_speed">Speed</span>
+          <span class="max"></span>
+          <span class="ps-tile-label" id="ps-lighting-speed-value" data-ps-no-i18n>—</span>
+        </div>
+        <label class="slider" data-ps-no-i18n>
+          <input type="range" min="0" max="100" step="5" value="100" id="ps-lighting-speed" data-ps-str-aria="ps_lighting_speed_aria" aria-label="Speed">
+          <span></span>
+        </label>
+        <div class="ps-tile-label" id="ps-lighting-speed-note" data-ps-str="ps_lighting_speed_music">Speed applies in H2D mode only.</div>
+      </div>
+    </div>
+
+    <div class="ps-tile" id="ps-lighting-colours">
+      <div class="ps-tile-label" data-ps-str="ps_lighting_colours">State colours</div>
+      <div class="ps-grid ps-grid-2" data-ps-no-i18n>
+        <label class="field prefix border small ps-colour-field">
+          <span class="ps-dot" id="ps-lighting-colour-dot-0"></span>
+          <input type="text" id="ps-lighting-colour-0" data-ps-colour="0" data-ps-str-aria="ps_lighting_colour_idle_aria" aria-label="Idle colour">
+          <span class="helper" data-ps-str="ps_lighting_colour_idle">Idle</span>
+        </label>
+        <label class="field prefix border small ps-colour-field">
+          <span class="ps-dot" id="ps-lighting-colour-dot-1"></span>
+          <input type="text" id="ps-lighting-colour-1" data-ps-colour="1" data-ps-str-aria="ps_lighting_colour_printing_aria" aria-label="Printing colour">
+          <span class="helper" data-ps-str="ps_lighting_colour_printing">Printing</span>
+        </label>
+        <label class="field prefix border small ps-colour-field">
+          <span class="ps-dot" id="ps-lighting-colour-dot-2"></span>
+          <input type="text" id="ps-lighting-colour-2" data-ps-colour="2" data-ps-str-aria="ps_lighting_colour_error_aria" aria-label="Error colour">
+          <span class="helper" data-ps-str="ps_lighting_colour_error">Error</span>
+        </label>
+      </div>
+      <div class="ps-tile-label" data-ps-str="ps_lighting_colours_help">Colours are per mode. Changing the mode above shows that mode's colours.</div>
+    </div>
+
+    <div class="ps-tile" id="ps-lighting-blocks">
+      <div class="ps-tile-label" data-ps-str="ps_lighting_blocks">Segments</div>
+      <div id="ps-lighting-block-list" class="ps-grid" data-ps-no-i18n></div>
+      <div class="ps-tile-label" data-ps-str="ps_lighting_blocks_help">Each segment has its own colour. What a segment maps to on the bar is recorded during the bench session.</div>
+    </div>
+
+    <div class="ps-row">
+      <button class="border" id="ps-lighting-reset" data-ps-str="ps_lighting_reset">Reset lighting</button>
+      <span class="ps-tile-label" data-ps-str="ps_lighting_reset_help">Puts brightness, speed and the three colours back to their defaults. Nothing else.</span>
+    </div>
+
+  </div>
+</article>

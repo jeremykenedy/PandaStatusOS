@@ -133,6 +133,10 @@ body.light select:disabled, body.dark select:disabled {
 html, body { min-height: 100%; }
 body { background: var(--surface); color: var(--on-surface); }
 
+/* The hidden attribute always wins. Any author display rule on an element beats the UA's
+   [hidden]{display:none}; the fault banner was flex and therefore visible while hidden. */
+[hidden] { display: none !important; }
+
 /* --- waiting state: nothing below is trusted until the first state document lands --- */
 body.ps-waiting .ps-needs-state { opacity: .55; pointer-events: none; }
 body.ps-waiting #ps-banner-waiting { display: flex; }
@@ -150,7 +154,8 @@ body.ps-waiting #ps-banner-waiting { display: flex; }
 
 /* --- top bar --- */
 .ps-topbar { gap: 10px; }
-.ps-brand { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; color: inherit; min-width: 0; }
+/* Beer lays every nav link out as an icon over a label, 3.5rem wide. The brand is a row. */
+nav.top.ps-topbar > a.ps-brand { display: inline-flex; flex-direction: row; align-items: center; gap: 10px; inline-size: auto; font-size: inherit; text-decoration: none; color: inherit; min-width: 0; }
 .ps-brand-name { font-weight: 600; letter-spacing: .01em; white-space: nowrap; }
 .ps-mark { width: 40px; height: 40px; flex: none; }
 body.light .ps-mark-dark { display: none; }
@@ -186,16 +191,21 @@ article[data-ps-card] {
   padding: 16px;
   margin: 0 0 var(--ps-gap);
 }
-article[data-ps-card][hidden] { display: none !important; }
 .ps-card-title { margin: 0 0 12px; font-size: 1.05rem; font-weight: 600; }
 .ps-grid { display: grid; grid-template-columns: 1fr; gap: var(--ps-gap); }
 @media (min-width: 700px) { .ps-grid-2 { grid-template-columns: 1fr 1fr; } }
+/* Card content is one column with one gap; tiles are columns with one smaller gap. Beer's
+   sibling-margin heuristic (1rem above p, .field, h1..h6 and so on) is switched off inside
+   a tile so the rhythm is the gap and nothing else. */
+.ps-needs-state { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--ps-gap); }
 .ps-tile {
+  display: flex; flex-direction: column; gap: 8px;
   background: var(--surface-container);
   border-radius: var(--ps-radius-sm);
   padding: 14px;
 }
-.ps-tile-label { font-size: .8rem; color: var(--on-surface-variant); margin-bottom: 4px; }
+.ps-tile > *, .ps-grid > * { margin-block: 0 !important; }
+.ps-tile-label { font-size: .8rem; color: var(--on-surface-variant); }
 .ps-tile-value { font-size: 1.25rem; font-weight: 600; word-break: break-word; }
 .ps-tile-value.ps-unset { color: var(--on-surface-variant); font-weight: 400; }
 .ps-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
@@ -205,6 +215,12 @@ article[data-ps-card][hidden] { display: none !important; }
 
 /* the state dot: the bar's three states and the printer's, as a coloured dot beside text */
 .ps-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; background: var(--ps-led-dim); flex: none; }
+
+/* a colour field: Beer's prefix slot, with the dot where the prefix icon would sit, showing
+   the colour the device holds. Coloris is bound without its wrapper so Beer still styles
+   the input; the picker is the only thing Coloris adds. */
+.ps-colour-field { position: relative; }
+.ps-colour-field > .ps-dot { position: absolute; inset-inline-start: 1.1rem; inset-block-start: calc(var(--_input, 2.5rem) / 2 - 7px); width: 14px; height: 14px; box-shadow: 0 0 0 1px var(--outline); z-index: 10; pointer-events: none; }
 .ps-dot-on    { background: var(--ps-led-lit); }
 .ps-dot-warn  { background: var(--tertiary); }
 .ps-dot-error { background: var(--error); }
@@ -235,7 +251,7 @@ article[data-ps-card][hidden] { display: none !important; }
   else document.body.classList.add('light');
 })();
 </script>
-<svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true"><symbol id="ps-icon-cog-6-tooth" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z"/>
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true"><symbol id="ps-icon-chevron-down" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></symbol><symbol id="ps-icon-cog-6-tooth" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z"/>
   <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></symbol><symbol id="ps-icon-cube" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path stroke-linecap="round" stroke-linejoin="round" d="m21 7.5-9-5.25L3 7.5m18 0-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9"/></symbol><symbol id="ps-icon-document-text" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"/></symbol><symbol id="ps-icon-home" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"/></symbol><symbol id="ps-icon-light-bulb" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path stroke-linecap="round" stroke-linejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 0 0 1.5-.189m-1.5.189a6.01 6.01 0 0 1-1.5-.189m3.75 7.478a12.06 12.06 0 0 1-4.5 0m3.75 2.383a14.406 14.406 0 0 1-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 1 0-7.517 0c.85.493 1.509 1.333 1.509 2.316V18"/></symbol><symbol id="ps-icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z"/></symbol><symbol id="ps-icon-photo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"/></symbol><symbol id="ps-icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z"/></symbol><symbol id="ps-icon-wifi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path stroke-linecap="round" stroke-linejoin="round" d="M8.288 15.038a5.25 5.25 0 0 1 7.424 0M5.106 11.856c3.807-3.808 9.98-3.808 13.788 0M1.924 8.674c5.565-5.565 14.587-5.565 20.152 0M12.53 18.22l-.53.53-.53-.53a.75.75 0 0 1 1.06 0Z"/></symbol></svg>
 
 <nav class="top ps-topbar" id="ps-topbar">
@@ -277,9 +293,16 @@ article[data-ps-card][hidden] { display: none !important; }
 
 <nav class="left ps-rail" id="ps-rail" data-ps-str-aria="ps_frame_nav" aria-label="Pages">
   <a href="#dashboard" data-ps-nav="dashboard"><svg class="ps-icon"><use href="#ps-icon-home"/></svg><div data-ps-str="ps_frame_nav_dashboard">Dashboard</div></a>
+  <a href="#lighting"  data-ps-nav="lighting"><svg class="ps-icon"><use href="#ps-icon-light-bulb"/></svg><div data-ps-str="ps_frame_nav_lighting">Lighting</div></a>
 </nav>
 
 <main class="responsive ps-main" id="ps-main">
+<div class="ps-banner ps-banner-waiting" id="ps-banner-waiting" role="status">
+  <span data-ps-str="ps_global_waiting">Waiting for the device to send its state.</span>
+</div>
+<div class="ps-banner ps-banner-fault" id="ps-banner-fault" role="alert" hidden>
+  <span id="ps-banner-fault-text" data-ps-str="ps_global_fault">The device reported that a setting could not be saved.</span>
+</div>
 <!-- page: dashboard -->
 <article data-ps-card id="ps-card-dashboard">
   <h2 class="ps-card-title" data-ps-str="ps_dashboard_title">Dashboard</h2>
@@ -318,22 +341,98 @@ article[data-ps-card][hidden] { display: none !important; }
 
   </div>
 </article>
+<!-- page: lighting -->
+<article data-ps-card id="ps-card-lighting" hidden>
+  <h2 class="ps-card-title" data-ps-str="ps_lighting_title">Lighting</h2>
+
+  <div class="ps-needs-state">
+
+    <div class="ps-tile" id="ps-lighting-mode-tile">
+      <div class="ps-tile-label" data-ps-str="ps_lighting_mode">Mode</div>
+      <div class="field suffix border small" data-ps-no-i18n>
+        <select id="ps-lighting-mode" data-ps-str-aria="ps_lighting_mode_aria" aria-label="Lighting mode">
+          <option value="0" data-ps-str="ps_lighting_mode_music">Music</option>
+          <option value="1" data-ps-str="ps_lighting_mode_h2d">H2D</option>
+        </select>
+        <svg class="ps-icon"><use href="#ps-icon-chevron-down"/></svg>
+      </div>
+      <div class="ps-tile-label" data-ps-str="ps_lighting_mode_help">Music reacts to sound. H2D shows the printer's state with three colours.</div>
+    </div>
+
+    <div class="ps-grid ps-grid-2">
+      <div class="ps-tile">
+        <div class="ps-row">
+          <span class="ps-tile-label" data-ps-str="ps_lighting_brightness">Brightness</span>
+          <span class="max"></span>
+          <span class="ps-tile-label" id="ps-lighting-brightness-value" data-ps-no-i18n>—</span>
+        </div>
+        <label class="slider" data-ps-no-i18n>
+          <input type="range" min="0" max="100" step="5" id="ps-lighting-brightness" data-ps-str-aria="ps_lighting_brightness_aria" aria-label="Brightness">
+          <span></span>
+        </label>
+      </div>
+
+      <div class="ps-tile">
+        <div class="ps-row">
+          <span class="ps-tile-label" data-ps-str="ps_lighting_speed">Speed</span>
+          <span class="max"></span>
+          <span class="ps-tile-label" id="ps-lighting-speed-value" data-ps-no-i18n>—</span>
+        </div>
+        <label class="slider" data-ps-no-i18n>
+          <input type="range" min="0" max="100" step="5" value="100" id="ps-lighting-speed" data-ps-str-aria="ps_lighting_speed_aria" aria-label="Speed">
+          <span></span>
+        </label>
+        <div class="ps-tile-label" id="ps-lighting-speed-note" data-ps-str="ps_lighting_speed_music">Speed applies in H2D mode only.</div>
+      </div>
+    </div>
+
+    <div class="ps-tile" id="ps-lighting-colours">
+      <div class="ps-tile-label" data-ps-str="ps_lighting_colours">State colours</div>
+      <div class="ps-grid ps-grid-2" data-ps-no-i18n>
+        <label class="field prefix border small ps-colour-field">
+          <span class="ps-dot" id="ps-lighting-colour-dot-0"></span>
+          <input type="text" id="ps-lighting-colour-0" data-ps-colour="0" data-ps-str-aria="ps_lighting_colour_idle_aria" aria-label="Idle colour">
+          <span class="helper" data-ps-str="ps_lighting_colour_idle">Idle</span>
+        </label>
+        <label class="field prefix border small ps-colour-field">
+          <span class="ps-dot" id="ps-lighting-colour-dot-1"></span>
+          <input type="text" id="ps-lighting-colour-1" data-ps-colour="1" data-ps-str-aria="ps_lighting_colour_printing_aria" aria-label="Printing colour">
+          <span class="helper" data-ps-str="ps_lighting_colour_printing">Printing</span>
+        </label>
+        <label class="field prefix border small ps-colour-field">
+          <span class="ps-dot" id="ps-lighting-colour-dot-2"></span>
+          <input type="text" id="ps-lighting-colour-2" data-ps-colour="2" data-ps-str-aria="ps_lighting_colour_error_aria" aria-label="Error colour">
+          <span class="helper" data-ps-str="ps_lighting_colour_error">Error</span>
+        </label>
+      </div>
+      <div class="ps-tile-label" data-ps-str="ps_lighting_colours_help">Colours are per mode. Changing the mode above shows that mode's colours.</div>
+    </div>
+
+    <div class="ps-tile" id="ps-lighting-blocks">
+      <div class="ps-tile-label" data-ps-str="ps_lighting_blocks">Segments</div>
+      <div id="ps-lighting-block-list" class="ps-grid" data-ps-no-i18n></div>
+      <div class="ps-tile-label" data-ps-str="ps_lighting_blocks_help">Each segment has its own colour. What a segment maps to on the bar is recorded during the bench session.</div>
+    </div>
+
+    <div class="ps-row">
+      <button class="border" id="ps-lighting-reset" data-ps-str="ps_lighting_reset">Reset lighting</button>
+      <span class="ps-tile-label" data-ps-str="ps_lighting_reset_help">Puts brightness, speed and the three colours back to their defaults. Nothing else.</span>
+    </div>
+
+  </div>
+</article>
 </main>
 
 <nav class="bottom ps-bottombar" id="ps-bottombar" data-ps-str-aria="ps_frame_nav_2" aria-label="Pages">
   <a href="#dashboard" data-ps-nav="dashboard"><svg class="ps-icon"><use href="#ps-icon-home"/></svg><div data-ps-str="ps_frame_nav_dashboard_2">Dashboard</div></a>
+  <a href="#lighting"  data-ps-nav="lighting"><svg class="ps-icon"><use href="#ps-icon-light-bulb"/></svg><div data-ps-str="ps_frame_nav_lighting_2">Lighting</div></a>
 </nav>
 
 <!-- Furniture shared by every page. One dialog, filled by whoever opens it; one toast; the
-     banners that cannot be dismissed because the fault they describe has not gone away. -->
-
-<div class="ps-banner ps-banner-waiting" id="ps-banner-waiting" role="status">
-  <span data-ps-str="ps_global_waiting">Waiting for the device to send its state.</span>
-</div>
-
-<div class="ps-banner ps-banner-fault" id="ps-banner-fault" role="alert" hidden>
-  <span id="ps-banner-fault-text" data-ps-str="ps_global_fault">The device reported that a setting could not be saved.</span>
-</div>
+     hidden file input. Everything here is out of the document flow (fixed, or display:none
+     until used). That matters: Beer CSS lays <body> out as a grid with named areas for the
+     navs and <main>, and any other in-flow child of <body> is auto-placed into a spare grid
+     cell and steals width from the page. The banners live inside <main> for that reason. -->
 
 <dialog class="ps-dialog" id="ps-dialog" data-ps-no-i18n>
   <h5 id="ps-dialog-title" data-ps-str="ps_global_dialog_title">Notice</h5>
@@ -352,7 +451,7 @@ article[data-ps-card][hidden] { display: none !important; }
 // generated by tools/ui/build/i18n.py; do not edit
 var PS_STRING_LANGS = ["en"];
 var PS_RTL_LANGS = [];
-var PS_STRINGS = {"en":{"ps_core_factory_done_text":"The device is resetting and will restart. Reconnect to its hotspot to set it up again.","ps_core_factory_done_title":"Factory reset","ps_core_lost_text":"The device closed the connection. Reload the page to reconnect.","ps_core_lost_title":"Connection lost","ps_core_reload":"Reload","ps_core_restart_text":"The device will restart to apply this change.","ps_core_save_failed":"The device did not accept the change.","ps_core_saved_title":"Saved","ps_core_upload_failed":"Upload refused.","ps_core_upload_ok":"Upload accepted.","ps_dashboard_brightness":"Brightness","ps_dashboard_device":"Device","ps_dashboard_hotspot_off":"Hotspot off","ps_dashboard_hotspot_on":"Hotspot on","ps_dashboard_lighting":"Lighting","ps_dashboard_mode_h2d":"H2D","ps_dashboard_mode_music":"Music","ps_dashboard_network":"Network","ps_dashboard_pill_connecting":"Printer connecting","ps_dashboard_pill_error":"Printer error","ps_dashboard_pill_ready":"Printer connected","ps_dashboard_pill_unbound":"No printer","ps_dashboard_printer":"Printer","ps_dashboard_prn_1":"Not bound","ps_dashboard_prn_2":"Connecting","ps_dashboard_prn_3":"Connected","ps_dashboard_prn_4":"Address error","ps_dashboard_prn_5":"Serial does not match","ps_dashboard_prn_6":"Access code rejected","ps_dashboard_prn_7":"Unknown error","ps_dashboard_sta_1":"No network configured","ps_dashboard_sta_2":"Connecting","ps_dashboard_sta_3":"Connected","ps_dashboard_sta_4":"Reconnecting","ps_dashboard_sta_5":"Wrong password","ps_dashboard_title":"Dashboard","ps_dashboard_unknown_state":"Unknown state","ps_frame_home":"Home","ps_frame_nav":"Pages","ps_frame_nav_2":"Pages","ps_frame_nav_dashboard":"Dashboard","ps_frame_nav_dashboard_2":"Dashboard","ps_frame_pill_waiting":"Waiting for the device","ps_frame_theme":"Theme","ps_frame_title":"Panda Status","ps_global_cancel":"Cancel","ps_global_dialog_text":"Message","ps_global_dialog_title":"Notice","ps_global_fault":"The device reported that a setting could not be saved.","ps_global_ok":"OK","ps_global_waiting":"Waiting for the device to send its state."}};
+var PS_STRINGS = {"en":{"ps_core_factory_done_text":"The device is resetting and will restart. Reconnect to its hotspot to set it up again.","ps_core_factory_done_title":"Factory reset","ps_core_lost_text":"The device closed the connection. Reload the page to reconnect.","ps_core_lost_title":"Connection lost","ps_core_reload":"Reload","ps_core_restart_text":"The device will restart to apply this change.","ps_core_save_failed":"The device did not accept the change.","ps_core_saved_title":"Saved","ps_core_upload_failed":"Upload refused.","ps_core_upload_ok":"Upload accepted.","ps_dashboard_brightness":"Brightness","ps_dashboard_device":"Device","ps_dashboard_hotspot_off":"Hotspot off","ps_dashboard_hotspot_on":"Hotspot on","ps_dashboard_lighting":"Lighting","ps_dashboard_mode_h2d":"H2D","ps_dashboard_mode_music":"Music","ps_dashboard_network":"Network","ps_dashboard_pill_connecting":"Printer connecting","ps_dashboard_pill_error":"Printer error","ps_dashboard_pill_ready":"Printer connected","ps_dashboard_pill_unbound":"No printer","ps_dashboard_printer":"Printer","ps_dashboard_prn_1":"Not bound","ps_dashboard_prn_2":"Connecting","ps_dashboard_prn_3":"Connected","ps_dashboard_prn_4":"Address error","ps_dashboard_prn_5":"Serial does not match","ps_dashboard_prn_6":"Access code rejected","ps_dashboard_prn_7":"Unknown error","ps_dashboard_sta_1":"No network configured","ps_dashboard_sta_2":"Connecting","ps_dashboard_sta_3":"Connected","ps_dashboard_sta_4":"Reconnecting","ps_dashboard_sta_5":"Wrong password","ps_dashboard_title":"Dashboard","ps_dashboard_unknown_state":"Unknown state","ps_frame_home":"Home","ps_frame_nav":"Pages","ps_frame_nav_2":"Pages","ps_frame_nav_dashboard":"Dashboard","ps_frame_nav_dashboard_2":"Dashboard","ps_frame_nav_lighting":"Lighting","ps_frame_nav_lighting_2":"Lighting","ps_frame_pill_waiting":"Waiting for the device","ps_frame_theme":"Theme","ps_frame_title":"Panda Status","ps_global_cancel":"Cancel","ps_global_dialog_text":"Message","ps_global_dialog_title":"Notice","ps_global_fault":"The device reported that a setting could not be saved.","ps_global_ok":"OK","ps_global_waiting":"Waiting for the device to send its state.","ps_lighting_block":"Segment","ps_lighting_block_aria":"Segment colour","ps_lighting_blocks":"Segments","ps_lighting_blocks_help":"Each segment has its own colour. What a segment maps to on the bar is recorded during the bench session.","ps_lighting_brightness":"Brightness","ps_lighting_brightness_aria":"Brightness","ps_lighting_colour_error":"Error","ps_lighting_colour_error_aria":"Error colour","ps_lighting_colour_idle":"Idle","ps_lighting_colour_idle_aria":"Idle colour","ps_lighting_colour_printing":"Printing","ps_lighting_colour_printing_aria":"Printing colour","ps_lighting_colours":"State colours","ps_lighting_colours_help":"Colours are per mode. Changing the mode above shows that mode's colours.","ps_lighting_mode":"Mode","ps_lighting_mode_aria":"Lighting mode","ps_lighting_mode_h2d":"H2D","ps_lighting_mode_help":"Music reacts to sound. H2D shows the printer's state with three colours.","ps_lighting_mode_music":"Music","ps_lighting_reset":"Reset lighting","ps_lighting_reset_confirm":"Reset","ps_lighting_reset_help":"Puts brightness, speed and the three colours back to their defaults. Nothing else.","ps_lighting_reset_music":"Reset applies in H2D mode. Switch the mode first.","ps_lighting_reset_text":"Brightness, speed and the three state colours go back to their defaults. Wi-Fi, the printer and the hostname are not touched.","ps_lighting_reset_title":"Reset lighting?","ps_lighting_speed":"Speed","ps_lighting_speed_aria":"Speed","ps_lighting_speed_default":"default 100%","ps_lighting_speed_music":"Speed applies in H2D mode only.","ps_lighting_title":"Lighting"}};
 
 </script>
 <script type="module">
@@ -1199,6 +1298,148 @@ var PS = (function () {
   }
 
   PS.on('state', function (e) { render(e.state); });
+})();
+</script>
+<script>
+// module: 20-lighting.js
+'use strict';
+/* Lighting. Every control here sends exactly one frame shape from docs/protocol-websocket.md.
+
+   Parity notes, each a fact from the protocol doc:
+   - brightness and speed are 0..100 in steps of 5, 21 positions each
+   - speed is disabled in Music mode; the factory UI greys it and it sends nothing there
+   - colours are addressed by state index 0 idle, 1 printing, 2 error, and are per mode
+   - the two modes store colours in different formats, index 0 bare RRGGBB and index 1
+     #RRGGBBAA. What the BROWSER sends is not settled until the bench write test; this page
+     sends the format the device stores for the selected mode. INFERENCE, pinned by the
+     harness, corrected by the bench if it differs
+   - the reset sends nothing in Music mode. The factory UI returns before the send; the
+     wire result is identical here, and the page says so instead of silently doing nothing
+   - a device that did not send a speed key never moves the slider. Untouched, it sits at
+     its markup default of 100, which is the UI's own default and not a device value, and
+     the label says so. Once the user has set it, the slider keeps what they set: the mock
+     has a knob for whether the device echoes speed, and a page that wrote 100 back on
+     every push would fight the user on a device that does not */
+
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var modeSel, bright, brightVal, speed, speedVal, speedNote, colours, dots, blockList, resetBtn;
+  var focused = null;               // never write a field the user is editing
+  var speedTouched = false;         // the user has moved the speed slider at least once
+  // Coloris is bound to our own attributes, never to its data-coloris: on load it wraps every
+  // data-coloris field in a div of its own, which breaks Beer's field styling. wrap:false is
+  // honoured only per bind call, so every bind here says it.
+  var COLOUR_FIELDS = '[data-ps-colour],[data-ps-block]';
+
+  function mode() { var m = PS.state.settings && PS.state.settings.current_mode; return (m === 0 || m === 1) ? m : null; }
+  function entry() { var m = mode(); var l = PS.state.settings && PS.state.settings.list2; return (m !== null && l && l[m]) ? l[m] : null; }
+
+  // ---- colour format per mode. Coloris yields #rrggbb or #rrggbbaa (lowercase). ----
+  function toDevice(hex, m) {
+    var h = hex.replace('#', '').toUpperCase();
+    if (h.length === 3) h = h.split('').map(function (c) { return c + c; }).join('');
+    var rgb = h.slice(0, 6), a = h.length >= 8 ? h.slice(6, 8) : 'FF';
+    return m === 0 ? rgb : '#' + rgb + a;
+  }
+  function toCss(dev) {
+    var h = String(dev || '').replace('#', '');
+    if (h.length < 6) return '';
+    return '#' + h.slice(0, 6) + (h.length >= 8 ? h.slice(6, 8) : '');
+  }
+
+  function render() {
+    var m = mode(), e = entry();
+    if (m !== null && document.activeElement !== modeSel) modeSel.value = String(m);
+    var isMusic = m === 0;
+    speed.disabled = isMusic;
+    speedNote.hidden = !isMusic;
+    if (e) {
+      if (focused !== bright) { bright.value = e.brightness; }
+      brightVal.textContent = e.brightness + '%';
+      if (e.speed !== undefined) {
+        if (focused !== speed) speed.value = e.speed;
+        speedVal.textContent = e.speed + '%';
+      } else if (!speedTouched) speedVal.textContent = PS.tr('ps_lighting_speed_default');
+      for (var i = 0; i < 3; i++) {
+        var css = toCss(e.rgb_rgba && e.rgb_rgba[i]);
+        if (focused !== colours[i]) { colours[i].value = css; colours[i].dispatchEvent(new Event('input', { bubbles: false })); }
+        dots[i].style.background = css || '';
+      }
+    }
+    renderBlocks();
+  }
+
+  function renderBlocks() {
+    var list = (PS.state.block && PS.state.block.blocklist) || [];
+    var want = list.map(function (b) { return b.blockID; }).join(',');
+    if (blockList.getAttribute('data-ps-ids') !== want) {
+      while (blockList.firstChild) blockList.removeChild(blockList.firstChild);
+      list.forEach(function (b) {
+        var lab = document.createElement('label'); lab.className = 'field prefix border small ps-colour-field';
+        var dot = document.createElement('span'); dot.className = 'ps-dot'; dot.id = 'ps-lighting-block-dot-' + b.blockID;
+        var inp = document.createElement('input'); inp.type = 'text'; inp.id = 'ps-lighting-block-' + b.blockID;
+        inp.setAttribute('data-ps-block', String(b.blockID)); inp.setAttribute('aria-label', PS.tr('ps_lighting_block_aria') + ' ' + b.blockID);
+        var help = document.createElement('span'); help.className = 'helper'; help.textContent = PS.tr('ps_lighting_block') + ' ' + b.blockID;
+        lab.appendChild(dot); lab.appendChild(inp); lab.appendChild(help); blockList.appendChild(lab);
+        inp.addEventListener('focus', function () { focused = inp; });
+        inp.addEventListener('blur', function () { if (focused === inp) focused = null; });
+        inp.addEventListener('change', function () {
+          PS.send('block', { blockID: b.blockID, blockrgba: toDevice(inp.value, 1) });
+        });
+      });
+      blockList.setAttribute('data-ps-ids', want);
+      if (window.Coloris) Coloris({ el: COLOUR_FIELDS, wrap: false });   // wrap is per bind call
+    }
+    list.forEach(function (b) {
+      var inp = $('ps-lighting-block-' + b.blockID), dot = $('ps-lighting-block-dot-' + b.blockID);
+      if (!inp) return;
+      var css = toCss(b.blockrgba);
+      if (focused !== inp) { inp.value = css; inp.dispatchEvent(new Event('input', { bubbles: false })); }
+      dot.style.background = css || '';
+    });
+  }
+
+  function wire() {
+    modeSel = $('ps-lighting-mode'); bright = $('ps-lighting-brightness'); brightVal = $('ps-lighting-brightness-value');
+    speed = $('ps-lighting-speed'); speedVal = $('ps-lighting-speed-value'); speedNote = $('ps-lighting-speed-note');
+    colours = [0, 1, 2].map(function (i) { return $('ps-lighting-colour-' + i); });
+    dots = [0, 1, 2].map(function (i) { return $('ps-lighting-colour-dot-' + i); });
+    blockList = $('ps-lighting-block-list'); resetBtn = $('ps-lighting-reset');
+
+    [bright, speed].concat(colours).forEach(function (el) {
+      el.addEventListener('focus', function () { focused = el; });
+      el.addEventListener('blur', function () { if (focused === el) focused = null; });
+    });
+
+    modeSel.addEventListener('change', function () {
+      PS.send('settings', { rgb_info_mode: Number(modeSel.value) });
+    });
+    bright.addEventListener('input', function () { brightVal.textContent = bright.value + '%'; });
+    bright.addEventListener('change', function () { PS.send('settings', { rgb_info_brightness: Number(bright.value) }); });
+    speed.addEventListener('input', function () { if (speed.disabled) return; speedTouched = true; speedVal.textContent = speed.value + '%'; });
+    speed.addEventListener('change', function () { if (!speed.disabled) PS.send('settings', { rgb_info_speed: Number(speed.value) }); });
+
+    colours.forEach(function (inp, i) {
+      inp.addEventListener('change', function () {
+        var m = mode(); if (m === null) return;
+        dots[i].style.background = inp.value;
+        PS.send('settings', { rgb_info_mode: m, rgb_rgba: toDevice(inp.value, m), rgb_state_index: i });
+      });
+    });
+
+    resetBtn.addEventListener('click', function () {
+      if (mode() === 0) { PS.toast(PS.tr('ps_lighting_reset_music')); return; }   // parity: nothing on the wire in Music
+      PS.dialog(PS.tr('ps_lighting_reset_title'), PS.tr('ps_lighting_reset_text'),
+        [{ key: 'ps_lighting_reset_confirm', handler: function () { PS.send('settings', { rgb_reset: 1 }); } }, { key: 'ps_global_cancel' }]);
+    });
+
+    if (window.Coloris) {
+      Coloris({ el: COLOUR_FIELDS, alpha: true, format: 'hex', themeMode: 'auto', wrap: false });
+    }
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', wire); else wire();
+  PS.on('state', function () { render(); });
 })();
 </script>
 </body>

@@ -14,6 +14,7 @@ used unmodified.
 
 | File | sha256 |
 |---|---|
+| `outline/chevron-down.svg` | `2eacb6cecd8f1ab845a2a8417074b0dab9fd9612cdf56d76be45b82adb2933f5` |
 | `outline/cog-6-tooth.svg` | `aee6f966b9491c2a8aed12bdc20193affe259964930ae6e2e264f0dc26e163fb` |
 | `outline/cube.svg` | `7414e9c49119a02ca7c5fa10dd662e708c06bab1b03a57c33dce6c62a2c765f6` |
 | `outline/document-text.svg` | `71f9dc980c507b7cfd044b7b322790f826e69cffcb6b06802c898502328a85b5` |
