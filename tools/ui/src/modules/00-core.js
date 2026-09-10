@@ -163,6 +163,22 @@ var PS = (function () {
     }
   });
 
+  // ---------- uploads. POST /ota is the one HTTP write the device accepts. ----------
+  // Caps per OTA-Type, from docs/protocol-websocket.md: the factory UI compares the file's
+  // size against them before sending. Callers check; this only sends.
+  var UPLOAD_CAPS = { ota_fw: 0x480000, ota_img: 0x6E0000, gif: 0x180000 };
+  function upload(type, file, cb) {
+    cb = cb || {};
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', '/ota', true);
+    xhr.setRequestHeader('Content-Type', 'application/octet-stream;charset=UTF-8');
+    xhr.setRequestHeader('OTA-Type', type);
+    xhr.upload.onprogress = function (e) { if (e.lengthComputable && cb.progress) cb.progress(Math.round(100 * e.loaded / e.total)); };
+    xhr.onload = function () { if (cb.done) cb.done(xhr.status); };
+    xhr.onerror = function () { if (cb.done) cb.done(0); };
+    xhr.send(file);
+  }
+
   // ---------- theme ----------
   function theme(next) {
     try { if (next) localStorage.setItem('ps_theme', next); } catch (e) {}
@@ -199,6 +215,6 @@ var PS = (function () {
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
 
-  return { state: state, on: on, send: send, tr: tr, setLang: setLang, apply_translations: apply_translations,
+  return { state: state, on: on, send: send, upload: upload, UPLOAD_CAPS: UPLOAD_CAPS, tr: tr, setLang: setLang, apply_translations: apply_translations,
            dialog: dialog, toast: toast, pill: pill, showCard: showCard, theme: theme, get lang() { return lang; }, get connected() { return !!(sock && sock.readyState === 1); } };
 })();

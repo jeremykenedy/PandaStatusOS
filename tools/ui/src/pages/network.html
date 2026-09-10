@@ -1,0 +1,95 @@
+<article data-ps-card id="ps-card-network" hidden>
+  <h2 class="ps-card-title" data-ps-str="ps_network_title">Network</h2>
+
+  <div class="ps-needs-state">
+
+    <div class="ps-tile" id="ps-network-status">
+      <div class="ps-tile-label" data-ps-str="ps_network_wifi">Wi-Fi</div>
+      <div class="ps-row">
+        <span class="ps-dot" id="ps-network-dot"></span>
+        <span class="ps-tile-value ps-unset" id="ps-network-ssid" data-ps-no-i18n>—</span>
+      </div>
+      <div class="ps-tile-label" id="ps-network-state" data-ps-no-i18n>—</div>
+      <dl class="ps-kv">
+        <dt data-ps-str="ps_network_ip">IP address</dt><dd id="ps-network-ip" data-ps-no-i18n>—</dd>
+        <dt data-ps-str="ps_network_reason">Reason code</dt><dd id="ps-network-reason" data-ps-no-i18n>—</dd>
+      </dl>
+    </div>
+
+    <div class="ps-tile" id="ps-network-find">
+      <div class="ps-tile-label" data-ps-str="ps_network_find">Find networks</div>
+      <div class="ps-row">
+        <button class="border" id="ps-network-scan" data-ps-str="ps_network_scan">Scan</button>
+        <span class="ps-tile-label" id="ps-network-scan-state" data-ps-no-i18n>—</span>
+      </div>
+      <div id="ps-network-found" class="ps-grid" data-ps-no-i18n></div>
+    </div>
+
+    <div class="ps-tile" id="ps-network-connect">
+      <div class="ps-tile-label" data-ps-str="ps_network_connect">Connect to a network</div>
+      <div class="ps-grid ps-grid-2">
+        <div class="field border small label">
+          <input type="text" id="ps-network-connect-ssid" autocomplete="off" spellcheck="false">
+          <label data-ps-str="ps_network_connect_ssid">Network name</label>
+        </div>
+        <div class="field border small label">
+          <input type="password" id="ps-network-connect-password" autocomplete="off">
+          <label data-ps-str="ps_network_connect_password">Password</label>
+        </div>
+      </div>
+      <div class="ps-row">
+        <button id="ps-network-connect-send" data-ps-str="ps_network_connect_send">Connect</button>
+        <label class="checkbox">
+          <input type="checkbox" id="ps-network-connect-show">
+          <span data-ps-str="ps_network_connect_show">Show the password</span>
+        </label>
+      </div>
+      <div class="ps-tile-label" data-ps-str="ps_network_connect_help">The device joins the new network and this page loses it. Find the device again at its new address, or on its own hotspot if the network refused it.</div>
+    </div>
+
+    <div class="ps-tile" id="ps-network-hostname">
+      <div class="ps-tile-label" data-ps-str="ps_network_hostname">Hostname</div>
+      <div class="ps-grid ps-grid-2">
+        <div class="field border small label">
+          <input type="text" id="ps-network-hostname-input" autocomplete="off" spellcheck="false">
+          <label data-ps-str="ps_network_hostname_label">Hostname</label>
+        </div>
+        <div class="ps-row">
+          <button class="border" id="ps-network-hostname-send" data-ps-str="ps_network_hostname_send">Set hostname</button>
+        </div>
+      </div>
+      <div class="ps-tile-label" data-ps-str="ps_network_hostname_help">Saving a new hostname restarts the device. The page asks before the restart.</div>
+    </div>
+
+    <div class="ps-tile" id="ps-network-ap">
+      <div class="ps-tile-label" data-ps-str="ps_network_ap">Hotspot</div>
+      <label class="switch">
+        <input type="checkbox" id="ps-network-ap-on">
+        <span data-ps-str="ps_network_ap_on">Hotspot on</span>
+      </label>
+      <div class="ps-grid ps-grid-2">
+        <div class="field border small label">
+          <input type="text" id="ps-network-ap-ssid" autocomplete="off" spellcheck="false">
+          <label data-ps-str="ps_network_ap_ssid">Hotspot name</label>
+        </div>
+        <div class="field border small label">
+          <input type="password" id="ps-network-ap-password" autocomplete="off">
+          <label data-ps-str="ps_network_ap_password">Hotspot password</label>
+        </div>
+        <div class="field border small label">
+          <input type="text" id="ps-network-ap-ip" autocomplete="off" spellcheck="false" inputmode="decimal">
+          <label data-ps-str="ps_network_ap_ip">Hotspot address</label>
+        </div>
+      </div>
+      <div class="ps-row">
+        <button id="ps-network-ap-send" data-ps-str="ps_network_ap_send">Save hotspot</button>
+        <label class="checkbox">
+          <input type="checkbox" id="ps-network-ap-show">
+          <span data-ps-str="ps_network_ap_show">Show the password</span>
+        </label>
+      </div>
+      <div class="ps-tile-label" data-ps-str="ps_network_ap_help">The hotspot is how the device is reached when it is not on a network. Changing its address restarts the device; the page asks before the restart.</div>
+    </div>
+
+  </div>
+</article>

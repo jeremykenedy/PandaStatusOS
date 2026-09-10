@@ -36,6 +36,11 @@ ROWS=(
   "p2-idle.json      | page-images.js | PS_THEME_ON_CONNECT=1"
   "p2-idle.json      | page-printer.js | "
   "p2-idle.json      | page-printer.js | PS_PRINTER_FAIL=6"
+  "p2-idle.json      | page-network.js | "
+  "p2-idle.json      | page-network.js | PS_WIFI_FAIL=1"
+  "p2-idle.json      | page-system.js | "
+  "p2-idle.json      | page-system.js | PS_IMG_VERSION=1"
+  "p2-idle.json      | page-system.js | PS_OTA_REFUSE=1"
 )
 
 pass=0; fail=0; failed=()

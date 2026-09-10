@@ -55,5 +55,19 @@
   "ps_printer_use": "Use",
   "ps_printer_unbind_title": "Unbind the printer?",
   "ps_printer_unbind_text": "The device stops talking to the printer and the lighting stops following prints. You can bind it again at any time.",
-  "ps_printer_unbind_confirm": "Unbind"
+  "ps_printer_unbind_confirm": "Unbind",
+  "ps_network_scan_0": "Not scanning",
+  "ps_network_scan_1": "Scanning",
+  "ps_network_scan_2": "Scan finished",
+  "ps_network_use": "Use",
+  "ps_core_language_name": "English",
+  "ps_system_status_sending": "Sending",
+  "ps_system_status_sent": "Sent. Waiting for the device to confirm.",
+  "ps_system_status_ok": "Accepted by the device.",
+  "ps_system_status_refused": "Refused by the device.",
+  "ps_system_status_failed": "Upload failed ({code}).",
+  "ps_system_status_too_big": "Too big. The limit is {limit}.",
+  "ps_system_factory_title": "Erase everything?",
+  "ps_system_factory_dialog": "Every setting on the device is erased and it restarts as new: Wi-Fi, hotspot, printer binding, hostname, language, lighting. There is no undo. Do this only if you mean to set the device up again from nothing.",
+  "ps_system_factory_confirm": "Erase everything"
 }

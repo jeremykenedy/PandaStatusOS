@@ -185,6 +185,11 @@ body.dark  .ps-mark-light { display: none; }
 .ps-rail a.ps-current, .ps-bottombar a.ps-current { color: var(--primary); font-weight: 600; }
 @media (max-width: 991px) { .ps-rail { display: none; } }
 @media (min-width: 992px) { .ps-bottombar { display: none; } }
+/* Seven destinations on a 390px phone: Beer's fixed 3.5rem per link overflows, so the
+   bottom bar shares its width out instead. */
+nav.bottom.ps-bottombar { gap: 0; padding-inline: 0; }
+nav.bottom.ps-bottombar > a { inline-size: auto; flex: 1 1 0; min-width: 0; font-size: .7rem; padding-inline: 0; }
+nav.bottom.ps-bottombar > a > div { overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
 
 /* --- pages --- */
 .ps-main { padding-bottom: 96px; }
@@ -243,10 +248,20 @@ article[data-ps-card] {
 .ps-images-slot progress { max-width: 220px; }
 .ps-images-slot button { white-space: nowrap; }
 
-/* --- printer: found-printer rows --- */
-.ps-printer-found-row { padding: 8px 10px; border-radius: var(--ps-radius-sm); background: var(--ps-wash-1); }
-.ps-printer-found-row > .ps-tile-value { font-size: 1rem; }
-.ps-printer-found-row > button { margin-inline-start: auto; }
+/* --- printer and network: found-item rows --- */
+.ps-printer-found-row, .ps-network-found-row { padding: 8px 10px; border-radius: var(--ps-radius-sm); background: var(--ps-wash-1); }
+.ps-printer-found-row > .ps-tile-value, .ps-network-found-row > .ps-tile-value { font-size: 1rem; }
+.ps-printer-found-row > button, .ps-network-found-row > button { margin-inline-start: auto; }
+
+/* Beer's switch runs its label text into the track; the thumb is positioned from the span's
+   edge, so padding on the span moves only the text. */
+label.switch > span { padding-inline-start: .5rem; }
+
+/* --- system: the resets, each its own block; the destructive one wears the error pair --- */
+.ps-system-reset { display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; border-radius: var(--ps-radius-sm); background: var(--ps-wash-1); }
+.ps-system-reset-name { font-weight: 600; }
+button.border.ps-danger { color: var(--error); border-color: var(--error); }
+.ps-system-reset > a { align-self: flex-start; }
 
 /* --- dialog and toast --- */
 .ps-dialog { border-radius: var(--ps-radius); }
@@ -319,6 +334,8 @@ article[data-ps-card] {
   <a href="#lighting"  data-ps-nav="lighting"><svg class="ps-icon"><use href="#ps-icon-light-bulb"/></svg><div data-ps-str="ps_frame_nav_lighting">Lighting</div></a>
   <a href="#images"    data-ps-nav="images"><svg class="ps-icon"><use href="#ps-icon-photo"/></svg><div data-ps-str="ps_frame_nav_images">Images</div></a>
   <a href="#printer"   data-ps-nav="printer"><svg class="ps-icon"><use href="#ps-icon-cube"/></svg><div data-ps-str="ps_frame_nav_printer">Printer</div></a>
+  <a href="#network"   data-ps-nav="network"><svg class="ps-icon"><use href="#ps-icon-wifi"/></svg><div data-ps-str="ps_frame_nav_network">Network</div></a>
+  <a href="#system"    data-ps-nav="system"><svg class="ps-icon"><use href="#ps-icon-cog-6-tooth"/></svg><div data-ps-str="ps_frame_nav_system">System</div></a>
 </nav>
 
 <main class="responsive ps-main" id="ps-main">
@@ -801,6 +818,186 @@ article[data-ps-card] {
 
   </div>
 </article>
+<!-- page: network -->
+<article data-ps-card id="ps-card-network" hidden>
+  <h2 class="ps-card-title" data-ps-str="ps_network_title">Network</h2>
+
+  <div class="ps-needs-state">
+
+    <div class="ps-tile" id="ps-network-status">
+      <div class="ps-tile-label" data-ps-str="ps_network_wifi">Wi-Fi</div>
+      <div class="ps-row">
+        <span class="ps-dot" id="ps-network-dot"></span>
+        <span class="ps-tile-value ps-unset" id="ps-network-ssid" data-ps-no-i18n>—</span>
+      </div>
+      <div class="ps-tile-label" id="ps-network-state" data-ps-no-i18n>—</div>
+      <dl class="ps-kv">
+        <dt data-ps-str="ps_network_ip">IP address</dt><dd id="ps-network-ip" data-ps-no-i18n>—</dd>
+        <dt data-ps-str="ps_network_reason">Reason code</dt><dd id="ps-network-reason" data-ps-no-i18n>—</dd>
+      </dl>
+    </div>
+
+    <div class="ps-tile" id="ps-network-find">
+      <div class="ps-tile-label" data-ps-str="ps_network_find">Find networks</div>
+      <div class="ps-row">
+        <button class="border" id="ps-network-scan" data-ps-str="ps_network_scan">Scan</button>
+        <span class="ps-tile-label" id="ps-network-scan-state" data-ps-no-i18n>—</span>
+      </div>
+      <div id="ps-network-found" class="ps-grid" data-ps-no-i18n></div>
+    </div>
+
+    <div class="ps-tile" id="ps-network-connect">
+      <div class="ps-tile-label" data-ps-str="ps_network_connect">Connect to a network</div>
+      <div class="ps-grid ps-grid-2">
+        <div class="field border small label">
+          <input type="text" id="ps-network-connect-ssid" autocomplete="off" spellcheck="false">
+          <label data-ps-str="ps_network_connect_ssid">Network name</label>
+        </div>
+        <div class="field border small label">
+          <input type="password" id="ps-network-connect-password" autocomplete="off">
+          <label data-ps-str="ps_network_connect_password">Password</label>
+        </div>
+      </div>
+      <div class="ps-row">
+        <button id="ps-network-connect-send" data-ps-str="ps_network_connect_send">Connect</button>
+        <label class="checkbox">
+          <input type="checkbox" id="ps-network-connect-show">
+          <span data-ps-str="ps_network_connect_show">Show the password</span>
+        </label>
+      </div>
+      <div class="ps-tile-label" data-ps-str="ps_network_connect_help">The device joins the new network and this page loses it. Find the device again at its new address, or on its own hotspot if the network refused it.</div>
+    </div>
+
+    <div class="ps-tile" id="ps-network-hostname">
+      <div class="ps-tile-label" data-ps-str="ps_network_hostname">Hostname</div>
+      <div class="ps-grid ps-grid-2">
+        <div class="field border small label">
+          <input type="text" id="ps-network-hostname-input" autocomplete="off" spellcheck="false">
+          <label data-ps-str="ps_network_hostname_label">Hostname</label>
+        </div>
+        <div class="ps-row">
+          <button class="border" id="ps-network-hostname-send" data-ps-str="ps_network_hostname_send">Set hostname</button>
+        </div>
+      </div>
+      <div class="ps-tile-label" data-ps-str="ps_network_hostname_help">Saving a new hostname restarts the device. The page asks before the restart.</div>
+    </div>
+
+    <div class="ps-tile" id="ps-network-ap">
+      <div class="ps-tile-label" data-ps-str="ps_network_ap">Hotspot</div>
+      <label class="switch">
+        <input type="checkbox" id="ps-network-ap-on">
+        <span data-ps-str="ps_network_ap_on">Hotspot on</span>
+      </label>
+      <div class="ps-grid ps-grid-2">
+        <div class="field border small label">
+          <input type="text" id="ps-network-ap-ssid" autocomplete="off" spellcheck="false">
+          <label data-ps-str="ps_network_ap_ssid">Hotspot name</label>
+        </div>
+        <div class="field border small label">
+          <input type="password" id="ps-network-ap-password" autocomplete="off">
+          <label data-ps-str="ps_network_ap_password">Hotspot password</label>
+        </div>
+        <div class="field border small label">
+          <input type="text" id="ps-network-ap-ip" autocomplete="off" spellcheck="false" inputmode="decimal">
+          <label data-ps-str="ps_network_ap_ip">Hotspot address</label>
+        </div>
+      </div>
+      <div class="ps-row">
+        <button id="ps-network-ap-send" data-ps-str="ps_network_ap_send">Save hotspot</button>
+        <label class="checkbox">
+          <input type="checkbox" id="ps-network-ap-show">
+          <span data-ps-str="ps_network_ap_show">Show the password</span>
+        </label>
+      </div>
+      <div class="ps-tile-label" data-ps-str="ps_network_ap_help">The hotspot is how the device is reached when it is not on a network. Changing its address restarts the device; the page asks before the restart.</div>
+    </div>
+
+  </div>
+</article>
+<!-- page: system -->
+<article data-ps-card id="ps-card-system" hidden>
+  <h2 class="ps-card-title" data-ps-str="ps_system_title">System</h2>
+
+  <div class="ps-needs-state">
+
+    <div class="ps-grid ps-grid-2">
+      <div class="ps-tile" id="ps-system-device">
+        <div class="ps-tile-label" data-ps-str="ps_system_device">Device</div>
+        <dl class="ps-kv">
+          <dt data-ps-str="ps_system_fw">Firmware</dt><dd id="ps-system-fw" data-ps-no-i18n>—</dd>
+          <dt data-ps-str="ps_system_img">Image pack</dt><dd id="ps-system-img" data-ps-no-i18n>—</dd>
+        </dl>
+      </div>
+
+      <div class="ps-tile" id="ps-system-prefs">
+        <div class="ps-tile-label" data-ps-str="ps_system_language">Language</div>
+        <div class="field suffix border small" data-ps-no-i18n>
+          <select id="ps-system-language" data-ps-str-aria="ps_system_language_aria" aria-label="Language"></select>
+          <svg class="ps-icon"><use href="#ps-icon-chevron-down"/></svg>
+        </div>
+        <div class="ps-tile-label" data-ps-str="ps_system_theme">Theme</div>
+        <div class="field suffix border small" data-ps-no-i18n>
+          <select id="ps-system-theme" data-ps-str-aria="ps_system_theme_aria" aria-label="Theme">
+            <option value="auto" data-ps-str="ps_system_theme_auto">Follow the system</option>
+            <option value="light" data-ps-str="ps_system_theme_light">Light</option>
+            <option value="dark" data-ps-str="ps_system_theme_dark">Dark</option>
+          </select>
+          <svg class="ps-icon"><use href="#ps-icon-chevron-down"/></svg>
+        </div>
+        <div class="ps-tile-label" data-ps-str="ps_system_prefs_help">The language is stored on the device. The theme is stored in this browser.</div>
+      </div>
+    </div>
+
+    <div class="ps-grid ps-grid-2">
+      <div class="ps-tile" id="ps-system-fw-update">
+        <div class="ps-tile-label" data-ps-str="ps_system_fw_update">Firmware update</div>
+        <div class="ps-row">
+          <button class="border small">
+            <span data-ps-str="ps_system_fw_choose">Choose firmware file</span>
+            <input type="file" id="ps-system-fw-file" data-ps-str-aria="ps_system_fw_choose_aria" aria-label="Choose a firmware file">
+          </button>
+          <span class="ps-tile-label" id="ps-system-fw-status" data-ps-str="ps_system_status_idle">Nothing sent</span>
+        </div>
+        <progress id="ps-system-fw-progress" value="0" max="100" hidden></progress>
+        <div class="ps-tile-label" data-ps-str="ps_system_fw_help">Sent the moment you choose it, 4.5 MB at most. The device restarts on its own when it has taken it. Do not power it off while the bar moves.</div>
+      </div>
+
+      <div class="ps-tile" id="ps-system-img-update">
+        <div class="ps-tile-label" data-ps-str="ps_system_img_update">Image pack update</div>
+        <div class="ps-row">
+          <button class="border small">
+            <span data-ps-str="ps_system_img_choose">Choose image pack</span>
+            <input type="file" id="ps-system-img-file" data-ps-str-aria="ps_system_img_choose_aria" aria-label="Choose an image pack file">
+          </button>
+          <span class="ps-tile-label" id="ps-system-img-status" data-ps-str="ps_system_status_idle">Nothing sent</span>
+        </div>
+        <progress id="ps-system-img-progress" value="0" max="100" hidden></progress>
+        <div class="ps-tile-label" data-ps-str="ps_system_img_help">All fifteen stage animations in one file, 6.875 MB at most. Single animations go on the Images page.</div>
+      </div>
+    </div>
+
+    <div class="ps-tile" id="ps-system-resets">
+      <div class="ps-tile-label" data-ps-str="ps_system_resets">The three resets</div>
+      <div class="ps-system-reset">
+        <div class="ps-system-reset-name" data-ps-str="ps_system_reset_lighting">Reset lighting</div>
+        <div class="ps-tile-label" data-ps-str="ps_system_reset_lighting_text">Puts brightness, speed and the three state colours back to their defaults. Nothing else. The button is on the Lighting page.</div>
+        <a class="button border small" href="#lighting" data-ps-nav="lighting" data-ps-str="ps_system_reset_lighting_link">Go to Lighting</a>
+      </div>
+      <div class="ps-system-reset">
+        <div class="ps-system-reset-name" data-ps-str="ps_system_restart">Restart</div>
+        <div class="ps-tile-label" data-ps-str="ps_system_restart_text">The device restarts itself after a hostname or hotspot address change, and after a firmware update. There is no restart button, on this page or on the original.</div>
+      </div>
+      <div class="ps-system-reset">
+        <div class="ps-system-reset-name" data-ps-str="ps_system_factory">Factory reset</div>
+        <div class="ps-tile-label" data-ps-str="ps_system_factory_text">Erases every setting the device holds: Wi-Fi, hotspot, printer binding, hostname, language, lighting. The device restarts as new. There is no undo.</div>
+        <div class="ps-row">
+          <button class="border ps-danger" id="ps-system-factory" data-ps-str="ps_system_factory_button">Erase everything</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</article>
 </main>
 
 <nav class="bottom ps-bottombar" id="ps-bottombar" data-ps-str-aria="ps_frame_nav_2" aria-label="Pages">
@@ -808,6 +1005,8 @@ article[data-ps-card] {
   <a href="#lighting"  data-ps-nav="lighting"><svg class="ps-icon"><use href="#ps-icon-light-bulb"/></svg><div data-ps-str="ps_frame_nav_lighting_2">Lighting</div></a>
   <a href="#images"    data-ps-nav="images"><svg class="ps-icon"><use href="#ps-icon-photo"/></svg><div data-ps-str="ps_frame_nav_images_2">Images</div></a>
   <a href="#printer"   data-ps-nav="printer"><svg class="ps-icon"><use href="#ps-icon-cube"/></svg><div data-ps-str="ps_frame_nav_printer_2">Printer</div></a>
+  <a href="#network"   data-ps-nav="network"><svg class="ps-icon"><use href="#ps-icon-wifi"/></svg><div data-ps-str="ps_frame_nav_network_2">Network</div></a>
+  <a href="#system"    data-ps-nav="system"><svg class="ps-icon"><use href="#ps-icon-cog-6-tooth"/></svg><div data-ps-str="ps_frame_nav_system_2">System</div></a>
 </nav>
 
 <!-- Furniture shared by every page. One dialog, filled by whoever opens it; one toast; the
@@ -833,7 +1032,7 @@ article[data-ps-card] {
 // generated by tools/ui/build/i18n.py; do not edit
 var PS_STRING_LANGS = ["en"];
 var PS_RTL_LANGS = [];
-var PS_STRINGS = {"en":{"ps_core_factory_done_text":"The device is resetting and will restart. Reconnect to its hotspot to set it up again.","ps_core_factory_done_title":"Factory reset","ps_core_lost_text":"The device closed the connection. Reload the page to reconnect.","ps_core_lost_title":"Connection lost","ps_core_reload":"Reload","ps_core_restart_text":"The device will restart to apply this change.","ps_core_save_failed":"The device did not accept the change.","ps_core_saved_title":"Saved","ps_core_upload_failed":"Upload refused.","ps_core_upload_ok":"Upload accepted.","ps_dashboard_brightness":"Brightness","ps_dashboard_device":"Device","ps_dashboard_hotspot_off":"Hotspot off","ps_dashboard_hotspot_on":"Hotspot on","ps_dashboard_lighting":"Lighting","ps_dashboard_mode_h2d":"H2D","ps_dashboard_mode_music":"Music","ps_dashboard_network":"Network","ps_dashboard_pill_connecting":"Printer connecting","ps_dashboard_pill_error":"Printer error","ps_dashboard_pill_ready":"Printer connected","ps_dashboard_pill_unbound":"No printer","ps_dashboard_printer":"Printer","ps_dashboard_prn_1":"Not bound","ps_dashboard_prn_2":"Connecting","ps_dashboard_prn_3":"Connected","ps_dashboard_prn_4":"Address error","ps_dashboard_prn_5":"Serial does not match","ps_dashboard_prn_6":"Access code rejected","ps_dashboard_prn_7":"Unknown error","ps_dashboard_sta_1":"No network configured","ps_dashboard_sta_2":"Connecting","ps_dashboard_sta_3":"Connected","ps_dashboard_sta_4":"Reconnecting","ps_dashboard_sta_5":"Wrong password","ps_dashboard_title":"Dashboard","ps_dashboard_unknown_state":"Unknown state","ps_frame_home":"Home","ps_frame_nav":"Pages","ps_frame_nav_2":"Pages","ps_frame_nav_dashboard":"Dashboard","ps_frame_nav_dashboard_2":"Dashboard","ps_frame_nav_images":"Images","ps_frame_nav_images_2":"Images","ps_frame_nav_lighting":"Lighting","ps_frame_nav_lighting_2":"Lighting","ps_frame_nav_printer":"Printer","ps_frame_nav_printer_2":"Printer","ps_frame_pill_waiting":"Waiting for the device","ps_frame_theme":"Theme","ps_frame_title":"Panda Status","ps_global_cancel":"Cancel","ps_global_dialog_text":"Message","ps_global_dialog_title":"Notice","ps_global_fault":"The device reported that a setting could not be saved.","ps_global_ok":"OK","ps_global_waiting":"Waiting for the device to send its state.","ps_images_choose":"Choose GIF","ps_images_choose_aria":"Choose a GIF for this slot","ps_images_help":"The device shows one animation per print stage. It does not send its animations back, so a slot can only show the file you chose here, in this browser. A file is sent the moment you choose it. GIF only, 1.5 MB at most.","ps_images_showing":"Showing now:","ps_images_slot_bed_heating":"Bed heating","ps_images_slot_bed_leveling":"Bed levelling","ps_images_slot_calibrating_flow":"Flow calibration","ps_images_slot_filament_check_location":"Filament check","ps_images_slot_filament_cut":"Filament cut","ps_images_slot_filament_pull_back_cur":"Filament pull back","ps_images_slot_filament_purge_old":"Filament purge","ps_images_slot_filament_push_new":"Filament push new","ps_images_slot_homing":"Homing","ps_images_slot_nozzle_cleaning":"Nozzle cleaning","ps_images_slot_nozzle_heating":"Nozzle heating","ps_images_slot_printing":"Printing","ps_images_slot_printing_ok":"Print finished","ps_images_slot_standby":"Standby","ps_images_slot_xy_mesh_mode_sweep":"XY mesh sweep","ps_images_status_failed":"Upload failed ({code}).","ps_images_status_idle":"Nothing sent from this browser","ps_images_status_ok":"Accepted by the device.","ps_images_status_refused":"Refused by the device.","ps_images_status_sending":"Sending","ps_images_status_sent":"Sent. Waiting for the device to confirm.","ps_images_status_too_big":"Too big. The limit is {limit}.","ps_images_title":"Images","ps_images_version":"Image pack version","ps_lighting_block":"Segment","ps_lighting_block_aria":"Segment colour","ps_lighting_blocks":"Segments","ps_lighting_blocks_help":"Each segment has its own colour. What a segment maps to on the bar is recorded during the bench session.","ps_lighting_brightness":"Brightness","ps_lighting_brightness_aria":"Brightness","ps_lighting_colour_error":"Error","ps_lighting_colour_error_aria":"Error colour","ps_lighting_colour_idle":"Idle","ps_lighting_colour_idle_aria":"Idle colour","ps_lighting_colour_printing":"Printing","ps_lighting_colour_printing_aria":"Printing colour","ps_lighting_colours":"State colours","ps_lighting_colours_help":"Colours are per mode. Changing the mode above shows that mode's colours.","ps_lighting_mode":"Mode","ps_lighting_mode_aria":"Lighting mode","ps_lighting_mode_h2d":"H2D","ps_lighting_mode_help":"Music reacts to sound. H2D shows the printer's state with three colours.","ps_lighting_mode_music":"Music","ps_lighting_reset":"Reset lighting","ps_lighting_reset_confirm":"Reset","ps_lighting_reset_help":"Puts brightness, speed and the three colours back to their defaults. Nothing else.","ps_lighting_reset_music":"Reset applies in H2D mode. Switch the mode first.","ps_lighting_reset_text":"Brightness, speed and the three state colours go back to their defaults. Wi-Fi, the printer and the hostname are not touched.","ps_lighting_reset_title":"Reset lighting?","ps_lighting_speed":"Speed","ps_lighting_speed_aria":"Speed","ps_lighting_speed_default":"default 100%","ps_lighting_speed_music":"Speed applies in H2D mode only.","ps_lighting_title":"Lighting","ps_printer_bind":"Bind a printer","ps_printer_bind_code":"Access code","ps_printer_bind_help":"The serial number and access code are on the printer's own screen. Everything typed here is sent as it is; the device reports the result above.","ps_printer_bind_ip":"IP address","ps_printer_bind_name":"Name","ps_printer_bind_send":"Bind","ps_printer_bind_show":"Show the access code","ps_printer_bind_sn":"Serial number","ps_printer_bound":"Bound printer","ps_printer_find":"Find printers","ps_printer_find_help":"Looks for printers on this network. Choose one to fill in its name and address below.","ps_printer_ip":"IP address","ps_printer_scan":"Scan","ps_printer_scan_0":"Not scanning","ps_printer_scan_1":"Scanning","ps_printer_scan_2":"Scan finished","ps_printer_scan_3":"Checking whether the printer's address changed","ps_printer_scan_4":"A printer answered, but its serial number did not match","ps_printer_scan_5":"The printer's address has not changed","ps_printer_scan_6":"The printer's new address is in use","ps_printer_sn":"Serial number","ps_printer_title":"Printer","ps_printer_unbind":"Unbind","ps_printer_unbind_confirm":"Unbind","ps_printer_unbind_help":"Forgets the printer. The access code stays on the device until a new one is sent.","ps_printer_unbind_text":"The device stops talking to the printer and the lighting stops following prints. You can bind it again at any time.","ps_printer_unbind_title":"Unbind the printer?","ps_printer_use":"Use"}};
+var PS_STRINGS = {"en":{"ps_core_factory_done_text":"The device is resetting and will restart. Reconnect to its hotspot to set it up again.","ps_core_factory_done_title":"Factory reset","ps_core_language_name":"English","ps_core_lost_text":"The device closed the connection. Reload the page to reconnect.","ps_core_lost_title":"Connection lost","ps_core_reload":"Reload","ps_core_restart_text":"The device will restart to apply this change.","ps_core_save_failed":"The device did not accept the change.","ps_core_saved_title":"Saved","ps_core_upload_failed":"Upload refused.","ps_core_upload_ok":"Upload accepted.","ps_dashboard_brightness":"Brightness","ps_dashboard_device":"Device","ps_dashboard_hotspot_off":"Hotspot off","ps_dashboard_hotspot_on":"Hotspot on","ps_dashboard_lighting":"Lighting","ps_dashboard_mode_h2d":"H2D","ps_dashboard_mode_music":"Music","ps_dashboard_network":"Network","ps_dashboard_pill_connecting":"Printer connecting","ps_dashboard_pill_error":"Printer error","ps_dashboard_pill_ready":"Printer connected","ps_dashboard_pill_unbound":"No printer","ps_dashboard_printer":"Printer","ps_dashboard_prn_1":"Not bound","ps_dashboard_prn_2":"Connecting","ps_dashboard_prn_3":"Connected","ps_dashboard_prn_4":"Address error","ps_dashboard_prn_5":"Serial does not match","ps_dashboard_prn_6":"Access code rejected","ps_dashboard_prn_7":"Unknown error","ps_dashboard_sta_1":"No network configured","ps_dashboard_sta_2":"Connecting","ps_dashboard_sta_3":"Connected","ps_dashboard_sta_4":"Reconnecting","ps_dashboard_sta_5":"Wrong password","ps_dashboard_title":"Dashboard","ps_dashboard_unknown_state":"Unknown state","ps_frame_home":"Home","ps_frame_nav":"Pages","ps_frame_nav_2":"Pages","ps_frame_nav_dashboard":"Dashboard","ps_frame_nav_dashboard_2":"Dashboard","ps_frame_nav_images":"Images","ps_frame_nav_images_2":"Images","ps_frame_nav_lighting":"Lighting","ps_frame_nav_lighting_2":"Lighting","ps_frame_nav_network":"Network","ps_frame_nav_network_2":"Network","ps_frame_nav_printer":"Printer","ps_frame_nav_printer_2":"Printer","ps_frame_nav_system":"System","ps_frame_nav_system_2":"System","ps_frame_pill_waiting":"Waiting for the device","ps_frame_theme":"Theme","ps_frame_title":"Panda Status","ps_global_cancel":"Cancel","ps_global_dialog_text":"Message","ps_global_dialog_title":"Notice","ps_global_fault":"The device reported that a setting could not be saved.","ps_global_ok":"OK","ps_global_waiting":"Waiting for the device to send its state.","ps_images_choose":"Choose GIF","ps_images_choose_aria":"Choose a GIF for this slot","ps_images_help":"The device shows one animation per print stage. It does not send its animations back, so a slot can only show the file you chose here, in this browser. A file is sent the moment you choose it. GIF only, 1.5 MB at most.","ps_images_showing":"Showing now:","ps_images_slot_bed_heating":"Bed heating","ps_images_slot_bed_leveling":"Bed levelling","ps_images_slot_calibrating_flow":"Flow calibration","ps_images_slot_filament_check_location":"Filament check","ps_images_slot_filament_cut":"Filament cut","ps_images_slot_filament_pull_back_cur":"Filament pull back","ps_images_slot_filament_purge_old":"Filament purge","ps_images_slot_filament_push_new":"Filament push new","ps_images_slot_homing":"Homing","ps_images_slot_nozzle_cleaning":"Nozzle cleaning","ps_images_slot_nozzle_heating":"Nozzle heating","ps_images_slot_printing":"Printing","ps_images_slot_printing_ok":"Print finished","ps_images_slot_standby":"Standby","ps_images_slot_xy_mesh_mode_sweep":"XY mesh sweep","ps_images_status_failed":"Upload failed ({code}).","ps_images_status_idle":"Nothing sent from this browser","ps_images_status_ok":"Accepted by the device.","ps_images_status_refused":"Refused by the device.","ps_images_status_sending":"Sending","ps_images_status_sent":"Sent. Waiting for the device to confirm.","ps_images_status_too_big":"Too big. The limit is {limit}.","ps_images_title":"Images","ps_images_version":"Image pack version","ps_lighting_block":"Segment","ps_lighting_block_aria":"Segment colour","ps_lighting_blocks":"Segments","ps_lighting_blocks_help":"Each segment has its own colour. What a segment maps to on the bar is recorded during the bench session.","ps_lighting_brightness":"Brightness","ps_lighting_brightness_aria":"Brightness","ps_lighting_colour_error":"Error","ps_lighting_colour_error_aria":"Error colour","ps_lighting_colour_idle":"Idle","ps_lighting_colour_idle_aria":"Idle colour","ps_lighting_colour_printing":"Printing","ps_lighting_colour_printing_aria":"Printing colour","ps_lighting_colours":"State colours","ps_lighting_colours_help":"Colours are per mode. Changing the mode above shows that mode's colours.","ps_lighting_mode":"Mode","ps_lighting_mode_aria":"Lighting mode","ps_lighting_mode_h2d":"H2D","ps_lighting_mode_help":"Music reacts to sound. H2D shows the printer's state with three colours.","ps_lighting_mode_music":"Music","ps_lighting_reset":"Reset lighting","ps_lighting_reset_confirm":"Reset","ps_lighting_reset_help":"Puts brightness, speed and the three colours back to their defaults. Nothing else.","ps_lighting_reset_music":"Reset applies in H2D mode. Switch the mode first.","ps_lighting_reset_text":"Brightness, speed and the three state colours go back to their defaults. Wi-Fi, the printer and the hostname are not touched.","ps_lighting_reset_title":"Reset lighting?","ps_lighting_speed":"Speed","ps_lighting_speed_aria":"Speed","ps_lighting_speed_default":"default 100%","ps_lighting_speed_music":"Speed applies in H2D mode only.","ps_lighting_title":"Lighting","ps_network_ap":"Hotspot","ps_network_ap_help":"The hotspot is how the device is reached when it is not on a network. Changing its address restarts the device; the page asks before the restart.","ps_network_ap_ip":"Hotspot address","ps_network_ap_on":"Hotspot on","ps_network_ap_password":"Hotspot password","ps_network_ap_send":"Save hotspot","ps_network_ap_show":"Show the password","ps_network_ap_ssid":"Hotspot name","ps_network_connect":"Connect to a network","ps_network_connect_help":"The device joins the new network and this page loses it. Find the device again at its new address, or on its own hotspot if the network refused it.","ps_network_connect_password":"Password","ps_network_connect_send":"Connect","ps_network_connect_show":"Show the password","ps_network_connect_ssid":"Network name","ps_network_find":"Find networks","ps_network_hostname":"Hostname","ps_network_hostname_help":"Saving a new hostname restarts the device. The page asks before the restart.","ps_network_hostname_label":"Hostname","ps_network_hostname_send":"Set hostname","ps_network_ip":"IP address","ps_network_reason":"Reason code","ps_network_scan":"Scan","ps_network_scan_0":"Not scanning","ps_network_scan_1":"Scanning","ps_network_scan_2":"Scan finished","ps_network_title":"Network","ps_network_use":"Use","ps_network_wifi":"Wi-Fi","ps_printer_bind":"Bind a printer","ps_printer_bind_code":"Access code","ps_printer_bind_help":"The serial number and access code are on the printer's own screen. Everything typed here is sent as it is; the device reports the result above.","ps_printer_bind_ip":"IP address","ps_printer_bind_name":"Name","ps_printer_bind_send":"Bind","ps_printer_bind_show":"Show the access code","ps_printer_bind_sn":"Serial number","ps_printer_bound":"Bound printer","ps_printer_find":"Find printers","ps_printer_find_help":"Looks for printers on this network. Choose one to fill in its name and address below.","ps_printer_ip":"IP address","ps_printer_scan":"Scan","ps_printer_scan_0":"Not scanning","ps_printer_scan_1":"Scanning","ps_printer_scan_2":"Scan finished","ps_printer_scan_3":"Checking whether the printer's address changed","ps_printer_scan_4":"A printer answered, but its serial number did not match","ps_printer_scan_5":"The printer's address has not changed","ps_printer_scan_6":"The printer's new address is in use","ps_printer_sn":"Serial number","ps_printer_title":"Printer","ps_printer_unbind":"Unbind","ps_printer_unbind_confirm":"Unbind","ps_printer_unbind_help":"Forgets the printer. The access code stays on the device until a new one is sent.","ps_printer_unbind_text":"The device stops talking to the printer and the lighting stops following prints. You can bind it again at any time.","ps_printer_unbind_title":"Unbind the printer?","ps_printer_use":"Use","ps_system_device":"Device","ps_system_factory":"Factory reset","ps_system_factory_button":"Erase everything","ps_system_factory_confirm":"Erase everything","ps_system_factory_dialog":"Every setting on the device is erased and it restarts as new: Wi-Fi, hotspot, printer binding, hostname, language, lighting. There is no undo. Do this only if you mean to set the device up again from nothing.","ps_system_factory_text":"Erases every setting the device holds: Wi-Fi, hotspot, printer binding, hostname, language, lighting. The device restarts as new. There is no undo.","ps_system_factory_title":"Erase everything?","ps_system_fw":"Firmware","ps_system_fw_choose":"Choose firmware file","ps_system_fw_choose_aria":"Choose a firmware file","ps_system_fw_help":"Sent the moment you choose it, 4.5 MB at most. The device restarts on its own when it has taken it. Do not power it off while the bar moves.","ps_system_fw_update":"Firmware update","ps_system_img":"Image pack","ps_system_img_choose":"Choose image pack","ps_system_img_choose_aria":"Choose an image pack file","ps_system_img_help":"All fifteen stage animations in one file, 6.875 MB at most. Single animations go on the Images page.","ps_system_img_update":"Image pack update","ps_system_language":"Language","ps_system_language_aria":"Language","ps_system_prefs_help":"The language is stored on the device. The theme is stored in this browser.","ps_system_reset_lighting":"Reset lighting","ps_system_reset_lighting_link":"Go to Lighting","ps_system_reset_lighting_text":"Puts brightness, speed and the three state colours back to their defaults. Nothing else. The button is on the Lighting page.","ps_system_resets":"The three resets","ps_system_restart":"Restart","ps_system_restart_text":"The device restarts itself after a hostname or hotspot address change, and after a firmware update. There is no restart button, on this page or on the original.","ps_system_status_failed":"Upload failed ({code}).","ps_system_status_idle":"Nothing sent","ps_system_status_ok":"Accepted by the device.","ps_system_status_refused":"Refused by the device.","ps_system_status_sending":"Sending","ps_system_status_sent":"Sent. Waiting for the device to confirm.","ps_system_status_too_big":"Too big. The limit is {limit}.","ps_system_theme":"Theme","ps_system_theme_aria":"Theme","ps_system_theme_auto":"Follow the system","ps_system_theme_dark":"Dark","ps_system_theme_light":"Light","ps_system_title":"System"}};
 
 </script>
 <script type="module">
@@ -1589,6 +1788,22 @@ var PS = (function () {
     }
   });
 
+  // ---------- uploads. POST /ota is the one HTTP write the device accepts. ----------
+  // Caps per OTA-Type, from docs/protocol-websocket.md: the factory UI compares the file's
+  // size against them before sending. Callers check; this only sends.
+  var UPLOAD_CAPS = { ota_fw: 0x480000, ota_img: 0x6E0000, gif: 0x180000 };
+  function upload(type, file, cb) {
+    cb = cb || {};
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', '/ota', true);
+    xhr.setRequestHeader('Content-Type', 'application/octet-stream;charset=UTF-8');
+    xhr.setRequestHeader('OTA-Type', type);
+    xhr.upload.onprogress = function (e) { if (e.lengthComputable && cb.progress) cb.progress(Math.round(100 * e.loaded / e.total)); };
+    xhr.onload = function () { if (cb.done) cb.done(xhr.status); };
+    xhr.onerror = function () { if (cb.done) cb.done(0); };
+    xhr.send(file);
+  }
+
   // ---------- theme ----------
   function theme(next) {
     try { if (next) localStorage.setItem('ps_theme', next); } catch (e) {}
@@ -1625,7 +1840,7 @@ var PS = (function () {
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
 
-  return { state: state, on: on, send: send, tr: tr, setLang: setLang, apply_translations: apply_translations,
+  return { state: state, on: on, send: send, upload: upload, UPLOAD_CAPS: UPLOAD_CAPS, tr: tr, setLang: setLang, apply_translations: apply_translations,
            dialog: dialog, toast: toast, pill: pill, showCard: showCard, theme: theme, get lang() { return lang; }, get connected() { return !!(sock && sock.readyState === 1); } };
 })();
 </script>
@@ -1832,7 +2047,7 @@ var PS = (function () {
 'use strict';
 /* Images: the fifteen print-stage animation slots. Facts from docs/protocol-websocket.md:
    - an upload is POST /ota, Content-Type application/octet-stream;charset=UTF-8, the
-     OTA-Type header naming the target slot, the file as the body
+     OTA-Type header naming the target slot, the file as the body; PS.upload() does it
    - the per-slot maximum is 0x180000 bytes. The factory UI compares the chosen file's size
      against it before sending and names the limit in megabytes when it refuses; so does this
    - the device answers over the socket with response {type:"ota_img", ok, gif:<slot>}. The
@@ -1847,7 +2062,7 @@ var PS = (function () {
    failure that follows it. */
 
 (function () {
-  var CAP = 0x180000;                                   // 1,572,864 bytes, the per-slot maximum
+  var CAP = PS.UPLOAD_CAPS.gif;                         // 1,572,864 bytes, the per-slot maximum
   var $ = function (id) { return document.getElementById(id); };
   var urls = {};                                        // slot -> object URL of the chosen file
   var verdict = {};                                     // slot -> the device's last answer
@@ -1875,19 +2090,15 @@ var PS = (function () {
     verdict[slot] = null;
     var prog = $('ps-images-progress-' + idOf(slot)); prog.value = 0; prog.hidden = false;
     status(slot, 'ps_images_status_sending');
-    var xhr = new XMLHttpRequest();
-    xhr.open('POST', '/ota', true);
-    xhr.setRequestHeader('Content-Type', 'application/octet-stream;charset=UTF-8');
-    xhr.setRequestHeader('OTA-Type', slot);
-    xhr.upload.onprogress = function (e) { if (e.lengthComputable) prog.value = Math.round(100 * e.loaded / e.total); };
-    xhr.onload = function () {
-      prog.hidden = true;
-      if (verdict[slot]) return;                        // the device already answered on the socket
-      if (xhr.status === 200) status(slot, 'ps_images_status_sent');
-      else status(slot, 'ps_images_status_failed', { code: String(xhr.status) });
-    };
-    xhr.onerror = function () { prog.hidden = true; if (!verdict[slot]) status(slot, 'ps_images_status_failed', { code: '0' }); };
-    xhr.send(file);
+    PS.upload(slot, file, {
+      progress: function (pct) { prog.value = pct; },
+      done: function (code) {
+        prog.hidden = true;
+        if (verdict[slot]) return;                      // the device already answered on the socket
+        if (code === 200) status(slot, 'ps_images_status_sent');
+        else status(slot, 'ps_images_status_failed', { code: String(code) });
+      },
+    });
   }
 
   function render(s) {
@@ -2015,6 +2226,198 @@ var PS = (function () {
     });
   }
 
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', wire); else wire();
+  PS.on('state', function (ev) { render(ev.state); });
+})();
+</script>
+<script>
+// module: 50-network.js
+'use strict';
+/* Network: Wi-Fi, hostname, hotspot. Facts from docs/protocol-websocket.md:
+   - wifi: Scan sends {scan}; Connect sends {ssid, password}. Inbound: ssid, password, scan,
+     list. sta: Set-hostname sends {hostname}; inbound ip, hostname, state. ap: the enable
+     checkbox sends {on}; the settings confirm sends {ssid, password, ip}; inbound ssid,
+     password, ip, on
+   - set_hostname and set_hotspot_ip answer with a response whose OK, in the core module,
+     sends settings.reset (a restart). set_ap answers with a toast
+   - sta.state 1 nossid 2 connecting 3 connected 4 reconnecting 5 password error; the labels
+     are the dashboard's. wifi.scan 0 idle 1 scanning 2 done
+   - the device also sends sta.auth_err_reason, which the factory UI does not handle. Shown
+     as a bare code when non-zero, meaning unknown until the bench
+   - the factory UI handles sta.hostname and the ap fields inbound, so those fields are
+     pre-filled from the push while untouched. INFERENCE about the factory form, harmless
+     on the wire: what is sent is what the field holds when the button is pressed. The Wi-Fi
+     password is never pre-filled; the hotspot password is the device's own, pre-filled
+     into a password field
+   - scan list entries are {ssid, rssi}, the mock's INFERENCE of the shape */
+
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var STA = { 1: 'ps_dashboard_sta_1', 2: 'ps_dashboard_sta_2', 3: 'ps_dashboard_sta_3', 4: 'ps_dashboard_sta_4', 5: 'ps_dashboard_sta_5' };
+  var SCAN = { 0: 'ps_network_scan_0', 1: 'ps_network_scan_1', 2: 'ps_network_scan_2' };
+  var touched = {};                                   // field id -> the user has typed in it
+  var lastList = null;
+
+  function present(v) { return v !== undefined && v !== null && v !== ''; }
+  function setValue(el, v) { if (present(v)) { el.textContent = String(v); el.classList.remove('ps-unset'); } else { el.textContent = '—'; el.classList.add('ps-unset'); } }
+  function label(map, v, el) {
+    var k = map[v];
+    if (k) { el.setAttribute('data-ps-str', k); el.textContent = PS.tr(k); }
+    else { el.removeAttribute('data-ps-str'); el.textContent = present(v) ? PS.tr('ps_dashboard_unknown_state') + ' ' + v : '—'; }
+  }
+  function prefill(id, v) {
+    var el = $(id);
+    if (touched[id] || document.activeElement === el) return;
+    el.value = present(v) ? String(v) : '';
+  }
+
+  function render(s) {
+    var w = s.wifi || {}, sta = s.sta || {}, ap = s.ap || {};
+    setValue($('ps-network-ssid'), w.ssid);
+    label(STA, sta.state, $('ps-network-state'));
+    $('ps-network-dot').className = 'ps-dot' + (sta.state === 3 ? ' ps-dot-on' : (sta.state === 2 || sta.state === 4) ? ' ps-dot-warn' : sta.state === 5 ? ' ps-dot-error' : '');
+    $('ps-network-ip').textContent = present(sta.ip) ? String(sta.ip) : '—';
+    var reason = sta.auth_err_reason;
+    $('ps-network-reason').textContent = (present(reason) && Number(reason) !== 0) ? String(reason) : '—';
+    label(SCAN, w.scan, $('ps-network-scan-state'));
+    $('ps-network-scan').disabled = w.scan === 1;
+    renderFound(Array.isArray(w.list) ? w.list : []);
+    prefill('ps-network-hostname-input', sta.hostname);
+    prefill('ps-network-ap-ssid', ap.ssid); prefill('ps-network-ap-password', ap.password); prefill('ps-network-ap-ip', ap.ip);
+    var on = $('ps-network-ap-on'); if (document.activeElement !== on) on.checked = ap.on === 1;
+  }
+
+  function renderFound(list) {
+    var key = JSON.stringify(list);
+    if (key === lastList) return;
+    lastList = key;
+    var box = $('ps-network-found');
+    while (box.firstChild) box.removeChild(box.firstChild);
+    list.forEach(function (e, i) {
+      if (!e || typeof e !== 'object') return;
+      var row = document.createElement('div'); row.className = 'ps-row ps-network-found-row'; row.setAttribute('data-ps-found', String(i));
+      var name = document.createElement('span'); name.className = 'ps-tile-value'; name.textContent = present(e.ssid) ? String(e.ssid) : '—';
+      var rssi = document.createElement('span'); rssi.className = 'ps-tile-label ps-mono'; rssi.textContent = present(e.rssi) ? String(e.rssi) + ' dBm' : '';
+      var use = document.createElement('button'); use.className = 'border small'; use.setAttribute('data-ps-str', 'ps_network_use'); use.textContent = PS.tr('ps_network_use');
+      use.addEventListener('click', function () {
+        $('ps-network-connect-ssid').value = present(e.ssid) ? String(e.ssid) : ''; touched['ps-network-connect-ssid'] = true;
+        $('ps-network-connect-password').focus();
+      });
+      row.appendChild(name); row.appendChild(rssi); row.appendChild(use); box.appendChild(row);
+    });
+  }
+
+  function wire() {
+    ['ps-network-hostname-input', 'ps-network-ap-ssid', 'ps-network-ap-password', 'ps-network-ap-ip', 'ps-network-connect-ssid'].forEach(function (id) {
+      $(id).addEventListener('input', function () { touched[id] = true; });
+    });
+    $('ps-network-scan').addEventListener('click', function () { PS.send('wifi', { scan: 1 }); });
+    $('ps-network-connect-send').addEventListener('click', function () {
+      PS.send('wifi', { ssid: $('ps-network-connect-ssid').value, password: $('ps-network-connect-password').value });
+    });
+    $('ps-network-connect-show').addEventListener('change', function () { $('ps-network-connect-password').type = this.checked ? 'text' : 'password'; });
+    $('ps-network-hostname-send').addEventListener('click', function () { PS.send('sta', { hostname: $('ps-network-hostname-input').value }); });
+    $('ps-network-ap-on').addEventListener('change', function () { PS.send('ap', { on: this.checked ? 1 : 0 }); });
+    $('ps-network-ap-send').addEventListener('click', function () {
+      PS.send('ap', { ssid: $('ps-network-ap-ssid').value, password: $('ps-network-ap-password').value, ip: $('ps-network-ap-ip').value });
+    });
+    $('ps-network-ap-show').addEventListener('change', function () { $('ps-network-ap-password').type = this.checked ? 'text' : 'password'; });
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', wire); else wire();
+  PS.on('state', function (ev) { render(ev.state); });
+})();
+</script>
+<script>
+// module: 60-system.js
+'use strict';
+/* System: versions, language, theme, the two whole-image uploads, and the three resets.
+   Facts from docs/protocol-websocket.md:
+   - settings.fw_version is pushed; settings.img_version is handled by the factory UI but was
+     absent from the observed push, so it renders as a dash until it arrives
+   - the language select sends {language}; the device echoes settings.language and the core
+     switches the string table on it
+   - the theme is the browser's: PS.theme(), stored in localStorage, nothing on the wire
+   - ota_fw and ota_img are POST /ota with those OTA-Type values and caps of 0x480000 and
+     0x6E0000 bytes, compared against the file before sending, the limit named in MB when
+     refused. The device answers on the socket with response {type, ok}; that is the verdict
+   - reset is a restart and is never a button: only the set_hostname and set_hotspot_ip
+     success handlers send it. rgb_reset belongs to the lighting page. factory_reset, after
+     its confirm, erases all data and restarts; the response comes before the restart */
+
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var verdict = {};                                     // ota type -> the device's last answer
+  var langsBuilt = false;
+
+  function mb(n) { return String(n / 1048576) + ' MB'; }
+  function status(kind, key, fill) {
+    var el = $('ps-system-' + kind + '-status');
+    el.setAttribute('data-ps-str', key);
+    var text = PS.tr(key);
+    if (fill) Object.keys(fill).forEach(function (k) { text = text.replace('{' + k + '}', fill[k]); });
+    el.textContent = text;
+  }
+  function sendFile(kind, type, file) {
+    var cap = PS.UPLOAD_CAPS[type];
+    if (file.size > cap) { status(kind, 'ps_system_status_too_big', { limit: mb(cap) }); return; }
+    verdict[type] = null;
+    var prog = $('ps-system-' + kind + '-progress'); prog.value = 0; prog.hidden = false;
+    status(kind, 'ps_system_status_sending');
+    PS.upload(type, file, {
+      progress: function (pct) { prog.value = pct; },
+      done: function (code) {
+        prog.hidden = true;
+        if (verdict[type]) return;
+        if (code === 200) status(kind, 'ps_system_status_sent');
+        else status(kind, 'ps_system_status_failed', { code: String(code) });
+      },
+    });
+  }
+
+  function buildLangs() {
+    if (langsBuilt || typeof PS_STRING_LANGS === 'undefined') return;
+    var sel = $('ps-system-language');
+    PS_STRING_LANGS.forEach(function (code) {
+      var o = document.createElement('option'); o.value = code;
+      var table = (typeof PS_STRINGS !== 'undefined') && PS_STRINGS[code];
+      o.textContent = (table && table.ps_core_language_name) || code;
+      sel.appendChild(o);
+    });
+    langsBuilt = true;
+  }
+
+  function render(s) {
+    var set = s.settings || {};
+    $('ps-system-fw').textContent = (set.fw_version !== undefined && set.fw_version !== '') ? String(set.fw_version) : '—';
+    $('ps-system-img').textContent = (set.img_version !== undefined && set.img_version !== '') ? String(set.img_version) : '—';
+    buildLangs();
+    var sel = $('ps-system-language');
+    if (document.activeElement !== sel && typeof set.language === 'string') sel.value = set.language;
+  }
+  function renderTheme() {
+    var pref = null; try { pref = localStorage.getItem('ps_theme'); } catch (e) {}
+    $('ps-system-theme').value = (pref === 'dark' || pref === 'light') ? pref : 'auto';
+  }
+
+  function wire() {
+    buildLangs(); renderTheme();
+    $('ps-system-language').addEventListener('change', function () { PS.send('settings', { language: this.value }); });
+    $('ps-system-theme').addEventListener('change', function () { PS.theme(this.value); });
+    $('ps-topbar-theme').addEventListener('click', function () { setTimeout(renderTheme, 0); });   // the top-bar cycle changes the same preference
+    $('ps-system-fw-file').addEventListener('change', function () { var f = this.files && this.files[0]; this.value = ''; if (f) sendFile('fw', 'ota_fw', f); });
+    $('ps-system-img-file').addEventListener('change', function () { var f = this.files && this.files[0]; this.value = ''; if (f) sendFile('img', 'ota_img', f); });
+    $('ps-system-factory').addEventListener('click', function () {
+      PS.dialog(PS.tr('ps_system_factory_title'), PS.tr('ps_system_factory_dialog'),
+        [{ key: 'ps_system_factory_confirm', handler: function () { PS.send('settings', { factory_reset: 1 }); } }, { key: 'ps_global_cancel' }]);
+    });
+  }
+
+  PS.on('response', function (r) {
+    if (r.type !== 'ota_fw' && r.type !== 'ota_img') return;
+    verdict[r.type] = r.ok === 1 ? 'ok' : 'refused';
+    status(r.type === 'ota_fw' ? 'fw' : 'img', r.ok === 1 ? 'ps_system_status_ok' : 'ps_system_status_refused');
+  });
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', wire); else wire();
   PS.on('state', function (ev) { render(ev.state); });
 })();

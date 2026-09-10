@@ -1,0 +1,83 @@
+<article data-ps-card id="ps-card-system" hidden>
+  <h2 class="ps-card-title" data-ps-str="ps_system_title">System</h2>
+
+  <div class="ps-needs-state">
+
+    <div class="ps-grid ps-grid-2">
+      <div class="ps-tile" id="ps-system-device">
+        <div class="ps-tile-label" data-ps-str="ps_system_device">Device</div>
+        <dl class="ps-kv">
+          <dt data-ps-str="ps_system_fw">Firmware</dt><dd id="ps-system-fw" data-ps-no-i18n>—</dd>
+          <dt data-ps-str="ps_system_img">Image pack</dt><dd id="ps-system-img" data-ps-no-i18n>—</dd>
+        </dl>
+      </div>
+
+      <div class="ps-tile" id="ps-system-prefs">
+        <div class="ps-tile-label" data-ps-str="ps_system_language">Language</div>
+        <div class="field suffix border small" data-ps-no-i18n>
+          <select id="ps-system-language" data-ps-str-aria="ps_system_language_aria" aria-label="Language"></select>
+          <svg class="ps-icon"><use href="#ps-icon-chevron-down"/></svg>
+        </div>
+        <div class="ps-tile-label" data-ps-str="ps_system_theme">Theme</div>
+        <div class="field suffix border small" data-ps-no-i18n>
+          <select id="ps-system-theme" data-ps-str-aria="ps_system_theme_aria" aria-label="Theme">
+            <option value="auto" data-ps-str="ps_system_theme_auto">Follow the system</option>
+            <option value="light" data-ps-str="ps_system_theme_light">Light</option>
+            <option value="dark" data-ps-str="ps_system_theme_dark">Dark</option>
+          </select>
+          <svg class="ps-icon"><use href="#ps-icon-chevron-down"/></svg>
+        </div>
+        <div class="ps-tile-label" data-ps-str="ps_system_prefs_help">The language is stored on the device. The theme is stored in this browser.</div>
+      </div>
+    </div>
+
+    <div class="ps-grid ps-grid-2">
+      <div class="ps-tile" id="ps-system-fw-update">
+        <div class="ps-tile-label" data-ps-str="ps_system_fw_update">Firmware update</div>
+        <div class="ps-row">
+          <button class="border small">
+            <span data-ps-str="ps_system_fw_choose">Choose firmware file</span>
+            <input type="file" id="ps-system-fw-file" data-ps-str-aria="ps_system_fw_choose_aria" aria-label="Choose a firmware file">
+          </button>
+          <span class="ps-tile-label" id="ps-system-fw-status" data-ps-str="ps_system_status_idle">Nothing sent</span>
+        </div>
+        <progress id="ps-system-fw-progress" value="0" max="100" hidden></progress>
+        <div class="ps-tile-label" data-ps-str="ps_system_fw_help">Sent the moment you choose it, 4.5 MB at most. The device restarts on its own when it has taken it. Do not power it off while the bar moves.</div>
+      </div>
+
+      <div class="ps-tile" id="ps-system-img-update">
+        <div class="ps-tile-label" data-ps-str="ps_system_img_update">Image pack update</div>
+        <div class="ps-row">
+          <button class="border small">
+            <span data-ps-str="ps_system_img_choose">Choose image pack</span>
+            <input type="file" id="ps-system-img-file" data-ps-str-aria="ps_system_img_choose_aria" aria-label="Choose an image pack file">
+          </button>
+          <span class="ps-tile-label" id="ps-system-img-status" data-ps-str="ps_system_status_idle">Nothing sent</span>
+        </div>
+        <progress id="ps-system-img-progress" value="0" max="100" hidden></progress>
+        <div class="ps-tile-label" data-ps-str="ps_system_img_help">All fifteen stage animations in one file, 6.875 MB at most. Single animations go on the Images page.</div>
+      </div>
+    </div>
+
+    <div class="ps-tile" id="ps-system-resets">
+      <div class="ps-tile-label" data-ps-str="ps_system_resets">The three resets</div>
+      <div class="ps-system-reset">
+        <div class="ps-system-reset-name" data-ps-str="ps_system_reset_lighting">Reset lighting</div>
+        <div class="ps-tile-label" data-ps-str="ps_system_reset_lighting_text">Puts brightness, speed and the three state colours back to their defaults. Nothing else. The button is on the Lighting page.</div>
+        <a class="button border small" href="#lighting" data-ps-nav="lighting" data-ps-str="ps_system_reset_lighting_link">Go to Lighting</a>
+      </div>
+      <div class="ps-system-reset">
+        <div class="ps-system-reset-name" data-ps-str="ps_system_restart">Restart</div>
+        <div class="ps-tile-label" data-ps-str="ps_system_restart_text">The device restarts itself after a hostname or hotspot address change, and after a firmware update. There is no restart button, on this page or on the original.</div>
+      </div>
+      <div class="ps-system-reset">
+        <div class="ps-system-reset-name" data-ps-str="ps_system_factory">Factory reset</div>
+        <div class="ps-tile-label" data-ps-str="ps_system_factory_text">Erases every setting the device holds: Wi-Fi, hotspot, printer binding, hostname, language, lighting. The device restarts as new. There is no undo.</div>
+        <div class="ps-row">
+          <button class="border ps-danger" id="ps-system-factory" data-ps-str="ps_system_factory_button">Erase everything</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</article>

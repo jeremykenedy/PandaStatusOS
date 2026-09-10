@@ -443,4 +443,59 @@ capture says what the factory does.
 
 ---
 
+## D-021 Network page: which fields are pre-filled from the push
+
+**Date** 2026-09-10 · **Reversal** cheap
+
+**Decided.** The hostname field and the three hotspot fields are pre-filled from the push
+while the user has not typed in them; the Wi-Fi name and password fields are never
+pre-filled. The wire is unaffected either way: a button sends what its fields hold when it
+is pressed.
+
+**Evidence.** The protocol doc's inbound table: the factory UI handles `sta.hostname` and
+`ap.ssid`, `ap.password`, `ap.ip`, `ap.on` inbound, and handles `wifi.ssid` and
+`wifi.password` inbound too. Handling a field inbound is most plausibly showing it in its
+form, so pre-filling those forms is the likely factory behaviour; INFERENCE until the bench
+capture. The Wi-Fi password is the exception on purpose: the device sends it, but putting
+a network's password into a form on every page load, on a page that is served without
+authentication, is a worse default than typing it once. The harness asserts the Wi-Fi
+password from the push appears nowhere in the page.
+
+**Also.** `sta.auth_err_reason`, which the device sends and the factory UI ignores, is
+shown as a bare reason code when non-zero. Its meaning is unknown until the bench; the
+label says "reason code" and nothing more.
+
+**Alternatives.** Pre-fill nothing; pre-fill everything including the Wi-Fi password.
+
+**Why.** Nothing pre-filled makes the hotspot form a memory test; everything pre-filled
+puts a credential on screen by default. The split follows what each field is for.
+
+---
+
+## D-022 The secret scan strips our own i18n keys before it judges a line
+
+**Date** 2026-09-10 · **Reversal** cheap
+
+**Decided.** In the pre-commit hook's pattern scan, a line that matches a pattern is
+re-tested with every `ps_<page>_<what>` token removed. If the match vanishes, it lived
+inside one of our i18n key names and the line passes. Four regression cases pin it, two of
+them the exact lines that were refused.
+
+**Evidence.** The network page's keys `ps_network_ap_password`, `ps_network_ap_ssid`,
+`ps_network_connect_password`, `ps_network_connect_ssid` end in credential words, and
+`"ps_network_ap_password": "Hotspot password"` matches the assignment pattern: keyword,
+colon, quote, six or more plain characters, a boundary. The hook refused `en.json` and the
+built page. Neither line assigns anything.
+
+**Alternatives.** Rename the keys to dodge the words (`ps_network_ap_secret`); exempt
+`tools/ui/i18n/` and `firmware/main/ui.html`; anchor the keyword to a word boundary (which
+would also stop catching `wifi_password = ...`, a real leak shape).
+
+**Why.** Part 4 of the run brief, again: fix the check's precision, never add an exemption.
+Renaming keys to fool a scanner leaves the scanner wrong and the names worse. The strip
+is exact: only tokens that follow standing rule 8's naming are removed, and the literal
+known-secret scan still reads every line whole.
+
+---
+
 *Entries continue below as the run proceeds.*

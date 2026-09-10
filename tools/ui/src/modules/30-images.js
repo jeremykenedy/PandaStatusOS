@@ -1,7 +1,7 @@
 'use strict';
 /* Images: the fifteen print-stage animation slots. Facts from docs/protocol-websocket.md:
    - an upload is POST /ota, Content-Type application/octet-stream;charset=UTF-8, the
-     OTA-Type header naming the target slot, the file as the body
+     OTA-Type header naming the target slot, the file as the body; PS.upload() does it
    - the per-slot maximum is 0x180000 bytes. The factory UI compares the chosen file's size
      against it before sending and names the limit in megabytes when it refuses; so does this
    - the device answers over the socket with response {type:"ota_img", ok, gif:<slot>}. The
@@ -16,7 +16,7 @@
    failure that follows it. */
 
 (function () {
-  var CAP = 0x180000;                                   // 1,572,864 bytes, the per-slot maximum
+  var CAP = PS.UPLOAD_CAPS.gif;                         // 1,572,864 bytes, the per-slot maximum
   var $ = function (id) { return document.getElementById(id); };
   var urls = {};                                        // slot -> object URL of the chosen file
   var verdict = {};                                     // slot -> the device's last answer
@@ -44,19 +44,15 @@
     verdict[slot] = null;
     var prog = $('ps-images-progress-' + idOf(slot)); prog.value = 0; prog.hidden = false;
     status(slot, 'ps_images_status_sending');
-    var xhr = new XMLHttpRequest();
-    xhr.open('POST', '/ota', true);
-    xhr.setRequestHeader('Content-Type', 'application/octet-stream;charset=UTF-8');
-    xhr.setRequestHeader('OTA-Type', slot);
-    xhr.upload.onprogress = function (e) { if (e.lengthComputable) prog.value = Math.round(100 * e.loaded / e.total); };
-    xhr.onload = function () {
-      prog.hidden = true;
-      if (verdict[slot]) return;                        // the device already answered on the socket
-      if (xhr.status === 200) status(slot, 'ps_images_status_sent');
-      else status(slot, 'ps_images_status_failed', { code: String(xhr.status) });
-    };
-    xhr.onerror = function () { prog.hidden = true; if (!verdict[slot]) status(slot, 'ps_images_status_failed', { code: '0' }); };
-    xhr.send(file);
+    PS.upload(slot, file, {
+      progress: function (pct) { prog.value = pct; },
+      done: function (code) {
+        prog.hidden = true;
+        if (verdict[slot]) return;                      // the device already answered on the socket
+        if (code === 200) status(slot, 'ps_images_status_sent');
+        else status(slot, 'ps_images_status_failed', { code: String(code) });
+      },
+    });
   }
 
   function render(s) {
