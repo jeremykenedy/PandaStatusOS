@@ -1,0 +1,23 @@
+<!-- Furniture shared by every page. One dialog, filled by whoever opens it; one toast; the
+     banners that cannot be dismissed because the fault they describe has not gone away. -->
+
+<div class="ps-banner ps-banner-waiting" id="ps-banner-waiting" role="status">
+  <span data-ps-str="ps_global_waiting">Waiting for the device to send its state.</span>
+</div>
+
+<div class="ps-banner ps-banner-fault" id="ps-banner-fault" role="alert" hidden>
+  <span id="ps-banner-fault-text" data-ps-str="ps_global_fault">The device reported that a setting could not be saved.</span>
+</div>
+
+<dialog class="ps-dialog" id="ps-dialog" data-ps-no-i18n>
+  <h5 id="ps-dialog-title" data-ps-str="ps_global_dialog_title">Notice</h5>
+  <p id="ps-dialog-text" data-ps-str="ps_global_dialog_text">Message</p>
+  <nav class="right-align">
+    <button class="border" id="ps-dialog-cancel" data-ps-str="ps_global_cancel">Cancel</button>
+    <button id="ps-dialog-ok" data-ps-str="ps_global_ok">OK</button>
+  </nav>
+</dialog>
+
+<div class="snackbar ps-toast" id="ps-toast" role="status" aria-live="polite" data-ps-no-i18n></div>
+
+<input type="file" id="ps-upload-input" hidden>

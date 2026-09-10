@@ -1,0 +1,93 @@
+/* Layout and the project's own components. Rule 8: every class is ps-<block>-<part>. Beer
+   CSS supplies the primitives (nav, article, field, slider, switch, button, dialog,
+   snackbar); this file places them and adds what the device page needs on top. */
+
+html, body { min-height: 100%; }
+body { background: var(--surface); color: var(--on-surface); }
+
+/* --- waiting state: nothing below is trusted until the first state document lands --- */
+body.ps-waiting .ps-needs-state { opacity: .55; pointer-events: none; }
+body.ps-waiting #ps-banner-waiting { display: flex; }
+#ps-banner-waiting { display: none; }
+.ps-banner {
+  display: flex; align-items: center; gap: 8px;
+  margin: 0 0 var(--ps-gap);
+  padding: 10px 14px;
+  border-radius: var(--ps-radius-sm);
+  background: var(--ps-wash-2);
+  color: var(--on-surface);
+  font-size: .9rem;
+}
+.ps-banner-fault { background: var(--error-container); color: var(--on-error-container); }
+
+/* --- top bar --- */
+.ps-topbar { gap: 10px; }
+.ps-brand { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; color: inherit; min-width: 0; }
+.ps-brand-name { font-weight: 600; letter-spacing: .01em; white-space: nowrap; }
+.ps-mark { width: 40px; height: 40px; flex: none; }
+body.light .ps-mark-dark { display: none; }
+body.dark  .ps-mark-light { display: none; }
+.ps-pill {
+  padding: 4px 10px; border-radius: 999px;
+  background: var(--secondary-container); color: var(--on-secondary-container);
+  font-size: .8rem; white-space: nowrap;
+}
+.ps-pill-ok    { background: var(--primary-container);  color: var(--on-primary-container); }
+.ps-pill-warn  { background: var(--tertiary-container); color: var(--on-tertiary-container); }
+.ps-pill-error { background: var(--error-container);    color: var(--on-error-container); }
+
+/* --- icons: the inline sprite, tinted by the text colour --- */
+.ps-icon { width: 24px; height: 24px; display: inline-block; vertical-align: middle; flex: none; color: currentColor; }
+.ps-icon-sm { width: 18px; height: 18px; }
+
+/* --- navigation. Rail on wide screens, bottom bar on phones. Same destinations, same
+   order, both present in the markup; only one is shown. --- */
+.ps-rail, .ps-bottombar { }
+.ps-rail a, .ps-bottombar a { text-decoration: none; }
+.ps-rail a.ps-current, .ps-bottombar a.ps-current { color: var(--primary); font-weight: 600; }
+@media (max-width: 991px) { .ps-rail { display: none; } }
+@media (min-width: 992px) { .ps-bottombar { display: none; } }
+
+/* --- pages --- */
+.ps-main { padding-bottom: 96px; }
+@media (min-width: 992px) { .ps-main { padding-bottom: 24px; } }
+article[data-ps-card] {
+  background: var(--surface-container-low);
+  color: var(--on-surface);
+  border-radius: var(--ps-radius);
+  padding: 16px;
+  margin: 0 0 var(--ps-gap);
+}
+article[data-ps-card][hidden] { display: none !important; }
+.ps-card-title { margin: 0 0 12px; font-size: 1.05rem; font-weight: 600; }
+.ps-grid { display: grid; grid-template-columns: 1fr; gap: var(--ps-gap); }
+@media (min-width: 700px) { .ps-grid-2 { grid-template-columns: 1fr 1fr; } }
+.ps-tile {
+  background: var(--surface-container);
+  border-radius: var(--ps-radius-sm);
+  padding: 14px;
+}
+.ps-tile-label { font-size: .8rem; color: var(--on-surface-variant); margin-bottom: 4px; }
+.ps-tile-value { font-size: 1.25rem; font-weight: 600; word-break: break-word; }
+.ps-tile-value.ps-unset { color: var(--on-surface-variant); font-weight: 400; }
+.ps-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.ps-kv { display: grid; grid-template-columns: max-content 1fr; gap: 6px 14px; align-items: baseline; }
+.ps-kv dt { color: var(--on-surface-variant); font-size: .85rem; }
+.ps-kv dd { margin: 0; }
+
+/* the state dot: the bar's three states and the printer's, as a coloured dot beside text */
+.ps-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; background: var(--ps-led-dim); flex: none; }
+.ps-dot-on    { background: var(--ps-led-lit); }
+.ps-dot-warn  { background: var(--tertiary); }
+.ps-dot-error { background: var(--error); }
+
+/* --- dialog and toast --- */
+.ps-dialog { border-radius: var(--ps-radius); }
+.ps-dialog h5 { margin-top: 0; }
+.ps-toast { border-radius: var(--ps-radius-sm); }
+
+/* --- focus, everywhere --- */
+:focus-visible { outline: 2px solid var(--ps-focus); outline-offset: 2px; }
+
+/* --- reduced motion --- */
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } }

@@ -293,6 +293,37 @@ normal work stops being read. An exemption by path would have to grow with every
 and every module that handles a credential field, which is most of the page. The precise
 statement of what was wrong fits in one regex each.
 
+## D-016 The page build: one source of truth, explicit keys, the seam, and what the build refuses
+
+**Date** 2026-09-10 · **Reversal** moderate once translations exist
+
+**Decided.**
+- `firmware/main/ui.html` is an OUTPUT of `tools/ui/build/build.py` and is committed. Nobody
+  edits it. Its gzip is CMake's job (`gzip -9 -n`) and is gitignored.
+- i18n keys are **explicit in the markup** (`data-ps-str="ps_<page>_<what>"`), not minted from
+  the English text. An English edit then never renames a key and orphans its translations,
+  and a translator keys on something stable. `i18n.py mint` adds a first key to a forgotten
+  element; it never reuses or fuzzy-matches.
+- `en.json` is **derived from the markup** every build (plus `js_strings.json` for strings
+  only JavaScript uses), never accumulated. The English lives where it is read.
+- Other languages are validated against English on every build: missing, extra, or
+  placeholder-mismatched keys fail the build. The language list is the set of files present.
+- **The seam** is `strings_block()` in the assembler: the one function that decides inline
+  versus fetched. Inline today; `--strings fetch` fails with a message naming the deferred
+  path. `PS.tr()` in the core module is the one runtime accessor.
+- The build refuses: marks that drift from their generator; a vendored file whose sha256
+  differs from its README; any untagged text; any key not in `en.json`; any `id_` or `c_`
+  token; any inline `on*=`; any external asset reference; a card without `data-ps-card`; a
+  nav target with no card; an unreplaced slot.
+
+**Alternatives.** Mint keys from English (the sibling's way); accumulate `en.json`; hand-edit
+the built page for quick fixes.
+
+**Why.** Each refusal is a bug the sibling shipped, and each is cheaper to catch at build
+time than in a screenshot. Explicit keys cost a few seconds per element and remove a whole
+class of translation drift. The seam costs one function today and saves rewriting every
+call site if the dump says flash is tight.
+
 ---
 
 *Entries continue below as the run proceeds.*

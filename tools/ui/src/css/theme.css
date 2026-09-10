@@ -1,0 +1,98 @@
+/* Theme tokens. Material 3, on top of Beer CSS 5.
+
+   Beer defines its own values for these names on body.dark and body.light. We override the
+   same names on the same selectors, so Beer's components and our own rules read one set.
+
+   Every colour is a PAIR that cannot come apart: a container and its on-colour, declared
+   together, on the same selector, for both themes. A lone hex is a bug: it is right on one
+   ground and invisible on the other, and the sibling project shipped a light theme nobody
+   had ever rendered.
+
+   Washes are color-mix() against --on-surface at a percentage, so one declaration works on
+   both grounds; no separate light and dark wash values exist.
+
+   color-scheme is set so native selects, scrollbars and form controls follow the theme.
+   Form fields get EXPLICIT colours: a field's value is not a text node, so no contrast
+   harness that walks text nodes can see it, and nine white slabs down a black page shipped
+   that way once. */
+
+:root {
+  color-scheme: light dark;
+  --ps-radius: 12px;
+  --ps-radius-sm: 8px;
+  --ps-gap: 12px;
+  --ps-wash-1: color-mix(in srgb, var(--on-surface) 4%, transparent);
+  --ps-wash-2: color-mix(in srgb, var(--on-surface) 8%, transparent);
+  --ps-wash-3: color-mix(in srgb, var(--on-surface) 12%, transparent);
+  --ps-hairline: color-mix(in srgb, var(--on-surface) 16%, transparent);
+  --ps-focus: color-mix(in srgb, var(--primary) 60%, transparent);
+}
+
+body.light {
+  color-scheme: light;
+  --primary: #1f6b45;              --on-primary: #ffffff;
+  --primary-container: #a8f2c6;    --on-primary-container: #00210f;
+  --secondary: #4f6354;            --on-secondary: #ffffff;
+  --secondary-container: #d1e8d5;  --on-secondary-container: #0c1f14;
+  --tertiary: #3b6470;             --on-tertiary: #ffffff;
+  --tertiary-container: #bfe9f7;   --on-tertiary-container: #001f27;
+  --error: #ba1a1a;                --on-error: #ffffff;
+  --error-container: #ffdad6;      --on-error-container: #410002;
+  --surface: #f8faf5;              --on-surface: #191c1a;
+  --surface-variant: #dce5db;      --on-surface-variant: #414942;
+  --surface-container-lowest: #ffffff;
+  --surface-container-low: #f2f5ef;
+  --surface-container: #eceee9;
+  --surface-container-high: #e6e9e3;
+  --surface-container-highest: #e0e3dd;
+  --surface-dim: #d8dbd5;          --surface-bright: #f8faf5;
+  --inverse-surface: #2e312e;      --inverse-on-surface: #eff1ec;
+  --inverse-primary: #8ed5ab;
+  --outline: #717971;              --outline-variant: #c0c9bf;
+  --background: #f8faf5;           --on-background: #191c1a;
+  --ps-led-lit: #2fa86a;           --ps-led-dim: #9aa39c;
+}
+
+body.dark {
+  color-scheme: dark;
+  --primary: #8ed5ab;              --on-primary: #003820;
+  --primary-container: #005231;    --on-primary-container: #a8f2c6;
+  --secondary: #b5ccb9;            --on-secondary: #213528;
+  --secondary-container: #374b3d;  --on-secondary-container: #d1e8d5;
+  --tertiary: #a3cddb;             --on-tertiary: #033641;
+  --tertiary-container: #224c58;   --on-tertiary-container: #bfe9f7;
+  --error: #ffb4ab;                --on-error: #690005;
+  --error-container: #93000a;      --on-error-container: #ffdad6;
+  --surface: #111412;              --on-surface: #e1e3de;
+  --surface-variant: #414942;      --on-surface-variant: #c0c9bf;
+  --surface-container-lowest: #0c0f0d;
+  --surface-container-low: #191c1a;
+  --surface-container: #1d201e;
+  --surface-container-high: #272a28;
+  --surface-container-highest: #323533;
+  --surface-dim: #111412;          --surface-bright: #373a37;
+  --inverse-surface: #e1e3de;      --inverse-on-surface: #2e312e;
+  --inverse-primary: #1f6b45;
+  --outline: #8a938a;              --outline-variant: #414942;
+  --background: #111412;           --on-background: #e1e3de;
+  --ps-led-lit: #2fa86a;           --ps-led-dim: #4a5049;
+}
+
+/* Form fields, explicitly. See the note at the top. */
+body.light input, body.light select, body.light textarea,
+body.dark input, body.dark select, body.dark textarea {
+  color: var(--on-surface);
+  background: var(--surface-container-lowest);
+  border-color: var(--outline);
+}
+body.light input::placeholder, body.dark input::placeholder,
+body.light textarea::placeholder, body.dark textarea::placeholder {
+  color: var(--on-surface-variant);
+  opacity: 1;
+}
+body.light input:disabled, body.dark input:disabled,
+body.light select:disabled, body.dark select:disabled {
+  color: var(--on-surface-variant);
+  background: var(--surface-container);
+  opacity: 1;
+}

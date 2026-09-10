@@ -1,0 +1,62 @@
+<!--@@NOTICE@@-->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Panda Status</title>
+<!--@@FAVICONS@@-->
+<!--@@BEER_CSS@@-->
+<!--@@COLORIS_CSS@@-->
+<!--@@THEME_CSS@@-->
+<!--@@APP_CSS@@-->
+</head>
+<body class="ps-waiting">
+<script>
+/* First paint. Runs before any content so a reload never flashes the wrong theme. Beer CSS
+   reads the theme class on <body>, not <html>; a class on <html> gave the sibling project a
+   light theme nobody could reach. "auto" means no class: Beer follows prefers-color-scheme. */
+(function () {
+  var t = null;
+  try { t = localStorage.getItem('ps_theme'); } catch (e) {}
+  if (t === 'dark' || t === 'light') document.body.classList.add(t);
+  else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) document.body.classList.add('dark');
+  else document.body.classList.add('light');
+})();
+</script>
+<!--@@SPRITE@@-->
+
+<nav class="top ps-topbar" id="ps-topbar">
+  <a class="ps-brand" href="#dashboard" data-ps-nav="dashboard" data-ps-str-aria="ps_frame_home" aria-label="Home">
+    <!--@@MARK_LIGHT@@-->
+    <!--@@MARK_DARK@@-->
+    <span class="ps-brand-name" data-ps-str="ps_frame_title">Panda Status</span>
+  </a>
+  <div class="max"></div>
+  <span class="ps-pill" id="ps-topbar-pill" data-ps-str="ps_frame_pill_waiting">Waiting for the device</span>
+  <button class="circle transparent" id="ps-topbar-theme" data-ps-str-aria="ps_frame_theme" aria-label="Theme">
+    <svg class="ps-icon"><use href="#ps-icon-sun"/></svg>
+  </button>
+</nav>
+
+<nav class="left ps-rail" id="ps-rail" data-ps-str-aria="ps_frame_nav" aria-label="Pages">
+  <a href="#dashboard" data-ps-nav="dashboard"><svg class="ps-icon"><use href="#ps-icon-home"/></svg><div data-ps-str="ps_frame_nav_dashboard">Dashboard</div></a>
+</nav>
+
+<main class="responsive ps-main" id="ps-main">
+<!--@@PAGES@@-->
+</main>
+
+<nav class="bottom ps-bottombar" id="ps-bottombar" data-ps-str-aria="ps_frame_nav_2" aria-label="Pages">
+  <a href="#dashboard" data-ps-nav="dashboard"><svg class="ps-icon"><use href="#ps-icon-home"/></svg><div data-ps-str="ps_frame_nav_dashboard_2">Dashboard</div></a>
+</nav>
+
+<!--@@GLOBAL@@-->
+
+<!--@@STRINGS@@-->
+<!--@@BEER_JS@@-->
+<!--@@COLORIS_JS@@-->
+<!--@@MODULES@@-->
+</body>
+</html>
