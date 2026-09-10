@@ -1,0 +1,225 @@
+#!/usr/bin/env bash
+#
+# Panda Status pre-commit hook.
+#
+# Two jobs:
+#   1. Hard fail if anything under .claude/work/ or private/ is staged.
+#   2. Hard fail if staged content matches a secret pattern or a known secret value.
+#      Content means the file AND, when the file is a gzip member, what is inside it.
+#      A credential compressed is still a credential published.
+#
+# This repo is public. The hook is committed. Its output is not.
+#
+# False positives are fixed by scrubbing the content or by widening ALLOW_PATTERNS
+# below in a reviewable commit. They are not fixed by bypassing the hook.
+
+set -uo pipefail
+
+RED=$'\033[31m'; YEL=$'\033[33m'; RST=$'\033[0m'
+FAILED=0
+
+fail() { printf '%s\n' "${RED}BLOCKED${RST} $*" >&2; FAILED=1; }
+warn() { printf '%s\n' "${YEL}WARN${RST} $*" >&2; }
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+STAGED="$(git diff --cached --name-only --diff-filter=ACMR)"
+
+[ -z "$STAGED" ] && exit 0
+
+# ---------------------------------------------------------------------------
+# 1. Working areas must never be staged.
+# ---------------------------------------------------------------------------
+WORK_HITS="$(printf '%s\n' "$STAGED" | grep -E '^\.claude/work/' || true)"
+if [ -n "$WORK_HITS" ]; then
+    fail "paths under .claude/work/ are staged. That area is never committed."
+    printf '%s\n' "$WORK_HITS" | sed 's/^/        /' >&2
+fi
+
+PRIVATE_HITS="$(printf '%s\n' "$STAGED" | grep -E '^private/' || true)"
+if [ -n "$PRIVATE_HITS" ]; then
+    fail "paths under private/ are staged. That area is never committed."
+    printf '%s\n' "$PRIVATE_HITS" | sed 's/^/        /' >&2
+fi
+
+# ---------------------------------------------------------------------------
+# 2. Binary blobs and dumps must never be staged.
+# ---------------------------------------------------------------------------
+BLOB_HITS="$(printf '%s\n' "$STAGED" | grep -Ei '\.(bin|dump|img|nvs|hex|elf)$' || true)"
+if [ -n "$BLOB_HITS" ]; then
+    fail "firmware blobs are staged. Dumps live outside the repo."
+    printf '%s\n' "$BLOB_HITS" | sed 's/^/        /' >&2
+fi
+
+# Anything with nvs in the name, any extension.
+NVS_HITS="$(printf '%s\n' "$STAGED" | grep -Ei '(^|/)[^/]*nvs[^/]*$' || true)"
+if [ -n "$NVS_HITS" ]; then
+    fail "NVS artifacts are staged. NVS holds live Wi-Fi credentials and never enters the repo."
+    printf '%s\n' "$NVS_HITS" | sed 's/^/        /' >&2
+fi
+
+# ---------------------------------------------------------------------------
+# 3. Secret pattern scan over staged content.
+# ---------------------------------------------------------------------------
+
+# Patterns that are allowed through. Keep this list short and justified.
+#   - the three published reference binary sha256 values (public, in SAFETY.md)
+#   - placeholder tokens of the form <UPPER_SNAKE>
+#   - all-zero and all-FF MACs
+#   - published reference binary sha256 values (public, listed in SAFETY.md)
+#   - placeholder tokens <UPPER_SNAKE>, and redaction markers
+#   - bare backticked field NAMES in protocol docs. A value cannot hide inside
+#     `password` with no assignment; a real leak looks like password = hunter2,
+#     which still matches. This exists so protocol documentation can name the
+#     device's real fields accurately, which Gate 4 depends on.
+#   - all-zero and all-FF MACs
+ALLOW_PATTERNS='f317a8a76f1b575467bec007a9768e7951c51603dfdf9de68c4152721a573732|eede7abf5e824f31d071bcd962c428cce112706086fa642989c33f95dc9d5358|e77549a31714cfa14e3632713e10232c93604eb4a84d0ce37434c7fab08e6c9a|b12127a83f8ed035a310097e7ecc2fdc4a66edc0071942d810068e996bd62228|<[A-Z][A-Z0-9_]*>|<REDACTED[^>]*>|<EMPTY>|00:00:00:00:00:00|FF:FF:FF:FF:FF:FF|ff:ff:ff:ff:ff:ff'
+
+# A line qualifies for the field-name allowance only if EVERY sensitive token on it is
+# a bare backticked identifier. One unbackticked assignment and the line is scanned.
+# A credential ASSIGNMENT: a sensitive key, optionally quoted or backticked, then
+# : or =, then a value of real length. Naming a field is not assigning it.
+SENS_ASSIGN='(password|passwd|psk|pwd|secret|token|api[_-]?key|access[_-]?code|ssid|serial)["'"'"'`]?[[:space:]]*[:=][[:space:]]*["'"'"'`]?[A-Za-z0-9._~+/-]{6,}'
+
+# Is this staged file a gzip member? Magic bytes first, so a gzip under a name that
+# does not say .gz is still caught; extension as a second trigger.
+is_gzip() {
+    local file="$1" magic
+    magic="$(git show ":$file" 2>/dev/null | od -An -tx1 -N2 | tr -d ' \n')"
+    [ "$magic" = "1f8b" ] && return 0
+    printf '%s' "$file" | grep -Eqi '\.(gz|tgz|gzip)$'
+}
+
+# One view of a staged file's content. "raw" is the staged bytes; "gz" is what those
+# bytes inflate to. They are deliberately separate streams: concatenating binary and
+# text makes grep switch the whole stream to binary mode and report no match, which
+# would silently hide a credential inside a gzip. That is the bug this split fixes.
+# Inflate failures are swallowed on purpose: a member that will not inflate has already
+# been scanned as bytes, and a broken archive must not fail the hook for the wrong
+# reason.
+staged_view() {
+    case "$2" in
+        raw) git show ":$1" 2>/dev/null ;;
+        gz)  git show ":$1" 2>/dev/null | gzip -cd 2>/dev/null || true ;;
+    esac
+}
+
+# Which views apply to a file.
+views_for() { is_gzip "$1" && printf 'raw gz\n' || printf 'raw\n'; }
+
+scan_pattern() {
+    local label="$1" pattern="$2" file line view where
+    for file in $STAGED; do
+        [ -f "$REPO_ROOT/$file" ] || continue
+        # Skip the scanner, its test suite and the residue sweep. All three contain
+        # credential-shaped and vendor-shaped strings by definition: they are the
+        # pattern definitions. Every value in the test suite is fake.
+        case "$file" in
+            .githooks/pre-commit|tools/test-hook.sh|tools/residue-sweep.sh) continue ;;
+        esac
+        for view in $(views_for "$file"); do
+            [ "$view" = "gz" ] && where="$file (inside gzip)" || where="$file"
+            while IFS= read -r line; do
+                printf '%s' "$line" | grep -Eq "$ALLOW_PATTERNS" && continue
+                # Documentation that only NAMES fields, never assigns them. Requires a
+                # backtick (so it is a code span) AND no credential assignment anywhere
+                # on the line. `password` passes; `password` = hunter2 does not.
+                if printf '%s' "$line" | grep -Eq '`' \
+                   && ! printf '%s' "$line" | grep -Eq "$SENS_ASSIGN"; then
+                    continue
+                fi
+                fail "$label in $where"
+                printf '        %s\n' "$line" >&2
+            done < <(staged_view "$file" "$view" | grep -a -nE "$pattern" || true)
+        done
+    done
+}
+
+# ---------------------------------------------------------------------------
+# 3b. Vendor residue scan.
+#
+# Standing rule 6: no BIQU material in the tree. The line is whether a name is on the
+# WIRE or inside THEIR DOCUMENT.
+#
+#   Interface fact, allowed: anything a clone must transmit or receive. Wire field
+#   names, message roots, enum values, endpoint paths, header names, stage slot names,
+#   published file hashes and sizes.
+#
+#   Their expression, blocked: anything that is a name inside their document rather
+#   than a name on the wire. Element IDs, CSS class names, function names, variable
+#   names, their comments, their UI copy, and values lifted out of their markup.
+#
+# This scan does NOT inherit the credential scan's backticked-field-name allowance. A
+# vendor identifier inside a code span is still a vendor identifier; the allowance
+# exists so protocol docs can name real wire fields, which is the opposite case.
+#
+# THE id_ AND c_ PATTERNS ARE ABSOLUTE. There is no allowlist and none is needed:
+# standing rule 8 fixes our own convention as ps-<area>-<control> for element IDs and
+# ps-<block> for classes, hyphenated, which cannot match either pattern under any
+# circumstance. Do not add an exemption here when our page lands. An allowlist that grows
+# with every new control is a check that decays to nothing, and a decayed check is how
+# their element IDs reached a commit in the first place. Fix the name, not the check.
+
+scan_vendor() {
+    local label="$1" pattern="$2" file line view where
+    for file in $STAGED; do
+        [ -f "$REPO_ROOT/$file" ] || continue
+        case "$file" in
+            .githooks/pre-commit|tools/test-hook.sh|tools/residue-sweep.sh) continue ;;
+        esac
+        for view in $(views_for "$file"); do
+            [ "$view" = "gz" ] && where="$file (inside gzip)" || where="$file"
+            while IFS= read -r line; do
+                fail "$label in $where"
+                printf '        %s\n' "$line" >&2
+            done < <(staged_view "$file" "$view" | grep -a -nE "$pattern" || true)
+        done
+    done
+}
+
+scan_vendor "vendor element ID"   '\bid_[a-z][a-zA-Z0-9_]*\b'
+scan_vendor "vendor CSS class"    '\bc_[a-z][a-zA-Z0-9_]*\b'
+scan_vendor "vendor identifier"   '\b(ws_send_data|ws_send_json|ws_on_close|ws_on_open|ws_on_message|show_ws_not_open|html_require_refresh|dialog_create|resetSettings|updateUIAfterReset|rgb_color_list|rgb_brightness_list|rgb_speed_list|colorButton_id|g_websocket|g_rgb_type_str|g_gif_name|g_lang_resources|ota_btn_click|ota_file_selected|speedSlider|device_req_restart|show_pop_factory|h2d_mode)\b'
+scan_vendor "CJK source text"     '[^[:print:][:space:]]*[一-龥ぁ-ヿ가-힣]'
+
+scan_pattern "MAC address"            '([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}'
+scan_pattern "wifi/psk proximity"     '[Ww][Ii]-?[Ff][Ii].*(pass|psk|pwd)'
+scan_pattern "credential assignment"  "$SENS_ASSIGN"
+scan_pattern "bearer token"           'Bearer[[:space:]]+[A-Za-z0-9._~+/-]{16,}'
+scan_pattern "private key block"      'BEGIN [A-Z ]*PRIVATE KEY'
+scan_pattern "AWS access key"         'AKIA[0-9A-Z]{16}'
+scan_pattern "GitHub token"           'gh[pousr]_[A-Za-z0-9]{16,}'
+scan_pattern "Bambu serial"           '\b0[0-9A-Z]{2}[A-Z]{2}[0-9A-Z]{10,}\b'
+
+# ---------------------------------------------------------------------------
+# 4. Literal known-secret scan.
+#
+# .claude/work/secrets/forbidden-strings.txt holds the real values recovered from
+# this unit, one per line, blank lines and # comments ignored. That file is never
+# committed. Any staged content containing one of those literals is blocked.
+# ---------------------------------------------------------------------------
+FORBIDDEN="$REPO_ROOT/.claude/work/secrets/forbidden-strings.txt"
+if [ -f "$FORBIDDEN" ]; then
+    while IFS= read -r secret; do
+        case "$secret" in ''|'#'*) continue ;; esac
+        [ "${#secret}" -lt 4 ] && continue
+        for file in $STAGED; do
+            [ -f "$REPO_ROOT/$file" ] || continue
+            for view in $(views_for "$file"); do
+                if staged_view "$file" "$view" | grep -a -qF -- "$secret"; then
+                    [ "$view" = "gz" ] \
+                        && fail "known secret value from forbidden-strings.txt appears in $file (inside gzip)" \
+                        || fail "known secret value from forbidden-strings.txt appears in $file"
+                fi
+            done
+        done
+    done < "$FORBIDDEN"
+else
+    warn "no .claude/work/secrets/forbidden-strings.txt yet. Literal secret scan skipped."
+fi
+
+# ---------------------------------------------------------------------------
+if [ "$FAILED" -ne 0 ]; then
+    printf '\n%s\n' "${RED}commit refused.${RST} This repo is public. Scrub the content and stage again." >&2
+    exit 1
+fi
+exit 0

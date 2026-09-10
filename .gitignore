@@ -1,0 +1,36 @@
+# Agent working area. Never committed. Enforced by .githooks/pre-commit as well.
+.claude/work/
+.claude/settings.local.json
+
+# Working material: the page build system, the harnesses, factory reference
+# material, the standalone secret scan. Never committed, in its entirety.
+# Also enforced by .githooks/pre-commit.
+private/
+
+# Firmware images and memory dumps. These live outside the repo, at
+# /Users/jeremykenedy/backups/PandaStatus/. Listed here as a second line of
+# defence, not as permission to keep one in the tree.
+*.bin
+*.dump
+*.img
+*.nvs
+*.hex
+*.elf
+
+# Reference video lives outside the repo, next to the flash dumps, at
+# /Users/jeremykenedy/backups/PandaStatus/reference-video/
+# The repo keeps only the shot list and the frame timing data derived from it.
+backups/reference-video/*
+!backups/reference-video/README.md
+!backups/reference-video/timing/
+
+# ESP-IDF build output.
+firmware/build/
+sdkconfig.old
+
+# Python bytecode
+__pycache__/
+*.pyc
+
+# macOS
+.DS_Store
