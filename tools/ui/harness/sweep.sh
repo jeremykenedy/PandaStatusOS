@@ -34,6 +34,8 @@ ROWS=(
   "p2-idle.json      | page-images.js | PS_OTA_REFUSE=1"
   "p2-idle.json      | page-images.js | PS_IMG_VERSION=1"
   "p2-idle.json      | page-images.js | PS_THEME_ON_CONNECT=1"
+  "p2-idle.json      | page-printer.js | "
+  "p2-idle.json      | page-printer.js | PS_PRINTER_FAIL=6"
 )
 
 pass=0; fail=0; failed=()

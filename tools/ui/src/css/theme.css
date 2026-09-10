@@ -96,3 +96,8 @@ body.light select:disabled, body.dark select:disabled {
   background: var(--surface-container);
   opacity: 1;
 }
+/* Inside a Beer field the control is transparent: the field's border draws the box and the
+   floating label sits inside it, above the control in the paint order only while nothing is
+   painted on the control. A painted control hid every resting label on the printer page.
+   The value's colour stays explicit; its ground is the tile's. */
+body.light .field > :is(input, select, textarea), body.dark .field > :is(input, select, textarea) { background: transparent; }

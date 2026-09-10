@@ -123,6 +123,11 @@ body.light select:disabled, body.dark select:disabled {
   background: var(--surface-container);
   opacity: 1;
 }
+/* Inside a Beer field the control is transparent: the field's border draws the box and the
+   floating label sits inside it, above the control in the paint order only while nothing is
+   painted on the control. A painted control hid every resting label on the printer page.
+   The value's colour stays explicit; its ground is the tile's. */
+body.light .field > :is(input, select, textarea), body.dark .field > :is(input, select, textarea) { background: transparent; }
 
 </style>
 <style>
@@ -238,6 +243,11 @@ article[data-ps-card] {
 .ps-images-slot progress { max-width: 220px; }
 .ps-images-slot button { white-space: nowrap; }
 
+/* --- printer: found-printer rows --- */
+.ps-printer-found-row { padding: 8px 10px; border-radius: var(--ps-radius-sm); background: var(--ps-wash-1); }
+.ps-printer-found-row > .ps-tile-value { font-size: 1rem; }
+.ps-printer-found-row > button { margin-inline-start: auto; }
+
 /* --- dialog and toast --- */
 .ps-dialog { border-radius: var(--ps-radius); }
 .ps-dialog h5 { margin-top: 0; }
@@ -308,6 +318,7 @@ article[data-ps-card] {
   <a href="#dashboard" data-ps-nav="dashboard"><svg class="ps-icon"><use href="#ps-icon-home"/></svg><div data-ps-str="ps_frame_nav_dashboard">Dashboard</div></a>
   <a href="#lighting"  data-ps-nav="lighting"><svg class="ps-icon"><use href="#ps-icon-light-bulb"/></svg><div data-ps-str="ps_frame_nav_lighting">Lighting</div></a>
   <a href="#images"    data-ps-nav="images"><svg class="ps-icon"><use href="#ps-icon-photo"/></svg><div data-ps-str="ps_frame_nav_images">Images</div></a>
+  <a href="#printer"   data-ps-nav="printer"><svg class="ps-icon"><use href="#ps-icon-cube"/></svg><div data-ps-str="ps_frame_nav_printer">Printer</div></a>
 </nav>
 
 <main class="responsive ps-main" id="ps-main">
@@ -725,12 +736,78 @@ article[data-ps-card] {
 
   </div>
 </article>
+<!-- page: printer -->
+<article data-ps-card id="ps-card-printer" hidden>
+  <h2 class="ps-card-title" data-ps-str="ps_printer_title">Printer</h2>
+
+  <div class="ps-needs-state">
+
+    <div class="ps-tile" id="ps-printer-status">
+      <div class="ps-tile-label" data-ps-str="ps_printer_bound">Bound printer</div>
+      <div class="ps-row">
+        <span class="ps-dot" id="ps-printer-dot"></span>
+        <span class="ps-tile-value ps-unset" id="ps-printer-name" data-ps-no-i18n>—</span>
+      </div>
+      <div class="ps-tile-label" id="ps-printer-state" data-ps-no-i18n>—</div>
+      <dl class="ps-kv">
+        <dt data-ps-str="ps_printer_sn">Serial number</dt><dd id="ps-printer-sn" data-ps-no-i18n>—</dd>
+        <dt data-ps-str="ps_printer_ip">IP address</dt><dd id="ps-printer-ip" data-ps-no-i18n>—</dd>
+      </dl>
+      <div class="ps-row">
+        <button class="border" id="ps-printer-unbind" data-ps-str="ps_printer_unbind">Unbind</button>
+        <span class="ps-tile-label" data-ps-str="ps_printer_unbind_help">Forgets the printer. The access code stays on the device until a new one is sent.</span>
+      </div>
+    </div>
+
+    <div class="ps-tile" id="ps-printer-find">
+      <div class="ps-tile-label" data-ps-str="ps_printer_find">Find printers</div>
+      <div class="ps-row">
+        <button class="border" id="ps-printer-scan" data-ps-str="ps_printer_scan">Scan</button>
+        <span class="ps-tile-label" id="ps-printer-scan-state" data-ps-no-i18n>—</span>
+      </div>
+      <div id="ps-printer-found" class="ps-grid" data-ps-no-i18n></div>
+      <div class="ps-tile-label" data-ps-str="ps_printer_find_help">Looks for printers on this network. Choose one to fill in its name and address below.</div>
+    </div>
+
+    <div class="ps-tile" id="ps-printer-bind">
+      <div class="ps-tile-label" data-ps-str="ps_printer_bind">Bind a printer</div>
+      <div class="ps-grid ps-grid-2">
+        <div class="field border small label">
+          <input type="text" id="ps-printer-bind-name" autocomplete="off" spellcheck="false">
+          <label data-ps-str="ps_printer_bind_name">Name</label>
+        </div>
+        <div class="field border small label">
+          <input type="text" id="ps-printer-bind-ip" autocomplete="off" spellcheck="false" inputmode="decimal">
+          <label data-ps-str="ps_printer_bind_ip">IP address</label>
+        </div>
+        <div class="field border small label">
+          <input type="text" id="ps-printer-bind-sn" autocomplete="off" spellcheck="false">
+          <label data-ps-str="ps_printer_bind_sn">Serial number</label>
+        </div>
+        <div class="field border small label">
+          <input type="password" id="ps-printer-bind-code" autocomplete="off">
+          <label data-ps-str="ps_printer_bind_code">Access code</label>
+        </div>
+      </div>
+      <div class="ps-row">
+        <button id="ps-printer-bind-send" data-ps-str="ps_printer_bind_send">Bind</button>
+        <label class="checkbox">
+          <input type="checkbox" id="ps-printer-bind-show">
+          <span data-ps-str="ps_printer_bind_show">Show the access code</span>
+        </label>
+      </div>
+      <div class="ps-tile-label" data-ps-str="ps_printer_bind_help">The serial number and access code are on the printer's own screen. Everything typed here is sent as it is; the device reports the result above.</div>
+    </div>
+
+  </div>
+</article>
 </main>
 
 <nav class="bottom ps-bottombar" id="ps-bottombar" data-ps-str-aria="ps_frame_nav_2" aria-label="Pages">
   <a href="#dashboard" data-ps-nav="dashboard"><svg class="ps-icon"><use href="#ps-icon-home"/></svg><div data-ps-str="ps_frame_nav_dashboard_2">Dashboard</div></a>
   <a href="#lighting"  data-ps-nav="lighting"><svg class="ps-icon"><use href="#ps-icon-light-bulb"/></svg><div data-ps-str="ps_frame_nav_lighting_2">Lighting</div></a>
   <a href="#images"    data-ps-nav="images"><svg class="ps-icon"><use href="#ps-icon-photo"/></svg><div data-ps-str="ps_frame_nav_images_2">Images</div></a>
+  <a href="#printer"   data-ps-nav="printer"><svg class="ps-icon"><use href="#ps-icon-cube"/></svg><div data-ps-str="ps_frame_nav_printer_2">Printer</div></a>
 </nav>
 
 <!-- Furniture shared by every page. One dialog, filled by whoever opens it; one toast; the
@@ -756,7 +833,7 @@ article[data-ps-card] {
 // generated by tools/ui/build/i18n.py; do not edit
 var PS_STRING_LANGS = ["en"];
 var PS_RTL_LANGS = [];
-var PS_STRINGS = {"en":{"ps_core_factory_done_text":"The device is resetting and will restart. Reconnect to its hotspot to set it up again.","ps_core_factory_done_title":"Factory reset","ps_core_lost_text":"The device closed the connection. Reload the page to reconnect.","ps_core_lost_title":"Connection lost","ps_core_reload":"Reload","ps_core_restart_text":"The device will restart to apply this change.","ps_core_save_failed":"The device did not accept the change.","ps_core_saved_title":"Saved","ps_core_upload_failed":"Upload refused.","ps_core_upload_ok":"Upload accepted.","ps_dashboard_brightness":"Brightness","ps_dashboard_device":"Device","ps_dashboard_hotspot_off":"Hotspot off","ps_dashboard_hotspot_on":"Hotspot on","ps_dashboard_lighting":"Lighting","ps_dashboard_mode_h2d":"H2D","ps_dashboard_mode_music":"Music","ps_dashboard_network":"Network","ps_dashboard_pill_connecting":"Printer connecting","ps_dashboard_pill_error":"Printer error","ps_dashboard_pill_ready":"Printer connected","ps_dashboard_pill_unbound":"No printer","ps_dashboard_printer":"Printer","ps_dashboard_prn_1":"Not bound","ps_dashboard_prn_2":"Connecting","ps_dashboard_prn_3":"Connected","ps_dashboard_prn_4":"Address error","ps_dashboard_prn_5":"Serial does not match","ps_dashboard_prn_6":"Access code rejected","ps_dashboard_prn_7":"Unknown error","ps_dashboard_sta_1":"No network configured","ps_dashboard_sta_2":"Connecting","ps_dashboard_sta_3":"Connected","ps_dashboard_sta_4":"Reconnecting","ps_dashboard_sta_5":"Wrong password","ps_dashboard_title":"Dashboard","ps_dashboard_unknown_state":"Unknown state","ps_frame_home":"Home","ps_frame_nav":"Pages","ps_frame_nav_2":"Pages","ps_frame_nav_dashboard":"Dashboard","ps_frame_nav_dashboard_2":"Dashboard","ps_frame_nav_images":"Images","ps_frame_nav_images_2":"Images","ps_frame_nav_lighting":"Lighting","ps_frame_nav_lighting_2":"Lighting","ps_frame_pill_waiting":"Waiting for the device","ps_frame_theme":"Theme","ps_frame_title":"Panda Status","ps_global_cancel":"Cancel","ps_global_dialog_text":"Message","ps_global_dialog_title":"Notice","ps_global_fault":"The device reported that a setting could not be saved.","ps_global_ok":"OK","ps_global_waiting":"Waiting for the device to send its state.","ps_images_choose":"Choose GIF","ps_images_choose_aria":"Choose a GIF for this slot","ps_images_help":"The device shows one animation per print stage. It does not send its animations back, so a slot can only show the file you chose here, in this browser. A file is sent the moment you choose it. GIF only, 1.5 MB at most.","ps_images_showing":"Showing now:","ps_images_slot_bed_heating":"Bed heating","ps_images_slot_bed_leveling":"Bed levelling","ps_images_slot_calibrating_flow":"Flow calibration","ps_images_slot_filament_check_location":"Filament check","ps_images_slot_filament_cut":"Filament cut","ps_images_slot_filament_pull_back_cur":"Filament pull back","ps_images_slot_filament_purge_old":"Filament purge","ps_images_slot_filament_push_new":"Filament push new","ps_images_slot_homing":"Homing","ps_images_slot_nozzle_cleaning":"Nozzle cleaning","ps_images_slot_nozzle_heating":"Nozzle heating","ps_images_slot_printing":"Printing","ps_images_slot_printing_ok":"Print finished","ps_images_slot_standby":"Standby","ps_images_slot_xy_mesh_mode_sweep":"XY mesh sweep","ps_images_status_failed":"Upload failed ({code}).","ps_images_status_idle":"Nothing sent from this browser","ps_images_status_ok":"Accepted by the device.","ps_images_status_refused":"Refused by the device.","ps_images_status_sending":"Sending","ps_images_status_sent":"Sent. Waiting for the device to confirm.","ps_images_status_too_big":"Too big. The limit is {limit}.","ps_images_title":"Images","ps_images_version":"Image pack version","ps_lighting_block":"Segment","ps_lighting_block_aria":"Segment colour","ps_lighting_blocks":"Segments","ps_lighting_blocks_help":"Each segment has its own colour. What a segment maps to on the bar is recorded during the bench session.","ps_lighting_brightness":"Brightness","ps_lighting_brightness_aria":"Brightness","ps_lighting_colour_error":"Error","ps_lighting_colour_error_aria":"Error colour","ps_lighting_colour_idle":"Idle","ps_lighting_colour_idle_aria":"Idle colour","ps_lighting_colour_printing":"Printing","ps_lighting_colour_printing_aria":"Printing colour","ps_lighting_colours":"State colours","ps_lighting_colours_help":"Colours are per mode. Changing the mode above shows that mode's colours.","ps_lighting_mode":"Mode","ps_lighting_mode_aria":"Lighting mode","ps_lighting_mode_h2d":"H2D","ps_lighting_mode_help":"Music reacts to sound. H2D shows the printer's state with three colours.","ps_lighting_mode_music":"Music","ps_lighting_reset":"Reset lighting","ps_lighting_reset_confirm":"Reset","ps_lighting_reset_help":"Puts brightness, speed and the three colours back to their defaults. Nothing else.","ps_lighting_reset_music":"Reset applies in H2D mode. Switch the mode first.","ps_lighting_reset_text":"Brightness, speed and the three state colours go back to their defaults. Wi-Fi, the printer and the hostname are not touched.","ps_lighting_reset_title":"Reset lighting?","ps_lighting_speed":"Speed","ps_lighting_speed_aria":"Speed","ps_lighting_speed_default":"default 100%","ps_lighting_speed_music":"Speed applies in H2D mode only.","ps_lighting_title":"Lighting"}};
+var PS_STRINGS = {"en":{"ps_core_factory_done_text":"The device is resetting and will restart. Reconnect to its hotspot to set it up again.","ps_core_factory_done_title":"Factory reset","ps_core_lost_text":"The device closed the connection. Reload the page to reconnect.","ps_core_lost_title":"Connection lost","ps_core_reload":"Reload","ps_core_restart_text":"The device will restart to apply this change.","ps_core_save_failed":"The device did not accept the change.","ps_core_saved_title":"Saved","ps_core_upload_failed":"Upload refused.","ps_core_upload_ok":"Upload accepted.","ps_dashboard_brightness":"Brightness","ps_dashboard_device":"Device","ps_dashboard_hotspot_off":"Hotspot off","ps_dashboard_hotspot_on":"Hotspot on","ps_dashboard_lighting":"Lighting","ps_dashboard_mode_h2d":"H2D","ps_dashboard_mode_music":"Music","ps_dashboard_network":"Network","ps_dashboard_pill_connecting":"Printer connecting","ps_dashboard_pill_error":"Printer error","ps_dashboard_pill_ready":"Printer connected","ps_dashboard_pill_unbound":"No printer","ps_dashboard_printer":"Printer","ps_dashboard_prn_1":"Not bound","ps_dashboard_prn_2":"Connecting","ps_dashboard_prn_3":"Connected","ps_dashboard_prn_4":"Address error","ps_dashboard_prn_5":"Serial does not match","ps_dashboard_prn_6":"Access code rejected","ps_dashboard_prn_7":"Unknown error","ps_dashboard_sta_1":"No network configured","ps_dashboard_sta_2":"Connecting","ps_dashboard_sta_3":"Connected","ps_dashboard_sta_4":"Reconnecting","ps_dashboard_sta_5":"Wrong password","ps_dashboard_title":"Dashboard","ps_dashboard_unknown_state":"Unknown state","ps_frame_home":"Home","ps_frame_nav":"Pages","ps_frame_nav_2":"Pages","ps_frame_nav_dashboard":"Dashboard","ps_frame_nav_dashboard_2":"Dashboard","ps_frame_nav_images":"Images","ps_frame_nav_images_2":"Images","ps_frame_nav_lighting":"Lighting","ps_frame_nav_lighting_2":"Lighting","ps_frame_nav_printer":"Printer","ps_frame_nav_printer_2":"Printer","ps_frame_pill_waiting":"Waiting for the device","ps_frame_theme":"Theme","ps_frame_title":"Panda Status","ps_global_cancel":"Cancel","ps_global_dialog_text":"Message","ps_global_dialog_title":"Notice","ps_global_fault":"The device reported that a setting could not be saved.","ps_global_ok":"OK","ps_global_waiting":"Waiting for the device to send its state.","ps_images_choose":"Choose GIF","ps_images_choose_aria":"Choose a GIF for this slot","ps_images_help":"The device shows one animation per print stage. It does not send its animations back, so a slot can only show the file you chose here, in this browser. A file is sent the moment you choose it. GIF only, 1.5 MB at most.","ps_images_showing":"Showing now:","ps_images_slot_bed_heating":"Bed heating","ps_images_slot_bed_leveling":"Bed levelling","ps_images_slot_calibrating_flow":"Flow calibration","ps_images_slot_filament_check_location":"Filament check","ps_images_slot_filament_cut":"Filament cut","ps_images_slot_filament_pull_back_cur":"Filament pull back","ps_images_slot_filament_purge_old":"Filament purge","ps_images_slot_filament_push_new":"Filament push new","ps_images_slot_homing":"Homing","ps_images_slot_nozzle_cleaning":"Nozzle cleaning","ps_images_slot_nozzle_heating":"Nozzle heating","ps_images_slot_printing":"Printing","ps_images_slot_printing_ok":"Print finished","ps_images_slot_standby":"Standby","ps_images_slot_xy_mesh_mode_sweep":"XY mesh sweep","ps_images_status_failed":"Upload failed ({code}).","ps_images_status_idle":"Nothing sent from this browser","ps_images_status_ok":"Accepted by the device.","ps_images_status_refused":"Refused by the device.","ps_images_status_sending":"Sending","ps_images_status_sent":"Sent. Waiting for the device to confirm.","ps_images_status_too_big":"Too big. The limit is {limit}.","ps_images_title":"Images","ps_images_version":"Image pack version","ps_lighting_block":"Segment","ps_lighting_block_aria":"Segment colour","ps_lighting_blocks":"Segments","ps_lighting_blocks_help":"Each segment has its own colour. What a segment maps to on the bar is recorded during the bench session.","ps_lighting_brightness":"Brightness","ps_lighting_brightness_aria":"Brightness","ps_lighting_colour_error":"Error","ps_lighting_colour_error_aria":"Error colour","ps_lighting_colour_idle":"Idle","ps_lighting_colour_idle_aria":"Idle colour","ps_lighting_colour_printing":"Printing","ps_lighting_colour_printing_aria":"Printing colour","ps_lighting_colours":"State colours","ps_lighting_colours_help":"Colours are per mode. Changing the mode above shows that mode's colours.","ps_lighting_mode":"Mode","ps_lighting_mode_aria":"Lighting mode","ps_lighting_mode_h2d":"H2D","ps_lighting_mode_help":"Music reacts to sound. H2D shows the printer's state with three colours.","ps_lighting_mode_music":"Music","ps_lighting_reset":"Reset lighting","ps_lighting_reset_confirm":"Reset","ps_lighting_reset_help":"Puts brightness, speed and the three colours back to their defaults. Nothing else.","ps_lighting_reset_music":"Reset applies in H2D mode. Switch the mode first.","ps_lighting_reset_text":"Brightness, speed and the three state colours go back to their defaults. Wi-Fi, the printer and the hostname are not touched.","ps_lighting_reset_title":"Reset lighting?","ps_lighting_speed":"Speed","ps_lighting_speed_aria":"Speed","ps_lighting_speed_default":"default 100%","ps_lighting_speed_music":"Speed applies in H2D mode only.","ps_lighting_title":"Lighting","ps_printer_bind":"Bind a printer","ps_printer_bind_code":"Access code","ps_printer_bind_help":"The serial number and access code are on the printer's own screen. Everything typed here is sent as it is; the device reports the result above.","ps_printer_bind_ip":"IP address","ps_printer_bind_name":"Name","ps_printer_bind_send":"Bind","ps_printer_bind_show":"Show the access code","ps_printer_bind_sn":"Serial number","ps_printer_bound":"Bound printer","ps_printer_find":"Find printers","ps_printer_find_help":"Looks for printers on this network. Choose one to fill in its name and address below.","ps_printer_ip":"IP address","ps_printer_scan":"Scan","ps_printer_scan_0":"Not scanning","ps_printer_scan_1":"Scanning","ps_printer_scan_2":"Scan finished","ps_printer_scan_3":"Checking whether the printer's address changed","ps_printer_scan_4":"A printer answered, but its serial number did not match","ps_printer_scan_5":"The printer's address has not changed","ps_printer_scan_6":"The printer's new address is in use","ps_printer_sn":"Serial number","ps_printer_title":"Printer","ps_printer_unbind":"Unbind","ps_printer_unbind_confirm":"Unbind","ps_printer_unbind_help":"Forgets the printer. The access code stays on the device until a new one is sent.","ps_printer_unbind_text":"The device stops talking to the printer and the lighting stops following prints. You can bind it again at any time.","ps_printer_unbind_title":"Unbind the printer?","ps_printer_use":"Use"}};
 
 </script>
 <script type="module">
@@ -1854,6 +1931,90 @@ var PS = (function () {
     verdict[r.gif] = r.ok === 1 ? 'ok' : 'refused';
     status(r.gif, r.ok === 1 ? 'ps_images_status_ok' : 'ps_images_status_refused');
   });
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', wire); else wire();
+  PS.on('state', function (ev) { render(ev.state); });
+})();
+</script>
+<script>
+// module: 40-printer.js
+'use strict';
+/* Printer binding. Facts from docs/protocol-websocket.md, root printer:
+   - Scan button sends {scan}; Bind sends {name, sn, access_code, ip}; Unbind, after its
+     confirm, sends {disconnect}. The values 1 for scan and disconnect follow the wire
+     harness (wire.js), INFERENCE until the bench capture shows the factory frame
+   - inbound: name, state, scan, list. The push also carries sn, access_code and ip; the
+     factory UI handles only the first four. The name, serial and address are shown here
+     because the device sends them. The access code is never shown and never pre-filled
+   - printer.state and printer.scan are enums; the labels for state are the dashboard's
+   - the bind form is not pre-filled from the device: the factory UI does not handle those
+     fields, so its form starts empty, and what Bind sends is exactly what was typed
+   - list entries are {name, ip}, the mock's INFERENCE of the shape until the bench */
+
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var PRN = { 1: 'ps_dashboard_prn_1', 2: 'ps_dashboard_prn_2', 3: 'ps_dashboard_prn_3', 4: 'ps_dashboard_prn_4', 5: 'ps_dashboard_prn_5', 6: 'ps_dashboard_prn_6', 7: 'ps_dashboard_prn_7' };
+  var SCAN = { 0: 'ps_printer_scan_0', 1: 'ps_printer_scan_1', 2: 'ps_printer_scan_2', 3: 'ps_printer_scan_3', 4: 'ps_printer_scan_4', 5: 'ps_printer_scan_5', 6: 'ps_printer_scan_6' };
+  var lastList = null;
+
+  function present(v) { return v !== undefined && v !== null && v !== ''; }
+  function setValue(el, v) { if (present(v)) { el.textContent = String(v); el.classList.remove('ps-unset'); } else { el.textContent = '—'; el.classList.add('ps-unset'); } }
+  function label(map, v, el) {
+    var k = map[v];
+    if (k) { el.setAttribute('data-ps-str', k); el.textContent = PS.tr(k); }
+    else { el.removeAttribute('data-ps-str'); el.textContent = present(v) ? PS.tr('ps_dashboard_unknown_state') + ' ' + v : '—'; }
+  }
+
+  function render(s) {
+    var p = s.printer || {};
+    setValue($('ps-printer-name'), p.name);
+    label(PRN, p.state, $('ps-printer-state'));
+    $('ps-printer-dot').className = 'ps-dot' + (p.state === 3 ? ' ps-dot-on' : p.state === 2 ? ' ps-dot-warn' : p.state >= 4 ? ' ps-dot-error' : '');
+    $('ps-printer-sn').textContent = present(p.sn) ? String(p.sn) : '—';
+    $('ps-printer-ip').textContent = present(p.ip) ? String(p.ip) : '—';
+    $('ps-printer-unbind').disabled = !(p.state >= 2);
+    label(SCAN, p.scan, $('ps-printer-scan-state'));
+    $('ps-printer-scan').disabled = p.scan === 1 || p.scan === 3;
+    renderFound(Array.isArray(p.list) ? p.list : []);
+  }
+
+  function renderFound(list) {
+    var key = JSON.stringify(list);
+    if (key === lastList) return;
+    lastList = key;
+    var box = $('ps-printer-found');
+    while (box.firstChild) box.removeChild(box.firstChild);
+    list.forEach(function (e, i) {
+      if (!e || typeof e !== 'object') return;
+      var row = document.createElement('div'); row.className = 'ps-row ps-printer-found-row'; row.setAttribute('data-ps-found', String(i));
+      var name = document.createElement('span'); name.className = 'ps-tile-value'; name.textContent = present(e.name) ? String(e.name) : '—';
+      var ip = document.createElement('span'); ip.className = 'ps-tile-label ps-mono'; ip.textContent = present(e.ip) ? String(e.ip) : '';
+      var use = document.createElement('button'); use.className = 'border small'; use.setAttribute('data-ps-str', 'ps_printer_use'); use.textContent = PS.tr('ps_printer_use');
+      use.addEventListener('click', function () {
+        $('ps-printer-bind-name').value = present(e.name) ? String(e.name) : '';
+        $('ps-printer-bind-ip').value = present(e.ip) ? String(e.ip) : '';
+        $('ps-printer-bind-sn').focus();
+      });
+      row.appendChild(name); row.appendChild(ip); row.appendChild(use); box.appendChild(row);
+    });
+  }
+
+  function wire() {
+    $('ps-printer-scan').addEventListener('click', function () { PS.send('printer', { scan: 1 }); });
+    $('ps-printer-bind-send').addEventListener('click', function () {
+      PS.send('printer', {
+        name: $('ps-printer-bind-name').value,
+        sn: $('ps-printer-bind-sn').value,
+        access_code: $('ps-printer-bind-code').value,
+        ip: $('ps-printer-bind-ip').value,
+      });
+    });
+    $('ps-printer-bind-show').addEventListener('change', function () { $('ps-printer-bind-code').type = this.checked ? 'text' : 'password'; });
+    $('ps-printer-unbind').addEventListener('click', function () {
+      PS.dialog(PS.tr('ps_printer_unbind_title'), PS.tr('ps_printer_unbind_text'),
+        [{ key: 'ps_printer_unbind_confirm', handler: function () { PS.send('printer', { disconnect: 1 }); } }, { key: 'ps_global_cancel' }]);
+    });
+  }
+
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', wire); else wire();
   PS.on('state', function (ev) { render(ev.state); });
 })();

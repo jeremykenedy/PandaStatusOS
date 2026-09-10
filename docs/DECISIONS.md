@@ -413,4 +413,34 @@ arrived; the device's own answer says whether it was taken.
 
 ---
 
+## D-020 Printer page: what is shown from the push, what the form sends
+
+**Date** 2026-09-10 · **Reversal** cheap
+
+**Decided.**
+- The bound printer's name, state, serial number and address are shown because the device
+  sends them. The factory UI handles only `name`, `state`, `scan`, `list`; showing two more
+  fields the push already carries changes nothing on the wire. The access code is never
+  shown, never pre-filled, and the harness asserts it appears nowhere in the page.
+- The bind form starts empty and is not pre-filled from the device. Bind sends exactly the
+  four typed values, in the documented order `name, sn, access_code, ip`, with no
+  validation: the factory UI's validation is unknown, and refusing in the browser what the
+  device would accept is a divergence. The device reports the result as `printer.state`.
+- Scan sends `{scan: 1}` and unbind, after its confirm, `{disconnect: 1}`. The values are
+  the wire harness's reading of the protocol doc (which names the fields, not the values)
+  and are INFERENCE until the bench capture shows the factory frames.
+- The seven `printer.state` labels are the dashboard's keys, reused, so they are translated
+  once. The seven `printer.scan` labels are the page's own.
+- A found printer's Use button fills name and address and sends nothing.
+
+**Alternatives.** Pre-fill the form from the push; validate the serial number's shape
+(the pre-commit hook knows it); hide the serial number as if it were a secret.
+
+**Why.** The serial number is identity, not a credential, and the owner reads it off the
+printer's own screen; hiding it would only make the page harder to check against the
+printer. Validation and pre-fill are both cheap to add behind a flag once the bench
+capture says what the factory does.
+
+---
+
 *Entries continue below as the run proceeds.*

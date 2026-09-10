@@ -1,0 +1,64 @@
+<article data-ps-card id="ps-card-printer" hidden>
+  <h2 class="ps-card-title" data-ps-str="ps_printer_title">Printer</h2>
+
+  <div class="ps-needs-state">
+
+    <div class="ps-tile" id="ps-printer-status">
+      <div class="ps-tile-label" data-ps-str="ps_printer_bound">Bound printer</div>
+      <div class="ps-row">
+        <span class="ps-dot" id="ps-printer-dot"></span>
+        <span class="ps-tile-value ps-unset" id="ps-printer-name" data-ps-no-i18n>—</span>
+      </div>
+      <div class="ps-tile-label" id="ps-printer-state" data-ps-no-i18n>—</div>
+      <dl class="ps-kv">
+        <dt data-ps-str="ps_printer_sn">Serial number</dt><dd id="ps-printer-sn" data-ps-no-i18n>—</dd>
+        <dt data-ps-str="ps_printer_ip">IP address</dt><dd id="ps-printer-ip" data-ps-no-i18n>—</dd>
+      </dl>
+      <div class="ps-row">
+        <button class="border" id="ps-printer-unbind" data-ps-str="ps_printer_unbind">Unbind</button>
+        <span class="ps-tile-label" data-ps-str="ps_printer_unbind_help">Forgets the printer. The access code stays on the device until a new one is sent.</span>
+      </div>
+    </div>
+
+    <div class="ps-tile" id="ps-printer-find">
+      <div class="ps-tile-label" data-ps-str="ps_printer_find">Find printers</div>
+      <div class="ps-row">
+        <button class="border" id="ps-printer-scan" data-ps-str="ps_printer_scan">Scan</button>
+        <span class="ps-tile-label" id="ps-printer-scan-state" data-ps-no-i18n>—</span>
+      </div>
+      <div id="ps-printer-found" class="ps-grid" data-ps-no-i18n></div>
+      <div class="ps-tile-label" data-ps-str="ps_printer_find_help">Looks for printers on this network. Choose one to fill in its name and address below.</div>
+    </div>
+
+    <div class="ps-tile" id="ps-printer-bind">
+      <div class="ps-tile-label" data-ps-str="ps_printer_bind">Bind a printer</div>
+      <div class="ps-grid ps-grid-2">
+        <div class="field border small label">
+          <input type="text" id="ps-printer-bind-name" autocomplete="off" spellcheck="false">
+          <label data-ps-str="ps_printer_bind_name">Name</label>
+        </div>
+        <div class="field border small label">
+          <input type="text" id="ps-printer-bind-ip" autocomplete="off" spellcheck="false" inputmode="decimal">
+          <label data-ps-str="ps_printer_bind_ip">IP address</label>
+        </div>
+        <div class="field border small label">
+          <input type="text" id="ps-printer-bind-sn" autocomplete="off" spellcheck="false">
+          <label data-ps-str="ps_printer_bind_sn">Serial number</label>
+        </div>
+        <div class="field border small label">
+          <input type="password" id="ps-printer-bind-code" autocomplete="off">
+          <label data-ps-str="ps_printer_bind_code">Access code</label>
+        </div>
+      </div>
+      <div class="ps-row">
+        <button id="ps-printer-bind-send" data-ps-str="ps_printer_bind_send">Bind</button>
+        <label class="checkbox">
+          <input type="checkbox" id="ps-printer-bind-show">
+          <span data-ps-str="ps_printer_bind_show">Show the access code</span>
+        </label>
+      </div>
+      <div class="ps-tile-label" data-ps-str="ps_printer_bind_help">The serial number and access code are on the printer's own screen. Everything typed here is sent as it is; the device reports the result above.</div>
+    </div>
+
+  </div>
+</article>

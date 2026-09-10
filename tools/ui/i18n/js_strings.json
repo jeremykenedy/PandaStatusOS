@@ -44,5 +44,16 @@
   "ps_images_status_refused": "Refused by the device.",
   "ps_images_status_failed": "Upload failed ({code}).",
   "ps_images_status_too_big": "Too big. The limit is {limit}.",
-  "ps_images_showing": "Showing now:"
+  "ps_images_showing": "Showing now:",
+  "ps_printer_scan_0": "Not scanning",
+  "ps_printer_scan_1": "Scanning",
+  "ps_printer_scan_2": "Scan finished",
+  "ps_printer_scan_3": "Checking whether the printer's address changed",
+  "ps_printer_scan_4": "A printer answered, but its serial number did not match",
+  "ps_printer_scan_5": "The printer's address has not changed",
+  "ps_printer_scan_6": "The printer's new address is in use",
+  "ps_printer_use": "Use",
+  "ps_printer_unbind_title": "Unbind the printer?",
+  "ps_printer_unbind_text": "The device stops talking to the printer and the lighting stops following prints. You can bind it again at any time.",
+  "ps_printer_unbind_confirm": "Unbind"
 }

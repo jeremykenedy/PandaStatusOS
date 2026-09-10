@@ -110,6 +110,11 @@ article[data-ps-card] {
 .ps-images-slot progress { max-width: 220px; }
 .ps-images-slot button { white-space: nowrap; }
 
+/* --- printer: found-printer rows --- */
+.ps-printer-found-row { padding: 8px 10px; border-radius: var(--ps-radius-sm); background: var(--ps-wash-1); }
+.ps-printer-found-row > .ps-tile-value { font-size: 1rem; }
+.ps-printer-found-row > button { margin-inline-start: auto; }
+
 /* --- dialog and toast --- */
 .ps-dialog { border-radius: var(--ps-radius); }
 .ps-dialog h5 { margin-top: 0; }

@@ -43,7 +43,7 @@ KEY = re.compile(r"^ps_[a-z0-9]+(?:_[a-z0-9]+)*$")
 RTL = ["ar", "he", "fa", "ur"]
 
 # Elements whose whole text content is a translatable string.
-TEXT_TAGS = "span|div|h1|h2|h3|h4|h5|h6|button|label|option|a|p|li|td|th|summary|legend|small|strong|em|figcaption"
+TEXT_TAGS = "span|div|h1|h2|h3|h4|h5|h6|button|label|option|a|p|li|td|th|summary|legend|small|strong|em|figcaption|dt|dd"
 ELEM = re.compile(r"<(" + TEXT_TAGS + r")\b([^>]*)>([^<]+)</\1>", re.S)
 # Text that is data, not language: numbers, hex colours, units, placeholders, tokens.
 DATA = re.compile(r"^\s*(?:[-+]?\d[\d.,:%°]*\s*(?:ms|s|min|h|%|°C|B|KB|MB|px|V|mA)?|#?[0-9A-Fa-f]{6,8}|<[A-Z_]+>|[\W_]+|\{\{.*\}\})\s*$")
