@@ -16,7 +16,6 @@
 (function () {
   var $ = function (id) { return document.getElementById(id); };
   var verdict = {};                                     // ota type -> the device's last answer
-  var langsBuilt = false;
 
   function mb(n) { return String(n / 1048576) + ' MB'; }
   function status(kind, key, fill) {
@@ -43,17 +42,7 @@
     });
   }
 
-  function buildLangs() {
-    if (langsBuilt || typeof PS_STRING_LANGS === 'undefined') return;
-    var sel = $('ps-system-language');
-    PS_STRING_LANGS.forEach(function (code) {
-      var o = document.createElement('option'); o.value = code;
-      var table = (typeof PS_STRINGS !== 'undefined') && PS_STRINGS[code];
-      o.textContent = (table && table.ps_core_language_name) || code;
-      sel.appendChild(o);
-    });
-    langsBuilt = true;
-  }
+  function buildLangs() { PS.fillLangs($('ps-system-language')); }
 
   function render(s) {
     var set = s.settings || {};

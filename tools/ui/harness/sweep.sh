@@ -41,6 +41,7 @@ ROWS=(
   "p2-idle.json      | page-system.js | "
   "p2-idle.json      | page-system.js | PS_IMG_VERSION=1"
   "p2-idle.json      | page-system.js | PS_OTA_REFUSE=1"
+  "p2-idle.json      | page-logs.js | "
 )
 
 pass=0; fail=0; failed=()

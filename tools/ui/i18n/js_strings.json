@@ -69,5 +69,15 @@
   "ps_system_status_too_big": "Too big. The limit is {limit}.",
   "ps_system_factory_title": "Erase everything?",
   "ps_system_factory_dialog": "Every setting on the device is erased and it restarts as new: Wi-Fi, hotspot, printer binding, hostname, language, lighting. There is no undo. Do this only if you mean to set the device up again from nothing.",
-  "ps_system_factory_confirm": "Erase everything"
+  "ps_system_factory_confirm": "Erase everything",
+  "ps_logs_open": "socket open",
+  "ps_logs_close": "socket closed",
+  "ps_logs_bad": "device sent a frame that is not JSON, bytes:",
+  "ps_logs_in": "device sent state:",
+  "ps_logs_response": "device answered:",
+  "ps_logs_ok": "ok",
+  "ps_logs_failed": "failed",
+  "ps_logs_out": "page sent:",
+  "ps_logs_copied": "Copied.",
+  "ps_logs_copy_failed": "Could not copy. Select the text instead."
 }

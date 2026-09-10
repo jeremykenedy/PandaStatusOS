@@ -18,7 +18,7 @@
 
 var PS = (function () {
   var state = { wifi: {}, sta: {}, ap: {}, printer: {}, settings: {}, block: {} };
-  var listeners = { state: [], response: [], open: [], close: [] };
+  var listeners = { state: [], response: [], open: [], close: [], log: [] };
   var sock = null;
   var haveFirst = false;
   var lang = 'en';
@@ -49,11 +49,43 @@ var PS = (function () {
     document.documentElement.setAttribute('dir', rtl ? 'rtl' : 'ltr');
     document.documentElement.setAttribute('lang', lang);
   }
+  // Fill a <select> with the string table's languages, each named in its own words.
+  function fillLangs(sel) {
+    if (typeof PS_STRING_LANGS === 'undefined' || sel.options.length) return;
+    var t = table();
+    PS_STRING_LANGS.forEach(function (code) {
+      var o = document.createElement('option'); o.value = code;
+      o.textContent = (t && t[code] && t[code].ps_core_language_name) || code;
+      sel.appendChild(o);
+    });
+  }
   function setLang(code) {
     var t = table();
     if (!code || !t || !t[code] || code === lang) return;   // re-applying on every frame clobbers text set at runtime
     lang = code; apply_translations();
   }
+
+  // ---------- the event log. What the socket did, in order, credentials never. ----------
+  // Inbound frames are logged as their root names only: the push carries the Wi-Fi
+  // password, the hotspot password and the printer's access code, and none of those
+  // belongs in a log. Outbound frames are logged with their members, and a member named
+  // password or access_code is replaced by its length before it is stored.
+  var LOG_MAX = 200;
+  var logRing = [];
+  var MASKED = { password: 1, access_code: 1 };
+  function logPush(entry) {
+    entry.t = Date.now();
+    logRing.push(entry); if (logRing.length > LOG_MAX) logRing.shift();
+    emit('log', entry);
+  }
+  function maskMembers(members) {
+    var out = {};
+    Object.keys(members).forEach(function (k) {
+      out[k] = MASKED[k] ? '(' + String(members[k]).length + ' chars)' : members[k];
+    });
+    return out;
+  }
+  function clearLog() { logRing.length = 0; emit('log', null); }
 
   // ---------- events ----------
   function on(name, fn) { (listeners[name] = listeners[name] || []).push(fn); }
@@ -73,9 +105,10 @@ var PS = (function () {
     });
   }
   function receive(text) {
-    var frame; try { frame = JSON.parse(text); } catch (e) { console.warn('[ps] unparsable frame'); return; }
+    var frame; try { frame = JSON.parse(text); } catch (e) { console.warn('[ps] unparsable frame'); logPush({ kind: 'bad', bytes: text.length }); return; }
     var roots = Object.keys(frame);
-    if (roots.indexOf('response') >= 0) { emit('response', frame.response); }
+    if (roots.indexOf('response') >= 0) { logPush({ kind: 'response', type: frame.response && frame.response.type, ok: frame.response && frame.response.ok }); emit('response', frame.response); }
+    if (roots.some(function (r) { return r !== 'response'; })) logPush({ kind: 'in', roots: roots.filter(function (r) { return r !== 'response'; }) });
     var changed = [];
     roots.forEach(function (r) { if (r === 'response') return; if (r === 'ws_theme') { state.ws_theme = frame.ws_theme; changed.push(r); return; } merge(r, frame[r]); changed.push(r); });
     if (state.settings && state.settings.language) setLang(state.settings.language);
@@ -87,12 +120,13 @@ var PS = (function () {
   function connect() {
     var url = 'ws://' + location.host + '/ws';
     try { sock = new WebSocket(url); } catch (e) { onClosed(); return; }
-    sock.onopen = function () { emit('open'); };
+    sock.onopen = function () { logPush({ kind: 'open' }); emit('open'); };
     sock.onmessage = function (e) { receive(String(e.data)); };
     sock.onclose = function () { onClosed(); };
     sock.onerror = function () { /* close follows */ };
   }
   function onClosed() {
+    logPush({ kind: 'close' });
     emit('close');
     // Parity with the factory UI: a closed socket raises a modal whose OK reloads the page.
     dialog(tr('ps_core_lost_title'), tr('ps_core_lost_text'), [{ key: 'ps_core_reload', handler: function () { location.reload(); } }]);
@@ -106,6 +140,7 @@ var PS = (function () {
     body.device_wakeup = 1;
     var frame = {}; frame[root] = body;
     sock.send(JSON.stringify(frame));
+    logPush({ kind: 'out', root: root, members: maskMembers(body) });
     return true;
   }
 
@@ -215,6 +250,6 @@ var PS = (function () {
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
 
-  return { state: state, on: on, send: send, upload: upload, UPLOAD_CAPS: UPLOAD_CAPS, tr: tr, setLang: setLang, apply_translations: apply_translations,
+  return { state: state, on: on, send: send, upload: upload, UPLOAD_CAPS: UPLOAD_CAPS, log: logRing, clearLog: clearLog, tr: tr, setLang: setLang, fillLangs: fillLangs, apply_translations: apply_translations,
            dialog: dialog, toast: toast, pill: pill, showCard: showCard, theme: theme, get lang() { return lang; }, get connected() { return !!(sock && sock.readyState === 1); } };
 })();

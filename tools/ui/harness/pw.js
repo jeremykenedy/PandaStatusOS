@@ -75,6 +75,7 @@ async function open(browser, opts) {
   await ctx.addInitScript((th) => {
     try { if (th === 'auto') localStorage.removeItem('ps_theme'); else localStorage.setItem('ps_theme', th); } catch (e) {}
   }, theme);
+  if (opts.permissions) await ctx.grantPermissions(opts.permissions);
   const page = await ctx.newPage();
   const errors = [], netErrors = [];
   page.on('pageerror', (e) => errors.push('pageerror: ' + String(e)));

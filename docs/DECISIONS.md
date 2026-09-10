@@ -498,4 +498,30 @@ known-secret scan still reads every line whole.
 
 ---
 
+## D-023 The logs page shows a ring the core masks at the source
+
+**Date** 2026-09-10 · **Reversal** cheap
+
+**Decided.** The core keeps a ring of 200 socket events. Inbound frames are stored as
+their root names only. Outbound frames are stored with their members, except that a
+member named `password` or `access_code` is replaced by its length before the entry
+exists. The logs page formats that ring and nothing else; it never sees a frame.
+
+**Evidence.** The connect-time push carries `wifi.password`, `ap.password` and
+`printer.access_code` in clear (protocol doc, inbound table; the mock's scrubbed fixtures
+model it). A log that stored frames would put three credentials one Copy button away from
+a chat message. The harness asserts the values are absent from the page and from the ring
+in memory.
+
+**Also.** The page repaints only while it is the page in view; a busy socket must not
+repaint a hidden `<pre>` two hundred lines long on every frame.
+
+**Alternatives.** Log everything and mask on display; log nothing; no logs page.
+
+**Why.** Masking on display leaves the values in memory for the next bug to expose.
+Logging nothing gives up the one diagnostic a user can paste into a bug report. The brief
+lists the page; this shape is the one that cannot leak by construction.
+
+---
+
 *Entries continue below as the run proceeds.*

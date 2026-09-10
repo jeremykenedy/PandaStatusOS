@@ -130,6 +130,10 @@ label.switch > span { padding-inline-start: .5rem; }
 button.border.ps-danger { color: var(--error); border-color: var(--error); }
 .ps-system-reset > a { align-self: flex-start; }
 
+/* --- logs: the event ring as text --- */
+.ps-logs { margin: 0; padding: 10px 12px; border-radius: var(--ps-radius-sm); background: var(--ps-wash-1); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .75rem; line-height: 1.5; white-space: pre-wrap; word-break: break-word; max-height: 60vh; overflow: auto; }
+.ps-logs:empty::before { content: "—"; color: var(--on-surface-variant); }
+
 /* --- dialog and toast --- */
 .ps-dialog { border-radius: var(--ps-radius); }
 .ps-dialog h5 { margin-top: 0; }
