@@ -193,12 +193,17 @@ scan_vendor "vendor CSS class"    '\bc_[a-z][a-zA-Z0-9_]*\b'
 scan_vendor "vendor identifier"   '\b(ws_send_data|ws_send_json|ws_on_close|ws_on_open|ws_on_message|show_ws_not_open|html_require_refresh|dialog_create|resetSettings|updateUIAfterReset|rgb_color_list|rgb_brightness_list|rgb_speed_list|colorButton_id|g_websocket|g_rgb_type_str|g_gif_name|g_lang_resources|ota_btn_click|ota_file_selected|speedSlider|device_req_restart|show_pop_factory|h2d_mode)\b'
 # CJK scan skips binary files (a NUL in the first 8 KiB): decoded bytes can spell CJK
 # codepoints by chance, and a PNG tripped this. The ASCII scans above still run on them.
+# The NUL is found through od: a bash string cannot hold a NUL, so grep -q $'\x00' was
+# grep -q '' and matched everything, which made every file "binary" and the scan a no-op.
+# grep -c, not -q: under pipefail a -q that stops at the first match hands od a broken
+# pipe and the whole test reads as "not binary".
+is_binary() { [ "$(git show ":$1" 2>/dev/null | head -c 8192 | od -An -c | grep -c '\\0')" -gt 0 ]; }
 scan_vendor_text_only() {
     local label="$1" pattern="$2" file
     local saved="$STAGED" keep=""
     for file in $STAGED; do
         [ -f "$REPO_ROOT/$file" ] || continue
-        if git show ":$file" 2>/dev/null | head -c 8192 | grep -q $'\x00'; then continue; fi
+        if is_binary "$file"; then continue; fi
         keep="$keep $file"
     done
     STAGED="$keep"; scan_vendor "$label" "$pattern"; STAGED="$saved"

@@ -115,6 +115,9 @@ bincheck() {                     # name, source file, target, want
   else printf '  FAIL  %-48s got=%s want=%s\n' "$1" "$got" "$4"; fail=$((fail+1)); fi
 }
 [ -f art/apple-touch-icon-180.png ] && bincheck "generated PNG passes" art/apple-touch-icon-180.png docs/_t.png PASS
+[ -f docs/screenshots/dashboard-dark.png ] && bincheck "screenshot PNG passes" docs/screenshots/dashboard-dark.png docs/_t2.png PASS
+check "CJK in a text file still blocks" 'status text 状态灯 here'                    BLOCK
+check "CJK in a comment still blocks"   '// 状態表示ライト'                            BLOCK
 
 # --- literal forbidden-strings scan -----------------------------------------
 # Tested with a throwaway sentinel. The real values are never written into this
