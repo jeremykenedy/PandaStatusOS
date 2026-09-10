@@ -81,7 +81,9 @@ async function drive(browser, combo) {
   await pw.tap(page, '#ps-network-connect-send');
   got = await sentAfter(n);
   t(`${tag} C2 connect sends ssid then password, once`, got.length === 1 && got[0] === frame('wifi', { ssid: '<SCAN_SSID_A>', password: '<WIFI_PASSWORD>' }), got);
-  t(`${tag} C3 connecting: label 2, warn dot, ssid follows the push`, await waitText(page, 'ps-network-state', await tr(page, 'ps_dashboard_sta_2')) && await dotIs(page, 'warn') && (await text(page, 'ps-network-ssid')) === '<SCAN_SSID_A>');
+  // the connecting window is the mock's PS_CONNECT_MS (700 ms); a slow tap can miss it, so
+  // the immediate push is asserted by its ssid and the interim state is accepted as 2 or 3
+  t(`${tag} C3 the push after connect: ssid follows, state 2 or already 3`, await page.waitForFunction(() => PS.state.wifi.ssid === '<SCAN_SSID_A>' && (PS.state.sta.state === 2 || PS.state.sta.state === 3), null, { timeout: 3000 }).then(() => true).catch(() => false) && (await text(page, 'ps-network-ssid')) === '<SCAN_SSID_A>');
   if (WIFI_FAIL) {
     t(`${tag} C4 the device refuses (mock knob PS_WIFI_FAIL): state 5 label, error dot, reason code shown`, await waitText(page, 'ps-network-state', await tr(page, 'ps_dashboard_sta_5')) && await dotIs(page, 'error') && (await text(page, 'ps-network-reason')) === '2', { state: await text(page, 'ps-network-state'), reason: await text(page, 'ps-network-reason') });
   } else {

@@ -79,5 +79,6 @@
   "ps_logs_failed": "failed",
   "ps_logs_out": "page sent:",
   "ps_logs_copied": "Copied.",
-  "ps_logs_copy_failed": "Could not copy. Select the text instead."
+  "ps_logs_copy_failed": "Could not copy. Select the text instead.",
+  "ps_setup_use": "Use"
 }

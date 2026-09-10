@@ -143,5 +143,8 @@ echo
 echo "  passed=$pass failed=$fail"
 [ "$fail" -eq 0 ] && echo "  ALL GOOD" || echo "  REGRESSION"
 # restore
-[ -n "$SAVED" ] && echo "$SAVED" | while read -r f; do [ -e "$f" ] && git add "$f"; done
-git add -u 2>/dev/null
+# Restore exactly what was staged when the suite started. Nothing else: a blanket
+# git add -u here once staged every modified file in the tree behind the operator's back.
+if [ -n "$SAVED" ]; then echo "$SAVED" | while read -r f; do [ -e "$f" ] && git add "$f"; done; fi
+# the verdict is the exit code; make trusts it
+[ "$fail" -eq 0 ]

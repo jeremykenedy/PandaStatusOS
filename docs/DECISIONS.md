@@ -524,4 +524,36 @@ lists the page; this shape is the one that cannot leak by construction.
 
 ---
 
+## D-024 The setup page: when it shows itself, and what it is
+
+**Date** 2026-09-10 · **Reversal** cheap
+
+**Decided.** One card, three steps: language, Wi-Fi (scan, pick, password, connect), idle
+colour for the current mode. Not in the nav. It shows itself when the first state
+document says `sta.state` is 1 and `wifi.ssid` is empty, the browser session has not
+pressed Finish, and no other page was asked for by hash. Finish sets a session flag and
+goes to the dashboard; `#setup` stays reachable by its address at any time.
+
+**Evidence.** `sta.state` 1 is "nossid" in the enum (protocol doc): the device has no
+network configured, which is what a unit out of the box looks like, and what a factory
+reset returns it to (the mock's factory fixture models both). Whether the factory UI has a
+first-run flow at all, and what it asks, is **unknown**: INFERENCE, to be checked against
+the stock unit after its own factory reset on the bench.
+
+**Wire.** Every frame this page sends is one another page sends, with the same members:
+`settings.language`, `wifi.scan`, `wifi.ssid` + `password`, and the idle colour as
+`settings.rgb_info_mode` + `rgb_rgba` + `rgb_state_index` 0. Nothing new on the wire, so
+nothing for a flag to gate.
+
+**Alternatives.** A modal wizard that blocks the other pages; a persistent (localStorage)
+"done" flag; no first-run page, just the dashboard.
+
+**Why.** A blocking wizard fights a user who knows the device. A persistent flag would hide
+the page from the next owner of the same browser after a factory reset; a session flag
+resets when the tab does, and the device's own state decides the rest. The brief calls
+this the first thing a new owner sees, so it gets the same page treatment as everything
+else, contrast scrutiny included.
+
+---
+
 *Entries continue below as the run proceeds.*

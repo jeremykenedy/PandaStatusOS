@@ -1,0 +1,59 @@
+<article data-ps-card id="ps-card-setup" hidden>
+  <h2 class="ps-card-title" data-ps-str="ps_setup_title">Set up your Panda Status</h2>
+  <div class="ps-tile-label" data-ps-str="ps_setup_intro">Three steps. Everything here can be changed later from the other pages.</div>
+
+  <div class="ps-needs-state">
+
+    <div class="ps-tile" id="ps-setup-language-tile">
+      <div class="ps-tile-label" data-ps-str="ps_setup_language">1. Language</div>
+      <div class="field suffix border small" data-ps-no-i18n>
+        <select id="ps-setup-language" data-ps-str-aria="ps_setup_language_aria" aria-label="Language"></select>
+        <svg class="ps-icon"><use href="#ps-icon-chevron-down"/></svg>
+      </div>
+    </div>
+
+    <div class="ps-tile" id="ps-setup-wifi-tile">
+      <div class="ps-tile-label" data-ps-str="ps_setup_wifi">2. Wi-Fi</div>
+      <div class="ps-row">
+        <span class="ps-dot" id="ps-setup-dot"></span>
+        <span class="ps-tile-label" id="ps-setup-state" data-ps-no-i18n>—</span>
+        <span class="max"></span>
+        <button class="border small" id="ps-setup-scan" data-ps-str="ps_setup_scan">Scan</button>
+      </div>
+      <div id="ps-setup-found" class="ps-grid" data-ps-no-i18n></div>
+      <div class="ps-grid ps-grid-2">
+        <div class="field border small label">
+          <input type="text" id="ps-setup-ssid" autocomplete="off" spellcheck="false">
+          <label data-ps-str="ps_setup_ssid">Network name</label>
+        </div>
+        <div class="field border small label">
+          <input type="password" id="ps-setup-password" autocomplete="off">
+          <label data-ps-str="ps_setup_password">Password</label>
+        </div>
+      </div>
+      <div class="ps-row">
+        <button id="ps-setup-connect" data-ps-str="ps_setup_connect">Connect</button>
+        <label class="checkbox">
+          <input type="checkbox" id="ps-setup-show">
+          <span data-ps-str="ps_setup_show">Show the password</span>
+        </label>
+      </div>
+      <div class="ps-tile-label" data-ps-str="ps_setup_wifi_help">Once it joins, the device leaves its own hotspot and this page loses it. Open it again from your network, by its hostname or address.</div>
+    </div>
+
+    <div class="ps-tile" id="ps-setup-colour-tile">
+      <div class="ps-tile-label" data-ps-str="ps_setup_colour">3. Idle colour</div>
+      <label class="field prefix border small ps-colour-field" data-ps-no-i18n>
+        <span class="ps-dot" id="ps-setup-colour-dot"></span>
+        <input type="text" id="ps-setup-colour" data-ps-colour="setup" data-ps-str-aria="ps_setup_colour_aria" aria-label="Idle colour">
+      </label>
+      <div class="ps-tile-label" data-ps-str="ps_setup_colour_help">The colour the bar shows while the printer is idle. The printing and error colours are on the Lighting page.</div>
+    </div>
+
+    <div class="ps-row">
+      <button class="border" id="ps-setup-finish" data-ps-str="ps_setup_finish">Finish</button>
+      <span class="ps-tile-label" data-ps-str="ps_setup_finish_help">Goes to the dashboard. This page stays reachable from its address, #setup.</span>
+    </div>
+
+  </div>
+</article>
