@@ -28,6 +28,8 @@ ROWS=(
   # mode is covered by nows.js, which asserts the upgrade is refused.
   "p2-idle.json      | nows.js | PS_NO_WS=1"
   # --- pages, in the browser. One row per lie the page must survive. ---
+  "p2-idle.json      | page-dashboard.js | "
+  "factory-defaults.json | page-dashboard.js | "
   "p2-idle.json      | page-lighting.js | "
   "p2-idle.json      | page-lighting.js | PS_EMIT_SPEED=1"
   "p2-idle.json      | page-images.js | "
@@ -44,6 +46,8 @@ ROWS=(
   "p2-idle.json      | page-logs.js | "
   "factory-defaults.json | page-setup.js | "
   "p2-idle.json      | page-setup.js | "
+  # --- the design system: every page, both themes, both widths, the furniture ---
+  "p2-idle.json      | contrast.js | "
 )
 
 pass=0; fail=0; failed=()
