@@ -65,7 +65,8 @@
  * Debug endpoints, NOT protocol, present only in the mock:
  *   GET  /__sent     every frame the device received, in order, with timestamps
  *   GET  /__pushed   every frame the device sent
- *   GET  /__state    the current state document
+ *   GET  /__state    the current state document; __mock.gif_uploads[slot] is the byte count of
+ *                    the last accepted upload per slot, __mock.gif_sha256[slot] its sha256
  *   POST /__reset    reload the fixture, clear the logs
  *   POST /__knob     {"name":"PS_...","value":"..."} set a lie at runtime
  *
@@ -82,6 +83,7 @@
 
 const http = require('http');
 const fs = require('fs');
+const crypto = require('crypto');
 const path = require('path');
 
 let WebSocketServer = null;
@@ -454,7 +456,7 @@ async function handleHttp(req, res) {
     const isGif = GIF_SLOTS.includes(type);
     const cap = type === 'ota_fw' ? OTA_CAPS.ota_fw : type === 'ota_img' ? OTA_CAPS.ota_img : isGif ? OTA_CAPS.gif : null;
     if (cap === null) { await readBody(req, 1 << 20); log({ ev: 'ota_unknown_type', detail: type }); res.writeHead(400); return res.end('unknown OTA-Type'); }
-    const { bytes, over } = await readBody(req, cap);
+    const { bytes, over, body } = await readBody(req, cap);
     const rtype = type === 'ota_fw' ? 'ota_fw' : 'ota_img';
     if (over || knobFlag('PS_OTA_REFUSE')) {
       log({ ev: 'ota_refused', detail: `${type} ${bytes}B${over ? ' over cap' : ''}` });
@@ -462,7 +464,7 @@ async function handleHttp(req, res) {
       res.writeHead(over ? 413 : 500); return res.end('refused');
     }
     log({ ev: 'ota_accepted', detail: `${type} ${bytes}B` });
-    if (isGif) STATE.__mock.gif_uploads[type] = bytes;
+    if (isGif) { STATE.__mock.gif_uploads[type] = bytes; (STATE.__mock.gif_sha256 = STATE.__mock.gif_sha256 || {})[type] = crypto.createHash('sha256').update(body).digest('hex'); }
     if (type === 'ota_img') STATE.settings.img_version = STATE.__mock.next_img_version;
     response('all', rtype, true, isGif ? { gif: type } : undefined);
     res.writeHead(200); return res.end('ok');

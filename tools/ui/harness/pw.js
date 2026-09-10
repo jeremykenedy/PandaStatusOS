@@ -76,14 +76,16 @@ async function open(browser, opts) {
     try { if (th === 'auto') localStorage.removeItem('ps_theme'); else localStorage.setItem('ps_theme', th); } catch (e) {}
   }, theme);
   const page = await ctx.newPage();
-  const errors = [];
+  const errors = [], netErrors = [];
   page.on('pageerror', (e) => errors.push('pageerror: ' + String(e)));
-  page.on('console', (m) => { if (m.type() === 'error') errors.push('console: ' + m.text()); });
+  // "Failed to load resource" is the browser reporting a non-2xx response; a harness that
+  // makes the mock refuse an upload expects exactly those, so they are kept apart
+  page.on('console', (m) => { if (m.type() === 'error') (m.text().startsWith('Failed to load resource') ? netErrors : errors).push('console: ' + m.text()); });
   await page.goto(`${BASE}/${opts.hash || ''}`);
   if (opts.waitForState !== false) {
     await page.waitForFunction(() => !document.body.classList.contains('ps-waiting'), null, { timeout: 5000 });
   }
-  return { ctx, page, errors, theme, width };
+  return { ctx, page, errors, netErrors, theme, width };
 }
 
 // Wait until the page's merged state satisfies a predicate. The predicate runs in the

@@ -265,7 +265,8 @@ def assemble(strings_mode):
     import json
     en = json.loads(read(os.path.join(I18N, "en.json")))
     used = set(re.findall(r'data-ps-str(?:-title|-placeholder|-aria)?="(ps_[a-z0-9_]+)"', html))
-    used |= set(re.findall(r"\btr\(\s*['\"](ps_[a-z0-9_]+)['\"]", html))
+    used |= set(re.findall(r"\b(?:tr|pill)\(\s*['\"](ps_[a-z0-9_]+)['\"]", html))   # PS.tr(key), PS.pill(key)
+    used |= set(re.findall(r"\bkey:\s*['\"](ps_[a-z0-9_]+)['\"]", html))            # dialog button keys
     missing = sorted(k for k in used if k not in en)
     if missing:
         die(f"keys used in the page but absent from en.json: {missing[:10]}")

@@ -37,5 +37,12 @@
   "ps_lighting_reset_text": "Brightness, speed and the three state colours go back to their defaults. Wi-Fi, the printer and the hostname are not touched.",
   "ps_lighting_reset_confirm": "Reset",
   "ps_lighting_block": "Segment",
-  "ps_lighting_block_aria": "Segment colour"
+  "ps_lighting_block_aria": "Segment colour",
+  "ps_images_status_sending": "Sending",
+  "ps_images_status_sent": "Sent. Waiting for the device to confirm.",
+  "ps_images_status_ok": "Accepted by the device.",
+  "ps_images_status_refused": "Refused by the device.",
+  "ps_images_status_failed": "Upload failed ({code}).",
+  "ps_images_status_too_big": "Too big. The limit is {limit}.",
+  "ps_images_showing": "Showing now:"
 }

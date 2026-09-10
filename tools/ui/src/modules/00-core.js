@@ -51,7 +51,7 @@ var PS = (function () {
   }
   function setLang(code) {
     var t = table();
-    if (!code || !t || !t[code]) return;
+    if (!code || !t || !t[code] || code === lang) return;   // re-applying on every frame clobbers text set at runtime
     lang = code; apply_translations();
   }
 
@@ -124,10 +124,13 @@ var PS = (function () {
   // ---------- dialog and toast ----------
   var dlg, dlgTitle, dlgText, dlgOk, dlgCancel, dlgHandlers = {};
   function dialog(title, text, buttons) {
+    // runtime text owns these elements now: drop the markup keys so a language switch
+    // cannot repaint an open dialog with its placeholders; the buttons keep their keys
+    dlgTitle.removeAttribute('data-ps-str'); dlgText.removeAttribute('data-ps-str');
     dlgTitle.textContent = title; dlgText.textContent = text;
     var ok = buttons && buttons[0]; var cancel = buttons && buttons[1];
-    dlgOk.textContent = ok ? tr(ok.key) : tr('ps_global_ok');
-    dlgCancel.hidden = !cancel; if (cancel) dlgCancel.textContent = tr(cancel.key);
+    dlgOk.setAttribute('data-ps-str', ok ? ok.key : 'ps_global_ok'); dlgOk.textContent = tr(ok ? ok.key : 'ps_global_ok');
+    dlgCancel.hidden = !cancel; if (cancel) { dlgCancel.setAttribute('data-ps-str', cancel.key); dlgCancel.textContent = tr(cancel.key); }
     dlgHandlers.ok = ok && ok.handler; dlgHandlers.cancel = cancel && cancel.handler;
     if (typeof dlg.showModal === 'function') { if (!dlg.open) dlg.showModal(); } else dlg.setAttribute('open', '');
   }
@@ -173,9 +176,9 @@ var PS = (function () {
     theme(pref === 'dark' ? 'light' : pref === 'light' ? 'auto' : 'dark');
   }
 
-  // ---------- pill ----------
-  function pill(text, cls) {
-    var p = document.getElementById('ps-topbar-pill'); p.textContent = text;
+  // ---------- pill. Takes a string KEY, so a language switch keeps it right. ----------
+  function pill(key, cls) {
+    var p = document.getElementById('ps-topbar-pill'); p.setAttribute('data-ps-str', key); p.textContent = tr(key);
     p.className = 'ps-pill' + (cls ? ' ps-pill-' + cls : '');
   }
 

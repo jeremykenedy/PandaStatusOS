@@ -382,4 +382,35 @@ device holds), the input is Beer's, the picker is Coloris's. One job each.
 
 ---
 
+## D-019 Images page: a preview is the file chosen here, and only the size guard runs
+
+**Date** 2026-09-10 · **Reversal** cheap
+
+**Decided.**
+- A slot's preview is the file chosen in this browser, held as an object URL for the life
+  of the page. The device has no route that serves a slot's current animation
+  (`docs/protocol-websocket.md`, HTTP surface), so there is nothing else a preview could
+  be, and the page says so in its help text instead of showing a placeholder that looks
+  like device state.
+- The per-slot size guard runs in the browser before any request, naming the limit in MB.
+  That is what the factory UI does (FACT: the constant is compared against the file size
+  and rendered into the rejection). The 240 x 240 dimension check does **not** run: it is
+  disabled in the shipped factory UI, and Rule 5 says parity by default. If it comes back
+  it is a flag that defaults off.
+- The device's answer (`response {type:"ota_img", ok, gif}`) is the verdict a slot shows.
+  On the mock it arrives on the socket before the HTTP status does, so an HTTP failure
+  never overwrites a verdict already shown; the verdict overwrites the HTTP status.
+- Each slot's status line carries its i18n key as it changes, so a language switch
+  repaints it correctly instead of resetting it to idle.
+
+**Alternatives.** Render a stage image from our own assets as a stand-in; enforce
+240 x 240 because it is probably what the display wants; treat HTTP 200 as success.
+
+**Why.** A stand-in image is a lie about device state, the exact fault the dashboard note
+warns about. The dimension rule is a factory rule the factory does not enforce, and
+enforcing it would refuse files the stock unit accepts. HTTP 200 only says the body
+arrived; the device's own answer says whether it was taken.
+
+---
+
 *Entries continue below as the run proceeds.*

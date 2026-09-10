@@ -1,0 +1,289 @@
+<article data-ps-card id="ps-card-images" hidden>
+  <h2 class="ps-card-title" data-ps-str="ps_images_title">Images</h2>
+
+  <div class="ps-needs-state">
+
+    <div class="ps-tile" id="ps-images-pack">
+      <div class="ps-tile-label" data-ps-str="ps_images_version">Image pack version</div>
+      <div class="ps-tile-value ps-unset" id="ps-images-version" data-ps-no-i18n>—</div>
+      <div class="ps-tile-label" id="ps-images-showing" data-ps-no-i18n hidden>—</div>
+      <div class="ps-tile-label" data-ps-str="ps_images_help">The device shows one animation per print stage. It does not send its animations back, so a slot can only show the file you chose here, in this browser. A file is sent the moment you choose it. GIF only, 1.5 MB at most.</div>
+    </div>
+
+    <!-- The fifteen stage slots, in the device's own order. The name in monospace is the
+         device's identifier for the slot and is sent as the OTA-Type header. -->
+    <div class="ps-grid ps-grid-2" id="ps-images-slots">
+      <div class="ps-tile ps-images-slot" data-ps-slot="standby" id="ps-images-slot-standby">
+        <div class="ps-row">
+          <div class="ps-images-preview" id="ps-images-preview-standby"><svg class="ps-icon"><use href="#ps-icon-photo"/></svg><img alt="" hidden></div>
+          <div class="ps-images-meta max">
+            <div class="ps-row">
+              <span class="ps-dot" id="ps-images-dot-standby" hidden></span>
+              <span class="ps-images-name" data-ps-str="ps_images_slot_standby">Standby</span>
+            </div>
+            <div class="ps-tile-label ps-mono" data-ps-no-i18n>standby</div>
+            <div class="ps-tile-label" id="ps-images-status-standby" data-ps-str="ps_images_status_idle">Nothing sent from this browser</div>
+            <progress id="ps-images-progress-standby" value="0" max="100" hidden></progress>
+          </div>
+          <button class="border small">
+            <span data-ps-str="ps_images_choose">Choose GIF</span>
+            <input type="file" accept="image/gif" id="ps-images-file-standby" data-ps-upload="standby" data-ps-str-aria="ps_images_choose_aria" aria-label="Choose a GIF for this slot">
+          </button>
+        </div>
+      </div>
+      <div class="ps-tile ps-images-slot" data-ps-slot="nozzle_heating" id="ps-images-slot-nozzle-heating">
+        <div class="ps-row">
+          <div class="ps-images-preview" id="ps-images-preview-nozzle-heating"><svg class="ps-icon"><use href="#ps-icon-photo"/></svg><img alt="" hidden></div>
+          <div class="ps-images-meta max">
+            <div class="ps-row">
+              <span class="ps-dot" id="ps-images-dot-nozzle-heating" hidden></span>
+              <span class="ps-images-name" data-ps-str="ps_images_slot_nozzle_heating">Nozzle heating</span>
+            </div>
+            <div class="ps-tile-label ps-mono" data-ps-no-i18n>nozzle_heating</div>
+            <div class="ps-tile-label" id="ps-images-status-nozzle-heating" data-ps-str="ps_images_status_idle">Nothing sent from this browser</div>
+            <progress id="ps-images-progress-nozzle-heating" value="0" max="100" hidden></progress>
+          </div>
+          <button class="border small">
+            <span data-ps-str="ps_images_choose">Choose GIF</span>
+            <input type="file" accept="image/gif" id="ps-images-file-nozzle-heating" data-ps-upload="nozzle_heating" data-ps-str-aria="ps_images_choose_aria" aria-label="Choose a GIF for this slot">
+          </button>
+        </div>
+      </div>
+      <div class="ps-tile ps-images-slot" data-ps-slot="bed_heating" id="ps-images-slot-bed-heating">
+        <div class="ps-row">
+          <div class="ps-images-preview" id="ps-images-preview-bed-heating"><svg class="ps-icon"><use href="#ps-icon-photo"/></svg><img alt="" hidden></div>
+          <div class="ps-images-meta max">
+            <div class="ps-row">
+              <span class="ps-dot" id="ps-images-dot-bed-heating" hidden></span>
+              <span class="ps-images-name" data-ps-str="ps_images_slot_bed_heating">Bed heating</span>
+            </div>
+            <div class="ps-tile-label ps-mono" data-ps-no-i18n>bed_heating</div>
+            <div class="ps-tile-label" id="ps-images-status-bed-heating" data-ps-str="ps_images_status_idle">Nothing sent from this browser</div>
+            <progress id="ps-images-progress-bed-heating" value="0" max="100" hidden></progress>
+          </div>
+          <button class="border small">
+            <span data-ps-str="ps_images_choose">Choose GIF</span>
+            <input type="file" accept="image/gif" id="ps-images-file-bed-heating" data-ps-upload="bed_heating" data-ps-str-aria="ps_images_choose_aria" aria-label="Choose a GIF for this slot">
+          </button>
+        </div>
+      </div>
+      <div class="ps-tile ps-images-slot" data-ps-slot="bed_leveling" id="ps-images-slot-bed-leveling">
+        <div class="ps-row">
+          <div class="ps-images-preview" id="ps-images-preview-bed-leveling"><svg class="ps-icon"><use href="#ps-icon-photo"/></svg><img alt="" hidden></div>
+          <div class="ps-images-meta max">
+            <div class="ps-row">
+              <span class="ps-dot" id="ps-images-dot-bed-leveling" hidden></span>
+              <span class="ps-images-name" data-ps-str="ps_images_slot_bed_leveling">Bed levelling</span>
+            </div>
+            <div class="ps-tile-label ps-mono" data-ps-no-i18n>bed_leveling</div>
+            <div class="ps-tile-label" id="ps-images-status-bed-leveling" data-ps-str="ps_images_status_idle">Nothing sent from this browser</div>
+            <progress id="ps-images-progress-bed-leveling" value="0" max="100" hidden></progress>
+          </div>
+          <button class="border small">
+            <span data-ps-str="ps_images_choose">Choose GIF</span>
+            <input type="file" accept="image/gif" id="ps-images-file-bed-leveling" data-ps-upload="bed_leveling" data-ps-str-aria="ps_images_choose_aria" aria-label="Choose a GIF for this slot">
+          </button>
+        </div>
+      </div>
+      <div class="ps-tile ps-images-slot" data-ps-slot="homing" id="ps-images-slot-homing">
+        <div class="ps-row">
+          <div class="ps-images-preview" id="ps-images-preview-homing"><svg class="ps-icon"><use href="#ps-icon-photo"/></svg><img alt="" hidden></div>
+          <div class="ps-images-meta max">
+            <div class="ps-row">
+              <span class="ps-dot" id="ps-images-dot-homing" hidden></span>
+              <span class="ps-images-name" data-ps-str="ps_images_slot_homing">Homing</span>
+            </div>
+            <div class="ps-tile-label ps-mono" data-ps-no-i18n>homing</div>
+            <div class="ps-tile-label" id="ps-images-status-homing" data-ps-str="ps_images_status_idle">Nothing sent from this browser</div>
+            <progress id="ps-images-progress-homing" value="0" max="100" hidden></progress>
+          </div>
+          <button class="border small">
+            <span data-ps-str="ps_images_choose">Choose GIF</span>
+            <input type="file" accept="image/gif" id="ps-images-file-homing" data-ps-upload="homing" data-ps-str-aria="ps_images_choose_aria" aria-label="Choose a GIF for this slot">
+          </button>
+        </div>
+      </div>
+      <div class="ps-tile ps-images-slot" data-ps-slot="nozzle_cleaning" id="ps-images-slot-nozzle-cleaning">
+        <div class="ps-row">
+          <div class="ps-images-preview" id="ps-images-preview-nozzle-cleaning"><svg class="ps-icon"><use href="#ps-icon-photo"/></svg><img alt="" hidden></div>
+          <div class="ps-images-meta max">
+            <div class="ps-row">
+              <span class="ps-dot" id="ps-images-dot-nozzle-cleaning" hidden></span>
+              <span class="ps-images-name" data-ps-str="ps_images_slot_nozzle_cleaning">Nozzle cleaning</span>
+            </div>
+            <div class="ps-tile-label ps-mono" data-ps-no-i18n>nozzle_cleaning</div>
+            <div class="ps-tile-label" id="ps-images-status-nozzle-cleaning" data-ps-str="ps_images_status_idle">Nothing sent from this browser</div>
+            <progress id="ps-images-progress-nozzle-cleaning" value="0" max="100" hidden></progress>
+          </div>
+          <button class="border small">
+            <span data-ps-str="ps_images_choose">Choose GIF</span>
+            <input type="file" accept="image/gif" id="ps-images-file-nozzle-cleaning" data-ps-upload="nozzle_cleaning" data-ps-str-aria="ps_images_choose_aria" aria-label="Choose a GIF for this slot">
+          </button>
+        </div>
+      </div>
+      <div class="ps-tile ps-images-slot" data-ps-slot="calibrating_flow" id="ps-images-slot-calibrating-flow">
+        <div class="ps-row">
+          <div class="ps-images-preview" id="ps-images-preview-calibrating-flow"><svg class="ps-icon"><use href="#ps-icon-photo"/></svg><img alt="" hidden></div>
+          <div class="ps-images-meta max">
+            <div class="ps-row">
+              <span class="ps-dot" id="ps-images-dot-calibrating-flow" hidden></span>
+              <span class="ps-images-name" data-ps-str="ps_images_slot_calibrating_flow">Flow calibration</span>
+            </div>
+            <div class="ps-tile-label ps-mono" data-ps-no-i18n>calibrating_flow</div>
+            <div class="ps-tile-label" id="ps-images-status-calibrating-flow" data-ps-str="ps_images_status_idle">Nothing sent from this browser</div>
+            <progress id="ps-images-progress-calibrating-flow" value="0" max="100" hidden></progress>
+          </div>
+          <button class="border small">
+            <span data-ps-str="ps_images_choose">Choose GIF</span>
+            <input type="file" accept="image/gif" id="ps-images-file-calibrating-flow" data-ps-upload="calibrating_flow" data-ps-str-aria="ps_images_choose_aria" aria-label="Choose a GIF for this slot">
+          </button>
+        </div>
+      </div>
+      <div class="ps-tile ps-images-slot" data-ps-slot="xy_mesh_mode_sweep" id="ps-images-slot-xy-mesh-mode-sweep">
+        <div class="ps-row">
+          <div class="ps-images-preview" id="ps-images-preview-xy-mesh-mode-sweep"><svg class="ps-icon"><use href="#ps-icon-photo"/></svg><img alt="" hidden></div>
+          <div class="ps-images-meta max">
+            <div class="ps-row">
+              <span class="ps-dot" id="ps-images-dot-xy-mesh-mode-sweep" hidden></span>
+              <span class="ps-images-name" data-ps-str="ps_images_slot_xy_mesh_mode_sweep">XY mesh sweep</span>
+            </div>
+            <div class="ps-tile-label ps-mono" data-ps-no-i18n>xy_mesh_mode_sweep</div>
+            <div class="ps-tile-label" id="ps-images-status-xy-mesh-mode-sweep" data-ps-str="ps_images_status_idle">Nothing sent from this browser</div>
+            <progress id="ps-images-progress-xy-mesh-mode-sweep" value="0" max="100" hidden></progress>
+          </div>
+          <button class="border small">
+            <span data-ps-str="ps_images_choose">Choose GIF</span>
+            <input type="file" accept="image/gif" id="ps-images-file-xy-mesh-mode-sweep" data-ps-upload="xy_mesh_mode_sweep" data-ps-str-aria="ps_images_choose_aria" aria-label="Choose a GIF for this slot">
+          </button>
+        </div>
+      </div>
+      <div class="ps-tile ps-images-slot" data-ps-slot="filament_check_location" id="ps-images-slot-filament-check-location">
+        <div class="ps-row">
+          <div class="ps-images-preview" id="ps-images-preview-filament-check-location"><svg class="ps-icon"><use href="#ps-icon-photo"/></svg><img alt="" hidden></div>
+          <div class="ps-images-meta max">
+            <div class="ps-row">
+              <span class="ps-dot" id="ps-images-dot-filament-check-location" hidden></span>
+              <span class="ps-images-name" data-ps-str="ps_images_slot_filament_check_location">Filament check</span>
+            </div>
+            <div class="ps-tile-label ps-mono" data-ps-no-i18n>filament_check_location</div>
+            <div class="ps-tile-label" id="ps-images-status-filament-check-location" data-ps-str="ps_images_status_idle">Nothing sent from this browser</div>
+            <progress id="ps-images-progress-filament-check-location" value="0" max="100" hidden></progress>
+          </div>
+          <button class="border small">
+            <span data-ps-str="ps_images_choose">Choose GIF</span>
+            <input type="file" accept="image/gif" id="ps-images-file-filament-check-location" data-ps-upload="filament_check_location" data-ps-str-aria="ps_images_choose_aria" aria-label="Choose a GIF for this slot">
+          </button>
+        </div>
+      </div>
+      <div class="ps-tile ps-images-slot" data-ps-slot="filament_cut" id="ps-images-slot-filament-cut">
+        <div class="ps-row">
+          <div class="ps-images-preview" id="ps-images-preview-filament-cut"><svg class="ps-icon"><use href="#ps-icon-photo"/></svg><img alt="" hidden></div>
+          <div class="ps-images-meta max">
+            <div class="ps-row">
+              <span class="ps-dot" id="ps-images-dot-filament-cut" hidden></span>
+              <span class="ps-images-name" data-ps-str="ps_images_slot_filament_cut">Filament cut</span>
+            </div>
+            <div class="ps-tile-label ps-mono" data-ps-no-i18n>filament_cut</div>
+            <div class="ps-tile-label" id="ps-images-status-filament-cut" data-ps-str="ps_images_status_idle">Nothing sent from this browser</div>
+            <progress id="ps-images-progress-filament-cut" value="0" max="100" hidden></progress>
+          </div>
+          <button class="border small">
+            <span data-ps-str="ps_images_choose">Choose GIF</span>
+            <input type="file" accept="image/gif" id="ps-images-file-filament-cut" data-ps-upload="filament_cut" data-ps-str-aria="ps_images_choose_aria" aria-label="Choose a GIF for this slot">
+          </button>
+        </div>
+      </div>
+      <div class="ps-tile ps-images-slot" data-ps-slot="filament_pull_back_cur" id="ps-images-slot-filament-pull-back-cur">
+        <div class="ps-row">
+          <div class="ps-images-preview" id="ps-images-preview-filament-pull-back-cur"><svg class="ps-icon"><use href="#ps-icon-photo"/></svg><img alt="" hidden></div>
+          <div class="ps-images-meta max">
+            <div class="ps-row">
+              <span class="ps-dot" id="ps-images-dot-filament-pull-back-cur" hidden></span>
+              <span class="ps-images-name" data-ps-str="ps_images_slot_filament_pull_back_cur">Filament pull back</span>
+            </div>
+            <div class="ps-tile-label ps-mono" data-ps-no-i18n>filament_pull_back_cur</div>
+            <div class="ps-tile-label" id="ps-images-status-filament-pull-back-cur" data-ps-str="ps_images_status_idle">Nothing sent from this browser</div>
+            <progress id="ps-images-progress-filament-pull-back-cur" value="0" max="100" hidden></progress>
+          </div>
+          <button class="border small">
+            <span data-ps-str="ps_images_choose">Choose GIF</span>
+            <input type="file" accept="image/gif" id="ps-images-file-filament-pull-back-cur" data-ps-upload="filament_pull_back_cur" data-ps-str-aria="ps_images_choose_aria" aria-label="Choose a GIF for this slot">
+          </button>
+        </div>
+      </div>
+      <div class="ps-tile ps-images-slot" data-ps-slot="filament_push_new" id="ps-images-slot-filament-push-new">
+        <div class="ps-row">
+          <div class="ps-images-preview" id="ps-images-preview-filament-push-new"><svg class="ps-icon"><use href="#ps-icon-photo"/></svg><img alt="" hidden></div>
+          <div class="ps-images-meta max">
+            <div class="ps-row">
+              <span class="ps-dot" id="ps-images-dot-filament-push-new" hidden></span>
+              <span class="ps-images-name" data-ps-str="ps_images_slot_filament_push_new">Filament push new</span>
+            </div>
+            <div class="ps-tile-label ps-mono" data-ps-no-i18n>filament_push_new</div>
+            <div class="ps-tile-label" id="ps-images-status-filament-push-new" data-ps-str="ps_images_status_idle">Nothing sent from this browser</div>
+            <progress id="ps-images-progress-filament-push-new" value="0" max="100" hidden></progress>
+          </div>
+          <button class="border small">
+            <span data-ps-str="ps_images_choose">Choose GIF</span>
+            <input type="file" accept="image/gif" id="ps-images-file-filament-push-new" data-ps-upload="filament_push_new" data-ps-str-aria="ps_images_choose_aria" aria-label="Choose a GIF for this slot">
+          </button>
+        </div>
+      </div>
+      <div class="ps-tile ps-images-slot" data-ps-slot="filament_purge_old" id="ps-images-slot-filament-purge-old">
+        <div class="ps-row">
+          <div class="ps-images-preview" id="ps-images-preview-filament-purge-old"><svg class="ps-icon"><use href="#ps-icon-photo"/></svg><img alt="" hidden></div>
+          <div class="ps-images-meta max">
+            <div class="ps-row">
+              <span class="ps-dot" id="ps-images-dot-filament-purge-old" hidden></span>
+              <span class="ps-images-name" data-ps-str="ps_images_slot_filament_purge_old">Filament purge</span>
+            </div>
+            <div class="ps-tile-label ps-mono" data-ps-no-i18n>filament_purge_old</div>
+            <div class="ps-tile-label" id="ps-images-status-filament-purge-old" data-ps-str="ps_images_status_idle">Nothing sent from this browser</div>
+            <progress id="ps-images-progress-filament-purge-old" value="0" max="100" hidden></progress>
+          </div>
+          <button class="border small">
+            <span data-ps-str="ps_images_choose">Choose GIF</span>
+            <input type="file" accept="image/gif" id="ps-images-file-filament-purge-old" data-ps-upload="filament_purge_old" data-ps-str-aria="ps_images_choose_aria" aria-label="Choose a GIF for this slot">
+          </button>
+        </div>
+      </div>
+      <div class="ps-tile ps-images-slot" data-ps-slot="printing_ok" id="ps-images-slot-printing-ok">
+        <div class="ps-row">
+          <div class="ps-images-preview" id="ps-images-preview-printing-ok"><svg class="ps-icon"><use href="#ps-icon-photo"/></svg><img alt="" hidden></div>
+          <div class="ps-images-meta max">
+            <div class="ps-row">
+              <span class="ps-dot" id="ps-images-dot-printing-ok" hidden></span>
+              <span class="ps-images-name" data-ps-str="ps_images_slot_printing_ok">Print finished</span>
+            </div>
+            <div class="ps-tile-label ps-mono" data-ps-no-i18n>printing_ok</div>
+            <div class="ps-tile-label" id="ps-images-status-printing-ok" data-ps-str="ps_images_status_idle">Nothing sent from this browser</div>
+            <progress id="ps-images-progress-printing-ok" value="0" max="100" hidden></progress>
+          </div>
+          <button class="border small">
+            <span data-ps-str="ps_images_choose">Choose GIF</span>
+            <input type="file" accept="image/gif" id="ps-images-file-printing-ok" data-ps-upload="printing_ok" data-ps-str-aria="ps_images_choose_aria" aria-label="Choose a GIF for this slot">
+          </button>
+        </div>
+      </div>
+      <div class="ps-tile ps-images-slot" data-ps-slot="printing" id="ps-images-slot-printing">
+        <div class="ps-row">
+          <div class="ps-images-preview" id="ps-images-preview-printing"><svg class="ps-icon"><use href="#ps-icon-photo"/></svg><img alt="" hidden></div>
+          <div class="ps-images-meta max">
+            <div class="ps-row">
+              <span class="ps-dot" id="ps-images-dot-printing" hidden></span>
+              <span class="ps-images-name" data-ps-str="ps_images_slot_printing">Printing</span>
+            </div>
+            <div class="ps-tile-label ps-mono" data-ps-no-i18n>printing</div>
+            <div class="ps-tile-label" id="ps-images-status-printing" data-ps-str="ps_images_status_idle">Nothing sent from this browser</div>
+            <progress id="ps-images-progress-printing" value="0" max="100" hidden></progress>
+          </div>
+          <button class="border small">
+            <span data-ps-str="ps_images_choose">Choose GIF</span>
+            <input type="file" accept="image/gif" id="ps-images-file-printing" data-ps-upload="printing" data-ps-str-aria="ps_images_choose_aria" aria-label="Choose a GIF for this slot">
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</article>

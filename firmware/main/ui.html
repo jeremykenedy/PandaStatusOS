@@ -225,6 +225,19 @@ article[data-ps-card] {
 .ps-dot-warn  { background: var(--tertiary); }
 .ps-dot-error { background: var(--error); }
 
+/* --- images: the slot grid. The preview box holds the file chosen in this browser. --- */
+.ps-images-slot > .ps-row { align-items: flex-start; flex-wrap: nowrap; }
+.ps-images-preview { width: 72px; height: 72px; flex: none; border-radius: var(--ps-radius-sm); background: var(--ps-wash-1); display: grid; place-items: center; overflow: hidden; color: var(--on-surface-variant); }
+.ps-images-preview > img { width: 100%; height: 100%; object-fit: contain; }
+.ps-images-preview-set > svg { display: none; }
+.ps-images-meta { min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.ps-images-meta > .ps-row { flex-wrap: nowrap; }
+.ps-images-name { font-weight: 600; }
+.ps-mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .75rem; word-break: break-all; }
+.ps-images-slot-showing { box-shadow: inset 0 0 0 2px var(--primary); }
+.ps-images-slot progress { max-width: 220px; }
+.ps-images-slot button { white-space: nowrap; }
+
 /* --- dialog and toast --- */
 .ps-dialog { border-radius: var(--ps-radius); }
 .ps-dialog h5 { margin-top: 0; }
@@ -294,6 +307,7 @@ article[data-ps-card] {
 <nav class="left ps-rail" id="ps-rail" data-ps-str-aria="ps_frame_nav" aria-label="Pages">
   <a href="#dashboard" data-ps-nav="dashboard"><svg class="ps-icon"><use href="#ps-icon-home"/></svg><div data-ps-str="ps_frame_nav_dashboard">Dashboard</div></a>
   <a href="#lighting"  data-ps-nav="lighting"><svg class="ps-icon"><use href="#ps-icon-light-bulb"/></svg><div data-ps-str="ps_frame_nav_lighting">Lighting</div></a>
+  <a href="#images"    data-ps-nav="images"><svg class="ps-icon"><use href="#ps-icon-photo"/></svg><div data-ps-str="ps_frame_nav_images">Images</div></a>
 </nav>
 
 <main class="responsive ps-main" id="ps-main">
@@ -421,11 +435,302 @@ article[data-ps-card] {
 
   </div>
 </article>
+<!-- page: images -->
+<article data-ps-card id="ps-card-images" hidden>
+  <h2 class="ps-card-title" data-ps-str="ps_images_title">Images</h2>
+
+  <div class="ps-needs-state">
+
+    <div class="ps-tile" id="ps-images-pack">
+      <div class="ps-tile-label" data-ps-str="ps_images_version">Image pack version</div>
+      <div class="ps-tile-value ps-unset" id="ps-images-version" data-ps-no-i18n>—</div>
+      <div class="ps-tile-label" id="ps-images-showing" data-ps-no-i18n hidden>—</div>
+      <div class="ps-tile-label" data-ps-str="ps_images_help">The device shows one animation per print stage. It does not send its animations back, so a slot can only show the file you chose here, in this browser. A file is sent the moment you choose it. GIF only, 1.5 MB at most.</div>
+    </div>
+
+    <!-- The fifteen stage slots, in the device's own order. The name in monospace is the
+         device's identifier for the slot and is sent as the OTA-Type header. -->
+    <div class="ps-grid ps-grid-2" id="ps-images-slots">
+      <div class="ps-tile ps-images-slot" data-ps-slot="standby" id="ps-images-slot-standby">
+        <div class="ps-row">
+          <div class="ps-images-preview" id="ps-images-preview-standby"><svg class="ps-icon"><use href="#ps-icon-photo"/></svg><img alt="" hidden></div>
+          <div class="ps-images-meta max">
+            <div class="ps-row">
+              <span class="ps-dot" id="ps-images-dot-standby" hidden></span>
+              <span class="ps-images-name" data-ps-str="ps_images_slot_standby">Standby</span>
+            </div>
+            <div class="ps-tile-label ps-mono" data-ps-no-i18n>standby</div>
+            <div class="ps-tile-label" id="ps-images-status-standby" data-ps-str="ps_images_status_idle">Nothing sent from this browser</div>
+            <progress id="ps-images-progress-standby" value="0" max="100" hidden></progress>
+          </div>
+          <button class="border small">
+            <span data-ps-str="ps_images_choose">Choose GIF</span>
+            <input type="file" accept="image/gif" id="ps-images-file-standby" data-ps-upload="standby" data-ps-str-aria="ps_images_choose_aria" aria-label="Choose a GIF for this slot">
+          </button>
+        </div>
+      </div>
+      <div class="ps-tile ps-images-slot" data-ps-slot="nozzle_heating" id="ps-images-slot-nozzle-heating">
+        <div class="ps-row">
+          <div class="ps-images-preview" id="ps-images-preview-nozzle-heating"><svg class="ps-icon"><use href="#ps-icon-photo"/></svg><img alt="" hidden></div>
+          <div class="ps-images-meta max">
+            <div class="ps-row">
+              <span class="ps-dot" id="ps-images-dot-nozzle-heating" hidden></span>
+              <span class="ps-images-name" data-ps-str="ps_images_slot_nozzle_heating">Nozzle heating</span>
+            </div>
+            <div class="ps-tile-label ps-mono" data-ps-no-i18n>nozzle_heating</div>
+            <div class="ps-tile-label" id="ps-images-status-nozzle-heating" data-ps-str="ps_images_status_idle">Nothing sent from this browser</div>
+            <progress id="ps-images-progress-nozzle-heating" value="0" max="100" hidden></progress>
+          </div>
+          <button class="border small">
+            <span data-ps-str="ps_images_choose">Choose GIF</span>
+            <input type="file" accept="image/gif" id="ps-images-file-nozzle-heating" data-ps-upload="nozzle_heating" data-ps-str-aria="ps_images_choose_aria" aria-label="Choose a GIF for this slot">
+          </button>
+        </div>
+      </div>
+      <div class="ps-tile ps-images-slot" data-ps-slot="bed_heating" id="ps-images-slot-bed-heating">
+        <div class="ps-row">
+          <div class="ps-images-preview" id="ps-images-preview-bed-heating"><svg class="ps-icon"><use href="#ps-icon-photo"/></svg><img alt="" hidden></div>
+          <div class="ps-images-meta max">
+            <div class="ps-row">
+              <span class="ps-dot" id="ps-images-dot-bed-heating" hidden></span>
+              <span class="ps-images-name" data-ps-str="ps_images_slot_bed_heating">Bed heating</span>
+            </div>
+            <div class="ps-tile-label ps-mono" data-ps-no-i18n>bed_heating</div>
+            <div class="ps-tile-label" id="ps-images-status-bed-heating" data-ps-str="ps_images_status_idle">Nothing sent from this browser</div>
+            <progress id="ps-images-progress-bed-heating" value="0" max="100" hidden></progress>
+          </div>
+          <button class="border small">
+            <span data-ps-str="ps_images_choose">Choose GIF</span>
+            <input type="file" accept="image/gif" id="ps-images-file-bed-heating" data-ps-upload="bed_heating" data-ps-str-aria="ps_images_choose_aria" aria-label="Choose a GIF for this slot">
+          </button>
+        </div>
+      </div>
+      <div class="ps-tile ps-images-slot" data-ps-slot="bed_leveling" id="ps-images-slot-bed-leveling">
+        <div class="ps-row">
+          <div class="ps-images-preview" id="ps-images-preview-bed-leveling"><svg class="ps-icon"><use href="#ps-icon-photo"/></svg><img alt="" hidden></div>
+          <div class="ps-images-meta max">
+            <div class="ps-row">
+              <span class="ps-dot" id="ps-images-dot-bed-leveling" hidden></span>
+              <span class="ps-images-name" data-ps-str="ps_images_slot_bed_leveling">Bed levelling</span>
+            </div>
+            <div class="ps-tile-label ps-mono" data-ps-no-i18n>bed_leveling</div>
+            <div class="ps-tile-label" id="ps-images-status-bed-leveling" data-ps-str="ps_images_status_idle">Nothing sent from this browser</div>
+            <progress id="ps-images-progress-bed-leveling" value="0" max="100" hidden></progress>
+          </div>
+          <button class="border small">
+            <span data-ps-str="ps_images_choose">Choose GIF</span>
+            <input type="file" accept="image/gif" id="ps-images-file-bed-leveling" data-ps-upload="bed_leveling" data-ps-str-aria="ps_images_choose_aria" aria-label="Choose a GIF for this slot">
+          </button>
+        </div>
+      </div>
+      <div class="ps-tile ps-images-slot" data-ps-slot="homing" id="ps-images-slot-homing">
+        <div class="ps-row">
+          <div class="ps-images-preview" id="ps-images-preview-homing"><svg class="ps-icon"><use href="#ps-icon-photo"/></svg><img alt="" hidden></div>
+          <div class="ps-images-meta max">
+            <div class="ps-row">
+              <span class="ps-dot" id="ps-images-dot-homing" hidden></span>
+              <span class="ps-images-name" data-ps-str="ps_images_slot_homing">Homing</span>
+            </div>
+            <div class="ps-tile-label ps-mono" data-ps-no-i18n>homing</div>
+            <div class="ps-tile-label" id="ps-images-status-homing" data-ps-str="ps_images_status_idle">Nothing sent from this browser</div>
+            <progress id="ps-images-progress-homing" value="0" max="100" hidden></progress>
+          </div>
+          <button class="border small">
+            <span data-ps-str="ps_images_choose">Choose GIF</span>
+            <input type="file" accept="image/gif" id="ps-images-file-homing" data-ps-upload="homing" data-ps-str-aria="ps_images_choose_aria" aria-label="Choose a GIF for this slot">
+          </button>
+        </div>
+      </div>
+      <div class="ps-tile ps-images-slot" data-ps-slot="nozzle_cleaning" id="ps-images-slot-nozzle-cleaning">
+        <div class="ps-row">
+          <div class="ps-images-preview" id="ps-images-preview-nozzle-cleaning"><svg class="ps-icon"><use href="#ps-icon-photo"/></svg><img alt="" hidden></div>
+          <div class="ps-images-meta max">
+            <div class="ps-row">
+              <span class="ps-dot" id="ps-images-dot-nozzle-cleaning" hidden></span>
+              <span class="ps-images-name" data-ps-str="ps_images_slot_nozzle_cleaning">Nozzle cleaning</span>
+            </div>
+            <div class="ps-tile-label ps-mono" data-ps-no-i18n>nozzle_cleaning</div>
+            <div class="ps-tile-label" id="ps-images-status-nozzle-cleaning" data-ps-str="ps_images_status_idle">Nothing sent from this browser</div>
+            <progress id="ps-images-progress-nozzle-cleaning" value="0" max="100" hidden></progress>
+          </div>
+          <button class="border small">
+            <span data-ps-str="ps_images_choose">Choose GIF</span>
+            <input type="file" accept="image/gif" id="ps-images-file-nozzle-cleaning" data-ps-upload="nozzle_cleaning" data-ps-str-aria="ps_images_choose_aria" aria-label="Choose a GIF for this slot">
+          </button>
+        </div>
+      </div>
+      <div class="ps-tile ps-images-slot" data-ps-slot="calibrating_flow" id="ps-images-slot-calibrating-flow">
+        <div class="ps-row">
+          <div class="ps-images-preview" id="ps-images-preview-calibrating-flow"><svg class="ps-icon"><use href="#ps-icon-photo"/></svg><img alt="" hidden></div>
+          <div class="ps-images-meta max">
+            <div class="ps-row">
+              <span class="ps-dot" id="ps-images-dot-calibrating-flow" hidden></span>
+              <span class="ps-images-name" data-ps-str="ps_images_slot_calibrating_flow">Flow calibration</span>
+            </div>
+            <div class="ps-tile-label ps-mono" data-ps-no-i18n>calibrating_flow</div>
+            <div class="ps-tile-label" id="ps-images-status-calibrating-flow" data-ps-str="ps_images_status_idle">Nothing sent from this browser</div>
+            <progress id="ps-images-progress-calibrating-flow" value="0" max="100" hidden></progress>
+          </div>
+          <button class="border small">
+            <span data-ps-str="ps_images_choose">Choose GIF</span>
+            <input type="file" accept="image/gif" id="ps-images-file-calibrating-flow" data-ps-upload="calibrating_flow" data-ps-str-aria="ps_images_choose_aria" aria-label="Choose a GIF for this slot">
+          </button>
+        </div>
+      </div>
+      <div class="ps-tile ps-images-slot" data-ps-slot="xy_mesh_mode_sweep" id="ps-images-slot-xy-mesh-mode-sweep">
+        <div class="ps-row">
+          <div class="ps-images-preview" id="ps-images-preview-xy-mesh-mode-sweep"><svg class="ps-icon"><use href="#ps-icon-photo"/></svg><img alt="" hidden></div>
+          <div class="ps-images-meta max">
+            <div class="ps-row">
+              <span class="ps-dot" id="ps-images-dot-xy-mesh-mode-sweep" hidden></span>
+              <span class="ps-images-name" data-ps-str="ps_images_slot_xy_mesh_mode_sweep">XY mesh sweep</span>
+            </div>
+            <div class="ps-tile-label ps-mono" data-ps-no-i18n>xy_mesh_mode_sweep</div>
+            <div class="ps-tile-label" id="ps-images-status-xy-mesh-mode-sweep" data-ps-str="ps_images_status_idle">Nothing sent from this browser</div>
+            <progress id="ps-images-progress-xy-mesh-mode-sweep" value="0" max="100" hidden></progress>
+          </div>
+          <button class="border small">
+            <span data-ps-str="ps_images_choose">Choose GIF</span>
+            <input type="file" accept="image/gif" id="ps-images-file-xy-mesh-mode-sweep" data-ps-upload="xy_mesh_mode_sweep" data-ps-str-aria="ps_images_choose_aria" aria-label="Choose a GIF for this slot">
+          </button>
+        </div>
+      </div>
+      <div class="ps-tile ps-images-slot" data-ps-slot="filament_check_location" id="ps-images-slot-filament-check-location">
+        <div class="ps-row">
+          <div class="ps-images-preview" id="ps-images-preview-filament-check-location"><svg class="ps-icon"><use href="#ps-icon-photo"/></svg><img alt="" hidden></div>
+          <div class="ps-images-meta max">
+            <div class="ps-row">
+              <span class="ps-dot" id="ps-images-dot-filament-check-location" hidden></span>
+              <span class="ps-images-name" data-ps-str="ps_images_slot_filament_check_location">Filament check</span>
+            </div>
+            <div class="ps-tile-label ps-mono" data-ps-no-i18n>filament_check_location</div>
+            <div class="ps-tile-label" id="ps-images-status-filament-check-location" data-ps-str="ps_images_status_idle">Nothing sent from this browser</div>
+            <progress id="ps-images-progress-filament-check-location" value="0" max="100" hidden></progress>
+          </div>
+          <button class="border small">
+            <span data-ps-str="ps_images_choose">Choose GIF</span>
+            <input type="file" accept="image/gif" id="ps-images-file-filament-check-location" data-ps-upload="filament_check_location" data-ps-str-aria="ps_images_choose_aria" aria-label="Choose a GIF for this slot">
+          </button>
+        </div>
+      </div>
+      <div class="ps-tile ps-images-slot" data-ps-slot="filament_cut" id="ps-images-slot-filament-cut">
+        <div class="ps-row">
+          <div class="ps-images-preview" id="ps-images-preview-filament-cut"><svg class="ps-icon"><use href="#ps-icon-photo"/></svg><img alt="" hidden></div>
+          <div class="ps-images-meta max">
+            <div class="ps-row">
+              <span class="ps-dot" id="ps-images-dot-filament-cut" hidden></span>
+              <span class="ps-images-name" data-ps-str="ps_images_slot_filament_cut">Filament cut</span>
+            </div>
+            <div class="ps-tile-label ps-mono" data-ps-no-i18n>filament_cut</div>
+            <div class="ps-tile-label" id="ps-images-status-filament-cut" data-ps-str="ps_images_status_idle">Nothing sent from this browser</div>
+            <progress id="ps-images-progress-filament-cut" value="0" max="100" hidden></progress>
+          </div>
+          <button class="border small">
+            <span data-ps-str="ps_images_choose">Choose GIF</span>
+            <input type="file" accept="image/gif" id="ps-images-file-filament-cut" data-ps-upload="filament_cut" data-ps-str-aria="ps_images_choose_aria" aria-label="Choose a GIF for this slot">
+          </button>
+        </div>
+      </div>
+      <div class="ps-tile ps-images-slot" data-ps-slot="filament_pull_back_cur" id="ps-images-slot-filament-pull-back-cur">
+        <div class="ps-row">
+          <div class="ps-images-preview" id="ps-images-preview-filament-pull-back-cur"><svg class="ps-icon"><use href="#ps-icon-photo"/></svg><img alt="" hidden></div>
+          <div class="ps-images-meta max">
+            <div class="ps-row">
+              <span class="ps-dot" id="ps-images-dot-filament-pull-back-cur" hidden></span>
+              <span class="ps-images-name" data-ps-str="ps_images_slot_filament_pull_back_cur">Filament pull back</span>
+            </div>
+            <div class="ps-tile-label ps-mono" data-ps-no-i18n>filament_pull_back_cur</div>
+            <div class="ps-tile-label" id="ps-images-status-filament-pull-back-cur" data-ps-str="ps_images_status_idle">Nothing sent from this browser</div>
+            <progress id="ps-images-progress-filament-pull-back-cur" value="0" max="100" hidden></progress>
+          </div>
+          <button class="border small">
+            <span data-ps-str="ps_images_choose">Choose GIF</span>
+            <input type="file" accept="image/gif" id="ps-images-file-filament-pull-back-cur" data-ps-upload="filament_pull_back_cur" data-ps-str-aria="ps_images_choose_aria" aria-label="Choose a GIF for this slot">
+          </button>
+        </div>
+      </div>
+      <div class="ps-tile ps-images-slot" data-ps-slot="filament_push_new" id="ps-images-slot-filament-push-new">
+        <div class="ps-row">
+          <div class="ps-images-preview" id="ps-images-preview-filament-push-new"><svg class="ps-icon"><use href="#ps-icon-photo"/></svg><img alt="" hidden></div>
+          <div class="ps-images-meta max">
+            <div class="ps-row">
+              <span class="ps-dot" id="ps-images-dot-filament-push-new" hidden></span>
+              <span class="ps-images-name" data-ps-str="ps_images_slot_filament_push_new">Filament push new</span>
+            </div>
+            <div class="ps-tile-label ps-mono" data-ps-no-i18n>filament_push_new</div>
+            <div class="ps-tile-label" id="ps-images-status-filament-push-new" data-ps-str="ps_images_status_idle">Nothing sent from this browser</div>
+            <progress id="ps-images-progress-filament-push-new" value="0" max="100" hidden></progress>
+          </div>
+          <button class="border small">
+            <span data-ps-str="ps_images_choose">Choose GIF</span>
+            <input type="file" accept="image/gif" id="ps-images-file-filament-push-new" data-ps-upload="filament_push_new" data-ps-str-aria="ps_images_choose_aria" aria-label="Choose a GIF for this slot">
+          </button>
+        </div>
+      </div>
+      <div class="ps-tile ps-images-slot" data-ps-slot="filament_purge_old" id="ps-images-slot-filament-purge-old">
+        <div class="ps-row">
+          <div class="ps-images-preview" id="ps-images-preview-filament-purge-old"><svg class="ps-icon"><use href="#ps-icon-photo"/></svg><img alt="" hidden></div>
+          <div class="ps-images-meta max">
+            <div class="ps-row">
+              <span class="ps-dot" id="ps-images-dot-filament-purge-old" hidden></span>
+              <span class="ps-images-name" data-ps-str="ps_images_slot_filament_purge_old">Filament purge</span>
+            </div>
+            <div class="ps-tile-label ps-mono" data-ps-no-i18n>filament_purge_old</div>
+            <div class="ps-tile-label" id="ps-images-status-filament-purge-old" data-ps-str="ps_images_status_idle">Nothing sent from this browser</div>
+            <progress id="ps-images-progress-filament-purge-old" value="0" max="100" hidden></progress>
+          </div>
+          <button class="border small">
+            <span data-ps-str="ps_images_choose">Choose GIF</span>
+            <input type="file" accept="image/gif" id="ps-images-file-filament-purge-old" data-ps-upload="filament_purge_old" data-ps-str-aria="ps_images_choose_aria" aria-label="Choose a GIF for this slot">
+          </button>
+        </div>
+      </div>
+      <div class="ps-tile ps-images-slot" data-ps-slot="printing_ok" id="ps-images-slot-printing-ok">
+        <div class="ps-row">
+          <div class="ps-images-preview" id="ps-images-preview-printing-ok"><svg class="ps-icon"><use href="#ps-icon-photo"/></svg><img alt="" hidden></div>
+          <div class="ps-images-meta max">
+            <div class="ps-row">
+              <span class="ps-dot" id="ps-images-dot-printing-ok" hidden></span>
+              <span class="ps-images-name" data-ps-str="ps_images_slot_printing_ok">Print finished</span>
+            </div>
+            <div class="ps-tile-label ps-mono" data-ps-no-i18n>printing_ok</div>
+            <div class="ps-tile-label" id="ps-images-status-printing-ok" data-ps-str="ps_images_status_idle">Nothing sent from this browser</div>
+            <progress id="ps-images-progress-printing-ok" value="0" max="100" hidden></progress>
+          </div>
+          <button class="border small">
+            <span data-ps-str="ps_images_choose">Choose GIF</span>
+            <input type="file" accept="image/gif" id="ps-images-file-printing-ok" data-ps-upload="printing_ok" data-ps-str-aria="ps_images_choose_aria" aria-label="Choose a GIF for this slot">
+          </button>
+        </div>
+      </div>
+      <div class="ps-tile ps-images-slot" data-ps-slot="printing" id="ps-images-slot-printing">
+        <div class="ps-row">
+          <div class="ps-images-preview" id="ps-images-preview-printing"><svg class="ps-icon"><use href="#ps-icon-photo"/></svg><img alt="" hidden></div>
+          <div class="ps-images-meta max">
+            <div class="ps-row">
+              <span class="ps-dot" id="ps-images-dot-printing" hidden></span>
+              <span class="ps-images-name" data-ps-str="ps_images_slot_printing">Printing</span>
+            </div>
+            <div class="ps-tile-label ps-mono" data-ps-no-i18n>printing</div>
+            <div class="ps-tile-label" id="ps-images-status-printing" data-ps-str="ps_images_status_idle">Nothing sent from this browser</div>
+            <progress id="ps-images-progress-printing" value="0" max="100" hidden></progress>
+          </div>
+          <button class="border small">
+            <span data-ps-str="ps_images_choose">Choose GIF</span>
+            <input type="file" accept="image/gif" id="ps-images-file-printing" data-ps-upload="printing" data-ps-str-aria="ps_images_choose_aria" aria-label="Choose a GIF for this slot">
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</article>
 </main>
 
 <nav class="bottom ps-bottombar" id="ps-bottombar" data-ps-str-aria="ps_frame_nav_2" aria-label="Pages">
   <a href="#dashboard" data-ps-nav="dashboard"><svg class="ps-icon"><use href="#ps-icon-home"/></svg><div data-ps-str="ps_frame_nav_dashboard_2">Dashboard</div></a>
   <a href="#lighting"  data-ps-nav="lighting"><svg class="ps-icon"><use href="#ps-icon-light-bulb"/></svg><div data-ps-str="ps_frame_nav_lighting_2">Lighting</div></a>
+  <a href="#images"    data-ps-nav="images"><svg class="ps-icon"><use href="#ps-icon-photo"/></svg><div data-ps-str="ps_frame_nav_images_2">Images</div></a>
 </nav>
 
 <!-- Furniture shared by every page. One dialog, filled by whoever opens it; one toast; the
@@ -451,7 +756,7 @@ article[data-ps-card] {
 // generated by tools/ui/build/i18n.py; do not edit
 var PS_STRING_LANGS = ["en"];
 var PS_RTL_LANGS = [];
-var PS_STRINGS = {"en":{"ps_core_factory_done_text":"The device is resetting and will restart. Reconnect to its hotspot to set it up again.","ps_core_factory_done_title":"Factory reset","ps_core_lost_text":"The device closed the connection. Reload the page to reconnect.","ps_core_lost_title":"Connection lost","ps_core_reload":"Reload","ps_core_restart_text":"The device will restart to apply this change.","ps_core_save_failed":"The device did not accept the change.","ps_core_saved_title":"Saved","ps_core_upload_failed":"Upload refused.","ps_core_upload_ok":"Upload accepted.","ps_dashboard_brightness":"Brightness","ps_dashboard_device":"Device","ps_dashboard_hotspot_off":"Hotspot off","ps_dashboard_hotspot_on":"Hotspot on","ps_dashboard_lighting":"Lighting","ps_dashboard_mode_h2d":"H2D","ps_dashboard_mode_music":"Music","ps_dashboard_network":"Network","ps_dashboard_pill_connecting":"Printer connecting","ps_dashboard_pill_error":"Printer error","ps_dashboard_pill_ready":"Printer connected","ps_dashboard_pill_unbound":"No printer","ps_dashboard_printer":"Printer","ps_dashboard_prn_1":"Not bound","ps_dashboard_prn_2":"Connecting","ps_dashboard_prn_3":"Connected","ps_dashboard_prn_4":"Address error","ps_dashboard_prn_5":"Serial does not match","ps_dashboard_prn_6":"Access code rejected","ps_dashboard_prn_7":"Unknown error","ps_dashboard_sta_1":"No network configured","ps_dashboard_sta_2":"Connecting","ps_dashboard_sta_3":"Connected","ps_dashboard_sta_4":"Reconnecting","ps_dashboard_sta_5":"Wrong password","ps_dashboard_title":"Dashboard","ps_dashboard_unknown_state":"Unknown state","ps_frame_home":"Home","ps_frame_nav":"Pages","ps_frame_nav_2":"Pages","ps_frame_nav_dashboard":"Dashboard","ps_frame_nav_dashboard_2":"Dashboard","ps_frame_nav_lighting":"Lighting","ps_frame_nav_lighting_2":"Lighting","ps_frame_pill_waiting":"Waiting for the device","ps_frame_theme":"Theme","ps_frame_title":"Panda Status","ps_global_cancel":"Cancel","ps_global_dialog_text":"Message","ps_global_dialog_title":"Notice","ps_global_fault":"The device reported that a setting could not be saved.","ps_global_ok":"OK","ps_global_waiting":"Waiting for the device to send its state.","ps_lighting_block":"Segment","ps_lighting_block_aria":"Segment colour","ps_lighting_blocks":"Segments","ps_lighting_blocks_help":"Each segment has its own colour. What a segment maps to on the bar is recorded during the bench session.","ps_lighting_brightness":"Brightness","ps_lighting_brightness_aria":"Brightness","ps_lighting_colour_error":"Error","ps_lighting_colour_error_aria":"Error colour","ps_lighting_colour_idle":"Idle","ps_lighting_colour_idle_aria":"Idle colour","ps_lighting_colour_printing":"Printing","ps_lighting_colour_printing_aria":"Printing colour","ps_lighting_colours":"State colours","ps_lighting_colours_help":"Colours are per mode. Changing the mode above shows that mode's colours.","ps_lighting_mode":"Mode","ps_lighting_mode_aria":"Lighting mode","ps_lighting_mode_h2d":"H2D","ps_lighting_mode_help":"Music reacts to sound. H2D shows the printer's state with three colours.","ps_lighting_mode_music":"Music","ps_lighting_reset":"Reset lighting","ps_lighting_reset_confirm":"Reset","ps_lighting_reset_help":"Puts brightness, speed and the three colours back to their defaults. Nothing else.","ps_lighting_reset_music":"Reset applies in H2D mode. Switch the mode first.","ps_lighting_reset_text":"Brightness, speed and the three state colours go back to their defaults. Wi-Fi, the printer and the hostname are not touched.","ps_lighting_reset_title":"Reset lighting?","ps_lighting_speed":"Speed","ps_lighting_speed_aria":"Speed","ps_lighting_speed_default":"default 100%","ps_lighting_speed_music":"Speed applies in H2D mode only.","ps_lighting_title":"Lighting"}};
+var PS_STRINGS = {"en":{"ps_core_factory_done_text":"The device is resetting and will restart. Reconnect to its hotspot to set it up again.","ps_core_factory_done_title":"Factory reset","ps_core_lost_text":"The device closed the connection. Reload the page to reconnect.","ps_core_lost_title":"Connection lost","ps_core_reload":"Reload","ps_core_restart_text":"The device will restart to apply this change.","ps_core_save_failed":"The device did not accept the change.","ps_core_saved_title":"Saved","ps_core_upload_failed":"Upload refused.","ps_core_upload_ok":"Upload accepted.","ps_dashboard_brightness":"Brightness","ps_dashboard_device":"Device","ps_dashboard_hotspot_off":"Hotspot off","ps_dashboard_hotspot_on":"Hotspot on","ps_dashboard_lighting":"Lighting","ps_dashboard_mode_h2d":"H2D","ps_dashboard_mode_music":"Music","ps_dashboard_network":"Network","ps_dashboard_pill_connecting":"Printer connecting","ps_dashboard_pill_error":"Printer error","ps_dashboard_pill_ready":"Printer connected","ps_dashboard_pill_unbound":"No printer","ps_dashboard_printer":"Printer","ps_dashboard_prn_1":"Not bound","ps_dashboard_prn_2":"Connecting","ps_dashboard_prn_3":"Connected","ps_dashboard_prn_4":"Address error","ps_dashboard_prn_5":"Serial does not match","ps_dashboard_prn_6":"Access code rejected","ps_dashboard_prn_7":"Unknown error","ps_dashboard_sta_1":"No network configured","ps_dashboard_sta_2":"Connecting","ps_dashboard_sta_3":"Connected","ps_dashboard_sta_4":"Reconnecting","ps_dashboard_sta_5":"Wrong password","ps_dashboard_title":"Dashboard","ps_dashboard_unknown_state":"Unknown state","ps_frame_home":"Home","ps_frame_nav":"Pages","ps_frame_nav_2":"Pages","ps_frame_nav_dashboard":"Dashboard","ps_frame_nav_dashboard_2":"Dashboard","ps_frame_nav_images":"Images","ps_frame_nav_images_2":"Images","ps_frame_nav_lighting":"Lighting","ps_frame_nav_lighting_2":"Lighting","ps_frame_pill_waiting":"Waiting for the device","ps_frame_theme":"Theme","ps_frame_title":"Panda Status","ps_global_cancel":"Cancel","ps_global_dialog_text":"Message","ps_global_dialog_title":"Notice","ps_global_fault":"The device reported that a setting could not be saved.","ps_global_ok":"OK","ps_global_waiting":"Waiting for the device to send its state.","ps_images_choose":"Choose GIF","ps_images_choose_aria":"Choose a GIF for this slot","ps_images_help":"The device shows one animation per print stage. It does not send its animations back, so a slot can only show the file you chose here, in this browser. A file is sent the moment you choose it. GIF only, 1.5 MB at most.","ps_images_showing":"Showing now:","ps_images_slot_bed_heating":"Bed heating","ps_images_slot_bed_leveling":"Bed levelling","ps_images_slot_calibrating_flow":"Flow calibration","ps_images_slot_filament_check_location":"Filament check","ps_images_slot_filament_cut":"Filament cut","ps_images_slot_filament_pull_back_cur":"Filament pull back","ps_images_slot_filament_purge_old":"Filament purge","ps_images_slot_filament_push_new":"Filament push new","ps_images_slot_homing":"Homing","ps_images_slot_nozzle_cleaning":"Nozzle cleaning","ps_images_slot_nozzle_heating":"Nozzle heating","ps_images_slot_printing":"Printing","ps_images_slot_printing_ok":"Print finished","ps_images_slot_standby":"Standby","ps_images_slot_xy_mesh_mode_sweep":"XY mesh sweep","ps_images_status_failed":"Upload failed ({code}).","ps_images_status_idle":"Nothing sent from this browser","ps_images_status_ok":"Accepted by the device.","ps_images_status_refused":"Refused by the device.","ps_images_status_sending":"Sending","ps_images_status_sent":"Sent. Waiting for the device to confirm.","ps_images_status_too_big":"Too big. The limit is {limit}.","ps_images_title":"Images","ps_images_version":"Image pack version","ps_lighting_block":"Segment","ps_lighting_block_aria":"Segment colour","ps_lighting_blocks":"Segments","ps_lighting_blocks_help":"Each segment has its own colour. What a segment maps to on the bar is recorded during the bench session.","ps_lighting_brightness":"Brightness","ps_lighting_brightness_aria":"Brightness","ps_lighting_colour_error":"Error","ps_lighting_colour_error_aria":"Error colour","ps_lighting_colour_idle":"Idle","ps_lighting_colour_idle_aria":"Idle colour","ps_lighting_colour_printing":"Printing","ps_lighting_colour_printing_aria":"Printing colour","ps_lighting_colours":"State colours","ps_lighting_colours_help":"Colours are per mode. Changing the mode above shows that mode's colours.","ps_lighting_mode":"Mode","ps_lighting_mode_aria":"Lighting mode","ps_lighting_mode_h2d":"H2D","ps_lighting_mode_help":"Music reacts to sound. H2D shows the printer's state with three colours.","ps_lighting_mode_music":"Music","ps_lighting_reset":"Reset lighting","ps_lighting_reset_confirm":"Reset","ps_lighting_reset_help":"Puts brightness, speed and the three colours back to their defaults. Nothing else.","ps_lighting_reset_music":"Reset applies in H2D mode. Switch the mode first.","ps_lighting_reset_text":"Brightness, speed and the three state colours go back to their defaults. Wi-Fi, the printer and the hostname are not touched.","ps_lighting_reset_title":"Reset lighting?","ps_lighting_speed":"Speed","ps_lighting_speed_aria":"Speed","ps_lighting_speed_default":"default 100%","ps_lighting_speed_music":"Speed applies in H2D mode only.","ps_lighting_title":"Lighting"}};
 
 </script>
 <script type="module">
@@ -1095,7 +1400,7 @@ var PS = (function () {
   }
   function setLang(code) {
     var t = table();
-    if (!code || !t || !t[code]) return;
+    if (!code || !t || !t[code] || code === lang) return;   // re-applying on every frame clobbers text set at runtime
     lang = code; apply_translations();
   }
 
@@ -1168,10 +1473,13 @@ var PS = (function () {
   // ---------- dialog and toast ----------
   var dlg, dlgTitle, dlgText, dlgOk, dlgCancel, dlgHandlers = {};
   function dialog(title, text, buttons) {
+    // runtime text owns these elements now: drop the markup keys so a language switch
+    // cannot repaint an open dialog with its placeholders; the buttons keep their keys
+    dlgTitle.removeAttribute('data-ps-str'); dlgText.removeAttribute('data-ps-str');
     dlgTitle.textContent = title; dlgText.textContent = text;
     var ok = buttons && buttons[0]; var cancel = buttons && buttons[1];
-    dlgOk.textContent = ok ? tr(ok.key) : tr('ps_global_ok');
-    dlgCancel.hidden = !cancel; if (cancel) dlgCancel.textContent = tr(cancel.key);
+    dlgOk.setAttribute('data-ps-str', ok ? ok.key : 'ps_global_ok'); dlgOk.textContent = tr(ok ? ok.key : 'ps_global_ok');
+    dlgCancel.hidden = !cancel; if (cancel) { dlgCancel.setAttribute('data-ps-str', cancel.key); dlgCancel.textContent = tr(cancel.key); }
     dlgHandlers.ok = ok && ok.handler; dlgHandlers.cancel = cancel && cancel.handler;
     if (typeof dlg.showModal === 'function') { if (!dlg.open) dlg.showModal(); } else dlg.setAttribute('open', '');
   }
@@ -1217,9 +1525,9 @@ var PS = (function () {
     theme(pref === 'dark' ? 'light' : pref === 'light' ? 'auto' : 'dark');
   }
 
-  // ---------- pill ----------
-  function pill(text, cls) {
-    var p = document.getElementById('ps-topbar-pill'); p.textContent = text;
+  // ---------- pill. Takes a string KEY, so a language switch keeps it right. ----------
+  function pill(key, cls) {
+    var p = document.getElementById('ps-topbar-pill'); p.setAttribute('data-ps-str', key); p.textContent = tr(key);
     p.className = 'ps-pill' + (cls ? ' ps-pill-' + cls : '');
   }
 
@@ -1291,10 +1599,10 @@ var PS = (function () {
     $('ps-dashboard-hotspot').textContent = present(ap.on) ? (ap.on === 1 ? PS.tr('ps_dashboard_hotspot_on') : PS.tr('ps_dashboard_hotspot_off')) : '—';
 
     // the top-bar pill reflects the printer link, which is what an owner glances for
-    if (p.state === 3) PS.pill(PS.tr('ps_dashboard_pill_ready'), 'ok');
-    else if (p.state === 2) PS.pill(PS.tr('ps_dashboard_pill_connecting'), 'warn');
-    else if (p.state >= 4) PS.pill(PS.tr('ps_dashboard_pill_error'), 'error');
-    else PS.pill(PS.tr('ps_dashboard_pill_unbound'), '');
+    if (p.state === 3) PS.pill('ps_dashboard_pill_ready', 'ok');
+    else if (p.state === 2) PS.pill('ps_dashboard_pill_connecting', 'warn');
+    else if (p.state >= 4) PS.pill('ps_dashboard_pill_error', 'error');
+    else PS.pill('ps_dashboard_pill_unbound', '');
   }
 
   PS.on('state', function (e) { render(e.state); });
@@ -1440,6 +1748,114 @@ var PS = (function () {
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', wire); else wire();
   PS.on('state', function () { render(); });
+})();
+</script>
+<script>
+// module: 30-images.js
+'use strict';
+/* Images: the fifteen print-stage animation slots. Facts from docs/protocol-websocket.md:
+   - an upload is POST /ota, Content-Type application/octet-stream;charset=UTF-8, the
+     OTA-Type header naming the target slot, the file as the body
+   - the per-slot maximum is 0x180000 bytes. The factory UI compares the chosen file's size
+     against it before sending and names the limit in megabytes when it refuses; so does this
+   - the device answers over the socket with response {type:"ota_img", ok, gif:<slot>}. The
+     gif member is what the browser handles inbound; that the device fills it is the mock's
+     INFERENCE until the bench confirms it
+   - there is no route that serves a slot's current animation, so a preview can only be the
+     file chosen in this browser
+   - ws_theme {preview, list:[{gif, rgba}]} is inbound only, never sent by the browser, and
+     has not been seen on the wire. Rendered when present, absent otherwise
+   The verdict order matters: the device's answer arrives on the socket before the HTTP
+   status does on the mock, so a device verdict, once shown, is not overwritten by the HTTP
+   failure that follows it. */
+
+(function () {
+  var CAP = 0x180000;                                   // 1,572,864 bytes, the per-slot maximum
+  var $ = function (id) { return document.getElementById(id); };
+  var urls = {};                                        // slot -> object URL of the chosen file
+  var verdict = {};                                     // slot -> the device's last answer
+
+  function idOf(slot) { return String(slot).replace(/_/g, '-'); }
+  function mb(n) { return (n / 1048576).toFixed(1) + ' MB'; }
+  function status(slot, key, fill) {
+    var el = $('ps-images-status-' + idOf(slot)); if (!el) return;
+    el.setAttribute('data-ps-str', key);
+    var text = PS.tr(key);
+    if (fill) Object.keys(fill).forEach(function (k) { text = text.replace('{' + k + '}', fill[k]); });
+    el.textContent = text;
+  }
+  function preview(slot, file) {
+    var box = $('ps-images-preview-' + idOf(slot)), img = box.querySelector('img');
+    if (urls[slot]) URL.revokeObjectURL(urls[slot]);
+    urls[slot] = URL.createObjectURL(file);
+    img.onerror = function () { img.hidden = true; box.classList.remove('ps-images-preview-set'); };   // not an image: the glyph stays
+    img.src = urls[slot]; img.hidden = false; box.classList.add('ps-images-preview-set');
+  }
+
+  function upload(slot, file) {
+    if (file.size > CAP) { status(slot, 'ps_images_status_too_big', { limit: mb(CAP) }); return; }   // parity: refused before any request
+    preview(slot, file);
+    verdict[slot] = null;
+    var prog = $('ps-images-progress-' + idOf(slot)); prog.value = 0; prog.hidden = false;
+    status(slot, 'ps_images_status_sending');
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', '/ota', true);
+    xhr.setRequestHeader('Content-Type', 'application/octet-stream;charset=UTF-8');
+    xhr.setRequestHeader('OTA-Type', slot);
+    xhr.upload.onprogress = function (e) { if (e.lengthComputable) prog.value = Math.round(100 * e.loaded / e.total); };
+    xhr.onload = function () {
+      prog.hidden = true;
+      if (verdict[slot]) return;                        // the device already answered on the socket
+      if (xhr.status === 200) status(slot, 'ps_images_status_sent');
+      else status(slot, 'ps_images_status_failed', { code: String(xhr.status) });
+    };
+    xhr.onerror = function () { prog.hidden = true; if (!verdict[slot]) status(slot, 'ps_images_status_failed', { code: '0' }); };
+    xhr.send(file);
+  }
+
+  function render(s) {
+    var set = s.settings || {}, v = set.img_version, el = $('ps-images-version');
+    if (v !== undefined && v !== null && v !== '') { el.textContent = String(v); el.classList.remove('ps-unset'); }
+    else { el.textContent = '—'; el.classList.add('ps-unset'); }
+
+    var th = s.ws_theme;
+    var showing = $('ps-images-showing');
+    if (th && typeof th.preview === 'string') {
+      var tile = document.querySelector('[data-ps-slot="' + th.preview + '"]');
+      var name = tile ? tile.querySelector('.ps-images-name').textContent : th.preview;
+      showing.textContent = PS.tr('ps_images_showing') + ' ' + name; showing.hidden = false;
+      document.querySelectorAll('.ps-images-slot').forEach(function (t) { t.classList.toggle('ps-images-slot-showing', t.getAttribute('data-ps-slot') === th.preview); });
+    }
+    if (th && Array.isArray(th.list)) {
+      th.list.forEach(function (e) {
+        if (!e || typeof e.gif !== 'string') return;
+        var dot = $('ps-images-dot-' + idOf(e.gif)); if (!dot) return;
+        var h = String(e.rgba || '').replace('#', '');
+        if (h.length >= 6) { dot.style.background = '#' + h.slice(0, 8); dot.hidden = false; }
+      });
+    }
+  }
+
+  function wire() {
+    document.querySelectorAll('[data-ps-upload]').forEach(function (inp) {
+      var slot = inp.getAttribute('data-ps-upload');
+      var title = inp.closest('.ps-images-slot').querySelector('.ps-images-name');
+      inp.setAttribute('aria-label', PS.tr('ps_images_choose') + ': ' + title.textContent);
+      inp.addEventListener('change', function () {
+        var f = inp.files && inp.files[0];
+        inp.value = '';                                 // choosing the same file again must fire again
+        if (f) upload(slot, f);
+      });
+    });
+  }
+
+  PS.on('response', function (r) {
+    if (r.type !== 'ota_img' || typeof r.gif !== 'string') return;
+    verdict[r.gif] = r.ok === 1 ? 'ok' : 'refused';
+    status(r.gif, r.ok === 1 ? 'ps_images_status_ok' : 'ps_images_status_refused');
+  });
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', wire); else wire();
+  PS.on('state', function (ev) { render(ev.state); });
 })();
 </script>
 </body>

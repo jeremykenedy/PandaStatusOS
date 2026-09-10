@@ -97,6 +97,19 @@ article[data-ps-card] {
 .ps-dot-warn  { background: var(--tertiary); }
 .ps-dot-error { background: var(--error); }
 
+/* --- images: the slot grid. The preview box holds the file chosen in this browser. --- */
+.ps-images-slot > .ps-row { align-items: flex-start; flex-wrap: nowrap; }
+.ps-images-preview { width: 72px; height: 72px; flex: none; border-radius: var(--ps-radius-sm); background: var(--ps-wash-1); display: grid; place-items: center; overflow: hidden; color: var(--on-surface-variant); }
+.ps-images-preview > img { width: 100%; height: 100%; object-fit: contain; }
+.ps-images-preview-set > svg { display: none; }
+.ps-images-meta { min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.ps-images-meta > .ps-row { flex-wrap: nowrap; }
+.ps-images-name { font-weight: 600; }
+.ps-mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .75rem; word-break: break-all; }
+.ps-images-slot-showing { box-shadow: inset 0 0 0 2px var(--primary); }
+.ps-images-slot progress { max-width: 220px; }
+.ps-images-slot button { white-space: nowrap; }
+
 /* --- dialog and toast --- */
 .ps-dialog { border-radius: var(--ps-radius); }
 .ps-dialog h5 { margin-top: 0; }

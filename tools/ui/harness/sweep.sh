@@ -30,6 +30,10 @@ ROWS=(
   # --- pages, in the browser. One row per lie the page must survive. ---
   "p2-idle.json      | page-lighting.js | "
   "p2-idle.json      | page-lighting.js | PS_EMIT_SPEED=1"
+  "p2-idle.json      | page-images.js | "
+  "p2-idle.json      | page-images.js | PS_OTA_REFUSE=1"
+  "p2-idle.json      | page-images.js | PS_IMG_VERSION=1"
+  "p2-idle.json      | page-images.js | PS_THEME_ON_CONNECT=1"
 )
 
 pass=0; fail=0; failed=()

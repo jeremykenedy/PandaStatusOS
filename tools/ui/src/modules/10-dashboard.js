@@ -43,10 +43,10 @@
     $('ps-dashboard-hotspot').textContent = present(ap.on) ? (ap.on === 1 ? PS.tr('ps_dashboard_hotspot_on') : PS.tr('ps_dashboard_hotspot_off')) : '—';
 
     // the top-bar pill reflects the printer link, which is what an owner glances for
-    if (p.state === 3) PS.pill(PS.tr('ps_dashboard_pill_ready'), 'ok');
-    else if (p.state === 2) PS.pill(PS.tr('ps_dashboard_pill_connecting'), 'warn');
-    else if (p.state >= 4) PS.pill(PS.tr('ps_dashboard_pill_error'), 'error');
-    else PS.pill(PS.tr('ps_dashboard_pill_unbound'), '');
+    if (p.state === 3) PS.pill('ps_dashboard_pill_ready', 'ok');
+    else if (p.state === 2) PS.pill('ps_dashboard_pill_connecting', 'warn');
+    else if (p.state >= 4) PS.pill('ps_dashboard_pill_error', 'error');
+    else PS.pill('ps_dashboard_pill_unbound', '');
   }
 
   PS.on('state', function (e) { render(e.state); });
