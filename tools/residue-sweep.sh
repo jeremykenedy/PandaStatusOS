@@ -131,10 +131,22 @@ print(f"residue sweep: {len(scanned)} tracked files "
 print(f"{'CATEGORY':30s} {'HITS':>5s}")
 print("-" * 78)
 
+# A binary file decoded as text produces byte runs that can spell CJK codepoints by
+# chance; a PNG tripped this once. Binary files are not source text, so they skip the
+# CJK-text check. Every ASCII-pattern check still runs on them, because an identifier
+# or a credential hidden in a binary is still an identifier or a credential.
+def is_binary(path):
+    try:
+        return b'\x00' in open(path, 'rb').read(8192)
+    except OSError:
+        return False
+
 grand = 0
 for name, pat in CHECKS:
     rows = []
     for f in scanned:
+        if name == "CJK source text" and is_binary(f):
+            continue
         try:
             t = open(f, encoding='utf-8', errors='replace').read()
         except OSError:

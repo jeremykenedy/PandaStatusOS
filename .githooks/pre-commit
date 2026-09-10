@@ -179,7 +179,19 @@ scan_vendor() {
 scan_vendor "vendor element ID"   '\bid_[a-z][a-zA-Z0-9_]*\b'
 scan_vendor "vendor CSS class"    '\bc_[a-z][a-zA-Z0-9_]*\b'
 scan_vendor "vendor identifier"   '\b(ws_send_data|ws_send_json|ws_on_close|ws_on_open|ws_on_message|show_ws_not_open|html_require_refresh|dialog_create|resetSettings|updateUIAfterReset|rgb_color_list|rgb_brightness_list|rgb_speed_list|colorButton_id|g_websocket|g_rgb_type_str|g_gif_name|g_lang_resources|ota_btn_click|ota_file_selected|speedSlider|device_req_restart|show_pop_factory|h2d_mode)\b'
-scan_vendor "CJK source text"     '[^[:print:][:space:]]*[一-龥ぁ-ヿ가-힣]'
+# CJK scan skips binary files (a NUL in the first 8 KiB): decoded bytes can spell CJK
+# codepoints by chance, and a PNG tripped this. The ASCII scans above still run on them.
+scan_vendor_text_only() {
+    local label="$1" pattern="$2" file
+    local saved="$STAGED" keep=""
+    for file in $STAGED; do
+        [ -f "$REPO_ROOT/$file" ] || continue
+        if git show ":$file" 2>/dev/null | head -c 8192 | grep -q $'\x00'; then continue; fi
+        keep="$keep $file"
+    done
+    STAGED="$keep"; scan_vendor "$label" "$pattern"; STAGED="$saved"
+}
+scan_vendor_text_only "CJK source text" '[^[:print:][:space:]]*[一-龥ぁ-ヿ가-힣]'
 
 scan_pattern "MAC address"            '([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}'
 scan_pattern "wifi/psk proximity"     '[Ww][Ii]-?[Ff][Ii].*(pass|psk|pwd)'

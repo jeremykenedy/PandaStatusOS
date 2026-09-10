@@ -120,6 +120,96 @@ creation land together as the run's foundation commit, before the queue starts.
 in place." Splitting them would produce commits whose intermediate states describe a run
 that is half-authorized. Queue items Q1 onward commit individually, as the brief requires.
 
+## D-008 Colour picker: Coloris, not Pickr, not iro.js
+
+**Date** 2026-09-10 · **Reversal** moderate once pages bind to it; cheap before that
+
+**Decided.** `@melloware/coloris` 0.25.0, MIT, zero runtime dependencies.
+
+**Alternatives.** `@simonwep/pickr` 1.10.2, also MIT and dependency-free. `iro.js`, which
+the sibling project used, is MPL-2.0.
+
+**Why.** Measured from the npm tarballs, minified and gzipped with `gzip -9 -n`:
+Coloris is 5,381 B of JS plus 2,080 B of CSS, **7,461 B total**; Pickr is 8,259 B plus its
+smallest theme at 1,993 B, **10,252 B total**. On a single-file page where every byte is
+flash, the smaller one wins a tie on features. Coloris also attaches to an existing
+`<input>` and leaves it a real form field, which keeps the value reachable by the contrast
+and wire harnesses; Pickr replaces the element with its own widget. iro.js is excluded on
+licence alone: MPL-2.0's file-level copyleft is the wrong shape for a deliverable that is
+one spliced HTML file.
+
+**Would change it.** A picker feature Coloris cannot do that a page needs. None is known.
+
+## D-009 Vendored files live in firmware/main/vendor/<dep>/, and the build reads them from there
+
+**Date** 2026-09-10 · **Reversal** cheap
+
+**Decided.** Pristine upstream files are committed inside each dependency's vendor
+directory, next to its `LICENSE.txt` and `README.md`, and the page build reads its inputs
+from those paths and nowhere else.
+
+**Alternatives.** Keep only licence text in `vendor/` and fetch or splice from elsewhere, as
+the sibling did for three of its four dependencies.
+
+**Why.** "Nothing ships without a row" becomes mechanically true: a dependency the build
+can see is, by construction, one that has a directory, and a directory without a README is
+a visible defect rather than an absence. It also makes the sha256 in each README a hash of
+a file anyone can run `shasum` on, not of a block inside a page. The exceptions are the
+two that are transformed before shipping: the Heroicons sprite is assembled from the
+subset of SVGs the pages actually use, so its row hashes the assembled sprite and is
+filled when the sprite is first built; the Roboto row hashes the woff2 subsets, which are
+chosen in Q7 after the string table is measured.
+
+## D-010 Marks and favicon are generated from primitives by a committed script, SVG plus stdlib-rasterised PNG
+
+**Date** 2026-09-10 · **Reversal** cheap
+
+**Decided.** `tools/art/gen_marks.py` draws the mark as SVG from a handful of shapes and
+rasterises the favicon and touch icon to PNG with a small standard-library encoder, all
+deterministically. Provenance is proven by re-running the script and diffing, never by
+assertion.
+
+**Alternatives.** Hand-drawn SVG; a raster sheet from a design tool; reuse the sibling's
+marks.
+
+**Why.** The sibling shipped four panda PNGs whose author could not be established, inline
+in a public page. That is the single worst provenance row in its audit and it is not
+repeatable here. A generator that reproduces its output byte-exactly is the only form of
+artwork whose origin is checkable by a stranger.
+
+## D-011 The mark is a light bar, not a panda
+
+**Date** 2026-09-10 · **Reversal** cheap
+
+**Decided.** The mark depicts what the product is: a short horizontal bar of round LEDs
+with a progress fill. No panda, no bear, no face.
+
+**Why.** The vendor's brand is a panda. Any panda mark on this project invites the
+question the sibling could not answer, however independently it was drawn. A light bar is
+the device itself, it is trivially original, and it reads at 16 px.
+
+## D-012 Binary files skip the CJK text check; the check was made precise, not exempted
+
+**Date** 2026-09-10 · **Reversal** cheap
+
+**Decided.** In both the residue sweep and the pre-commit hook, a file containing a NUL byte
+in its first 8 KiB is treated as binary and skipped by the CJK-source-text check only. Every
+ASCII-pattern check still runs on it.
+
+**What happened.** The first Q1 commit was refused by `make residue` with two "CJK source
+text" hits in `art/apple-touch-icon-180.png`. The sweep had decoded the PNG's bytes as text
+with replacement, and two byte runs happened to form CJK codepoints. The gate was right to
+refuse an unexplained hit; the hit was a check imprecision, not residue.
+
+**Alternatives.** Exempt `art/`; exempt `*.png`; keep the check and accept manual override.
+
+**Why.** Part 4 of the run brief: a check that has to be weakened to do normal work stops
+being read. An exemption by path would grow with every asset. Skipping the CJK check on
+binaries is the precise statement of what was wrong: binary bytes are not source text, so
+a text-only check has nothing to say about them. Identifiers and credentials in a binary
+are still caught, because those scans still run. A regression case in `make test-hook`
+stages a real PNG and expects PASS.
+
 ---
 
 *Entries continue below as the run proceeds.*

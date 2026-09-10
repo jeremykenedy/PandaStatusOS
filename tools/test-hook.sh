@@ -88,6 +88,20 @@ gzcheck "secret inside gz, no .gz name" 'ssid = MyHomeNetwork'     docs/_t.dat  
 gzcheck "MAC inside .gz"           'MAC 3C:84:27:AA:BB:CC'         docs/_t.html.gz BLOCK
 gzcheck "clean page inside .gz"    'a page with no credentials'    docs/_t.html.gz PASS
 
+# --- binary files ------------------------------------------------------------
+# A PNG's bytes decoded as text can spell CJK codepoints by chance and once blocked a
+# commit. Binary files skip the CJK text scan only; every other scan still sees them.
+echo
+echo "=== binary files ==="
+bincheck() {                     # name, source file, target, want
+  cp "$2" "$3"; git add -f "$3" 2>/dev/null
+  if ./.githooks/pre-commit >/dev/null 2>&1; then got=PASS; else got=BLOCK; fi
+  git reset -q >/dev/null 2>&1; rm -f "$3"
+  if [ "$got" = "$4" ]; then printf '  OK    %-48s %s\n' "$1" "$got"; pass=$((pass+1))
+  else printf '  FAIL  %-48s got=%s want=%s\n' "$1" "$got" "$4"; fail=$((fail+1)); fi
+}
+[ -f art/apple-touch-icon-180.png ] && bincheck "generated PNG passes" art/apple-touch-icon-180.png docs/_t.png PASS
+
 # --- literal forbidden-strings scan -----------------------------------------
 # Tested with a throwaway sentinel. The real values are never written into this
 # file: that is the whole point of the mechanism being tested, and an earlier

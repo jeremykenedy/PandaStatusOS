@@ -54,5 +54,11 @@ the tree.
 
 ## Current components
 
-None yet. This directory is the pattern, established before the first dependency lands
-so that the first one has somewhere to go and no dependency can arrive without a row.
+| Directory | What | Version | Licence | Ships as |
+|---|---|---|---|---|
+| `beercss/` | layout, components, Material 3 tokens | 5.0.3 | MIT | two files, vendored pristine, hashed |
+| `coloris/` | colour picker | 0.25.0 | MIT | two files, vendored pristine, hashed |
+| `heroicons/` | interface icons, outline 24 | 2.2.0 | MIT | an assembled sprite; hash PENDING BUILD |
+| `roboto/` | typeface | PENDING Q7 | **OFL-1.1** | woff2 subsets; PENDING Q7 |
+
+Each directory's own `README.md` carries the hashes and the verification command.
