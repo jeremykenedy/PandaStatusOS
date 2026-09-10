@@ -57,10 +57,24 @@ than secrets: the page build system, the harnesses, and factory reference materi
 The pre-commit hook hard fails if any path under `.claude/work/` or `private/` is
 staged. The hook is committed. Its output is not.
 
-### Rule 5. No customization until Phase 2 gates all pass.
-No features. No improvements. No "while I'm in here." The goal is functional parity
-with the factory application first. Divergence from factory behaviour is a bug until
-every Phase 2 gate is green. `docs/ROADMAP.md` is a catalogue, not a work queue.
+### Rule 5. Factory parity is the default. Features live behind flags that default off.
+**Amended 2026-09-10, authorized by Jeremy for the autonomous run.** The original rule
+forbade all feature work until every Phase 2 gate passed. The amendment:
+
+- **Factory parity remains the DEFAULT configuration.** Out of the box the clone behaves
+  like the factory application. A fresh device, a factory-reset device, and a device with
+  no config all land on parity.
+- **Every feature beyond parity sits behind a config flag that DEFAULTS OFF.**
+- A feature may be built, tested against the mock, documented, and committed. It may not
+  change default behaviour, and it may not be enabled by anything other than the owner
+  turning its flag on.
+- **The gates still exist and still must pass.** A feature that breaks a gate is a bug in
+  the feature, not a reason to move the gate.
+- No "while I'm in here." A feature is a feature; it gets its own flag, harness, docs
+  entry, i18n keys and commit.
+
+`docs/ROADMAP.md` is the catalogue of what may be built. `docs/FEATURES.md` records every
+flag, its default, and its dependencies.
 
 ### Rule 6. No BIQU material ever enters this repository.
 No BIQU or BIGTREETECH code, assets, strings, branding, translations, artwork, icons,
@@ -117,6 +131,32 @@ two checks stay absolute forever without anyone having to think about it.
 control is added is a check that decays to nothing, and a decayed check is how the factory's
 element IDs reached a commit in the first place. Adopting a convention costs nothing today
 and removes the need for the exemption permanently.
+
+### Rule 9. Zero device contact during an unsupervised run.
+**Added 2026-09-10 for the autonomous run, authorized by Jeremy.** When Jeremy is not
+present to supervise, the hardware is off limits entirely, including read-only operations:
+
+- Do not connect to the Panda Status device by IP or by hostname.
+- Do not run the WebSocket logger, the config reader, the UI fetcher, or the MQTT capture
+  against real hardware.
+- Do not touch USB. Do not touch the printer. Do not touch the Panda Vent.
+- Everything is built and tested against the mock device, and nothing else.
+
+Rule 0 already forbids flashing without per-message authorization. Rule 9 extends that to
+every byte in either direction while nobody is watching. A read that goes wrong
+unsupervised cannot be stopped, and the bench session is one-shot.
+
+### Rule 10. Decide, record, continue.
+**Added 2026-09-10 for the autonomous run, authorized by Jeremy.** When an unsupervised
+run hits ambiguity it does not stop. It makes the call, writes it to `docs/DECISIONS.md`
+with the reasoning and whether the decision is cheap or expensive to reverse, and keeps
+going.
+
+A decision recorded and wrong is recoverable in the morning. A night spent blocked is
+not. The only things that stop an unsupervised run are Rules 0 through 9.
+
+Every entry in `docs/DECISIONS.md` carries: the date, what was decided, the alternatives
+considered, why this one, the reversal cost, and what evidence would change it.
 
 ## PHASES
 

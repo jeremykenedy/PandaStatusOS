@@ -68,21 +68,51 @@ Nothing is flashed unless Jeremy says so in that message, with the cable connect
 Read operations (chip_id, flash_id, read_flash, read_mac) are not flashing and are not
 covered by this rule, but they still wait for the phase gate that precedes them.
 
-## PRE-FLASH CHECKLIST
+## PRE-FLASH GATE
 
-Every item must be true before any `write-flash` is run. No exceptions.
+This is a gate, not a checklist. It is walked in full, in order, **before every first
+flash over factory**, by a person, out loud or in writing. Every line is a yes or the gate
+is closed. There is no partial pass, no "mostly", and no authority that waives a line.
 
-1. Jeremy authorized this specific flash in this specific message.
-2. The cable is connected and he has confirmed it.
-3. `backups/SHA256SUMS` exists and every listed file verifies clean.
-4. **Three** full-flash reads exist and at least two agree byte for byte.
-   One copy is stored off this machine.
-5. `backups/RESTORE.md` exists and its command has every offset spelled out.
-6. The dump on disk came from THIS unit. Verify by MAC, not by assumption.
-7. The dump files are at /Users/jeremykenedy/backups/PandaStatus/, outside the repo,
-   and are readable right now.
+A line that cannot be answered yes is answered "closed", and the session moves to
+something else. Nothing here is ever skipped because the cable is already plugged in.
 
-If any item is false, stop and say so. Do not flash.
+```
+ 1. AUTHORIZATION.   Jeremy authorized THIS flash, in THIS message, naming it.      [ ]
+ 2. CABLE.           Connected, and he confirmed it in the same message.             [ ]
+ 3. THREE READS.     Three independent full-flash reads exist on disk,
+                     taken at offset 0 through the full flash size flash-id
+                     reported, each under its own filename.                        [ ]
+ 4. TWO MUST AGREE.  At least two of the three are byte-identical, proven by
+                     sha256 just now, not remembered from earlier.                  [ ]
+ 5. OFF-MACHINE.     One verified copy of the whole backup set exists on a
+                     device that is not this Mac, and its SHA256SUMS verified
+                     there. A dump on one disk is not a backup.                     [ ]
+ 6. IMG PARTITION.   The image partition had the same three-read, two-agree
+                     treatment as the app, and settings.img_version was read
+                     off the live device and recorded BEFORE the dump.              [ ]
+ 7. FIFTEEN GIFs.    All fifteen stage images are extracted, each hashed, each
+                     with its own line in SHA256SUMS and RESTORE.md. They exist
+                     nowhere else in the world. None has been uploaded over.        [ ]
+ 8. THIS UNIT.       The MAC read off the device now matches the MAC recorded
+                     with the dump. The dump is from this unit, proven, not
+                     assumed.                                                       [ ]
+ 9. RESTORE.md.      backups/RESTORE.md Part B carries no <PENDING DUMP> marker.
+                     Every offset is real, every command is complete, and it was
+                     read through end to end today.                                 [ ]
+10. CHIP.            chip-id reported an ESP32-C3 and flash-id reported the flash
+                     size the dump was taken at. If either differs, everything
+                     this repo assumes about the target is wrong. Gate closed.      [ ]
+11. READABLE NOW.    The dump files at /Users/jeremykenedy/backups/PandaStatus/
+                     are readable at this moment, not "were there last week".       [ ]
+12. NO PUBLISHED FALLBACK, ACKNOWLEDGED.
+                     No P2 image exists anywhere. If this flash goes wrong and the
+                     dump is bad, the factory firmware is gone from the world. The
+                     person flashing has read this line and says so.                [ ]
+```
+
+**Twelve yes, or the gate is closed.** Write the twelve answers down with the date before
+the write command is typed. That record is what gets read if something goes wrong.
 
 ## READ-BEFORE-WRITE ORDER
 
@@ -105,7 +135,7 @@ The order is not negotiable.
    their own line in `RESTORE.md`.
 8. Restore command written down and reviewed.
 
-Only after all six is a write even discussable.
+Only after all eight is a write even discussable.
 
 ## NVS
 
