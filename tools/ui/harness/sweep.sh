@@ -48,6 +48,15 @@ ROWS=(
   "p2-idle.json      | page-setup.js | "
   # --- the design system: every page, both themes, both widths, the furniture ---
   "p2-idle.json      | contrast.js | "
+  # --- what the page survives. One lie per row, named in the row. ---
+  "p2-idle.json      | resilience.js | "
+  "p2-idle.json      | resilience.js | PS_DROP_AFTER=1500"
+  "p2-idle.json      | resilience.js | PS_MALFORMED=1"
+  "p2-idle.json      | resilience.js | PS_UNKNOWN_ENUM=1"
+  "p2-idle.json      | resilience.js | PS_DELAY=2500"
+  "p2-idle.json      | resilience.js | PS_NO_PUSH=1"
+  "p2-idle.json      | resilience.js | PS_PRINTER_OFFLINE_AFTER=1000"
+  "p2-idle.json      | resilience.js | PS_SLOW=800"
 )
 
 pass=0; fail=0; failed=()
