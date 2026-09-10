@@ -55,6 +55,12 @@ check "short fake in a frame passes" "{ ssid: 'net', password: 'pw' }"          
 check "enum label passes"          "t('sta.state 5 password error', ok)"                PASS
 check "wifi psk with a value still blocks" 'set WiFi psk = Tr0ub4dor3x'                   BLOCK
 check "quoted value still blocks"  'password = "hunter2swordfish"'                       BLOCK
+# Our i18n keys are ps_<page>_<what> and can end in a credential word. The key is a name,
+# its value is UI copy; neither is an assignment of a secret.
+check "i18n key ending in password passes" '"ps_network_ap_password": "Hotspot password",' PASS
+check "i18n key ending in ssid passes"     '"ps_network_connect_ssid": "Network name",'    PASS
+check "built string table line passes"     'var PS_STRINGS = {"en":{"ps_network_ap_password":"Hotspot password","ps_x":"y"}};' PASS
+check "secret beside an i18n key still blocks" '"ps_x_note": "x", "password": "sup3rs3cret99"' BLOCK
 
 # --- vendor residue, not secrets ---------------------------------------------
 # Element IDs and CSS class names are names inside THEIR document, not names on the

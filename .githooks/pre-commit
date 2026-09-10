@@ -131,6 +131,14 @@ scan_pattern() {
                    && ! printf '%s' "$line" | grep -Eq "$SENS_ASSIGN"; then
                     continue
                 fi
+                # Our own i18n keys (standing rule 8: ps_<page>_<what>) can END in a
+                # credential word: ps_network_ap_password is a key, not an assignment.
+                # Strip every ps_ key from the line and re-test; a match that vanishes
+                # lived inside a key name. The literal known-secret scan below still
+                # sees every line whole.
+                if ! printf '%s' "$line" | sed -E 's/(^|[^A-Za-z0-9_])ps_[a-z0-9_]+/\1/g' | grep -Eq "$pattern"; then
+                    continue
+                fi
                 fail "$label in $where"
                 printf '        %s\n' "$line" >&2
             done < <(staged_view "$file" "$view" | grep -a -nE "$pattern" || true)
