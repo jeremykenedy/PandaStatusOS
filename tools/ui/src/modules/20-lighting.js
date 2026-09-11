@@ -44,7 +44,7 @@
   }
 
   function render() {
-    renderSb(); renderFx(); renderFxc(); renderFxp(); renderFxr(); renderTg(); renderHot(); renderEf();
+    renderSb(); renderFx(); renderFxc(); renderFxp(); renderFxr(); renderTg(); renderHot(); renderEf(); renderPv();
     var m = mode(), e = entry();
     if (m !== null && document.activeElement !== modeSel) modeSel.value = String(m);
     var isMusic = m === 0;
@@ -219,6 +219,44 @@
       r.addEventListener('focus', function () { focused = r; });
       r.addEventListener('blur', function () { if (focused === r) focused = null; });
       r.addEventListener('change', function () { var o = {}; o[k] = Number(r.value); post(o); });
+    });
+  }
+  // A13: the live preview; the state and the progress are local until Preview is pressed
+  var pvTimer = null, pvLeft = 0;
+  function pvShow(running) {
+    var status = $('ps-lighting-pv-status'), stop = $('ps-lighting-pv-stop');
+    if (status) status.hidden = !running;
+    if (stop) stop.hidden = !running;
+  }
+  function pvTick() {
+    pvLeft -= 1;
+    if (pvLeft <= 0) { clearInterval(pvTimer); pvTimer = null; pvShow(false); return; }
+    $('ps-lighting-pv-left').textContent = pvLeft + ' s';
+  }
+  function pvRun(doc) {
+    if (pvTimer) { clearInterval(pvTimer); pvTimer = null; }
+    if (!doc || !doc.active || !(doc.remaining > 0)) { pvShow(false); return; }
+    pvLeft = doc.remaining;
+    $('ps-lighting-pv-left').textContent = pvLeft + ' s';
+    pvShow(true);
+    pvTimer = setInterval(pvTick, 1000);
+  }
+  function renderPv() {
+    var tile = $('ps-lighting-pv'); if (!tile) return;
+    var f = PS.features;
+    var on = !!(f && f.features && f.features.preview);
+    tile.hidden = !on;
+    if (!on && pvTimer) { clearInterval(pvTimer); pvTimer = null; pvShow(false); }
+  }
+  function wirePv() {
+    var start = $('ps-lighting-pv-start'); if (!start) return;
+    var pct = $('ps-lighting-pv-percent');
+    pct.addEventListener('input', function () { $('ps-lighting-pv-percent-value').textContent = pct.value + '%'; });
+    start.addEventListener('click', function () {
+      PS.post('/api/preview', { state: Number($('ps-lighting-pv-state').value), percent: Number(pct.value), seconds: 30 }, pvRun);
+    });
+    $('ps-lighting-pv-stop').addEventListener('click', function () {
+      PS.post('/api/preview', { seconds: 0 }, function () { if (pvTimer) { clearInterval(pvTimer); pvTimer = null; } pvShow(false); });
     });
   }
   function wireFxb() {
@@ -411,7 +449,7 @@
     bright.addEventListener('input', function () { brightVal.textContent = bright.value + '%'; });
     bright.addEventListener('change', function () { PS.send('settings', { rgb_info_brightness: Number(bright.value) }); });
     for (var i = 0; i < 3; i++) { wireSb(i); wireFx(i); }
-    wireFxc(); wireFxp(); wireFxr(); wireFxb(); wireTg(); wireHot(); wireEf();
+    wireFxc(); wireFxp(); wireFxr(); wireFxb(); wireTg(); wireHot(); wireEf(); wirePv();
     speed.addEventListener('input', function () { if (speed.disabled) return; speedTouched = true; speedVal.textContent = speed.value + '%'; });
     speed.addEventListener('change', function () { if (!speed.disabled) PS.send('settings', { rgb_info_speed: Number(speed.value) }); });
 
@@ -436,5 +474,5 @@
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', wire); else wire();
   PS.on('state', function () { render(); });
-  PS.on('features', function () { renderSb(); renderFx(); renderFxc(); renderFxp(); renderFxr(); renderTg(); renderHot(); renderEf(); });
+  PS.on('features', function () { renderSb(); renderFx(); renderFxc(); renderFxp(); renderFxr(); renderTg(); renderHot(); renderEf(); renderPv(); });
 })();

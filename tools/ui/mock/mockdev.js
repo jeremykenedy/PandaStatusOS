@@ -151,7 +151,7 @@ let STATE = null;
 let booting = false;                    // true while a "restart" is in progress
 let LANDED = null;                      // {build, page, until}: the image an ota_fw upload installed (PS_OTA_LANDS)
 let FEAT = null;                        // the clone's feature document (PS_CLONE); null until first asked
-const FEATURE_NAMES = ['state_brightness', 'state_effects', 'effect_colours', 'effect_params', 'effect_ramp', 'fx_progress', 'fx_progress_anim', 'fx_barber', 'fx_hue_ramp', 'fx_temp', 'hot_warning', 'error_flash'];
+const FEATURE_NAMES = ['state_brightness', 'state_effects', 'effect_colours', 'effect_params', 'effect_ramp', 'fx_progress', 'fx_progress_anim', 'fx_barber', 'fx_hue_ramp', 'fx_temp', 'hot_warning', 'error_flash', 'preview'];
 const FX_SELECTABLE = 17;
 // which effect ids the bits allow, as the firmware's ps_fx_allowed(): the seventeen need only the
 // effect switch; the ones that read the print each wait for their own
@@ -163,7 +163,7 @@ function fxAllowed(id, features) {
 }
 const fxDefault = (colour) => ({ effect: 0, brightness: 50, speed: 100, bright_end: 0, opt: 0, aux: 0, colours: [colour, colour, '#000000FF', '#000000FF'] });
 function featDefaults() {
-  return { features: { state_brightness: false, state_effects: false, effect_colours: false, effect_params: false, effect_ramp: false, fx_progress: false, fx_progress_anim: false, fx_barber: false, fx_hue_ramp: false, fx_temp: false, hot_warning: false, error_flash: false },
+  return { features: { state_brightness: false, state_effects: false, effect_colours: false, effect_params: false, effect_ramp: false, fx_progress: false, fx_progress_anim: false, fx_barber: false, fx_hue_ramp: false, fx_temp: false, hot_warning: false, error_flash: false, preview: false },
            config: { state_brightness: [[50, 50, 50], [50, 50, 50]],
                      state_effects: [fxDefault('#FFFFFFFF'), fxDefault('#FFFFFFFF'), fxDefault('#FF0000FF')],
                      temp_gradient: { source: 0, lo: 25, hi: 250 },
@@ -258,6 +258,7 @@ function featApply(j) {
 const timers = new Set();               // every pending timer, outside STATE
 const sockets = new Set();
 const SENT = [];                        // frames the device received (the harness reads these)
+let PREVIEW = null;                     // A13: the pinned state, or null
 const PUSHED = [];                      // frames the device sent
 const t0 = Date.now();
 
@@ -575,7 +576,7 @@ async function handleHttp(req, res) {
   if (p === '/__sent') { res.writeHead(200, { 'Content-Type': 'application/json' }); return res.end(JSON.stringify(SENT)); }
   if (p === '/__pushed') { res.writeHead(200, { 'Content-Type': 'application/json' }); return res.end(JSON.stringify(PUSHED)); }
   if (p === '/__state') { res.writeHead(200, { 'Content-Type': 'application/json' }); return res.end(JSON.stringify(STATE)); }
-  if (p === '/__reset' && req.method === 'POST') { await readBody(req, 1 << 16); STATE = loadFixture(FIXTURE); SENT.length = 0; PUSHED.length = 0; LANDED = null; FEAT = null; clearTimers(); log({ ev: 'debug_reset' }); res.writeHead(200); return res.end('ok'); }
+  if (p === '/__reset' && req.method === 'POST') { await readBody(req, 1 << 16); STATE = loadFixture(FIXTURE); SENT.length = 0; PUSHED.length = 0; LANDED = null; FEAT = null; PREVIEW = null; clearTimers(); log({ ev: 'debug_reset' }); res.writeHead(200); return res.end('ok'); }
   if (p === '/__knob' && req.method === 'POST') {
     const { body } = await readBody(req, 1 << 16);
     try { const k = JSON.parse(body.toString('utf8')); KNOBS[k.name] = k.value; log({ ev: 'knob', detail: `${k.name}=${k.value}` }); res.writeHead(200); return res.end('ok'); }
@@ -609,6 +610,35 @@ async function handleHttp(req, res) {
     if (!featApply(j)) { rec.error = 'refused'; SENT.push(rec); log({ ev: 'api_refused', detail: rec.text }); res.writeHead(400); return res.end('refused'); }
     SENT.push(rec);
     log({ ev: 'api_features', detail: rec.text });
+    res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }); return res.end(doc());
+  }
+  if (p === '/api/preview' && knobFlag('PS_CLONE') && FEAT && FEAT.features.preview) {
+    // A13: a pinned printer state for a number of seconds; with the switch off the route does not
+    // exist (the 302 below, like any unknown path). Nothing is stored.
+    const doc = () => { const active = !!(PREVIEW && Date.now() < PREVIEW.until); return JSON.stringify({ active, state: PREVIEW ? PREVIEW.state : 0, percent: PREVIEW ? PREVIEW.percent : -1, temps: PREVIEW ? PREVIEW.temps : [-1000, -1000, -1000], remaining: active ? Math.ceil((PREVIEW.until - Date.now()) / 1000) : 0 }); };
+    if (req.method === 'GET') { res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }); return res.end(doc()); }
+    if (req.method !== 'POST') { res.writeHead(405); return res.end(); }
+    const { body } = await readBody(req, 512);
+    const rec = { t: Date.now(), rel_ms: Date.now() - t0, api: '/api/preview', text: '' };
+    let j;
+    try { j = JSON.parse(body.toString('utf8')); } catch (_) { rec.error = 'not json'; SENT.push(rec); log({ ev: 'api_refused', detail: 'not json' }); res.writeHead(400); return res.end('refused'); }
+    rec.text = JSON.stringify({ api: '/api/preview', body: j }); rec.frame = j; rec.roots = ['api'];
+    const refuse = () => { rec.error = 'refused'; SENT.push(rec); log({ ev: 'api_refused', detail: rec.text }); res.writeHead(400); res.end('refused'); };
+    if (!j || typeof j !== 'object' || Array.isArray(j)) return refuse();
+    let state = -1, percent = -1, seconds = 30, temps = [-1000, -1000, -1000];
+    for (const k of Object.keys(j)) {
+      const v = j[k];
+      if (k === 'temps') { if (!Array.isArray(v) || v.length !== 3 || !v.every((n) => Number.isInteger(n) && n >= 0 && n <= 500)) return refuse(); temps = v.slice(); continue; }
+      if (!Number.isInteger(v) || v < 0) return refuse();
+      if (k === 'state') { if (v > 2) return refuse(); state = v; }
+      else if (k === 'percent') { if (v > 100) return refuse(); percent = v; }
+      else if (k === 'seconds') { if (v > 600) return refuse(); seconds = v; }
+      else return refuse();
+    }
+    if (seconds > 0 && state < 0) return refuse();
+    PREVIEW = seconds === 0 ? null : { state, percent, temps, until: Date.now() + seconds * 1000 };
+    SENT.push(rec);
+    log({ ev: 'api_preview', detail: rec.text });
     res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }); return res.end(doc());
   }
   if (p === '/backup' && req.method === 'GET' && knob('PS_BACKUP', '')) {

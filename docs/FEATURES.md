@@ -24,6 +24,7 @@ exists so the rule has a home before any feature does. Its value is zero.
 | 10 | `fx_temp` | the temperature gradient may be chosen: one colour between the unlit colour at the cold end and the lit colour at the hot end, following one of the printer's temperatures (`nozzle_temper`, `bed_temper`, `chamber_temper`, INFERENCE from the report), with the ends in `config.temp_gradient` (A10) | off | A2; a printer bound |
 | 11 | `hot_warning` | a layer, not an effect: while the watched temperature (nozzle, bed or chamber) is at or past a threshold, one colour pulses over whatever the bar shows, in both modes, on a two-second period (A11) | off | a printer bound; nothing else, it sits over the placeholder as readily as over an effect |
 | 12 | `error_flash` | a layer: while the bar state is error, one colour strobes over whatever the bar shows, in both modes, at its own brightness and rate; drawn after the hot warning so an error outranks it (A12) | off | the bar state the printer already drives |
+| 13 | `preview` | the live preview: `POST /api/preview` pins the bar to a chosen state (idle, printing or error), with a progress and temperatures if given, for up to ten minutes; the effects that read the print and the layers follow the pin; nothing is stored (A13) | off | nothing; with the switch off the route answers 302 like any unknown path |
 
 ## How a feature reaches the page
 
@@ -46,7 +47,24 @@ overlays the stored setting, and it is one setting for every state that runs the
 threshold in degrees Celsius (0 to 500) and the colour as `#RRGGBBAA`; any subset overlays.
 `config.error_flash` is `{colour, brightness, speed}`: the colour as `#RRGGBBAA`, the
 brightness 0 to 100, and the rate 0 to 100 on the engine's speed scale (the half period
-runs from 500 ms at 0 to 16 ms at 100); any subset overlays. Which keys the
+runs from 500 ms at 0 to 16 ms at 100); any subset overlays.
+
+The live preview (A13) has its own route, because a pin is not a setting:
+
+```
+GET  /api/preview    {"active":false,"state":0,"percent":-1,"temps":[-1000,-1000,-1000],"remaining":0}
+POST /api/preview    {"state":1,"percent":40,"temps":[210,60,35],"seconds":30}: taken whole or refused (400)
+                     {"seconds":0} clears the pin; the answer is the document above
+```
+
+`state` is 0 idle, 1 printing, 2 error and is required unless `seconds` is 0; `percent`
+0 to 100 and `temps` (three readings, 0 to 500) are optional and stand in for the live
+values only where given; `seconds` is 0 to 600, 30 by default. While the pin is live the
+renderer reads it in place of the live state, so the effect chosen for that state, the
+progress effects, the gradient and both layers show as they would; the live state is
+untouched underneath and shows through when the pin expires or is cleared. While bit 13
+is off the route answers 302 like any unknown path, so a device at parity has no such
+route. Which keys the
 renderer reads depends on which bits are on (A2 reads `effect`; A3 to A5 read the rest),
 so a setting can be made before its switch exists and takes effect when it does. An
 effect id that changes must be allowed under the bits the same document leaves in force:

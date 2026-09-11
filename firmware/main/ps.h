@@ -54,7 +54,8 @@ extern const char *const ps_gif_slot_names[PS_GIF_SLOTS];
 #define PS_FEAT_FX_HUE_RAMP       (1u << 9)   /* A9: the colour ramp across the print */
 #define PS_FEAT_FX_TEMP           (1u << 10)  /* A10: the temperature gradient may be chosen */
 #define PS_FEAT_HOT_WARNING       (1u << 11)  /* A11, reserved: the hot warning layer */
-#define PS_FEAT_ERROR_FLASH       (1u << 12)  /* A12, reserved: the error flash layer */
+#define PS_FEAT_ERROR_FLASH       (1u << 12)  /* A12: the error flash layer */
+#define PS_FEAT_PREVIEW           (1u << 13)  /* A13: the live preview route, a pinned printer state */
 
 /* which of the printer's temperatures a feature follows (INFERENCE: the report's
  * nozzle_temper, bed_temper and chamber_temper, the fields the vent reads) */
@@ -211,6 +212,13 @@ typedef struct {
     uint8_t  job_active;               /* INFERENCE: a job is running, preparing or paused; the printing/not-printing crossing for A3's colours */
     int16_t  print_percent;            /* INFERENCE: print.mc_percent from the report, -1 until one arrives; the progress effects' input */
     int16_t  temp_c[PS_TEMP_COUNT];    /* INFERENCE: nozzle_temper, bed_temper, chamber_temper from the report, PS_TEMP_NONE until one arrives */
+    /* A13: a pinned printer state the renderer reads instead of the live one while the pin
+     * is live (bit 13). Nothing here is stored; the live state is untouched underneath. */
+    uint8_t  pin_active;
+    uint8_t  pin_state;                /* enum ps_bar_state */
+    int16_t  pin_percent;              /* -1 for none */
+    int16_t  pin_temp[PS_TEMP_COUNT];  /* PS_TEMP_NONE where the pin gives none: the live reading shows through */
+    int64_t  pin_until_us;             /* esp_timer time the pin expires */
     /* images */
     char     img_version[16];          /* empty until an image pack says otherwise */
 } ps_state_t;
@@ -292,6 +300,11 @@ struct httpd_req; typedef struct httpd_req httpd_req_t;
 int ps_backup_get(httpd_req_t *req);   /* esp_err_t */
 int ps_api_features_get(httpd_req_t *req);
 int ps_api_features_post(httpd_req_t *req);
+int ps_api_preview_get(httpd_req_t *req);             /* A13: GET/POST /api/preview; a 302 like any unknown path while bit 13 is off */
+int ps_api_preview_post(httpd_req_t *req);
+int ps_preview_apply(const char *json, size_t len);   /* the pin from its JSON, whole or refused; 0 on success */
+char *ps_preview_json(void);                          /* the pin as the page reads it; cJSON_free() it */
+int ps_http_redirect_portal(httpd_req_t *req);        /* the wildcard's answer, for a route that must look absent */
 
 /* ------------------------------------------------------------------ utility ---- */
 void ps_restart(const char *why);

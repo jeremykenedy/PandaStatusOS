@@ -364,5 +364,16 @@
   "ps_lighting_ef_brightness_aria": "Brilho do flash de erro",
   "ps_lighting_ef_speed": "Ritmo",
   "ps_lighting_ef_speed_aria": "Ritmo do flash de erro",
-  "ps_lighting_ef_help": "O flash fica por cima do efeito ou da cor sólida sem substituí-los; ele tem prioridade sobre o aviso de calor."
+  "ps_lighting_ef_help": "O flash fica por cima do efeito ou da cor sólida sem substituí-los; ele tem prioridade sobre o aviso de calor.",
+  "ps_feature_preview": "Prévia ao vivo",
+  "ps_feature_preview_help": "Prende a barra em um estado escolhido por meio minuto, para ver um ajuste sem rodar uma impressão. As camadas e os efeitos que leem a impressão seguem o estado preso.",
+  "ps_feature_preview_aria": "Prévia ao vivo",
+  "ps_lighting_pv_state": "Mostrar como",
+  "ps_lighting_pv_state_aria": "Qual estado mostrar na prévia",
+  "ps_lighting_pv_percent": "Progresso",
+  "ps_lighting_pv_percent_aria": "Progresso da impressão para a prévia",
+  "ps_lighting_pv_start": "Prévia por 30 segundos",
+  "ps_lighting_pv_stop": "Parar",
+  "ps_lighting_pv_running": "Prévia em andamento, tempo restante:",
+  "ps_lighting_pv_help": "Nada é gravado. A barra volta ao estado real da impressora quando o tempo acaba ou ao parar."
 }

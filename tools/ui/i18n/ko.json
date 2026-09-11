@@ -364,5 +364,16 @@
   "ps_lighting_ef_brightness_aria": "오류 점멸 밝기",
   "ps_lighting_ef_speed": "속도",
   "ps_lighting_ef_speed_aria": "오류 점멸 속도",
-  "ps_lighting_ef_help": "점멸은 효과나 단색 위에 겹쳐지며 대체하지 않습니다. 고온 경고보다 우선합니다."
+  "ps_lighting_ef_help": "점멸은 효과나 단색 위에 겹쳐지며 대체하지 않습니다. 고온 경고보다 우선합니다.",
+  "ps_feature_preview": "실시간 미리보기",
+  "ps_feature_preview_help": "인쇄를 실행하지 않고 설정을 볼 수 있도록 막대를 선택한 상태로 30초 동안 고정합니다. 레이어와 인쇄를 읽는 효과는 고정된 상태를 따릅니다.",
+  "ps_feature_preview_aria": "실시간 미리보기",
+  "ps_lighting_pv_state": "표시할 상태",
+  "ps_lighting_pv_state_aria": "미리 볼 상태",
+  "ps_lighting_pv_percent": "진행",
+  "ps_lighting_pv_percent_aria": "미리보기용 인쇄 진행",
+  "ps_lighting_pv_start": "30초 동안 미리보기",
+  "ps_lighting_pv_stop": "중지",
+  "ps_lighting_pv_running": "미리보기 진행 중, 남은 시간:",
+  "ps_lighting_pv_help": "아무것도 저장되지 않습니다. 시간이 다 되거나 중지하면 막대는 프린터의 실제 상태로 돌아갑니다."
 }

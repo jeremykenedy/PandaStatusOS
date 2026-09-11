@@ -364,5 +364,16 @@
   "ps_lighting_ef_brightness_aria": "Helderheid van de foutflits",
   "ps_lighting_ef_speed": "Tempo",
   "ps_lighting_ef_speed_aria": "Tempo van de foutflits",
-  "ps_lighting_ef_help": "De flits ligt over het effect of de effen kleur en vervangt ze niet; hij gaat vóór de hittewaarschuwing."
+  "ps_lighting_ef_help": "De flits ligt over het effect of de effen kleur en vervangt ze niet; hij gaat vóór de hittewaarschuwing.",
+  "ps_feature_preview": "Live voorbeeld",
+  "ps_feature_preview_help": "Zet de balk een halve minuut vast in een gekozen toestand, om een instelling te zien zonder een afdruk te draaien. De lagen en de effecten die de afdruk lezen volgen de vastgezette toestand.",
+  "ps_feature_preview_aria": "Live voorbeeld",
+  "ps_lighting_pv_state": "Tonen als",
+  "ps_lighting_pv_state_aria": "Welke toestand het voorbeeld toont",
+  "ps_lighting_pv_percent": "Voortgang",
+  "ps_lighting_pv_percent_aria": "Afdrukvoortgang voor het voorbeeld",
+  "ps_lighting_pv_start": "30 seconden voorbeeld",
+  "ps_lighting_pv_stop": "Stoppen",
+  "ps_lighting_pv_running": "Voorbeeld loopt, resterende tijd:",
+  "ps_lighting_pv_help": "Er wordt niets opgeslagen. De balk keert terug naar de echte toestand van de printer als de tijd om is of bij Stoppen."
 }

@@ -364,5 +364,16 @@
   "ps_lighting_ef_brightness_aria": "בהירות הבהוב השגיאה",
   "ps_lighting_ef_speed": "קצב",
   "ps_lighting_ef_speed_aria": "קצב הבהוב השגיאה",
-  "ps_lighting_ef_help": "ההבהוב יושב מעל האפקט או הצבע האחיד ואינו מחליף אותם; הוא קודם לאזהרת החום."
+  "ps_lighting_ef_help": "ההבהוב יושב מעל האפקט או הצבע האחיד ואינו מחליף אותם; הוא קודם לאזהרת החום.",
+  "ps_feature_preview": "תצוגה מקדימה חיה",
+  "ps_feature_preview_help": "מקבע את הפס במצב נבחר לחצי דקה, כדי לראות הגדרה בלי להריץ הדפסה. השכבות והאפקטים שקוראים את ההדפסה עוקבים אחרי המצב המקובע.",
+  "ps_feature_preview_aria": "תצוגה מקדימה חיה",
+  "ps_lighting_pv_state": "הצג בתור",
+  "ps_lighting_pv_state_aria": "איזה מצב להציג בתצוגה המקדימה",
+  "ps_lighting_pv_percent": "התקדמות",
+  "ps_lighting_pv_percent_aria": "התקדמות ההדפסה לתצוגה המקדימה",
+  "ps_lighting_pv_start": "תצוגה מקדימה ל-30 שניות",
+  "ps_lighting_pv_stop": "עצור",
+  "ps_lighting_pv_running": "תצוגה מקדימה פועלת, זמן שנותר:",
+  "ps_lighting_pv_help": "דבר אינו נשמר. הפס חוזר למצב האמיתי של המדפסת כשהזמן נגמר או בעצירה."
 }

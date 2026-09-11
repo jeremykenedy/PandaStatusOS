@@ -364,5 +364,16 @@
   "ps_lighting_ef_brightness_aria": "Jas chybového blikání",
   "ps_lighting_ef_speed": "Tempo",
   "ps_lighting_ef_speed_aria": "Tempo chybového blikání",
-  "ps_lighting_ef_help": "Blikání leží přes efekt nebo plnou barvu a nenahrazuje je; má přednost před varováním před horkem."
+  "ps_lighting_ef_help": "Blikání leží přes efekt nebo plnou barvu a nenahrazuje je; má přednost před varováním před horkem.",
+  "ps_feature_preview": "Živý náhled",
+  "ps_feature_preview_help": "Podrží lištu půl minuty ve zvoleném stavu, aby šlo nastavení vidět bez spuštěného tisku. Vrstvy a efekty, které čtou tisk, sledují podržený stav.",
+  "ps_feature_preview_aria": "Živý náhled",
+  "ps_lighting_pv_state": "Zobrazit jako",
+  "ps_lighting_pv_state_aria": "Který stav se zobrazí v náhledu",
+  "ps_lighting_pv_percent": "Průběh",
+  "ps_lighting_pv_percent_aria": "Průběh tisku pro náhled",
+  "ps_lighting_pv_start": "Náhled na 30 sekund",
+  "ps_lighting_pv_stop": "Zastavit",
+  "ps_lighting_pv_running": "Náhled běží, zbývající čas:",
+  "ps_lighting_pv_help": "Nic se neukládá. Lišta se vrátí ke skutečnému stavu tiskárny po uplynutí času nebo po zastavení."
 }

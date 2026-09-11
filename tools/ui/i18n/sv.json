@@ -364,5 +364,16 @@
   "ps_lighting_ef_brightness_aria": "Felblinkets ljusstyrka",
   "ps_lighting_ef_speed": "Takt",
   "ps_lighting_ef_speed_aria": "Felblinkets takt",
-  "ps_lighting_ef_help": "Blinket ligger över effekten eller den enfärgade listen utan att ersätta dem; det går före värmevarningen."
+  "ps_lighting_ef_help": "Blinket ligger över effekten eller den enfärgade listen utan att ersätta dem; det går före värmevarningen.",
+  "ps_feature_preview": "Förhandsvisning",
+  "ps_feature_preview_help": "Låser listen i ett valt tillstånd i en halv minut, för att se en inställning utan att köra en utskrift. Lagren och effekterna som läser utskriften följer det låsta tillståndet.",
+  "ps_feature_preview_aria": "Förhandsvisning",
+  "ps_lighting_pv_state": "Visa som",
+  "ps_lighting_pv_state_aria": "Vilket tillstånd som förhandsvisas",
+  "ps_lighting_pv_percent": "Förlopp",
+  "ps_lighting_pv_percent_aria": "Utskriftsförlopp för förhandsvisningen",
+  "ps_lighting_pv_start": "Förhandsvisa i 30 sekunder",
+  "ps_lighting_pv_stop": "Stoppa",
+  "ps_lighting_pv_running": "Förhandsvisning pågår, tid kvar:",
+  "ps_lighting_pv_help": "Inget sparas. Listen återgår till skrivarens verkliga tillstånd när tiden är ute eller vid Stoppa."
 }

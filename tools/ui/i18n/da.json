@@ -364,5 +364,16 @@
   "ps_lighting_ef_brightness_aria": "Fejlblinkets lysstyrke",
   "ps_lighting_ef_speed": "Takt",
   "ps_lighting_ef_speed_aria": "Fejlblinkets takt",
-  "ps_lighting_ef_help": "Blinket ligger oven på effekten eller den ensfarvede linje uden at erstatte dem; det går forud for varmeadvarslen."
+  "ps_lighting_ef_help": "Blinket ligger oven på effekten eller den ensfarvede linje uden at erstatte dem; det går forud for varmeadvarslen.",
+  "ps_feature_preview": "Forhåndsvisning",
+  "ps_feature_preview_help": "Fastholder linjen i en valgt tilstand i et halvt minut, så en indstilling kan ses uden at køre en udskrift. Lagene og effekterne, der læser udskriften, følger den fastholdte tilstand.",
+  "ps_feature_preview_aria": "Forhåndsvisning",
+  "ps_lighting_pv_state": "Vis som",
+  "ps_lighting_pv_state_aria": "Hvilken tilstand der forhåndsvises",
+  "ps_lighting_pv_percent": "Fremskridt",
+  "ps_lighting_pv_percent_aria": "Udskriftsfremskridt til forhåndsvisningen",
+  "ps_lighting_pv_start": "Forhåndsvis i 30 sekunder",
+  "ps_lighting_pv_stop": "Stop",
+  "ps_lighting_pv_running": "Forhåndsvisning kører, tid tilbage:",
+  "ps_lighting_pv_help": "Intet gemmes. Linjen vender tilbage til printerens virkelige tilstand, når tiden er gået eller ved Stop."
 }

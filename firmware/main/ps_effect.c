@@ -40,17 +40,28 @@ static uint32_t render(void)
 {
     ps_fx_pick_t k;
     ps_lock();
-    ps_fx_resolve(&g_ps.cfg, g_ps.cfg.current_mode, g_ps.bar_state, g_ps.job_active != 0, &k);
-    int percent = g_ps.print_percent;
+    /* the printer's state as rendered: live, or the pin while one is live (A13) */
+    uint8_t st = g_ps.bar_state; bool job = g_ps.job_active != 0; int percent = g_ps.print_percent;
+    int temps[PS_TEMP_COUNT]; for (int i = 0; i < PS_TEMP_COUNT; i++) temps[i] = g_ps.temp_c[i];
+    uint32_t pin_left_ms = 0;
+    if (g_ps.pin_active) {
+        int64_t now = esp_timer_get_time();
+        if (now < g_ps.pin_until_us) {
+            st = g_ps.pin_state; job = st == PS_BAR_PRINTING; percent = g_ps.pin_percent;
+            for (int i = 0; i < PS_TEMP_COUNT; i++) if (g_ps.pin_temp[i] != PS_TEMP_NONE) temps[i] = g_ps.pin_temp[i];
+            pin_left_ms = (uint32_t)((g_ps.pin_until_us - now) / 1000) + 1;
+        } else { g_ps.pin_active = 0; ESP_LOGI(TAG, "preview over"); }
+    }
+    ps_fx_resolve(&g_ps.cfg, g_ps.cfg.current_mode, st, job, &k);
     uint8_t src = g_ps.cfg.temp_src < PS_TEMP_COUNT ? g_ps.cfg.temp_src : PS_TEMP_NOZZLE;
-    int temp = g_ps.temp_c[src], temp_lo = g_ps.cfg.temp_lo, temp_hi = g_ps.cfg.temp_hi;
+    int temp = temps[src], temp_lo = g_ps.cfg.temp_lo, temp_hi = g_ps.cfg.temp_hi;
 
     /* A11: the hot warning, decided under the same lock as the frame it sits over */
     uint8_t hsrc = g_ps.cfg.hot_src < PS_TEMP_COUNT ? g_ps.cfg.hot_src : PS_TEMP_NOZZLE;
-    bool hot = (g_ps.cfg.features & PS_FEAT_HOT_WARNING) && g_ps.temp_c[hsrc] != PS_TEMP_NONE && g_ps.temp_c[hsrc] >= g_ps.cfg.hot_c;
+    bool hot = (g_ps.cfg.features & PS_FEAT_HOT_WARNING) && temps[hsrc] != PS_TEMP_NONE && temps[hsrc] >= g_ps.cfg.hot_c;
     ps_rgba_t hot_colour = g_ps.cfg.hot_colour;
     /* A12: the error flash, over everything else while the bar state is error */
-    bool err = (g_ps.cfg.features & PS_FEAT_ERROR_FLASH) && g_ps.bar_state == PS_BAR_ERROR;
+    bool err = (g_ps.cfg.features & PS_FEAT_ERROR_FLASH) && st == PS_BAR_ERROR;
     ps_rgba_t err_colour = g_ps.cfg.err_colour; uint8_t err_brightness = g_ps.cfg.err_brightness, err_speed = g_ps.cfg.err_speed;
     ps_unlock();
 
@@ -75,6 +86,7 @@ static uint32_t render(void)
         if (wait > PS_LAYER_FRAME_MS) wait = PS_LAYER_FRAME_MS;
         if (err) { uint32_t half = ps_fx_period(err_speed); if (wait > half) wait = half; }
     }
+    if (pin_left_ms && wait > pin_left_ms) wait = pin_left_ms;   /* wake when the pin expires, not a period later */
     return wait;
 }
 

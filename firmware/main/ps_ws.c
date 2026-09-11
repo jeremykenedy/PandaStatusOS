@@ -135,6 +135,7 @@ static esp_err_t redirect_portal(httpd_req_t *req)
     httpd_resp_set_hdr(req, "Location", url);
     return httpd_resp_send(req, NULL, 0);
 }
+int ps_http_redirect_portal(httpd_req_t *req) { return redirect_portal(req); }   /* for a route that must look absent (A13) */
 
 static esp_err_t ota_post(httpd_req_t *req)
 {
@@ -216,6 +217,8 @@ int ps_ws_start(void)
     httpd_uri_t backup = { .uri = "/backup", .method = HTTP_GET, .handler = ps_backup_get };   /* the clone's own; the factory has none */
     httpd_uri_t api_g  = { .uri = "/api/features", .method = HTTP_GET,  .handler = ps_api_features_get };   /* the clone's own (ps_api.c) */
     httpd_uri_t api_p  = { .uri = "/api/features", .method = HTTP_POST, .handler = ps_api_features_post };
+    httpd_uri_t pv_g   = { .uri = "/api/preview",  .method = HTTP_GET,  .handler = ps_api_preview_get };    /* A13; answers 302 while its bit is off */
+    httpd_uri_t pv_p   = { .uri = "/api/preview",  .method = HTTP_POST, .handler = ps_api_preview_post };
     httpd_uri_t any_g  = { .uri = "/*",   .method = HTTP_GET,  .handler = redirect_portal };
     httpd_uri_t any_p  = { .uri = "/*",   .method = HTTP_POST, .handler = redirect_portal };
     httpd_uri_t any_h  = { .uri = "/*",   .method = HTTP_HEAD, .handler = redirect_portal };
@@ -227,6 +230,8 @@ int ps_ws_start(void)
     httpd_register_uri_handler(s_hd, &backup);
     httpd_register_uri_handler(s_hd, &api_g);
     httpd_register_uri_handler(s_hd, &api_p);
+    httpd_register_uri_handler(s_hd, &pv_g);
+    httpd_register_uri_handler(s_hd, &pv_p);
     httpd_register_uri_handler(s_hd, &any_g);
     httpd_register_uri_handler(s_hd, &any_p);
     httpd_register_uri_handler(s_hd, &any_h);

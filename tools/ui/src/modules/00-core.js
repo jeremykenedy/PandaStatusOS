@@ -256,6 +256,14 @@ var PS = (function () {
       .catch(function () { toast(tr('ps_core_save_failed')); if (cb) cb(false); });
   }
 
+  // a POST to one of the clone's other routes (A13's /api/preview); the answer document to cb, or null
+  function post(path, body, cb) {
+    fetch(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+      .then(function (r) { if (!r.ok) throw new Error(String(r.status)); return r.json(); })
+      .then(function (doc) { logPush({ kind: 'out', root: path.replace(/^\//, ''), members: body }); if (cb) cb(doc); })
+      .catch(function () { toast(tr('ps_core_save_failed')); if (cb) cb(null); });
+  }
+
   // ---------- boot ----------
   function boot() {
     dlg = document.getElementById('ps-dialog'); dlgTitle = document.getElementById('ps-dialog-title');
@@ -275,6 +283,6 @@ var PS = (function () {
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
 
   return { state: state, on: on, send: send, upload: upload, UPLOAD_CAPS: UPLOAD_CAPS, log: logRing, clearLog: clearLog, tr: tr, setLang: setLang, fillLangs: fillLangs, apply_translations: apply_translations,
-           dialog: dialog, toast: toast, pill: pill, showCard: showCard, theme: theme, api: api, get features() { return features; },
+           dialog: dialog, toast: toast, pill: pill, showCard: showCard, theme: theme, api: api, post: post, get features() { return features; },
            get lang() { return lang; }, get connected() { return !!(sock && sock.readyState === 1); } };
 })();

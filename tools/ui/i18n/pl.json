@@ -364,5 +364,16 @@
   "ps_lighting_ef_brightness_aria": "Jasność błysku błędu",
   "ps_lighting_ef_speed": "Tempo",
   "ps_lighting_ef_speed_aria": "Tempo błysku błędu",
-  "ps_lighting_ef_help": "Błysk nakłada się na efekt lub jednolity kolor, nie zastępując ich; ma pierwszeństwo przed ostrzeżeniem o gorącu."
+  "ps_lighting_ef_help": "Błysk nakłada się na efekt lub jednolity kolor, nie zastępując ich; ma pierwszeństwo przed ostrzeżeniem o gorącu.",
+  "ps_feature_preview": "Podgląd na żywo",
+  "ps_feature_preview_help": "Utrzymuje pasek w wybranym stanie przez pół minuty, by zobaczyć ustawienie bez uruchamiania wydruku. Warstwy i efekty czytające wydruk podążają za ustalonym stanem.",
+  "ps_feature_preview_aria": "Podgląd na żywo",
+  "ps_lighting_pv_state": "Pokaż jako",
+  "ps_lighting_pv_state_aria": "Który stan pokazać w podglądzie",
+  "ps_lighting_pv_percent": "Postęp",
+  "ps_lighting_pv_percent_aria": "Postęp wydruku do podglądu",
+  "ps_lighting_pv_start": "Podgląd przez 30 sekund",
+  "ps_lighting_pv_stop": "Zatrzymaj",
+  "ps_lighting_pv_running": "Podgląd trwa, pozostały czas:",
+  "ps_lighting_pv_help": "Nic nie jest zapisywane. Pasek wraca do prawdziwego stanu drukarki po upływie czasu lub po zatrzymaniu."
 }

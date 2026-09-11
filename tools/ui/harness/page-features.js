@@ -455,6 +455,48 @@ async function drive(browser, combo) {
   await page.waitForFunction(() => PS.features.features.error_flash === false, null, { timeout: 2000 }).catch(() => {});
   await go(page, '#lighting');
   t(`${tag} M10 the tile hides again`, await waitHidden(page, 'ps-lighting-ef', true));
+
+  // ---- A13: the live preview ----
+  const pvFrame = (body) => JSON.stringify({ api: '/api/preview', body });
+  const pvPost = (body) => page.evaluate(async (b) => { const r = await fetch('/api/preview', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(b), redirect: 'manual' }); return r.type === 'opaqueredirect' ? 302 : r.status; }, body);
+  t(`${tag} N1 with preview off the tile is hidden and the route answers 302 like any unknown path`, (await hidden(page, 'ps-lighting-pv')) && (await pvPost({ state: 0 })) === 302);
+  await go(page, '#system');
+  await waitHidden(page, 'ps-system-features', false);
+  n = await count();
+  await toggle(page, 'ps-system-feature-preview');
+  got = await sentAfter(n);
+  t(`${tag} N2 turning the preview on sends exactly {"features":{"preview":true}}`, got.length === 1 && got[0] === apiFrame({ features: { preview: true } }), got);
+  await page.waitForFunction(() => PS.features.features.preview === true, null, { timeout: 2000 }).catch(() => {});
+  await go(page, '#lighting');
+  t(`${tag} N3 the tile shows: idle, 0%, nothing running`, await waitHidden(page, 'ps-lighting-pv', false)
+    && (await val(page, 'ps-lighting-pv-state')) === '0' && (await val(page, 'ps-lighting-pv-percent')) === '0' && (await hidden(page, 'ps-lighting-pv-status')) && (await hidden(page, 'ps-lighting-pv-stop')));
+  n = await count();
+  await $(page, 'ps-lighting-pv-state').selectOption('1');
+  await nudge(page, 'ps-lighting-pv-percent', 'ArrowRight');
+  got = await sentAfter(n, 600);
+  t(`${tag} N4 choosing a state and a progress sends nothing: they are local until Preview`, got.length === 0 && (await text(page, 'ps-lighting-pv-percent-value')) === '5%', got);
+  n = await count();
+  await $(page, 'ps-lighting-pv-start').click();
+  got = await sentAfter(n);
+  t(`${tag} N5 Preview sends exactly {"state":1,"percent":5,"seconds":30} to /api/preview`, got.length === 1 && got[0] === pvFrame({ state: 1, percent: 5, seconds: 30 }), got);
+  t(`${tag} N6 the answer lands: the status shows a countdown from 30`, await page.waitForFunction(() => !document.getElementById('ps-lighting-pv-status').hidden && /^(30|29) s$/.test(document.getElementById('ps-lighting-pv-left').textContent) && !document.getElementById('ps-lighting-pv-stop').hidden, null, { timeout: 2000 }).then(() => true).catch(() => false));
+  await pw.shot(page, `features-lighting-pv-${combo.theme}-${combo.width}`, { full: true });
+  t(`${tag} N7 the countdown counts`, await page.waitForFunction(() => /^(28|27|26) s$/.test(document.getElementById('ps-lighting-pv-left').textContent), null, { timeout: 4000 }).then(() => true).catch(() => false));
+  n = await count();
+  await $(page, 'ps-lighting-pv-stop').click();
+  got = await sentAfter(n);
+  t(`${tag} N8 Stop sends exactly {"seconds":0}`, got.length === 1 && got[0] === pvFrame({ seconds: 0 }), got);
+  t(`${tag} N9 the status hides again`, await waitHidden(page, 'ps-lighting-pv-status', true));
+  t(`${tag} N10 a fourth state is refused (400), and a pin without a state too`, (await pvPost({ state: 3 })) === 400 && (await pvPost({ percent: 50 })) === 400);
+  await go(page, '#system');
+  await waitHidden(page, 'ps-system-features', false);
+  n = await count();
+  await toggle(page, 'ps-system-feature-preview');
+  got = await sentAfter(n);
+  t(`${tag} N11 turning the preview off sends exactly {"features":{"preview":false}}`, got.length === 1 && got[0] === apiFrame({ features: { preview: false } }), got);
+  await page.waitForFunction(() => PS.features.features.preview === false, null, { timeout: 2000 }).catch(() => {});
+  await go(page, '#lighting');
+  t(`${tag} N12 the tile hides and the route is gone again`, await waitHidden(page, 'ps-lighting-pv', true) && (await pvPost({ state: 0 })) === 302);
   await go(page, '#system');
   await waitHidden(page, 'ps-system-features', false);
   n = await count();

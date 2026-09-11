@@ -364,5 +364,16 @@
   "ps_lighting_ef_brightness_aria": "Brillo del destello de error",
   "ps_lighting_ef_speed": "Ritmo",
   "ps_lighting_ef_speed_aria": "Ritmo del destello de error",
-  "ps_lighting_ef_help": "El destello se superpone al efecto o al color liso sin sustituirlos; tiene prioridad sobre el aviso de calor."
+  "ps_lighting_ef_help": "El destello se superpone al efecto o al color liso sin sustituirlos; tiene prioridad sobre el aviso de calor.",
+  "ps_feature_preview": "Vista previa en vivo",
+  "ps_feature_preview_help": "Fija la barra en un estado elegido durante medio minuto, para ver un ajuste sin imprimir. Las capas y los efectos que leen la impresión siguen el estado fijado.",
+  "ps_feature_preview_aria": "Vista previa en vivo",
+  "ps_lighting_pv_state": "Mostrar como",
+  "ps_lighting_pv_state_aria": "Qué estado mostrar en la vista previa",
+  "ps_lighting_pv_percent": "Progreso",
+  "ps_lighting_pv_percent_aria": "Progreso de impresión para la vista previa",
+  "ps_lighting_pv_start": "Vista previa de 30 segundos",
+  "ps_lighting_pv_stop": "Detener",
+  "ps_lighting_pv_running": "Vista previa en curso, tiempo restante:",
+  "ps_lighting_pv_help": "No se guarda nada. La barra vuelve al estado real de la impresora cuando se acaba el tiempo o al detener."
 }

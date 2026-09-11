@@ -18,6 +18,9 @@ Everything so far. No release has been made and no device has been flashed.
 - The clone's own JSON route, `/api/features`: the page discovers a clone by its 200 where
   the factory answers 302, and shows a Features card on the System page only then. The
   socket document stays the factory's (D-033).
+- A13, the live preview, behind `preview`: `POST /api/preview` pins the bar to a chosen
+  state, progress and temperatures for up to ten minutes so a setting can be seen without
+  a print; nothing is stored, and the route answers 302 while the switch is off (D-038).
 - A12, the error flash, behind `error_flash`: a strobe of one colour at its own brightness
   and rate over whatever the bar shows while the printer reports an error, in both modes,
   drawn above the hot warning.

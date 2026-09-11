@@ -364,5 +364,16 @@
   "ps_lighting_ef_brightness_aria": "Luminosité du flash d'erreur",
   "ps_lighting_ef_speed": "Cadence",
   "ps_lighting_ef_speed_aria": "Cadence du flash d'erreur",
-  "ps_lighting_ef_help": "Le flash se superpose à l'effet ou à la couleur unie sans les remplacer ; il passe avant l'alerte de chaleur."
+  "ps_lighting_ef_help": "Le flash se superpose à l'effet ou à la couleur unie sans les remplacer ; il passe avant l'alerte de chaleur.",
+  "ps_feature_preview": "Aperçu en direct",
+  "ps_feature_preview_help": "Fige la barre dans un état choisi pendant une demi-minute, pour voir un réglage sans lancer d'impression. Les couches et les effets qui lisent l'impression suivent l'état figé.",
+  "ps_feature_preview_aria": "Aperçu en direct",
+  "ps_lighting_pv_state": "Afficher comme",
+  "ps_lighting_pv_state_aria": "Quel état afficher en aperçu",
+  "ps_lighting_pv_percent": "Progression",
+  "ps_lighting_pv_percent_aria": "Progression d'impression pour l'aperçu",
+  "ps_lighting_pv_start": "Aperçu pendant 30 secondes",
+  "ps_lighting_pv_stop": "Arrêter",
+  "ps_lighting_pv_running": "Aperçu en cours, temps restant :",
+  "ps_lighting_pv_help": "Rien n'est enregistré. La barre revient à l'état réel de l'imprimante à la fin du temps ou à l'arrêt."
 }

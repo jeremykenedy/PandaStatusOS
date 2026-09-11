@@ -364,5 +364,16 @@
   "ps_lighting_ef_brightness_aria": "Helligkeit des Fehlerblitzes",
   "ps_lighting_ef_speed": "Takt",
   "ps_lighting_ef_speed_aria": "Takt des Fehlerblitzes",
-  "ps_lighting_ef_help": "Der Blitz liegt über dem Effekt oder der Vollfarbe und ersetzt sie nicht; er hat Vorrang vor der Hitzewarnung."
+  "ps_lighting_ef_help": "Der Blitz liegt über dem Effekt oder der Vollfarbe und ersetzt sie nicht; er hat Vorrang vor der Hitzewarnung.",
+  "ps_feature_preview": "Live-Vorschau",
+  "ps_feature_preview_help": "Hält den Balken eine halbe Minute lang in einem gewählten Zustand, um eine Einstellung ohne laufenden Druck zu sehen. Ebenen und Effekte, die den Druck lesen, folgen dem festgehaltenen Zustand.",
+  "ps_feature_preview_aria": "Live-Vorschau",
+  "ps_lighting_pv_state": "Zeigen als",
+  "ps_lighting_pv_state_aria": "Welcher Zustand in der Vorschau gezeigt wird",
+  "ps_lighting_pv_percent": "Fortschritt",
+  "ps_lighting_pv_percent_aria": "Druckfortschritt für die Vorschau",
+  "ps_lighting_pv_start": "30 Sekunden Vorschau",
+  "ps_lighting_pv_stop": "Stopp",
+  "ps_lighting_pv_running": "Vorschau läuft, Restzeit:",
+  "ps_lighting_pv_help": "Nichts wird gespeichert. Der Balken kehrt zum echten Zustand des Druckers zurück, wenn die Zeit abgelaufen ist oder bei Stopp."
 }

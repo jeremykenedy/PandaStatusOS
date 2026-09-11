@@ -18,6 +18,7 @@
 #include "esp_log.h"
 #include "esp_http_server.h"
 #include "cJSON.h"
+#include "esp_timer.h"
 #include "ps.h"
 
 static const char *TAG = "ps_api";
@@ -35,6 +36,7 @@ static const struct { const char *name; uint32_t bit; } FEATURES[] = {
     { "fx_temp",          PS_FEAT_FX_TEMP },
     { "hot_warning",      PS_FEAT_HOT_WARNING },
     { "error_flash",      PS_FEAT_ERROR_FLASH },
+    { "preview",          PS_FEAT_PREVIEW },
 };
 
 static cJSON *fx_json(const ps_fx_cfg_t *f)
@@ -225,6 +227,103 @@ int ps_features_apply(const char *json, size_t len)
     ps_unlock();
     if (changed) { ps_effect_notify(); ESP_LOGI(TAG, "features 0x%08x", (unsigned)g_ps.cfg.features); }
     return 0;
+}
+
+/* ---- A13: the live preview. A pinned printer state for a number of seconds, so a setting
+ * can be seen without running a print. Nothing is stored; the renderer reads the pin in
+ * place of the live state while it is live and the live state shows through afterwards. ---- */
+#define PS_PREVIEW_MAX_S 600
+char *ps_preview_json(void)
+{
+    cJSON *doc = cJSON_CreateObject();
+    if (!doc) return NULL;
+    int64_t now = esp_timer_get_time();
+    ps_lock();
+    bool active = g_ps.pin_active && now < g_ps.pin_until_us;
+    int remaining = active ? (int)((g_ps.pin_until_us - now + 999999) / 1000000) : 0;
+    cJSON_AddBoolToObject(doc, "active", active);
+    cJSON_AddNumberToObject(doc, "state", g_ps.pin_state);
+    cJSON_AddNumberToObject(doc, "percent", g_ps.pin_percent);
+    cJSON *tp = cJSON_AddArrayToObject(doc, "temps");
+    for (int i = 0; i < PS_TEMP_COUNT; i++) cJSON_AddItemToArray(tp, cJSON_CreateNumber(g_ps.pin_temp[i]));
+    cJSON_AddNumberToObject(doc, "remaining", remaining);
+    ps_unlock();
+    char *s = cJSON_PrintUnformatted(doc);
+    cJSON_Delete(doc);
+    return s;
+}
+
+int ps_preview_apply(const char *json, size_t len)
+{
+    cJSON *root = cJSON_ParseWithLength(json, len);
+    if (!root || !cJSON_IsObject(root)) { cJSON_Delete(root); return -1; }
+    int state = -1, percent = -1, seconds = 30; int16_t temps[PS_TEMP_COUNT];
+    for (int i = 0; i < PS_TEMP_COUNT; i++) temps[i] = PS_TEMP_NONE;
+    for (cJSON *k = root->child; k; k = k->next) {
+        if (!k->string) { cJSON_Delete(root); return -1; }
+        if (!strcmp(k->string, "temps")) {
+            if (!cJSON_IsArray(k) || cJSON_GetArraySize(k) != PS_TEMP_COUNT) { cJSON_Delete(root); return -1; }
+            for (int i = 0; i < PS_TEMP_COUNT; i++) {
+                cJSON *v = cJSON_GetArrayItem(k, i);
+                if (!cJSON_IsNumber(v) || v->valuedouble < 0 || v->valuedouble > PS_TEMP_MAX) { cJSON_Delete(root); return -1; }
+                temps[i] = (int16_t)v->valuedouble;
+            }
+            continue;
+        }
+        if (!cJSON_IsNumber(k) || k->valuedouble < 0) { cJSON_Delete(root); return -1; }
+        int v = (int)k->valuedouble;
+        if      (!strcmp(k->string, "state"))   { if (v > PS_BAR_ERROR) { cJSON_Delete(root); return -1; } state = v; }
+        else if (!strcmp(k->string, "percent")) { if (v > 100) { cJSON_Delete(root); return -1; } percent = v; }
+        else if (!strcmp(k->string, "seconds")) { if (v > PS_PREVIEW_MAX_S) { cJSON_Delete(root); return -1; } seconds = v; }
+        else { cJSON_Delete(root); return -1; }
+    }
+    cJSON_Delete(root);
+    if (seconds > 0 && state < 0) return -1;                    /* a pin needs a state; a clear needs nothing */
+    ps_lock();
+    if (seconds == 0) { g_ps.pin_active = 0; }
+    else {
+        g_ps.pin_active = 1; g_ps.pin_state = (uint8_t)state; g_ps.pin_percent = (int16_t)percent;
+        memcpy(g_ps.pin_temp, temps, sizeof temps);
+        g_ps.pin_until_us = esp_timer_get_time() + (int64_t)seconds * 1000000;
+    }
+    ps_unlock();
+    ps_effect_notify();
+    ESP_LOGI(TAG, "preview %s", seconds ? "pinned" : "cleared");
+    return 0;
+}
+
+static esp_err_t send_preview(httpd_req_t *req)
+{
+    char *s = ps_preview_json();
+    if (!s) { httpd_resp_set_status(req, "500 Internal Server Error"); return httpd_resp_send(req, "no memory", HTTPD_RESP_USE_STRLEN); }
+    httpd_resp_set_type(req, "application/json");
+    httpd_resp_set_hdr(req, "Cache-Control", "no-store");
+    esp_err_t e = httpd_resp_send(req, s, HTTPD_RESP_USE_STRLEN);
+    cJSON_free(s);
+    return e;
+}
+static bool preview_on(void) { ps_lock(); bool on = (g_ps.cfg.features & PS_FEAT_PREVIEW) != 0; ps_unlock(); return on; }
+
+int ps_api_preview_get(httpd_req_t *req)
+{
+    if (!preview_on()) return ps_http_redirect_portal(req);    /* with the switch off the route does not exist */
+    return send_preview(req);
+}
+
+int ps_api_preview_post(httpd_req_t *req)
+{
+    if (!preview_on()) return ps_http_redirect_portal(req);
+    if (req->content_len == 0 || req->content_len > 512) { httpd_resp_set_status(req, "400 Bad Request"); return httpd_resp_send(req, "body", HTTPD_RESP_USE_STRLEN); }
+    char buf[513]; size_t got = 0;
+    while (got < req->content_len) {
+        int n = httpd_req_recv(req, buf + got, req->content_len - got);
+        if (n == HTTPD_SOCK_ERR_TIMEOUT) continue;
+        if (n <= 0) return ESP_FAIL;
+        got += (size_t)n;
+    }
+    buf[got] = 0;
+    if (ps_preview_apply(buf, got) != 0) { httpd_resp_set_status(req, "400 Bad Request"); return httpd_resp_send(req, "refused", HTTPD_RESP_USE_STRLEN); }
+    return send_preview(req);
 }
 
 static esp_err_t send_doc(httpd_req_t *req)

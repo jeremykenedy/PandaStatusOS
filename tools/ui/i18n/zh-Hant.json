@@ -364,5 +364,16 @@
   "ps_lighting_ef_brightness_aria": "錯誤閃爍的亮度",
   "ps_lighting_ef_speed": "節奏",
   "ps_lighting_ef_speed_aria": "錯誤閃爍的節奏",
-  "ps_lighting_ef_help": "閃爍疊加在效果或純色之上而不是取代它們；它優先於高溫警告。"
+  "ps_lighting_ef_help": "閃爍疊加在效果或純色之上而不是取代它們；它優先於高溫警告。",
+  "ps_feature_preview": "即時預覽",
+  "ps_feature_preview_help": "把燈帶固定在所選狀態半分鐘，不用列印就能看到設定效果。圖層和讀取列印的效果都會跟隨固定的狀態。",
+  "ps_feature_preview_aria": "即時預覽",
+  "ps_lighting_pv_state": "顯示為",
+  "ps_lighting_pv_state_aria": "預覽哪個狀態",
+  "ps_lighting_pv_percent": "進度",
+  "ps_lighting_pv_percent_aria": "預覽用的列印進度",
+  "ps_lighting_pv_start": "預覽 30 秒",
+  "ps_lighting_pv_stop": "停止",
+  "ps_lighting_pv_running": "預覽中，剩餘時間：",
+  "ps_lighting_pv_help": "不會儲存任何內容。時間到或停止後，燈帶回到印表機的真實狀態。"
 }

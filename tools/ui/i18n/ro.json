@@ -364,5 +364,16 @@
   "ps_lighting_ef_brightness_aria": "Luminozitatea clipirii de eroare",
   "ps_lighting_ef_speed": "Ritm",
   "ps_lighting_ef_speed_aria": "Ritmul clipirii de eroare",
-  "ps_lighting_ef_help": "Clipirea stă peste efect sau peste culoarea plină fără a le înlocui; are prioritate față de avertizarea de căldură."
+  "ps_lighting_ef_help": "Clipirea stă peste efect sau peste culoarea plină fără a le înlocui; are prioritate față de avertizarea de căldură.",
+  "ps_feature_preview": "Previzualizare live",
+  "ps_feature_preview_help": "Ține bara într-o stare aleasă timp de o jumătate de minut, pentru a vedea o setare fără a rula o imprimare. Straturile și efectele care citesc imprimarea urmează starea fixată.",
+  "ps_feature_preview_aria": "Previzualizare live",
+  "ps_lighting_pv_state": "Afișează ca",
+  "ps_lighting_pv_state_aria": "Ce stare se previzualizează",
+  "ps_lighting_pv_percent": "Progres",
+  "ps_lighting_pv_percent_aria": "Progresul imprimării pentru previzualizare",
+  "ps_lighting_pv_start": "Previzualizare 30 de secunde",
+  "ps_lighting_pv_stop": "Oprește",
+  "ps_lighting_pv_running": "Previzualizare în curs, timp rămas:",
+  "ps_lighting_pv_help": "Nimic nu se salvează. Bara revine la starea reală a imprimantei când timpul expiră sau la Oprește."
 }

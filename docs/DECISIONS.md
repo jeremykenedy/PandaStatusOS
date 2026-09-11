@@ -931,4 +931,37 @@ stay a feature over it.
 
 ---
 
+## D-038 A preview is a pin on the live state, on its own route, absent while its switch is off
+
+**Date** 2026-09-11 · **Reversal** cheap (one route, one block in the renderer, no stored field)
+
+**Decided.** The live preview (A13) is `POST /api/preview`: a pinned printer state (idle,
+printing or error, with a progress and temperatures where given) that the renderer reads
+in place of the live state for up to ten minutes, thirty seconds by default. The pin is
+live state, not configuration: nothing is written to the blob, the live state keeps
+updating underneath, and the pin expires on its own or on `{"seconds":0}`. The renderer
+caps its wait at the time the pin has left, so the bar returns to the printer's real
+state at the second, not a period later. The effects that read the print, the gradient
+and the two layers all read the pinned values, which is the point: a setting can be seen
+without running a print.
+
+The route exists only while bit 13 is on; off, its handler answers the same 302 the
+wildcard gives any unknown path, so a device at parity has no such route to find. The
+page's Preview tile keeps the state and the progress local until the button is pressed,
+sends one document then, and counts down from the answer's `remaining` on its own.
+
+**Alternatives.** Overwriting the live state (a report arriving mid-preview would fight
+it, and the end of the preview would wait for the next report); a preview inside
+`/api/features` (a pin is not a setting and must not be saved); a 400 while the switch is
+off (a route that answers 400 exists; parity says it should not).
+
+**Why.** The queue asks for "a pinned printer state, so lighting is configurable without
+running a print", and a pin that leaves the live state alone is the one that cannot
+strand the bar in a wrong state.
+
+**What would change it.** Phase B's stage-aware preview (B3): the pin grows a stage
+field; the route and its semantics stay.
+
+---
+
 *Entries continue below as the run proceeds.*

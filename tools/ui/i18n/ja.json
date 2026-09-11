@@ -364,5 +364,16 @@
   "ps_lighting_ef_brightness_aria": "エラー点滅の明るさ",
   "ps_lighting_ef_speed": "テンポ",
   "ps_lighting_ef_speed_aria": "エラー点滅のテンポ",
-  "ps_lighting_ef_help": "点滅は効果や単色の上に重なり、置き換えはしません。高温警告より優先されます。"
+  "ps_lighting_ef_help": "点滅は効果や単色の上に重なり、置き換えはしません。高温警告より優先されます。",
+  "ps_feature_preview": "ライブプレビュー",
+  "ps_feature_preview_help": "印刷を実行せずに設定を確認できるよう、バーを選んだ状態に30秒間固定します。レイヤーと印刷を読む効果は固定した状態に従います。",
+  "ps_feature_preview_aria": "ライブプレビュー",
+  "ps_lighting_pv_state": "表示する状態",
+  "ps_lighting_pv_state_aria": "プレビューする状態",
+  "ps_lighting_pv_percent": "進捗",
+  "ps_lighting_pv_percent_aria": "プレビュー用の印刷進捗",
+  "ps_lighting_pv_start": "30秒間プレビュー",
+  "ps_lighting_pv_stop": "停止",
+  "ps_lighting_pv_running": "プレビュー中、残り時間：",
+  "ps_lighting_pv_help": "何も保存されません。時間が切れるか停止すると、バーはプリンターの実際の状態に戻ります。"
 }

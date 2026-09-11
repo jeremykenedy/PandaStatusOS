@@ -364,5 +364,16 @@
   "ps_lighting_ef_brightness_aria": "错误闪烁的亮度",
   "ps_lighting_ef_speed": "节奏",
   "ps_lighting_ef_speed_aria": "错误闪烁的节奏",
-  "ps_lighting_ef_help": "闪烁叠加在效果或纯色之上而不是取代它们；它优先于高温警告。"
+  "ps_lighting_ef_help": "闪烁叠加在效果或纯色之上而不是取代它们；它优先于高温警告。",
+  "ps_feature_preview": "实时预览",
+  "ps_feature_preview_help": "把灯带固定在所选状态半分钟，不用打印就能看到设置效果。图层和读取打印的效果都会跟随固定的状态。",
+  "ps_feature_preview_aria": "实时预览",
+  "ps_lighting_pv_state": "显示为",
+  "ps_lighting_pv_state_aria": "预览哪个状态",
+  "ps_lighting_pv_percent": "进度",
+  "ps_lighting_pv_percent_aria": "预览用的打印进度",
+  "ps_lighting_pv_start": "预览 30 秒",
+  "ps_lighting_pv_stop": "停止",
+  "ps_lighting_pv_running": "预览中，剩余时间：",
+  "ps_lighting_pv_help": "不会保存任何内容。时间到或停止后，灯带回到打印机的真实状态。"
 }

@@ -368,6 +368,37 @@
       <div class="ps-tile-label" data-ps-str="ps_lighting_ef_help">The flash sits over the effect or the solid colour rather than replacing it; it takes precedence over the hot warning.</div>
     </div>
 
+    <!-- A13, behind preview: pin the bar to a chosen state for half a minute; nothing here is stored -->
+    <div class="ps-tile" id="ps-lighting-pv" hidden>
+      <div class="ps-tile-label" data-ps-str="ps_feature_preview">Live preview</div>
+      <div class="ps-grid ps-grid-3">
+        <div>
+          <div class="ps-tile-label" data-ps-str="ps_lighting_pv_state">Show as</div>
+          <div class="field suffix border small" data-ps-no-i18n>
+            <select id="ps-lighting-pv-state" data-ps-str-aria="ps_lighting_pv_state_aria" aria-label="Which state to preview">
+            <option value="0" data-ps-str="ps_lighting_fx_idle">Idle</option>
+            <option value="1" data-ps-str="ps_lighting_fx_printing">Printing</option>
+            <option value="2" data-ps-str="ps_lighting_fx_error">Error</option>
+            </select>
+            <svg class="ps-icon"><use href="#ps-icon-chevron-down"/></svg>
+          </div>
+        </div>
+        <div>
+          <div class="ps-row"><span class="ps-tile-label" data-ps-str="ps_lighting_pv_percent">Progress</span><span class="max"></span><span class="ps-tile-label" id="ps-lighting-pv-percent-value" data-ps-no-i18n>0%</span></div>
+          <label class="slider" data-ps-no-i18n><input type="range" min="0" max="100" step="5" value="0" id="ps-lighting-pv-percent" data-ps-str-aria="ps_lighting_pv_percent_aria" aria-label="Print progress to preview"><span></span></label>
+        </div>
+        <div class="ps-row ps-pv-actions">
+          <button class="border" id="ps-lighting-pv-start" data-ps-str="ps_lighting_pv_start">Preview for 30 seconds</button>
+          <button class="border" id="ps-lighting-pv-stop" data-ps-str="ps_lighting_pv_stop" hidden>Stop</button>
+        </div>
+      </div>
+      <div class="ps-row" id="ps-lighting-pv-status" hidden>
+        <span class="ps-tile-label" data-ps-str="ps_lighting_pv_running">Previewing, time left:</span>
+        <span class="ps-tile-label" id="ps-lighting-pv-left" data-ps-no-i18n>—</span>
+      </div>
+      <div class="ps-tile-label" data-ps-str="ps_lighting_pv_help">Nothing is stored. The bar returns to the printer's real state when the time is up or on Stop.</div>
+    </div>
+
     <div class="ps-tile" id="ps-lighting-colours">
       <div class="ps-tile-label" data-ps-str="ps_lighting_colours">State colours</div>
       <div class="ps-grid ps-grid-2" data-ps-no-i18n>

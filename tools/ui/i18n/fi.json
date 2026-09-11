@@ -364,5 +364,16 @@
   "ps_lighting_ef_brightness_aria": "Virhevilkun kirkkaus",
   "ps_lighting_ef_speed": "Tahti",
   "ps_lighting_ef_speed_aria": "Virhevilkun tahti",
-  "ps_lighting_ef_help": "Vilkku on tehosteen tai yksivärisen palkin päällä eikä korvaa niitä; se ohittaa kuumuusvaroituksen."
+  "ps_lighting_ef_help": "Vilkku on tehosteen tai yksivärisen palkin päällä eikä korvaa niitä; se ohittaa kuumuusvaroituksen.",
+  "ps_feature_preview": "Esikatselu",
+  "ps_feature_preview_help": "Lukitsee palkin valittuun tilaan puoleksi minuutiksi, jotta asetuksen näkee ilman tulostusta. Kerrokset ja tulostusta lukevat tehosteet seuraavat lukittua tilaa.",
+  "ps_feature_preview_aria": "Esikatselu",
+  "ps_lighting_pv_state": "Näytä tilana",
+  "ps_lighting_pv_state_aria": "Mikä tila esikatsellaan",
+  "ps_lighting_pv_percent": "Edistyminen",
+  "ps_lighting_pv_percent_aria": "Tulostuksen edistyminen esikatselussa",
+  "ps_lighting_pv_start": "Esikatsele 30 sekuntia",
+  "ps_lighting_pv_stop": "Pysäytä",
+  "ps_lighting_pv_running": "Esikatselu käynnissä, aikaa jäljellä:",
+  "ps_lighting_pv_help": "Mitään ei tallenneta. Palkki palaa tulostimen todelliseen tilaan, kun aika loppuu tai painettaessa Pysäytä."
 }

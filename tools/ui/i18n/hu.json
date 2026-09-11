@@ -364,5 +364,16 @@
   "ps_lighting_ef_brightness_aria": "A hibavillogás fényereje",
   "ps_lighting_ef_speed": "Ütem",
   "ps_lighting_ef_speed_aria": "A hibavillogás üteme",
-  "ps_lighting_ef_help": "A villogás az effekt vagy az egyszínű sáv fölé kerül, nem váltja fel őket; elsőbbsége van a forróság-figyelmeztetéssel szemben."
+  "ps_lighting_ef_help": "A villogás az effekt vagy az egyszínű sáv fölé kerül, nem váltja fel őket; elsőbbsége van a forróság-figyelmeztetéssel szemben.",
+  "ps_feature_preview": "Élő előnézet",
+  "ps_feature_preview_help": "Fél percre a választott állapotban tartja a sávot, hogy egy beállítás nyomtatás nélkül is látható legyen. A rétegek és a nyomtatást olvasó effektek a rögzített állapotot követik.",
+  "ps_feature_preview_aria": "Élő előnézet",
+  "ps_lighting_pv_state": "Megjelenítés mint",
+  "ps_lighting_pv_state_aria": "Melyik állapot jelenjen meg az előnézetben",
+  "ps_lighting_pv_percent": "Folyamat",
+  "ps_lighting_pv_percent_aria": "Nyomtatási folyamat az előnézethez",
+  "ps_lighting_pv_start": "Előnézet 30 másodpercig",
+  "ps_lighting_pv_stop": "Leállítás",
+  "ps_lighting_pv_running": "Előnézet fut, hátralévő idő:",
+  "ps_lighting_pv_help": "Semmi nem kerül mentésre. A sáv visszatér a nyomtató valódi állapotához, ha lejár az idő vagy leállításkor."
 }

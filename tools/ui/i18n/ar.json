@@ -364,5 +364,16 @@
   "ps_lighting_ef_brightness_aria": "سطوع وميض الخطأ",
   "ps_lighting_ef_speed": "الإيقاع",
   "ps_lighting_ef_speed_aria": "إيقاع وميض الخطأ",
-  "ps_lighting_ef_help": "يقع الوميض فوق التأثير أو اللون الصريح دون أن يحل محلهما؛ وله الأولوية على تحذير الحرارة."
+  "ps_lighting_ef_help": "يقع الوميض فوق التأثير أو اللون الصريح دون أن يحل محلهما؛ وله الأولوية على تحذير الحرارة.",
+  "ps_feature_preview": "معاينة مباشرة",
+  "ps_feature_preview_help": "تثبّت الشريط على حالة مختارة لنصف دقيقة، لرؤية إعداد دون تشغيل طباعة. تتبع الطبقات والتأثيرات التي تقرأ الطباعة الحالةَ المثبّتة.",
+  "ps_feature_preview_aria": "معاينة مباشرة",
+  "ps_lighting_pv_state": "عرض كـ",
+  "ps_lighting_pv_state_aria": "أي حالة تُعاين",
+  "ps_lighting_pv_percent": "التقدّم",
+  "ps_lighting_pv_percent_aria": "تقدّم الطباعة للمعاينة",
+  "ps_lighting_pv_start": "معاينة لمدة 30 ثانية",
+  "ps_lighting_pv_stop": "إيقاف",
+  "ps_lighting_pv_running": "المعاينة جارية، الوقت المتبقي:",
+  "ps_lighting_pv_help": "لا يُحفظ شيء. يعود الشريط إلى حالة الطابعة الحقيقية عند انتهاء الوقت أو عند الإيقاف."
 }

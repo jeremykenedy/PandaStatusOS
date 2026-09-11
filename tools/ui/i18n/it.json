@@ -364,5 +364,16 @@
   "ps_lighting_ef_brightness_aria": "Luminosità del lampeggio di errore",
   "ps_lighting_ef_speed": "Ritmo",
   "ps_lighting_ef_speed_aria": "Ritmo del lampeggio di errore",
-  "ps_lighting_ef_help": "Il lampeggio si sovrappone all'effetto o al colore pieno senza sostituirli; ha la precedenza sull'avviso di calore."
+  "ps_lighting_ef_help": "Il lampeggio si sovrappone all'effetto o al colore pieno senza sostituirli; ha la precedenza sull'avviso di calore.",
+  "ps_feature_preview": "Anteprima dal vivo",
+  "ps_feature_preview_help": "Blocca la barra in uno stato scelto per mezzo minuto, per vedere un'impostazione senza avviare una stampa. I livelli e gli effetti che leggono la stampa seguono lo stato bloccato.",
+  "ps_feature_preview_aria": "Anteprima dal vivo",
+  "ps_lighting_pv_state": "Mostra come",
+  "ps_lighting_pv_state_aria": "Quale stato mostrare in anteprima",
+  "ps_lighting_pv_percent": "Avanzamento",
+  "ps_lighting_pv_percent_aria": "Avanzamento di stampa per l'anteprima",
+  "ps_lighting_pv_start": "Anteprima di 30 secondi",
+  "ps_lighting_pv_stop": "Ferma",
+  "ps_lighting_pv_running": "Anteprima in corso, tempo rimasto:",
+  "ps_lighting_pv_help": "Non viene salvato nulla. La barra torna allo stato reale della stampante allo scadere del tempo o con Ferma."
 }

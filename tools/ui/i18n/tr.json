@@ -364,5 +364,16 @@
   "ps_lighting_ef_brightness_aria": "Hata flaşının parlaklığı",
   "ps_lighting_ef_speed": "Tempo",
   "ps_lighting_ef_speed_aria": "Hata flaşının temposu",
-  "ps_lighting_ef_help": "Flaş, efektin ya da düz rengin üzerine biner, onların yerini almaz; sıcaklık uyarısından önce gelir."
+  "ps_lighting_ef_help": "Flaş, efektin ya da düz rengin üzerine biner, onların yerini almaz; sıcaklık uyarısından önce gelir.",
+  "ps_feature_preview": "Canlı önizleme",
+  "ps_feature_preview_help": "Bir ayarı yazdırma yapmadan görmek için çubuğu yarım dakika boyunca seçilen durumda tutar. Katmanlar ve yazdırmayı okuyan efektler sabitlenen durumu izler.",
+  "ps_feature_preview_aria": "Canlı önizleme",
+  "ps_lighting_pv_state": "Şöyle göster",
+  "ps_lighting_pv_state_aria": "Hangi durumun önizleneceği",
+  "ps_lighting_pv_percent": "İlerleme",
+  "ps_lighting_pv_percent_aria": "Önizleme için yazdırma ilerlemesi",
+  "ps_lighting_pv_start": "30 saniye önizle",
+  "ps_lighting_pv_stop": "Durdur",
+  "ps_lighting_pv_running": "Önizleme sürüyor, kalan süre:",
+  "ps_lighting_pv_help": "Hiçbir şey kaydedilmez. Süre dolduğunda ya da Durdur ile çubuk yazıcının gerçek durumuna döner."
 }
