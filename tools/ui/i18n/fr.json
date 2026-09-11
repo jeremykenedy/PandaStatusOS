@@ -404,5 +404,8 @@
   "ps_lighting_st_now": "en cours",
   "ps_lighting_st_none": "Enregistrez d'abord un effet nommé ; les lignes proposent ceux qui sont enregistrés.",
   "ps_lighting_st_help": "Réglez trois états, remplacez les deux étapes qui comptent, c'est fait. L'étape vient du rapport de l'imprimante.",
-  "ps_lighting_st_row_aria": "Effet pour cette étape"
+  "ps_lighting_st_row_aria": "Effet pour cette étape",
+  "ps_lighting_pv_stage": "Étape",
+  "ps_lighting_pv_stage_aria": "Quelle étape afficher en aperçu",
+  "ps_lighting_pv_stage_none": "Selon l'état"
 }

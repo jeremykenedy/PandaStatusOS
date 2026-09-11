@@ -404,5 +404,8 @@
   "ps_lighting_st_now": "agora",
   "ps_lighting_st_none": "Salve um efeito nomeado primeiro; as linhas oferecem os salvos.",
   "ps_lighting_st_help": "Ajuste três estados, sobrescreva as duas etapas que importam, pronto. A etapa vem do relatório da impressora.",
-  "ps_lighting_st_row_aria": "Efeito para esta etapa"
+  "ps_lighting_st_row_aria": "Efeito para esta etapa",
+  "ps_lighting_pv_stage": "Etapa",
+  "ps_lighting_pv_stage_aria": "Qual etapa mostrar na prévia",
+  "ps_lighting_pv_stage_none": "Pelo estado"
 }

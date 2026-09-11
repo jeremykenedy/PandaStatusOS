@@ -404,5 +404,8 @@
   "ps_lighting_st_now": "現在",
   "ps_lighting_st_none": "先に名前付き効果を保存してください。各行には保存した効果が並びます。",
   "ps_lighting_st_help": "3つの状態を設定し、重要な2つの段階だけ上書きすれば完了です。段階はプリンターの報告から取得します。",
-  "ps_lighting_st_row_aria": "この段階の効果"
+  "ps_lighting_st_row_aria": "この段階の効果",
+  "ps_lighting_pv_stage": "段階",
+  "ps_lighting_pv_stage_aria": "プレビューする段階",
+  "ps_lighting_pv_stage_none": "状態に従う"
 }

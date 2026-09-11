@@ -404,5 +404,8 @@
   "ps_lighting_st_now": "nyt",
   "ps_lighting_st_none": "Tallenna ensin nimetty tehoste; rivit tarjoavat tallennetut.",
   "ps_lighting_st_help": "Aseta kolme tilaa, ohita ne kaksi vaihetta, joilla on väliä, valmis. Vaihe tulee tulostimen raportista.",
-  "ps_lighting_st_row_aria": "Tehoste tälle vaiheelle"
+  "ps_lighting_st_row_aria": "Tehoste tälle vaiheelle",
+  "ps_lighting_pv_stage": "Vaihe",
+  "ps_lighting_pv_stage_aria": "Mikä vaihe esikatsellaan",
+  "ps_lighting_pv_stage_none": "Tilan mukaan"
 }

@@ -404,5 +404,8 @@
   "ps_lighting_st_now": "acum",
   "ps_lighting_st_none": "Salvează mai întâi un efect cu nume; rândurile le oferă pe cele salvate.",
   "ps_lighting_st_help": "Setează trei stări, suprascrie cele două etape care contează, gata. Etapa vine din raportul imprimantei.",
-  "ps_lighting_st_row_aria": "Efect pentru această etapă"
+  "ps_lighting_st_row_aria": "Efect pentru această etapă",
+  "ps_lighting_pv_stage": "Etapă",
+  "ps_lighting_pv_stage_aria": "Ce etapă se previzualizează",
+  "ps_lighting_pv_stage_none": "După stare"
 }

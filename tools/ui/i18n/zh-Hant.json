@@ -404,5 +404,8 @@
   "ps_lighting_st_now": "目前",
   "ps_lighting_st_none": "請先儲存一個命名效果；各列會列出已儲存的效果。",
   "ps_lighting_st_help": "設定三個狀態，再覆寫真正在意的兩個階段，就完成了。階段來自印表機的回報。",
-  "ps_lighting_st_row_aria": "此階段的效果"
+  "ps_lighting_st_row_aria": "此階段的效果",
+  "ps_lighting_pv_stage": "階段",
+  "ps_lighting_pv_stage_aria": "預覽哪個階段",
+  "ps_lighting_pv_stage_none": "按狀態"
 }

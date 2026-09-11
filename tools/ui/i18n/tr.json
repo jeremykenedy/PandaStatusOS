@@ -404,5 +404,8 @@
   "ps_lighting_st_now": "şimdi",
   "ps_lighting_st_none": "Önce adlandırılmış bir efekt kaydedin; satırlar kayıtlı olanları sunar.",
   "ps_lighting_st_help": "Üç durumu ayarlayın, önemli iki aşamayı geçersiz kılın, bitti. Aşama yazıcının raporundan gelir.",
-  "ps_lighting_st_row_aria": "Bu aşama için efekt"
+  "ps_lighting_st_row_aria": "Bu aşama için efekt",
+  "ps_lighting_pv_stage": "Aşama",
+  "ps_lighting_pv_stage_aria": "Hangi aşamanın önizleneceği",
+  "ps_lighting_pv_stage_none": "Duruma göre"
 }

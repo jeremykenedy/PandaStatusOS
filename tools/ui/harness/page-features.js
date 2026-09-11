@@ -591,6 +591,33 @@ async function drive(browser, combo) {
   await page.waitForFunction(() => PS.features.features.stage_effects === false, null, { timeout: 2000 }).catch(() => {});
   t(`${tag} P12 the preset removed and named effects off again, the tile hidden and the route gone`, (await edPost({ presets: [] })) === 200 && (await (async () => { n = await count(); await toggle(page, 'ps-system-feature-presets'); got = await sentAfter(n); return got.length === 1 && got[0] === apiFrame({ features: { presets: false } }); })())
     && (await (async () => { await page.waitForFunction(() => PS.features.features.presets === false, null, { timeout: 2000 }).catch(() => {}); await go(page, '#lighting'); return (await waitHidden(page, 'ps-lighting-st', true)) && (await stPost({ clear: { stage: 0 } })) === 302; })()));
+
+  // ---- B3: the stage-aware preview ----
+  await go(page, '#system');
+  await waitHidden(page, 'ps-system-features', false);
+  n = await count();
+  await toggle(page, 'ps-system-feature-preview');
+  got = await sentAfter(n);
+  t(`${tag} Q1 preview on again`, got.length === 1 && got[0] === apiFrame({ features: { preview: true } }), got);
+  await page.waitForFunction(() => PS.features.features.preview === true, null, { timeout: 2000 }).catch(() => {});
+  await go(page, '#lighting');
+  t(`${tag} Q2 the preview tile offers a stage select: by state, then the fifteen slots`, await waitHidden(page, 'ps-lighting-pv', false) && (await page.$eval('#ps-lighting-pv-stage', (el) => el.options.length === 16 && el.options[0].value === '' && el.options[8].value === '7')));
+  await $(page, 'ps-lighting-pv-stage').selectOption('7');
+  n = await count();
+  await $(page, 'ps-lighting-pv-start').click();
+  got = await sentAfter(n);
+  t(`${tag} Q3 Preview with a stage sends exactly {"state":1,"percent":5,"stage":7,"seconds":30}`, got.length === 1 && got[0] === pvFrame({ state: 1, percent: 5, stage: 7, seconds: 30 }), got);
+  t(`${tag} Q4 the answer lands and Stop clears the pin`, await page.waitForFunction(() => !document.getElementById('ps-lighting-pv-status').hidden, null, { timeout: 2000 }).then(() => true).catch(() => false)
+    && (await (async () => { n = await count(); await $(page, 'ps-lighting-pv-stop').click(); got = await sentAfter(n); return got.length === 1 && got[0] === pvFrame({ seconds: 0 }); })()));
+  t(`${tag} Q5 a sixteenth stage is refused (400), and by state sends no stage at all`, (await pvPost({ state: 0, stage: 15 })) === 400
+    && (await (async () => { await $(page, 'ps-lighting-pv-stage').selectOption(''); n = await count(); await $(page, 'ps-lighting-pv-start').click(); got = await sentAfter(n); const ok = got.length === 1 && got[0] === pvFrame({ state: 1, percent: 5, seconds: 30 }); await page.waitForFunction(() => !document.getElementById('ps-lighting-pv-status').hidden, null, { timeout: 2000 }).catch(() => {}); await $(page, 'ps-lighting-pv-stop').click(); await sentAfter(await count() - 1); return ok; })()));
+  await go(page, '#system');
+  await waitHidden(page, 'ps-system-features', false);
+  n = await count();
+  await toggle(page, 'ps-system-feature-preview');
+  got = await sentAfter(n);
+  t(`${tag} Q6 preview off again`, got.length === 1 && got[0] === apiFrame({ features: { preview: false } }), got);
+  await page.waitForFunction(() => PS.features.features.preview === false, null, { timeout: 2000 }).catch(() => {});
   await go(page, '#system');
   await waitHidden(page, 'ps-system-features', false);
   n = await count();

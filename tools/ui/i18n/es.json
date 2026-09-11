@@ -404,5 +404,8 @@
   "ps_lighting_st_now": "ahora",
   "ps_lighting_st_none": "Guarde primero un efecto con nombre; las filas ofrecen los guardados.",
   "ps_lighting_st_help": "Ajuste tres estados, sobrescriba las dos etapas que importan y listo. La etapa viene del informe de la impresora.",
-  "ps_lighting_st_row_aria": "Efecto para esta etapa"
+  "ps_lighting_st_row_aria": "Efecto para esta etapa",
+  "ps_lighting_pv_stage": "Etapa",
+  "ps_lighting_pv_stage_aria": "Qué etapa mostrar en la vista previa",
+  "ps_lighting_pv_stage_none": "Según el estado"
 }

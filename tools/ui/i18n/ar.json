@@ -404,5 +404,8 @@
   "ps_lighting_st_now": "الآن",
   "ps_lighting_st_none": "احفظ تأثيرًا مسمّى أولًا؛ تعرض الصفوف التأثيرات المحفوظة.",
   "ps_lighting_st_help": "اضبط ثلاث حالات، وتجاوز المرحلتين المهمتين، وانتهى الأمر. المرحلة تأتي من تقرير الطابعة.",
-  "ps_lighting_st_row_aria": "التأثير لهذه المرحلة"
+  "ps_lighting_st_row_aria": "التأثير لهذه المرحلة",
+  "ps_lighting_pv_stage": "المرحلة",
+  "ps_lighting_pv_stage_aria": "أي مرحلة تُعاين",
+  "ps_lighting_pv_stage_none": "حسب الحالة"
 }

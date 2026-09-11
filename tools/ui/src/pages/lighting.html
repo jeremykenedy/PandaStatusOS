@@ -393,6 +393,30 @@
           <div class="ps-row"><span class="ps-tile-label" data-ps-str="ps_lighting_pv_percent">Progress</span><span class="max"></span><span class="ps-tile-label" id="ps-lighting-pv-percent-value" data-ps-no-i18n>0%</span></div>
           <label class="slider" data-ps-no-i18n><input type="range" min="0" max="100" step="5" value="0" id="ps-lighting-pv-percent" data-ps-str-aria="ps_lighting_pv_percent_aria" aria-label="Print progress to preview"><span></span></label>
         </div>
+        <div>
+          <div class="ps-tile-label" data-ps-str="ps_lighting_pv_stage">Stage</div>
+          <div class="field suffix border small" data-ps-no-i18n>
+            <select id="ps-lighting-pv-stage" data-ps-str-aria="ps_lighting_pv_stage_aria" aria-label="Which stage to preview">
+            <option value="" data-ps-str="ps_lighting_pv_stage_none">By state</option>
+            <option value="0" data-ps-str="ps_images_slot_standby">Standby</option>
+            <option value="1" data-ps-str="ps_images_slot_nozzle_heating">Nozzle heating</option>
+            <option value="2" data-ps-str="ps_images_slot_bed_heating">Bed heating</option>
+            <option value="3" data-ps-str="ps_images_slot_bed_leveling">Bed levelling</option>
+            <option value="4" data-ps-str="ps_images_slot_homing">Homing</option>
+            <option value="5" data-ps-str="ps_images_slot_nozzle_cleaning">Nozzle cleaning</option>
+            <option value="6" data-ps-str="ps_images_slot_calibrating_flow">Flow calibration</option>
+            <option value="7" data-ps-str="ps_images_slot_xy_mesh_mode_sweep">XY mesh sweep</option>
+            <option value="8" data-ps-str="ps_images_slot_filament_check_location">Filament check</option>
+            <option value="9" data-ps-str="ps_images_slot_filament_cut">Filament cut</option>
+            <option value="10" data-ps-str="ps_images_slot_filament_pull_back_cur">Filament pull back</option>
+            <option value="11" data-ps-str="ps_images_slot_filament_push_new">Filament push new</option>
+            <option value="12" data-ps-str="ps_images_slot_filament_purge_old">Filament purge</option>
+            <option value="13" data-ps-str="ps_images_slot_printing_ok">Print finished</option>
+            <option value="14" data-ps-str="ps_images_slot_printing">Printing</option>
+            </select>
+            <svg class="ps-icon"><use href="#ps-icon-chevron-down"/></svg>
+          </div>
+        </div>
         <div class="ps-row ps-pv-actions">
           <button class="border" id="ps-lighting-pv-start" data-ps-str="ps_lighting_pv_start">Preview for 30 seconds</button>
           <button class="border" id="ps-lighting-pv-stop" data-ps-str="ps_lighting_pv_stop" hidden>Stop</button>

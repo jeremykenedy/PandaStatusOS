@@ -253,7 +253,10 @@
     var pct = $('ps-lighting-pv-percent');
     pct.addEventListener('input', function () { $('ps-lighting-pv-percent-value').textContent = pct.value + '%'; });
     start.addEventListener('click', function () {
-      PS.post('/api/preview', { state: Number($('ps-lighting-pv-state').value), percent: Number(pct.value), seconds: 30 }, pvRun);
+      var body = { state: Number($('ps-lighting-pv-state').value), percent: Number(pct.value) };
+      var stage = $('ps-lighting-pv-stage'); if (stage && stage.value !== '') body.stage = Number(stage.value);   /* B3: a stage to pin as well */
+      body.seconds = 30;
+      PS.post('/api/preview', body, pvRun);
     });
     $('ps-lighting-pv-stop').addEventListener('click', function () {
       PS.post('/api/preview', { seconds: 0 }, function () { if (pvTimer) { clearInterval(pvTimer); pvTimer = null; } pvShow(false); });

@@ -404,5 +404,8 @@
   "ps_lighting_st_now": "עכשיו",
   "ps_lighting_st_none": "שמרו קודם אפקט בשם; השורות מציעות את השמורים.",
   "ps_lighting_st_help": "הגדירו שלושה מצבים, דרסו את שני השלבים שחשובים, וסיימתם. השלב מגיע מדוח המדפסת.",
-  "ps_lighting_st_row_aria": "אפקט לשלב זה"
+  "ps_lighting_st_row_aria": "אפקט לשלב זה",
+  "ps_lighting_pv_stage": "שלב",
+  "ps_lighting_pv_stage_aria": "איזה שלב להציג בתצוגה המקדימה",
+  "ps_lighting_pv_stage_none": "לפי המצב"
 }

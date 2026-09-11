@@ -959,8 +959,10 @@ off (a route that answers 400 exists; parity says it should not).
 running a print", and a pin that leaves the live state alone is the one that cannot
 strand the bar in a wrong state.
 
-**What would change it.** Phase B's stage-aware preview (B3): the pin grows a stage
-field; the route and its semantics stay.
+**What would change it.** Nothing so far. Phase B's stage-aware preview (B3) arrived as
+predicted: the pin grew a `stage` field (a display slot, optional), the renderer reads it
+in place of the inferred stage while the pin is live, and the route and its semantics
+stayed.
 
 ---
 

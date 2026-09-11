@@ -404,5 +404,8 @@
   "ps_lighting_st_now": "当前",
   "ps_lighting_st_none": "请先保存一个命名效果；各行会列出已保存的效果。",
   "ps_lighting_st_help": "设置三个状态，再覆盖真正在意的两个阶段，就完成了。阶段来自打印机的报告。",
-  "ps_lighting_st_row_aria": "此阶段的效果"
+  "ps_lighting_st_row_aria": "此阶段的效果",
+  "ps_lighting_pv_stage": "阶段",
+  "ps_lighting_pv_stage_aria": "预览哪个阶段",
+  "ps_lighting_pv_stage_none": "按状态"
 }

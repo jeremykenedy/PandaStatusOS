@@ -404,5 +404,8 @@
   "ps_lighting_st_now": "jetzt",
   "ps_lighting_st_none": "Zuerst einen benannten Effekt speichern; die Zeilen bieten die gespeicherten an.",
   "ps_lighting_st_help": "Drei Zustände einstellen, die zwei Phasen überschreiben, die zählen, fertig. Die Phase kommt aus dem Bericht des Druckers.",
-  "ps_lighting_st_row_aria": "Effekt für diese Phase"
+  "ps_lighting_st_row_aria": "Effekt für diese Phase",
+  "ps_lighting_pv_stage": "Phase",
+  "ps_lighting_pv_stage_aria": "Welche Druckphase in der Vorschau gezeigt wird",
+  "ps_lighting_pv_stage_none": "Nach Zustand"
 }

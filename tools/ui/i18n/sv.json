@@ -404,5 +404,8 @@
   "ps_lighting_st_now": "nu",
   "ps_lighting_st_none": "Spara först en namngiven effekt; raderna erbjuder de sparade.",
   "ps_lighting_st_help": "Ställ in tre tillstånd, skriv över de två steg som spelar roll, klart. Steget kommer från skrivarens rapport.",
-  "ps_lighting_st_row_aria": "Effekt för detta steg"
+  "ps_lighting_st_row_aria": "Effekt för detta steg",
+  "ps_lighting_pv_stage": "Steg",
+  "ps_lighting_pv_stage_aria": "Vilket steg som förhandsvisas",
+  "ps_lighting_pv_stage_none": "Efter tillstånd"
 }

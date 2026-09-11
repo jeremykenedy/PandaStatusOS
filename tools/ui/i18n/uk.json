@@ -404,5 +404,8 @@
   "ps_lighting_st_now": "зараз",
   "ps_lighting_st_none": "Спершу збережіть іменований ефект; рядки пропонують збережені.",
   "ps_lighting_st_help": "Налаштуйте три стани, перевизначте два важливі етапи, готово. Етап надходить зі звіту принтера.",
-  "ps_lighting_st_row_aria": "Ефект для цього етапу"
+  "ps_lighting_st_row_aria": "Ефект для цього етапу",
+  "ps_lighting_pv_stage": "Етап",
+  "ps_lighting_pv_stage_aria": "Який етап показати в перегляді",
+  "ps_lighting_pv_stage_none": "За станом"
 }

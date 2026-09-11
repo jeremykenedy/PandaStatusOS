@@ -404,5 +404,8 @@
   "ps_lighting_st_now": "nu",
   "ps_lighting_st_none": "Sla eerst een benoemd effect op; de rijen bieden de opgeslagen aan.",
   "ps_lighting_st_help": "Stel drie toestanden in, overschrijf de twee fasen die ertoe doen, klaar. De fase komt uit het rapport van de printer.",
-  "ps_lighting_st_row_aria": "Effect voor deze fase"
+  "ps_lighting_st_row_aria": "Effect voor deze fase",
+  "ps_lighting_pv_stage": "Fase",
+  "ps_lighting_pv_stage_aria": "Welke fase het voorbeeld toont",
+  "ps_lighting_pv_stage_none": "Volgens de toestand"
 }

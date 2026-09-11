@@ -404,5 +404,8 @@
   "ps_lighting_st_now": "teraz",
   "ps_lighting_st_none": "Najpierw zapisz nazwany efekt; wiersze oferują zapisane.",
   "ps_lighting_st_help": "Ustaw trzy stany, nadpisz dwa etapy, które się liczą, gotowe. Etap pochodzi z raportu drukarki.",
-  "ps_lighting_st_row_aria": "Efekt dla tego etapu"
+  "ps_lighting_st_row_aria": "Efekt dla tego etapu",
+  "ps_lighting_pv_stage": "Etap",
+  "ps_lighting_pv_stage_aria": "Który etap pokazać w podglądzie",
+  "ps_lighting_pv_stage_none": "Według stanu"
 }

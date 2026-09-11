@@ -24,7 +24,7 @@ exists so the rule has a home before any feature does. Its value is zero.
 | 10 | `fx_temp` | the temperature gradient may be chosen: one colour between the unlit colour at the cold end and the lit colour at the hot end, following one of the printer's temperatures (`nozzle_temper`, `bed_temper`, `chamber_temper`, INFERENCE from the report), with the ends in `config.temp_gradient` (A10) | off | A2; a printer bound |
 | 11 | `hot_warning` | a layer, not an effect: while the watched temperature (nozzle, bed or chamber) is at or past a threshold, one colour pulses over whatever the bar shows, in both modes, on a two-second period (A11) | off | a printer bound; nothing else, it sits over the placeholder as readily as over an effect |
 | 12 | `error_flash` | a layer: while the bar state is error, one colour strobes over whatever the bar shows, in both modes, at its own brightness and rate; drawn after the hot warning so an error outranks it (A12) | off | the bar state the printer already drives |
-| 13 | `preview` | the live preview: `POST /api/preview` pins the bar to a chosen state (idle, printing or error), with a progress and temperatures if given, for up to ten minutes; the effects that read the print and the layers follow the pin; nothing is stored (A13) | off | nothing; with the switch off the route answers 302 like any unknown path |
+| 13 | `preview` | the live preview: `POST /api/preview` pins the bar to a chosen state (idle, printing or error), with a progress, temperatures and a print stage if given, for up to ten minutes; the effects that read the print, the layers and the per-stage rows follow the pin; nothing is stored (A13, B3) | off | nothing; with the switch off the route answers 302 like any unknown path |
 | 14 | `presets` | the named effects: an editor that saves an effect with its colours as stops, timing and direction under a name, up to eight, and copies one into any state; adds the two palette effects (`Colour stops`, still and scrolling) that lay the four colours across the bar (A14) | off | A2 to use one; A3 for the palette effects to read their stops |
 | 15 | `stage_effects` | a named effect per print stage, fifteen rows in their own blob; a row without one inherits its bar state's effect (B1, B2). The stage is `print.stg_cur` with `gcode_state` mapped onto the fifteen display slots (INFERENCE, `ps_stage_from_report`) | off | A2; A14 to have a named effect to assign; a printer bound |
 
@@ -55,13 +55,15 @@ The live preview (A13) has its own route, because a pin is not a setting:
 
 ```
 GET  /api/preview    {"active":false,"state":0,"percent":-1,"temps":[-1000,-1000,-1000],"remaining":0}
-POST /api/preview    {"state":1,"percent":40,"temps":[210,60,35],"seconds":30}: taken whole or refused (400)
-                     {"seconds":0} clears the pin; the answer is the document above
+POST /api/preview    {"state":1,"percent":40,"temps":[210,60,35],"stage":7,"seconds":30}: taken whole or refused (400)
+                     {"seconds":0} clears the pin; the answer is the document above, plus "stage"
 ```
 
 `state` is 0 idle, 1 printing, 2 error and is required unless `seconds` is 0; `percent`
-0 to 100 and `temps` (three readings, 0 to 500) are optional and stand in for the live
-values only where given; `seconds` is 0 to 600, 30 by default. While the pin is live the
+0 to 100, `temps` (three readings, 0 to 500) and `stage` (a display slot, 0 to 14; B3)
+are optional and stand in for the live values only where given; `seconds` is 0 to 600,
+30 by default. With a stage pinned, the per-stage row for that slot renders as it would
+in that stage, so all fifteen rows can be seen without fifteen prints. While the pin is live the
 renderer reads it in place of the live state, so the effect chosen for that state, the
 progress effects, the gradient and both layers show as they would; the live state is
 untouched underneath and shows through when the pin expires or is cleared. While bit 13

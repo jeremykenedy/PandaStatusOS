@@ -619,7 +619,7 @@ async function handleHttp(req, res) {
   if (p === '/api/preview' && knobFlag('PS_CLONE') && FEAT && FEAT.features.preview) {
     // A13: a pinned printer state for a number of seconds; with the switch off the route does not
     // exist (the 302 below, like any unknown path). Nothing is stored.
-    const doc = () => { const active = !!(PREVIEW && Date.now() < PREVIEW.until); return JSON.stringify({ active, state: PREVIEW ? PREVIEW.state : 0, percent: PREVIEW ? PREVIEW.percent : -1, temps: PREVIEW ? PREVIEW.temps : [-1000, -1000, -1000], remaining: active ? Math.ceil((PREVIEW.until - Date.now()) / 1000) : 0 }); };
+    const doc = () => { const active = !!(PREVIEW && Date.now() < PREVIEW.until); return JSON.stringify({ active, state: PREVIEW ? PREVIEW.state : 0, percent: PREVIEW ? PREVIEW.percent : -1, temps: PREVIEW ? PREVIEW.temps : [-1000, -1000, -1000], remaining: active ? Math.ceil((PREVIEW.until - Date.now()) / 1000) : 0, stage: PREVIEW ? PREVIEW.stage : -1 }); };
     if (req.method === 'GET') { res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }); return res.end(doc()); }
     if (req.method !== 'POST') { res.writeHead(405); return res.end(); }
     const { body } = await readBody(req, 512);
@@ -629,7 +629,7 @@ async function handleHttp(req, res) {
     rec.text = JSON.stringify({ api: '/api/preview', body: j }); rec.frame = j; rec.roots = ['api'];
     const refuse = () => { rec.error = 'refused'; SENT.push(rec); log({ ev: 'api_refused', detail: rec.text }); res.writeHead(400); res.end('refused'); };
     if (!j || typeof j !== 'object' || Array.isArray(j)) return refuse();
-    let state = -1, percent = -1, seconds = 30, temps = [-1000, -1000, -1000];
+    let state = -1, percent = -1, seconds = 30, temps = [-1000, -1000, -1000], stage = -1;
     for (const k of Object.keys(j)) {
       const v = j[k];
       if (k === 'temps') { if (!Array.isArray(v) || v.length !== 3 || !v.every((n) => Number.isInteger(n) && n >= 0 && n <= 500)) return refuse(); temps = v.slice(); continue; }
@@ -637,10 +637,11 @@ async function handleHttp(req, res) {
       if (k === 'state') { if (v > 2) return refuse(); state = v; }
       else if (k === 'percent') { if (v > 100) return refuse(); percent = v; }
       else if (k === 'seconds') { if (v > 600) return refuse(); seconds = v; }
+      else if (k === 'stage') { if (v > 14) return refuse(); stage = v; }   // B3
       else return refuse();
     }
     if (seconds > 0 && state < 0) return refuse();
-    PREVIEW = seconds === 0 ? null : { state, percent, temps, until: Date.now() + seconds * 1000 };
+    PREVIEW = seconds === 0 ? null : { state, percent, temps, stage, until: Date.now() + seconds * 1000 };
     SENT.push(rec);
     log({ ev: 'api_preview', detail: rec.text });
     res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }); return res.end(doc());

@@ -404,5 +404,8 @@
   "ps_lighting_st_now": "nu",
   "ps_lighting_st_none": "Gem først en navngivet effekt; rækkerne tilbyder de gemte.",
   "ps_lighting_st_help": "Indstil tre tilstande, tilsidesæt de to trin, der betyder noget, færdig. Trinnet kommer fra printerens rapport.",
-  "ps_lighting_st_row_aria": "Effekt for dette trin"
+  "ps_lighting_st_row_aria": "Effekt for dette trin",
+  "ps_lighting_pv_stage": "Trin",
+  "ps_lighting_pv_stage_aria": "Hvilket trin der forhåndsvises",
+  "ps_lighting_pv_stage_none": "Efter tilstand"
 }

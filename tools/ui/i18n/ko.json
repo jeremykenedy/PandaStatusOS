@@ -404,5 +404,8 @@
   "ps_lighting_st_now": "현재",
   "ps_lighting_st_none": "먼저 이름 있는 효과를 저장하세요. 각 행에는 저장된 효과가 나열됩니다.",
   "ps_lighting_st_help": "세 상태를 설정하고 중요한 두 단계만 덮어쓰면 끝입니다. 단계는 프린터의 보고에서 가져옵니다.",
-  "ps_lighting_st_row_aria": "이 단계의 효과"
+  "ps_lighting_st_row_aria": "이 단계의 효과",
+  "ps_lighting_pv_stage": "단계",
+  "ps_lighting_pv_stage_aria": "미리 볼 단계",
+  "ps_lighting_pv_stage_none": "상태에 따름"
 }

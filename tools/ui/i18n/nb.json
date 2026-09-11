@@ -404,5 +404,8 @@
   "ps_lighting_st_now": "nå",
   "ps_lighting_st_none": "Lagre en navngitt effekt først; radene tilbyr de lagrede.",
   "ps_lighting_st_help": "Still inn tre tilstander, overstyr de to trinnene som betyr noe, ferdig. Trinnet kommer fra skriverens rapport.",
-  "ps_lighting_st_row_aria": "Effekt for dette trinnet"
+  "ps_lighting_st_row_aria": "Effekt for dette trinnet",
+  "ps_lighting_pv_stage": "Trinn",
+  "ps_lighting_pv_stage_aria": "Hvilket trinn som forhåndsvises",
+  "ps_lighting_pv_stage_none": "Etter tilstand"
 }

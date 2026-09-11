@@ -249,6 +249,7 @@ char *ps_preview_json(void)
     cJSON *tp = cJSON_AddArrayToObject(doc, "temps");
     for (int i = 0; i < PS_TEMP_COUNT; i++) cJSON_AddItemToArray(tp, cJSON_CreateNumber(g_ps.pin_temp[i]));
     cJSON_AddNumberToObject(doc, "remaining", remaining);
+    cJSON_AddNumberToObject(doc, "stage", g_ps.pin_stage);                /* B3: -1 while the pin follows the state */
     ps_unlock();
     char *s = cJSON_PrintUnformatted(doc);
     cJSON_Delete(doc);
@@ -259,7 +260,7 @@ int ps_preview_apply(const char *json, size_t len)
 {
     cJSON *root = cJSON_ParseWithLength(json, len);
     if (!root || !cJSON_IsObject(root)) { cJSON_Delete(root); return -1; }
-    int state = -1, percent = -1, seconds = 30; int16_t temps[PS_TEMP_COUNT];
+    int state = -1, percent = -1, seconds = 30, stage = -1; int16_t temps[PS_TEMP_COUNT];
     for (int i = 0; i < PS_TEMP_COUNT; i++) temps[i] = PS_TEMP_NONE;
     for (cJSON *k = root->child; k; k = k->next) {
         if (!k->string) { cJSON_Delete(root); return -1; }
@@ -277,14 +278,15 @@ int ps_preview_apply(const char *json, size_t len)
         if      (!strcmp(k->string, "state"))   { if (v > PS_BAR_ERROR) { cJSON_Delete(root); return -1; } state = v; }
         else if (!strcmp(k->string, "percent")) { if (v > 100) { cJSON_Delete(root); return -1; } percent = v; }
         else if (!strcmp(k->string, "seconds")) { if (v > PS_PREVIEW_MAX_S) { cJSON_Delete(root); return -1; } seconds = v; }
+        else if (!strcmp(k->string, "stage"))   { if (v >= PS_GIF_SLOTS) { cJSON_Delete(root); return -1; } stage = v; }   /* B3: a display slot to pin as well */
         else { cJSON_Delete(root); return -1; }
     }
     cJSON_Delete(root);
     if (seconds > 0 && state < 0) return -1;                    /* a pin needs a state; a clear needs nothing */
     ps_lock();
-    if (seconds == 0) { g_ps.pin_active = 0; }
+    if (seconds == 0) { g_ps.pin_active = 0; g_ps.pin_stage = -1; }
     else {
-        g_ps.pin_active = 1; g_ps.pin_state = (uint8_t)state; g_ps.pin_percent = (int16_t)percent;
+        g_ps.pin_active = 1; g_ps.pin_state = (uint8_t)state; g_ps.pin_percent = (int16_t)percent; g_ps.pin_stage = (int8_t)stage;
         memcpy(g_ps.pin_temp, temps, sizeof temps);
         g_ps.pin_until_us = esp_timer_get_time() + (int64_t)seconds * 1000000;
     }

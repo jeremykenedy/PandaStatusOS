@@ -404,5 +404,8 @@
   "ps_lighting_st_now": "most",
   "ps_lighting_st_none": "Előbb mentsen egy elnevezett effektet; a sorok a mentetteket kínálják.",
   "ps_lighting_st_help": "Állítson be három állapotot, írja felül a két fázist, ami számít, kész. A fázis a nyomtató jelentéséből jön.",
-  "ps_lighting_st_row_aria": "Effekt ehhez a fázishoz"
+  "ps_lighting_st_row_aria": "Effekt ehhez a fázishoz",
+  "ps_lighting_pv_stage": "Fázis",
+  "ps_lighting_pv_stage_aria": "Melyik fázis jelenjen meg az előnézetben",
+  "ps_lighting_pv_stage_none": "Állapot szerint"
 }

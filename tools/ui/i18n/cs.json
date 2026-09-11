@@ -404,5 +404,8 @@
   "ps_lighting_st_now": "teď",
   "ps_lighting_st_none": "Nejprve uložte pojmenovaný efekt; řádky nabízejí uložené.",
   "ps_lighting_st_help": "Nastavte tři stavy, přepište dvě fáze, na kterých záleží, hotovo. Fáze pochází ze zprávy tiskárny.",
-  "ps_lighting_st_row_aria": "Efekt pro tuto fázi"
+  "ps_lighting_st_row_aria": "Efekt pro tuto fázi",
+  "ps_lighting_pv_stage": "Fáze",
+  "ps_lighting_pv_stage_aria": "Která fáze se zobrazí v náhledu",
+  "ps_lighting_pv_stage_none": "Podle stavu"
 }
