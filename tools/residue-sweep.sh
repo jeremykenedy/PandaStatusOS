@@ -146,7 +146,8 @@ def is_binary(path):
 # THEIR strings is the "their i18n key/value pairs" category, which reads those files
 # whole. CJK anywhere else is still source text and still a hit.
 def is_translation(path, line):
-    return path.startswith("tools/ui/i18n/") or line.startswith("var PS_STRINGS = ")
+    return (path.startswith("tools/ui/i18n/") or line.startswith("var PS_STRINGS = ")
+            or re.search(r"`(zh-Hans|zh-Hant|ja|ko)`", line) is not None)   # a language named in its own script
 
 grand = 0
 for name, pat in CHECKS:

@@ -210,7 +210,9 @@ scan_vendor_text_only() {
         case "$file" in tools/ui/i18n/*.json) continue ;; esac
         keep="$keep $file"
     done
-    STAGED="$keep"; scan_vendor "$label" "$pattern" '^[0-9]+:var PS_STRINGS = '; STAGED="$saved"
+    # ...and a line that names one of the string table's CJK languages by its code, in a
+    # code span, is a language table naming a language in its own script.
+    STAGED="$keep"; scan_vendor "$label" "$pattern" '(^[0-9]+:var PS_STRINGS = |`(zh-Hans|zh-Hant|ja|ko)`)'; STAGED="$saved"
 }
 scan_vendor_text_only "CJK source text" '[^[:print:][:space:]]*[一-龥ぁ-ヿ가-힣]'
 

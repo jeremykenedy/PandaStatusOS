@@ -130,6 +130,8 @@ pathcheck "nvs dump text blocks"       docs/_t_nvs_dump.txt              'page 0
 pathcheck "CJK in a translation table passes" tools/ui/i18n/_t_zz.json  '{"ps_x_y": "状态灯"}'              PASS
 pathcheck "CJK in the built string table passes" docs/_t_strings.js     'var PS_STRINGS = {"zh":{"k":"状态"}};' PASS
 pathcheck "CJK in another json still blocks" docs/_t_other.json         '{"note": "状态灯"}'                BLOCK
+check "a language named in its own script passes" '| Japanese | 日本語 | `ja` | |'             PASS
+check "CJK beside another code still blocks"   '| Something | 状态灯 | `de` | |'             BLOCK
 [ -f art/apple-touch-icon-180.png ] && bincheck "generated PNG passes" art/apple-touch-icon-180.png docs/_t.png PASS
 [ -f docs/screenshots/dashboard-dark.png ] && bincheck "screenshot PNG passes" docs/screenshots/dashboard-dark.png docs/_t2.png PASS
 check "CJK in a text file still blocks" 'status text 状态灯 here'                    BLOCK
