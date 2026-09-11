@@ -373,6 +373,47 @@ async function drive(browser, combo) {
   await page.waitForFunction(() => PS.features.features.fx_temp === false, null, { timeout: 2000 }).catch(() => {});
   await go(page, '#lighting');
   t(`${tag} K11 the box hides and idle fell back to Static`, await waitHidden(page, 'ps-lighting-tg', true) && (await val(page, 'ps-lighting-fx-0')) === '0');
+
+  // ---- A11: the hot warning layer ----
+  t(`${tag} L1 with hot_warning off the tile is hidden`, await hidden(page, 'ps-lighting-hot'));
+  await go(page, '#system');
+  await waitHidden(page, 'ps-system-features', false);
+  n = await count();
+  await toggle(page, 'ps-system-feature-hot-warning');
+  got = await sentAfter(n);
+  t(`${tag} L2 turning the warning on sends exactly {"features":{"hot_warning":true}}`, got.length === 1 && got[0] === apiFrame({ features: { hot_warning: true } }), got);
+  await page.waitForFunction(() => PS.features.features.hot_warning === true, null, { timeout: 2000 }).catch(() => {});
+  await go(page, '#lighting');
+  t(`${tag} L3 the tile shows: nozzle, hot from 50, red`, await waitHidden(page, 'ps-lighting-hot', false)
+    && (await val(page, 'ps-lighting-hot-source')) === '0' && (await val(page, 'ps-lighting-hot-c')) === '50' && (await text(page, 'ps-lighting-hot-c-value')) === '50 \u00B0C'
+    && (await val(page, 'ps-lighting-hot-colour')) === '#FF0000FF');
+  n = await count();
+  await $(page, 'ps-lighting-hot-source').selectOption('1');
+  got = await sentAfter(n);
+  t(`${tag} L4 watching the bed sends the whole setting`, got.length === 1 && got[0] === apiFrame({ config: { hot_warning: { source: 1, threshold: 50, colour: '#FF0000FF' } } }), got);
+  await page.waitForFunction(() => PS.features.config.hot_warning.source === 1, null, { timeout: 2000 }).catch(() => {});
+  n = await count();
+  await nudge(page, 'ps-lighting-hot-c', 'ArrowRight');
+  got = await sentAfter(n);
+  t(`${tag} L5 nudging the threshold sends the whole setting with 55`, got.length === 1 && got[0] === apiFrame({ config: { hot_warning: { source: 1, threshold: 55, colour: '#FF0000FF' } } }), got);
+  await page.waitForFunction(() => PS.features.config.hot_warning.threshold === 55, null, { timeout: 2000 }).catch(() => {});
+  n = await count();
+  await $(page, 'ps-lighting-hot-colour').fill('#FFA500'); await page.keyboard.press('Tab');
+  got = await sentAfter(n);
+  t(`${tag} L6 a colour change sends the whole setting with the colour as #RRGGBBAA`, got.length === 1 && got[0] === apiFrame({ config: { hot_warning: { source: 1, threshold: 55, colour: '#FFA500FF' } } }), got);
+  t(`${tag} L7 the answer lands: the field and the label read back`, await page.waitForFunction(() => document.getElementById('ps-lighting-hot-colour').value === '#FFA500FF' && document.getElementById('ps-lighting-hot-c-value').textContent === '55 \u00B0C', null, { timeout: 2000 }).then(() => true).catch(() => false));
+  { const st = await page.evaluate(async () => { const r = await fetch('/api/features', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ config: { hot_warning: { colour: 'red' } } }) }); return r.status; });
+    t(`${tag} L8 a colour that is not #RRGGBBAA is refused (400)`, st === 400, st); }
+  await pw.shot(page, `features-lighting-hot-${combo.theme}-${combo.width}`, { full: true });
+  await go(page, '#system');
+  await waitHidden(page, 'ps-system-features', false);
+  n = await count();
+  await toggle(page, 'ps-system-feature-hot-warning');
+  got = await sentAfter(n);
+  t(`${tag} L9 turning the warning off sends exactly {"features":{"hot_warning":false}}`, got.length === 1 && got[0] === apiFrame({ features: { hot_warning: false } }), got);
+  await page.waitForFunction(() => PS.features.features.hot_warning === false, null, { timeout: 2000 }).catch(() => {});
+  await go(page, '#lighting');
+  t(`${tag} L10 the tile hides again`, await waitHidden(page, 'ps-lighting-hot', true));
   await go(page, '#system');
   await waitHidden(page, 'ps-system-features', false);
   n = await count();

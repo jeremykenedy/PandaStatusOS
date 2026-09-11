@@ -121,6 +121,19 @@ int main(void)
       ps_fx_phase_init(&p); ps_fx_render(PS_FX_TEMP_GRADIENT, red, BLACK, 100, 50, false, 0, &none, &p, px, 4);
       t("with no reading the gradient holds its cold colour", px[0].r == 0 && px[0].g == 0 && px[0].b == 0, px[0].r); }
 
+    /* A11: the pulse layer over a base frame, pure in time */
+    { ps_rgba_t red = { 200, 0, 0, 255 }, base = { 0, 100, 0, 255 }; ps_rgba_t f4[4];
+      for (int i = 0; i < 4; i++) f4[i] = base; ps_fx_layer_pulse(f4, 4, red, 100, 0, 2000);
+      t("at the trough the layer leaves the base untouched", f4[0].g == 100 && f4[0].r == 0 && f4[3].g == 100, f4[0].g);
+      for (int i = 0; i < 4; i++) f4[i] = base; ps_fx_layer_pulse(f4, 4, red, 100, 1000, 2000);
+      t("at the peak the strip is the layer's colour", f4[0].r == 200 && f4[0].g == 0 && f4[3].r == 200, f4[0].r);
+      for (int i = 0; i < 4; i++) f4[i] = base; ps_fx_layer_pulse(f4, 4, red, 100, 500, 2000);
+      t("halfway up it is the mix of the two", f4[0].r == 100 && f4[0].g == 50, f4[0].r);
+      for (int i = 0; i < 4; i++) f4[i] = base; ps_fx_layer_pulse(f4, 4, red, 50, 1000, 2000);
+      t("the layer's brightness scales its colour", f4[0].r == 100 && f4[0].g == 0, f4[0].r);
+      for (int i = 0; i < 4; i++) f4[i] = base; ps_fx_layer_pulse(f4, 4, red, 100, 4000, 2000);
+      t("the pulse repeats every period", f4[0].g == 100 && f4[0].r == 0, f4[0].g); }
+
     /* the colour ramp across the print */
     { ps_rgba_t green = { 0, 255, 0, 255 }; ps_fx_in_t z = { 0, -1000, 0, 0 }, full = { 100, -1000, 0, 0 }, half = { 50, -1000, 0, 0 };
       ps_fx_phase_init(&p);

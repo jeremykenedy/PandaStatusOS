@@ -344,5 +344,15 @@
   "ps_lighting_tg_lo_aria": "הטמפרטורה בקצה הקר, מעלות צלזיוס",
   "ps_lighting_tg_hi": "חם ב",
   "ps_lighting_tg_hi_aria": "הטמפרטורה בקצה החם, מעלות צלזיוס",
-  "ps_lighting_tg_help": "למצבים שמציגים את מעבר הטמפרטורה. מתחת לקצה הקר הפס מציג את הצבע הכבוי, ומעל הקצה החם את הצבע הדולק."
+  "ps_lighting_tg_help": "למצבים שמציגים את מעבר הטמפרטורה. מתחת לקצה הקר הפס מציג את הצבע הכבוי, ומעל הקצה החם את הצבע הדולק.",
+  "ps_feature_hot_warning": "אזהרת חום",
+  "ps_feature_hot_warning_help": "כל עוד טמפרטורה מגיעה לסף או עוברת אותו, הפס פועם בצבע אחד מעל מה שהוא מציג, בשני המצבים.",
+  "ps_feature_hot_warning_aria": "אזהרת חום",
+  "ps_lighting_hot_source": "עוקב אחר",
+  "ps_lighting_hot_source_aria": "אחרי איזו טמפרטורה האזהרה עוקבת",
+  "ps_lighting_hot_c": "חם החל מ",
+  "ps_lighting_hot_c_aria": "סף, מעלות צלזיוס",
+  "ps_lighting_hot_colour": "צבע",
+  "ps_lighting_hot_colour_aria": "צבע האזהרה",
+  "ps_lighting_hot_help": "הפעימה יושבת מעל האפקט או הצבע האחיד ואינה מחליפה אותם; הסף מושווה למעלה השלמה שהמדפסת מדווחת."
 }

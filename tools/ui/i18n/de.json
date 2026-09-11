@@ -344,5 +344,15 @@
   "ps_lighting_tg_lo_aria": "Temperatur am kalten Ende, Grad Celsius",
   "ps_lighting_tg_hi": "Heiß bei",
   "ps_lighting_tg_hi_aria": "Temperatur am heißen Ende, Grad Celsius",
-  "ps_lighting_tg_help": "Für die Zustände, die den Temperaturverlauf zeigen. Unter dem kalten Ende zeigt der Balken die unbeleuchtete Farbe, über dem heißen Ende die leuchtende."
+  "ps_lighting_tg_help": "Für die Zustände, die den Temperaturverlauf zeigen. Unter dem kalten Ende zeigt der Balken die unbeleuchtete Farbe, über dem heißen Ende die leuchtende.",
+  "ps_feature_hot_warning": "Hitzewarnung",
+  "ps_feature_hot_warning_help": "Solange eine Temperatur eine Schwelle erreicht oder überschreitet, pulsiert der Balken in einer Farbe über dem, was er gerade zeigt, in beiden Modi.",
+  "ps_feature_hot_warning_aria": "Hitzewarnung",
+  "ps_lighting_hot_source": "Überwacht",
+  "ps_lighting_hot_source_aria": "Welche Temperatur die Warnung überwacht",
+  "ps_lighting_hot_c": "Heiß ab",
+  "ps_lighting_hot_c_aria": "Schwelle, Grad Celsius",
+  "ps_lighting_hot_colour": "Farbe",
+  "ps_lighting_hot_colour_aria": "Warnfarbe",
+  "ps_lighting_hot_help": "Der Puls liegt über dem Effekt oder der Vollfarbe und ersetzt sie nicht; die Schwelle wird mit dem ganzen Grad verglichen, das der Drucker meldet."
 }

@@ -896,4 +896,35 @@ A12 needing a field the twenty bytes do not have (then v5, by the recipe).
 
 ---
 
+## D-037 A layer is drawn over the base frame in time, in both modes, at its colour's own brightness
+
+**Date** 2026-09-10 · **Reversal** cheap (one function in the engine and one block in the renderer per layer)
+
+**Decided.** The hot warning (A11) is the first layer: a function in the engine that
+takes the frame the base just rendered, placeholder or effect, and pulses one colour over
+it, pure in wall-clock time (`now_ms` on a fixed two-second period) rather than in frames,
+so a static base pulses at the same rate as an animated one. While a layer is active the
+renderer's wait is capped at thirty frames a second whatever the base asked for. A layer
+draws in both modes, because the point of a warning is that it shows whatever the bar is
+doing. At the trough the base is untouched; at the peak the strip is the layer's colour
+at that colour's own value, not scaled by the mode brightness or the per-state
+brightness: the owner chooses a darker colour for a quieter warning. The threshold is
+compared with the whole degree the report carries, at or past it.
+
+Layers stack in order of urgency: the error flash (A12) will draw after the hot warning
+so an error outranks a warning.
+
+**Alternatives.** The warning as an effect id (replaces the base, which the queue rules
+out); scaled by the mode brightness (a warning at brightness 0 would not show); a phase
+advanced per frame (a solid base at 500 ms per frame would pulse in steps).
+
+**Why.** The queue asks for a layer "rather than replacing" the base; time-based rendering
+is what makes that true over every base.
+
+**What would change it.** Phase 1 recovering the factory's own error behaviour, if it
+has one: parity would then decide what the default error rendering is, and the layer would
+stay a feature over it.
+
+---
+
 *Entries continue below as the run proceeds.*

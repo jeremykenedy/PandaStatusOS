@@ -22,7 +22,7 @@ exists so the rule has a home before any feature does. Its value is zero.
 | 8 | `fx_barber` | the barber pole through the fill, with its band width in the effect's `aux` (A8) | off | A2; a printer bound |
 | 9 | `fx_hue_ramp` | the colour ramp across the print: one colour from the unlit colour to the lit colour, by hue (A9) | off | A2; a printer bound |
 | 10 | `fx_temp` | the temperature gradient may be chosen: one colour between the unlit colour at the cold end and the lit colour at the hot end, following one of the printer's temperatures (`nozzle_temper`, `bed_temper`, `chamber_temper`, INFERENCE from the report), with the ends in `config.temp_gradient` (A10) | off | A2; a printer bound |
-| 11 | `hot_warning` | reserved for A11: the hot warning layer; its fields are in the blob already (v4) | off | A2; the temperatures |
+| 11 | `hot_warning` | a layer, not an effect: while the watched temperature (nozzle, bed or chamber) is at or past a threshold, one colour pulses over whatever the bar shows, in both modes, on a two-second period (A11) | off | a printer bound; nothing else, it sits over the placeholder as readily as over an effect |
 | 12 | `error_flash` | reserved for A12: the error flash layer; its fields are in the blob already (v4) | off | the bar state |
 
 ## How a feature reaches the page
@@ -41,7 +41,9 @@ speed, bright_end, opt, aux, colours[4]}` in the engine's model; a POST may carr
 subset of an object's keys, and the whole three-object array is required.
 `config.temp_gradient` is `{source, lo, hi}`: the reading the gradient follows (0 nozzle,
 1 bed, 2 chamber) and its two ends in degrees Celsius, 0 to 500; any subset of its keys
-overlays the stored setting, and it is one setting for every state that runs the gradient. Which keys the
+overlays the stored setting, and it is one setting for every state that runs the gradient.
+`config.hot_warning` is `{source, threshold, colour}`: the reading the layer watches, the
+threshold in degrees Celsius (0 to 500) and the colour as `#RRGGBBAA`; any subset overlays. Which keys the
 renderer reads depends on which bits are on (A2 reads `effect`; A3 to A5 read the rest),
 so a setting can be made before its switch exists and takes effect when it does. An
 effect id that changes must be allowed under the bits the same document leaves in force:

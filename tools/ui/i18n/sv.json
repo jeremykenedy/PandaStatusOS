@@ -344,5 +344,15 @@
   "ps_lighting_tg_lo_aria": "Temperatur vid den kalla änden, grader Celsius",
   "ps_lighting_tg_hi": "Hett vid",
   "ps_lighting_tg_hi_aria": "Temperatur vid den heta änden, grader Celsius",
-  "ps_lighting_tg_help": "För de tillstånd som visar temperaturskalan. Under den kalla änden visar listen den släckta färgen, över den heta den tända."
+  "ps_lighting_tg_help": "För de tillstånd som visar temperaturskalan. Under den kalla änden visar listen den släckta färgen, över den heta den tända.",
+  "ps_feature_hot_warning": "Värmevarning",
+  "ps_feature_hot_warning_help": "Så länge en temperatur når eller passerar ett tröskelvärde pulserar listen i en färg över det den visar, i båda lägena.",
+  "ps_feature_hot_warning_aria": "Värmevarning",
+  "ps_lighting_hot_source": "Bevakar",
+  "ps_lighting_hot_source_aria": "Vilken temperatur varningen bevakar",
+  "ps_lighting_hot_c": "Hett från",
+  "ps_lighting_hot_c_aria": "Tröskelvärde, grader Celsius",
+  "ps_lighting_hot_colour": "Färg",
+  "ps_lighting_hot_colour_aria": "Varningsfärg",
+  "ps_lighting_hot_help": "Pulsen ligger över effekten eller den enfärgade listen utan att ersätta dem; tröskelvärdet jämförs med den hela grad skrivaren rapporterar."
 }

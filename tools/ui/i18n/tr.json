@@ -344,5 +344,15 @@
   "ps_lighting_tg_lo_aria": "Soğuk uçtaki sıcaklık, santigrat derece",
   "ps_lighting_tg_hi": "Sıcak",
   "ps_lighting_tg_hi_aria": "Sıcak uçtaki sıcaklık, santigrat derece",
-  "ps_lighting_tg_help": "Sıcaklık geçişini gösteren durumlar için. Soğuk ucun altında çubuk sönük rengi, sıcak ucun üstünde yanan rengi gösterir."
+  "ps_lighting_tg_help": "Sıcaklık geçişini gösteren durumlar için. Soğuk ucun altında çubuk sönük rengi, sıcak ucun üstünde yanan rengi gösterir.",
+  "ps_feature_hot_warning": "Sıcaklık uyarısı",
+  "ps_feature_hot_warning_help": "Bir sıcaklık eşiğe ulaştığı ya da geçtiği sürece çubuk, gösterdiği şeyin üzerinde tek renkte atar, her iki kipte de.",
+  "ps_feature_hot_warning_aria": "Sıcaklık uyarısı",
+  "ps_lighting_hot_source": "İzlediği",
+  "ps_lighting_hot_source_aria": "Uyarının izlediği sıcaklık",
+  "ps_lighting_hot_c": "Şuradan itibaren sıcak",
+  "ps_lighting_hot_c_aria": "Eşik, santigrat derece",
+  "ps_lighting_hot_colour": "Renk",
+  "ps_lighting_hot_colour_aria": "Uyarı rengi",
+  "ps_lighting_hot_help": "Atış, efektin ya da düz rengin üzerine biner, onların yerini almaz; eşik, yazıcının bildirdiği tam dereceyle karşılaştırılır."
 }

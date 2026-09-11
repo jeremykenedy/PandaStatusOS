@@ -344,5 +344,15 @@
   "ps_lighting_tg_lo_aria": "Température à l'extrémité froide, degrés Celsius",
   "ps_lighting_tg_hi": "Chaud à",
   "ps_lighting_tg_hi_aria": "Température à l'extrémité chaude, degrés Celsius",
-  "ps_lighting_tg_help": "Pour les états qui affichent le dégradé de température. Sous l'extrémité froide, la barre montre la couleur éteinte ; au-dessus de l'extrémité chaude, la couleur allumée."
+  "ps_lighting_tg_help": "Pour les états qui affichent le dégradé de température. Sous l'extrémité froide, la barre montre la couleur éteinte ; au-dessus de l'extrémité chaude, la couleur allumée.",
+  "ps_feature_hot_warning": "Alerte de chaleur",
+  "ps_feature_hot_warning_help": "Tant qu'une température atteint ou dépasse un seuil, la barre pulse d'une couleur par-dessus ce qu'elle affiche, dans les deux modes.",
+  "ps_feature_hot_warning_aria": "Alerte de chaleur",
+  "ps_lighting_hot_source": "Surveille",
+  "ps_lighting_hot_source_aria": "Quelle température l'alerte surveille",
+  "ps_lighting_hot_c": "Chaud dès",
+  "ps_lighting_hot_c_aria": "Seuil, degrés Celsius",
+  "ps_lighting_hot_colour": "Couleur",
+  "ps_lighting_hot_colour_aria": "Couleur de l'alerte",
+  "ps_lighting_hot_help": "La pulsation se superpose à l'effet ou à la couleur unie sans les remplacer ; le seuil est comparé au degré entier que l'imprimante rapporte."
 }

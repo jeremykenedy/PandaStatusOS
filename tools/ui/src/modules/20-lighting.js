@@ -25,7 +25,7 @@
   // Coloris is bound to our own attributes, never to its data-coloris: on load it wraps every
   // data-coloris field in a div of its own, which breaks Beer's field styling. wrap:false is
   // honoured only per bind call, so every bind here says it.
-  var COLOUR_FIELDS = '[data-ps-colour],[data-ps-block],[data-ps-fxc]';
+  var COLOUR_FIELDS = '[data-ps-colour],[data-ps-block],[data-ps-fxc],[data-ps-layerc]';
 
   function mode() { var m = PS.state.settings && PS.state.settings.current_mode; return (m === 0 || m === 1) ? m : null; }
   function entry() { var m = mode(); var l = PS.state.settings && PS.state.settings.list2; return (m !== null && l && l[m]) ? l[m] : null; }
@@ -44,7 +44,7 @@
   }
 
   function render() {
-    renderSb(); renderFx(); renderFxc(); renderFxp(); renderFxr(); renderTg();
+    renderSb(); renderFx(); renderFxc(); renderFxp(); renderFxr(); renderTg(); renderHot();
     var m = mode(), e = entry();
     if (m !== null && document.activeElement !== modeSel) modeSel.value = String(m);
     var isMusic = m === 0;
@@ -153,6 +153,39 @@
       inp.addEventListener('blur', function () { if (focused === inp) focused = null; });
       inp.addEventListener('change', function () { var o = {}; o[k] = Number(inp.value); post(o); });
     });
+  }
+  // A11: the hot warning's source, threshold and colour; a layer over whatever the bar shows
+  function renderHot() {
+    var tile = $('ps-lighting-hot'); if (!tile) return;
+    var f = PS.features;
+    var on = !!(f && f.features && f.features.hot_warning && f.config && f.config.hot_warning);
+    tile.hidden = !on;
+    if (!on) return;
+    var h = f.config.hot_warning, sel = $('ps-lighting-hot-source'), c = $('ps-lighting-hot-c'), inp = $('ps-lighting-hot-colour'), dot = $('ps-lighting-hot-colour-dot');
+    if (document.activeElement !== sel) sel.value = String(h.source);
+    if (focused !== c) c.value = h.threshold;
+    $('ps-lighting-hot-c-value').textContent = h.threshold + ' \u00B0C';
+    var css = toCss(h.colour);
+    if (focused !== inp) { inp.value = css; inp.dispatchEvent(new Event('input', { bubbles: false })); }
+    dot.style.background = css || '';
+  }
+  function wireHot() {
+    var sel = $('ps-lighting-hot-source'); if (!sel) return;
+    function post(patch) {
+      var f = PS.features; if (!f || !f.config || !f.config.hot_warning) return;
+      var h = { source: f.config.hot_warning.source, threshold: f.config.hot_warning.threshold, colour: f.config.hot_warning.colour };
+      Object.keys(patch).forEach(function (k) { h[k] = patch[k]; });
+      PS.api({ config: { hot_warning: h } });
+    }
+    sel.addEventListener('change', function () { post({ source: Number(sel.value) }); });
+    var c = $('ps-lighting-hot-c');
+    c.addEventListener('focus', function () { focused = c; });
+    c.addEventListener('blur', function () { if (focused === c) focused = null; });
+    c.addEventListener('change', function () { post({ threshold: Number(c.value) }); });
+    var inp = $('ps-lighting-hot-colour');
+    inp.addEventListener('focus', function () { focused = inp; });
+    inp.addEventListener('blur', function () { if (focused === inp) focused = null; });
+    inp.addEventListener('change', function () { var dev = toDevice(inp.value, 1); if (!dev) return; post({ colour: dev }); });
   }
   function wireFxb() {
     document.querySelectorAll('[data-ps-fxb]').forEach(function (inp) {
@@ -344,7 +377,7 @@
     bright.addEventListener('input', function () { brightVal.textContent = bright.value + '%'; });
     bright.addEventListener('change', function () { PS.send('settings', { rgb_info_brightness: Number(bright.value) }); });
     for (var i = 0; i < 3; i++) { wireSb(i); wireFx(i); }
-    wireFxc(); wireFxp(); wireFxr(); wireFxb(); wireTg();
+    wireFxc(); wireFxp(); wireFxr(); wireFxb(); wireTg(); wireHot();
     speed.addEventListener('input', function () { if (speed.disabled) return; speedTouched = true; speedVal.textContent = speed.value + '%'; });
     speed.addEventListener('change', function () { if (!speed.disabled) PS.send('settings', { rgb_info_speed: Number(speed.value) }); });
 
@@ -369,5 +402,5 @@
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', wire); else wire();
   PS.on('state', function () { render(); });
-  PS.on('features', function () { renderSb(); renderFx(); renderFxc(); renderFxp(); renderFxr(); renderTg(); });
+  PS.on('features', function () { renderSb(); renderFx(); renderFxc(); renderFxp(); renderFxr(); renderTg(); renderHot(); });
 })();

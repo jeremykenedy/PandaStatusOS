@@ -344,5 +344,15 @@
   "ps_lighting_tg_lo_aria": "冷端温度（摄氏度）",
   "ps_lighting_tg_hi": "热端",
   "ps_lighting_tg_hi_aria": "热端温度（摄氏度）",
-  "ps_lighting_tg_help": "用于显示温度渐变的状态。低于冷端时灯带显示熄灭色，高于热端时显示点亮色。"
+  "ps_lighting_tg_help": "用于显示温度渐变的状态。低于冷端时灯带显示熄灭色，高于热端时显示点亮色。",
+  "ps_feature_hot_warning": "高温警告",
+  "ps_feature_hot_warning_help": "只要某个温度达到或超过阈值，灯带就会在当前显示之上以一种颜色脉动，两种模式下都有效。",
+  "ps_feature_hot_warning_aria": "高温警告",
+  "ps_lighting_hot_source": "监视",
+  "ps_lighting_hot_source_aria": "警告监视哪个温度",
+  "ps_lighting_hot_c": "高温起点",
+  "ps_lighting_hot_c_aria": "阈值（摄氏度）",
+  "ps_lighting_hot_colour": "颜色",
+  "ps_lighting_hot_colour_aria": "警告颜色",
+  "ps_lighting_hot_help": "脉动叠加在效果或纯色之上而不是取代它们；阈值与打印机报告的整数温度比较。"
 }

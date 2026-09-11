@@ -344,5 +344,15 @@
   "ps_lighting_tg_lo_aria": "Temperatura na ponta fria, graus Celsius",
   "ps_lighting_tg_hi": "Quente em",
   "ps_lighting_tg_hi_aria": "Temperatura na ponta quente, graus Celsius",
-  "ps_lighting_tg_help": "Para os estados que mostram o gradiente de temperatura. Abaixo da ponta fria a barra mostra a cor apagada; acima da quente, a cor acesa."
+  "ps_lighting_tg_help": "Para os estados que mostram o gradiente de temperatura. Abaixo da ponta fria a barra mostra a cor apagada; acima da quente, a cor acesa.",
+  "ps_feature_hot_warning": "Aviso de calor",
+  "ps_feature_hot_warning_help": "Enquanto uma temperatura atingir ou passar de um limite, a barra pulsa uma cor por cima do que estiver mostrando, nos dois modos.",
+  "ps_feature_hot_warning_aria": "Aviso de calor",
+  "ps_lighting_hot_source": "Observa",
+  "ps_lighting_hot_source_aria": "Qual temperatura o aviso observa",
+  "ps_lighting_hot_c": "Quente a partir de",
+  "ps_lighting_hot_c_aria": "Limite, graus Celsius",
+  "ps_lighting_hot_colour": "Cor",
+  "ps_lighting_hot_colour_aria": "Cor do aviso",
+  "ps_lighting_hot_help": "O pulso fica por cima do efeito ou da cor sólida sem substituí-los; o limite é comparado com o grau inteiro que a impressora informa."
 }

@@ -10,11 +10,15 @@
  *     in this repository. Rendered like H2D from mode[0]'s colours. INFERENCE, placeholder.
  *   - Blocks: what a block maps to on the bar is an open question; ignored in the render.
  * What is a FEATURE, behind bits that default off: the effect engine in ps_fx.c (A2 onward),
- * rendered only in H2D and only while the bit is set. */
+ * rendered only in H2D and only while the bit is set; and the layers (A11 onward), drawn
+ * over whatever the base rendered, placeholder or effect, in both modes, each behind its bit. */
+#define PS_LAYER_FRAME_MS   33          /* a layer animates at thirty frames a second whatever the base does */
+#define PS_HOT_PERIOD_MS    2000        /* the hot warning's pulse, trough to trough */
 #include <string.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "esp_log.h"
+#include "esp_timer.h"
 #include "ps.h"
 
 static const char *TAG = "ps_effect";
@@ -40,17 +44,32 @@ static uint32_t render(void)
     int percent = g_ps.print_percent;
     uint8_t src = g_ps.cfg.temp_src < PS_TEMP_COUNT ? g_ps.cfg.temp_src : PS_TEMP_NOZZLE;
     int temp = g_ps.temp_c[src], temp_lo = g_ps.cfg.temp_lo, temp_hi = g_ps.cfg.temp_hi;
+
+    /* A11: the hot warning, decided under the same lock as the frame it sits over */
+    uint8_t hsrc = g_ps.cfg.hot_src < PS_TEMP_COUNT ? g_ps.cfg.hot_src : PS_TEMP_NOZZLE;
+    bool hot = (g_ps.cfg.features & PS_FEAT_HOT_WARNING) && g_ps.temp_c[hsrc] != PS_TEMP_NONE && g_ps.temp_c[hsrc] >= g_ps.cfg.hot_c;
+    ps_rgba_t hot_colour = g_ps.cfg.hot_colour;
     ps_unlock();
 
+    uint32_t wait;
     if (k.fx < 0) {
         /* the placeholder: the state's colour, solid, scaled. Music mode too; the sound path is unknown */
         ps_rgba_t px = scaled(k.colour, k.brightness);
         for (size_t i = 0; i < CONFIG_PS_LED_COUNT; i++) s_frame[i] = px;
-        return 33;                                 /* 30 fps */
+        wait = 33;                                 /* 30 fps */
+    } else {
+        ps_fx_in_t in = { .percent = percent, .temp_c = temp, .temp_lo = temp_lo, .temp_hi = temp_hi };
+        uint8_t b = ps_fx_ramp(&s_phase, k.brightness, k.bright_end);
+        wait = ps_fx_render(k.fx, k.colour, k.bg, b, k.speed, k.reverse, k.band, &in, &s_phase, s_frame, CONFIG_PS_LED_COUNT);
     }
-    ps_fx_in_t in = { .percent = percent, .temp_c = temp, .temp_lo = temp_lo, .temp_hi = temp_hi };
-    uint8_t b = ps_fx_ramp(&s_phase, k.brightness, k.bright_end);
-    return ps_fx_render(k.fx, k.colour, k.bg, b, k.speed, k.reverse, k.band, &in, &s_phase, s_frame, CONFIG_PS_LED_COUNT);
+
+    /* the layers, over the base, in time rather than in frames so a static base still pulses */
+    if (hot) {
+        uint32_t now = (uint32_t)(esp_timer_get_time() / 1000);
+        ps_fx_layer_pulse(s_frame, CONFIG_PS_LED_COUNT, hot_colour, 100, now, PS_HOT_PERIOD_MS);
+        if (wait > PS_LAYER_FRAME_MS) wait = PS_LAYER_FRAME_MS;
+    }
+    return wait;
 }
 
 static void effect_task(void *arg)

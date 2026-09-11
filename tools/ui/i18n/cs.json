@@ -344,5 +344,15 @@
   "ps_lighting_tg_lo_aria": "Teplota na studeném konci, stupně Celsia",
   "ps_lighting_tg_hi": "Horké při",
   "ps_lighting_tg_hi_aria": "Teplota na horkém konci, stupně Celsia",
-  "ps_lighting_tg_help": "Pro stavy zobrazující teplotní přechod. Pod studeným koncem lišta ukazuje zhasnutou barvu, nad horkým koncem svítící."
+  "ps_lighting_tg_help": "Pro stavy zobrazující teplotní přechod. Pod studeným koncem lišta ukazuje zhasnutou barvu, nad horkým koncem svítící.",
+  "ps_feature_hot_warning": "Varování před horkem",
+  "ps_feature_hot_warning_help": "Dokud teplota dosahuje prahu nebo jej překračuje, lišta pulzuje jednou barvou přes to, co právě ukazuje, v obou režimech.",
+  "ps_feature_hot_warning_aria": "Varování před horkem",
+  "ps_lighting_hot_source": "Sleduje",
+  "ps_lighting_hot_source_aria": "Kterou teplotu varování sleduje",
+  "ps_lighting_hot_c": "Horké od",
+  "ps_lighting_hot_c_aria": "Práh, stupně Celsia",
+  "ps_lighting_hot_colour": "Barva",
+  "ps_lighting_hot_colour_aria": "Barva varování",
+  "ps_lighting_hot_help": "Pulz leží přes efekt nebo plnou barvu a nenahrazuje je; práh se porovnává s celým stupněm, který tiskárna hlásí."
 }

@@ -344,5 +344,15 @@
   "ps_lighting_tg_lo_aria": "Temperatura all'estremo freddo, gradi Celsius",
   "ps_lighting_tg_hi": "Caldo a",
   "ps_lighting_tg_hi_aria": "Temperatura all'estremo caldo, gradi Celsius",
-  "ps_lighting_tg_help": "Per gli stati che mostrano la sfumatura di temperatura. Sotto l'estremo freddo la barra mostra il colore spento; sopra quello caldo, il colore acceso."
+  "ps_lighting_tg_help": "Per gli stati che mostrano la sfumatura di temperatura. Sotto l'estremo freddo la barra mostra il colore spento; sopra quello caldo, il colore acceso.",
+  "ps_feature_hot_warning": "Avviso di calore",
+  "ps_feature_hot_warning_help": "Finché una temperatura raggiunge o supera una soglia, la barra pulsa di un colore sopra ciò che sta mostrando, in entrambe le modalità.",
+  "ps_feature_hot_warning_aria": "Avviso di calore",
+  "ps_lighting_hot_source": "Controlla",
+  "ps_lighting_hot_source_aria": "Quale temperatura controlla l'avviso",
+  "ps_lighting_hot_c": "Caldo da",
+  "ps_lighting_hot_c_aria": "Soglia, gradi Celsius",
+  "ps_lighting_hot_colour": "Colore",
+  "ps_lighting_hot_colour_aria": "Colore dell'avviso",
+  "ps_lighting_hot_help": "La pulsazione si sovrappone all'effetto o al colore pieno senza sostituirli; la soglia è confrontata con il grado intero riportato dalla stampante."
 }

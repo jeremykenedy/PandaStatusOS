@@ -151,7 +151,7 @@ let STATE = null;
 let booting = false;                    // true while a "restart" is in progress
 let LANDED = null;                      // {build, page, until}: the image an ota_fw upload installed (PS_OTA_LANDS)
 let FEAT = null;                        // the clone's feature document (PS_CLONE); null until first asked
-const FEATURE_NAMES = ['state_brightness', 'state_effects', 'effect_colours', 'effect_params', 'effect_ramp', 'fx_progress', 'fx_progress_anim', 'fx_barber', 'fx_hue_ramp', 'fx_temp'];
+const FEATURE_NAMES = ['state_brightness', 'state_effects', 'effect_colours', 'effect_params', 'effect_ramp', 'fx_progress', 'fx_progress_anim', 'fx_barber', 'fx_hue_ramp', 'fx_temp', 'hot_warning'];
 const FX_SELECTABLE = 17;
 // which effect ids the bits allow, as the firmware's ps_fx_allowed(): the seventeen need only the
 // effect switch; the ones that read the print each wait for their own
@@ -163,10 +163,11 @@ function fxAllowed(id, features) {
 }
 const fxDefault = (colour) => ({ effect: 0, brightness: 50, speed: 100, bright_end: 0, opt: 0, aux: 0, colours: [colour, colour, '#000000FF', '#000000FF'] });
 function featDefaults() {
-  return { features: { state_brightness: false, state_effects: false, effect_colours: false, effect_params: false, effect_ramp: false, fx_progress: false, fx_progress_anim: false, fx_barber: false, fx_hue_ramp: false, fx_temp: false },
+  return { features: { state_brightness: false, state_effects: false, effect_colours: false, effect_params: false, effect_ramp: false, fx_progress: false, fx_progress_anim: false, fx_barber: false, fx_hue_ramp: false, fx_temp: false, hot_warning: false },
            config: { state_brightness: [[50, 50, 50], [50, 50, 50]],
                      state_effects: [fxDefault('#FFFFFFFF'), fxDefault('#FFFFFFFF'), fxDefault('#FF0000FF')],
-                     temp_gradient: { source: 0, lo: 25, hi: 250 } } };
+                     temp_gradient: { source: 0, lo: 25, hi: 250 },
+                     hot_warning: { source: 0, threshold: 50, colour: '#FF0000FF' } } };
 }
 const isColour = (s) => typeof s === 'string' && /^#[0-9A-Fa-f]{8}$/.test(s);
 // one stored effect from its JSON: every key optional, any unknown key or bad value refuses (as the firmware does)
@@ -194,7 +195,7 @@ function featApply(j) {
   if (f !== undefined && (typeof f !== 'object' || f === null || Array.isArray(f))) return false;
   if (c !== undefined && (typeof c !== 'object' || c === null || Array.isArray(c))) return false;
   if (f) for (const k of Object.keys(f)) if (!FEATURE_NAMES.includes(k) || typeof f[k] !== 'boolean') return false;
-  let sb = null, se = null, tg = null;
+  let sb = null, se = null, tg = null, hw = null;
   const after = Object.assign({}, FEAT.features, f || {});          // the bits this document leaves in force
   if (c) for (const k of Object.keys(c)) {
     const v = c[k];
@@ -216,12 +217,25 @@ function featApply(j) {
         out[kk] = n;
       }
       tg = out;
+    } else if (k === 'hot_warning') {
+      // A11: every key optional; the source one of three, the threshold 0..500, the colour #RRGGBBAA
+      if (!v || typeof v !== 'object' || Array.isArray(v)) return false;
+      const out = Object.assign({}, FEAT.config.hot_warning);
+      for (const kk of Object.keys(v)) {
+        const n = v[kk];
+        if (kk === 'colour') { if (!isColour(n)) return false; out.colour = n.toUpperCase(); continue; }
+        if (!Number.isInteger(n) || n < 0) return false;
+        if (kk === 'source') { if (n > 2) return false; } else if (kk === 'threshold') { if (n > 500) return false; } else return false;
+        out[kk] = n;
+      }
+      hw = out;
     } else return false;
   }
   if (f) for (const k of Object.keys(f)) FEAT.features[k] = f[k];
   if (sb) FEAT.config.state_brightness = sb;
   if (se) FEAT.config.state_effects = se;
   if (tg) FEAT.config.temp_gradient = tg;
+  if (hw) FEAT.config.hot_warning = hw;
   // a switch going off takes its effects with it (the firmware's rule): a stored id that needed
   // the bit falls back to solid; the seventeen wait for state_effects to come back
   for (const e of FEAT.config.state_effects) if (e.effect >= FX_SELECTABLE && !fxAllowed(e.effect, FEAT.features)) e.effect = 0;

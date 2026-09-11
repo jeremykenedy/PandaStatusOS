@@ -344,5 +344,15 @@
   "ps_lighting_tg_lo_aria": "Lämpötila kylmässä päässä, celsiusastetta",
   "ps_lighting_tg_hi": "Kuuma",
   "ps_lighting_tg_hi_aria": "Lämpötila kuumassa päässä, celsiusastetta",
-  "ps_lighting_tg_help": "Tiloille, jotka näyttävät lämpötilaliu'un. Kylmän pään alapuolella palkki näyttää sammuneen värin, kuuman pään yläpuolella palavan."
+  "ps_lighting_tg_help": "Tiloille, jotka näyttävät lämpötilaliu'un. Kylmän pään alapuolella palkki näyttää sammuneen värin, kuuman pään yläpuolella palavan.",
+  "ps_feature_hot_warning": "Kuumuusvaroitus",
+  "ps_feature_hot_warning_help": "Kun jokin lämpötila saavuttaa tai ylittää kynnyksen, palkki sykkii yhtä väriä sen päällä, mitä se näyttää, kummassakin tilassa.",
+  "ps_feature_hot_warning_aria": "Kuumuusvaroitus",
+  "ps_lighting_hot_source": "Tarkkailee",
+  "ps_lighting_hot_source_aria": "Mitä lämpötilaa varoitus tarkkailee",
+  "ps_lighting_hot_c": "Kuuma alkaen",
+  "ps_lighting_hot_c_aria": "Kynnys, celsiusastetta",
+  "ps_lighting_hot_colour": "Väri",
+  "ps_lighting_hot_colour_aria": "Varoituksen väri",
+  "ps_lighting_hot_help": "Syke on tehosteen tai yksivärisen palkin päällä eikä korvaa niitä; kynnystä verrataan tulostimen ilmoittamaan kokonaiseen asteeseen."
 }

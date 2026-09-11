@@ -75,6 +75,20 @@ static ps_rgba_t hsv_to_rgb(float h, float s, float v)
     return (ps_rgba_t){ (uint8_t)((r + m) * 255.0f + 0.5f), (uint8_t)((g + m) * 255.0f + 0.5f), (uint8_t)((b + m) * 255.0f + 0.5f), 0xFF };
 }
 
+void ps_fx_layer_pulse(ps_rgba_t *px, int n, ps_rgba_t colour, uint8_t bright100, uint32_t now_ms, uint32_t period_ms)
+{
+    if (period_ms == 0) period_ms = 1;
+    float f = (float)(now_ms % period_ms) / (float)period_ms;
+    float env = 0.5f - 0.5f * cosf(2.0f * (float)M_PI * f);      /* 0 at the trough, 1 at the peak, eased both ways */
+    ps_rgba_t top = { chan(colour.r, bright100), chan(colour.g, bright100), chan(colour.b, bright100), 0xFF };
+    for (int i = 0; i < n; i++) {
+        px[i].r = (uint8_t)(px[i].r + (top.r - px[i].r) * env + 0.5f);
+        px[i].g = (uint8_t)(px[i].g + (top.g - px[i].g) * env + 0.5f);
+        px[i].b = (uint8_t)(px[i].b + (top.b - px[i].b) * env + 0.5f);
+        px[i].a = 0xFF;
+    }
+}
+
 /* Which effects the bits allow. The first seventeen need no live input and come with A2;
  * the ones that read the print or the printer each wait for their own switch. */
 bool ps_fx_allowed(uint32_t features, int fx)

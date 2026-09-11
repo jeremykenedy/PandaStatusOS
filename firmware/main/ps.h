@@ -75,6 +75,10 @@ enum ps_fx {
 };
 #define PS_FX_SELECTABLE 17    /* A2 offers ids 0..16, the ones that need no live input; the rest arrive with their features */
 bool ps_fx_allowed(uint32_t features, int fx);   /* may this effect be chosen under these bits? */
+/* A11: a layer over whatever the base rendered, pure in time: one colour pulsing in and out
+ * on a fixed period, at its own brightness. At the trough the base shows untouched; at the
+ * peak the strip is the colour. */
+void ps_fx_layer_pulse(ps_rgba_t *px, int n, ps_rgba_t colour, uint8_t bright100, uint32_t now_ms, uint32_t period_ms);
 #define PS_FX_RAMP_STEPS 100
 
 /* one effect's stored parameters; the vent's model. Which fields are read depends on the

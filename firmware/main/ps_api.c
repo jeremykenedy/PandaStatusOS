@@ -33,6 +33,7 @@ static const struct { const char *name; uint32_t bit; } FEATURES[] = {
     { "fx_barber",        PS_FEAT_FX_BARBER },
     { "fx_hue_ramp",      PS_FEAT_FX_HUE_RAMP },
     { "fx_temp",          PS_FEAT_FX_TEMP },
+    { "hot_warning",      PS_FEAT_HOT_WARNING },
 };
 
 static cJSON *fx_json(const ps_fx_cfg_t *f)
@@ -95,6 +96,10 @@ char *ps_features_json(void)
     cJSON_AddNumberToObject(tg, "source", g_ps.cfg.temp_src);
     cJSON_AddNumberToObject(tg, "lo", g_ps.cfg.temp_lo);
     cJSON_AddNumberToObject(tg, "hi", g_ps.cfg.temp_hi);
+    cJSON *hw = cJSON_AddObjectToObject(cfg, "hot_warning");             /* A11: the layer's source, threshold and colour */
+    cJSON_AddNumberToObject(hw, "source", g_ps.cfg.hot_src);
+    cJSON_AddNumberToObject(hw, "threshold", g_ps.cfg.hot_c);
+    { char w[10]; ps_rgba_to_wire(g_ps.cfg.hot_colour, PS_MODE_H2D, w); cJSON_AddStringToObject(hw, "colour", w); }
     ps_unlock();
     char *s = cJSON_PrintUnformatted(doc);
     cJSON_Delete(doc);
@@ -122,7 +127,12 @@ int ps_features_apply(const char *json, size_t len)
     uint8_t sb[2][3]; bool have_sb = false;
     ps_fx_cfg_t fx[3]; bool have_fx = false;
     int tg_src, tg_lo, tg_hi; bool have_tg = false;
-    ps_lock(); uint32_t after = (g_ps.cfg.features | set) & ~clear; tg_src = g_ps.cfg.temp_src; tg_lo = g_ps.cfg.temp_lo; tg_hi = g_ps.cfg.temp_hi; ps_unlock();   /* the bits this document leaves in force; partial objects overlay the stored values */
+    int hw_src, hw_c; ps_rgba_t hw_colour; bool have_hw = false;
+    ps_lock();
+    uint32_t after = (g_ps.cfg.features | set) & ~clear;               /* the bits this document leaves in force */
+    tg_src = g_ps.cfg.temp_src; tg_lo = g_ps.cfg.temp_lo; tg_hi = g_ps.cfg.temp_hi;   /* partial objects overlay the stored values */
+    hw_src = g_ps.cfg.hot_src; hw_c = g_ps.cfg.hot_c; hw_colour = g_ps.cfg.hot_colour;
+    ps_unlock();
     if (cfg) {
         for (cJSON *it = cfg->child; it; it = it->next) {
             if (it->string && !strcmp(it->string, "state_effects")) {
@@ -153,6 +163,18 @@ int ps_features_apply(const char *json, size_t len)
                     else { cJSON_Delete(root); return -1; }
                 }
                 have_tg = true;
+            } else if (it->string && !strcmp(it->string, "hot_warning")) {
+                if (!cJSON_IsObject(it)) { cJSON_Delete(root); return -1; }
+                for (cJSON *k = it->child; k; k = k->next) {
+                    if (!k->string) { cJSON_Delete(root); return -1; }
+                    if (!strcmp(k->string, "colour")) { if (!cJSON_IsString(k) || !ps_rgba_from_wire(k->valuestring, &hw_colour)) { cJSON_Delete(root); return -1; } continue; }
+                    if (!cJSON_IsNumber(k) || k->valuedouble < 0) { cJSON_Delete(root); return -1; }
+                    int v = (int)k->valuedouble;
+                    if      (!strcmp(k->string, "source"))    { if (v >= PS_TEMP_COUNT) { cJSON_Delete(root); return -1; } hw_src = v; }
+                    else if (!strcmp(k->string, "threshold")) { if (v > PS_TEMP_MAX) { cJSON_Delete(root); return -1; } hw_c = v; }
+                    else { cJSON_Delete(root); return -1; }
+                }
+                have_hw = true;
             } else { cJSON_Delete(root); return -1; }         /* an unknown setting is refused, not ignored */
         }
     }
@@ -167,6 +189,9 @@ int ps_features_apply(const char *json, size_t len)
     if (have_fx && memcmp(g_ps.cfg.fx, fx, sizeof fx) != 0) { memcpy(g_ps.cfg.fx, fx, sizeof fx); changed = true; }
     if (have_tg && (g_ps.cfg.temp_src != tg_src || g_ps.cfg.temp_lo != tg_lo || g_ps.cfg.temp_hi != tg_hi)) {
         g_ps.cfg.temp_src = (uint8_t)tg_src; g_ps.cfg.temp_lo = (int16_t)tg_lo; g_ps.cfg.temp_hi = (int16_t)tg_hi; changed = true;
+    }
+    if (have_hw && (g_ps.cfg.hot_src != hw_src || g_ps.cfg.hot_c != hw_c || memcmp(&g_ps.cfg.hot_colour, &hw_colour, sizeof hw_colour) != 0)) {
+        g_ps.cfg.hot_src = (uint8_t)hw_src; g_ps.cfg.hot_c = (int16_t)hw_c; g_ps.cfg.hot_colour = hw_colour; changed = true;
     }
     /* a switch going off takes its effects with it: a stored id that needed the bit falls back to
      * solid, so what is stored is always something the bits in force can render, and the next

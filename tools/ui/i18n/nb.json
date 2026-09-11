@@ -344,5 +344,15 @@
   "ps_lighting_tg_lo_aria": "Temperatur i den kalde enden, grader Celsius",
   "ps_lighting_tg_hi": "Varmt ved",
   "ps_lighting_tg_hi_aria": "Temperatur i den varme enden, grader Celsius",
-  "ps_lighting_tg_help": "For tilstandene som viser temperaturovergangen. Under den kalde enden viser linjen den slukkede fargen, over den varme den tente."
+  "ps_lighting_tg_help": "For tilstandene som viser temperaturovergangen. Under den kalde enden viser linjen den slukkede fargen, over den varme den tente.",
+  "ps_feature_hot_warning": "Varmevarsel",
+  "ps_feature_hot_warning_help": "Så lenge en temperatur når eller passerer en terskel, pulserer linjen i én farge over det den viser, i begge modusene.",
+  "ps_feature_hot_warning_aria": "Varmevarsel",
+  "ps_lighting_hot_source": "Overvåker",
+  "ps_lighting_hot_source_aria": "Hvilken temperatur varselet overvåker",
+  "ps_lighting_hot_c": "Varmt fra",
+  "ps_lighting_hot_c_aria": "Terskel, grader Celsius",
+  "ps_lighting_hot_colour": "Farge",
+  "ps_lighting_hot_colour_aria": "Varselfarge",
+  "ps_lighting_hot_help": "Pulsen ligger over effekten eller den ensfargede linjen uten å erstatte dem; terskelen sammenlignes med den hele graden skriveren rapporterer."
 }

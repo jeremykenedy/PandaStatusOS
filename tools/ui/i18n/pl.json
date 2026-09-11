@@ -344,5 +344,15 @@
   "ps_lighting_tg_lo_aria": "Temperatura na zimnym końcu, stopnie Celsjusza",
   "ps_lighting_tg_hi": "Gorąco przy",
   "ps_lighting_tg_hi_aria": "Temperatura na gorącym końcu, stopnie Celsjusza",
-  "ps_lighting_tg_help": "Dla stanów pokazujących gradient temperatury. Poniżej zimnego końca pasek pokazuje kolor zgaszony, powyżej gorącego kolor świecący."
+  "ps_lighting_tg_help": "Dla stanów pokazujących gradient temperatury. Poniżej zimnego końca pasek pokazuje kolor zgaszony, powyżej gorącego kolor świecący.",
+  "ps_feature_hot_warning": "Ostrzeżenie o gorącu",
+  "ps_feature_hot_warning_help": "Dopóki temperatura osiąga lub przekracza próg, pasek pulsuje jednym kolorem nad tym, co pokazuje, w obu trybach.",
+  "ps_feature_hot_warning_aria": "Ostrzeżenie o gorącu",
+  "ps_lighting_hot_source": "Obserwuje",
+  "ps_lighting_hot_source_aria": "Którą temperaturę obserwuje ostrzeżenie",
+  "ps_lighting_hot_c": "Gorąco od",
+  "ps_lighting_hot_c_aria": "Próg, stopnie Celsjusza",
+  "ps_lighting_hot_colour": "Kolor",
+  "ps_lighting_hot_colour_aria": "Kolor ostrzeżenia",
+  "ps_lighting_hot_help": "Puls nakłada się na efekt lub jednolity kolor, nie zastępując ich; próg jest porównywany z pełnym stopniem, który zgłasza drukarka."
 }

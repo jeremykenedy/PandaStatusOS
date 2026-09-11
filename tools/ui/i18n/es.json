@@ -344,5 +344,15 @@
   "ps_lighting_tg_lo_aria": "Temperatura en el extremo frío, grados Celsius",
   "ps_lighting_tg_hi": "Caliente a",
   "ps_lighting_tg_hi_aria": "Temperatura en el extremo caliente, grados Celsius",
-  "ps_lighting_tg_help": "Para los estados que muestran el degradado de temperatura. Por debajo del extremo frío la barra muestra el color apagado; por encima del caliente, el encendido."
+  "ps_lighting_tg_help": "Para los estados que muestran el degradado de temperatura. Por debajo del extremo frío la barra muestra el color apagado; por encima del caliente, el encendido.",
+  "ps_feature_hot_warning": "Aviso de calor",
+  "ps_feature_hot_warning_help": "Mientras una temperatura alcance o supere un umbral, la barra pulsa un color sobre lo que esté mostrando, en ambos modos.",
+  "ps_feature_hot_warning_aria": "Aviso de calor",
+  "ps_lighting_hot_source": "Vigila",
+  "ps_lighting_hot_source_aria": "Qué temperatura vigila el aviso",
+  "ps_lighting_hot_c": "Caliente desde",
+  "ps_lighting_hot_c_aria": "Umbral, grados Celsius",
+  "ps_lighting_hot_colour": "Color",
+  "ps_lighting_hot_colour_aria": "Color del aviso",
+  "ps_lighting_hot_help": "El pulso se superpone al efecto o al color liso sin sustituirlos; el umbral se compara con el grado entero que informa la impresora."
 }

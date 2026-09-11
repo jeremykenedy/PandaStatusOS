@@ -344,5 +344,15 @@
   "ps_lighting_tg_lo_aria": "低温側の温度（摂氏）",
   "ps_lighting_tg_hi": "高温側",
   "ps_lighting_tg_hi_aria": "高温側の温度（摂氏）",
-  "ps_lighting_tg_help": "温度グラデーションを表示する状態向けです。低温側より低いとバーは消灯色、高温側より高いと点灯色になります。"
+  "ps_lighting_tg_help": "温度グラデーションを表示する状態向けです。低温側より低いとバーは消灯色、高温側より高いと点灯色になります。",
+  "ps_feature_hot_warning": "高温警告",
+  "ps_feature_hot_warning_help": "いずれかの温度がしきい値に達しているあいだ、バーは表示中のものの上に1色を脈打たせます。両方のモードで動作します。",
+  "ps_feature_hot_warning_aria": "高温警告",
+  "ps_lighting_hot_source": "監視する温度",
+  "ps_lighting_hot_source_aria": "警告が監視する温度",
+  "ps_lighting_hot_c": "高温とみなす温度",
+  "ps_lighting_hot_c_aria": "しきい値（摂氏）",
+  "ps_lighting_hot_colour": "色",
+  "ps_lighting_hot_colour_aria": "警告色",
+  "ps_lighting_hot_help": "脈動は効果や単色の上に重なり、置き換えはしません。しきい値はプリンターが報告する整数の温度と比較されます。"
 }

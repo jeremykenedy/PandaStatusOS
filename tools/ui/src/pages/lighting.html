@@ -319,6 +319,34 @@
       <div class="ps-tile-label" id="ps-lighting-fxc-help" data-ps-str="ps_lighting_fxc_help" hidden>The lit colour paints where the effect is on; the unlit colour paints where it is off, black when cleared. Printing means a job is running or paused.</div>
     </div>
 
+    <!-- A11, behind hot_warning: a pulse of one colour over whatever the bar shows, while a temperature is past its threshold -->
+    <div class="ps-tile" id="ps-lighting-hot" hidden>
+      <div class="ps-tile-label" data-ps-str="ps_feature_hot_warning">Hot warning</div>
+      <div class="ps-grid ps-grid-3">
+        <div>
+          <div class="ps-tile-label" data-ps-str="ps_lighting_hot_source">Watches</div>
+          <div class="field suffix border small" data-ps-no-i18n>
+            <select id="ps-lighting-hot-source" data-ps-str-aria="ps_lighting_hot_source_aria" aria-label="Which temperature the warning watches">
+            <option value="0" data-ps-str="ps_lighting_tsrc_nozzle">Nozzle</option>
+            <option value="1" data-ps-str="ps_lighting_tsrc_bed">Bed</option>
+            <option value="2" data-ps-str="ps_lighting_tsrc_chamber">Chamber</option>
+            </select>
+            <svg class="ps-icon"><use href="#ps-icon-chevron-down"/></svg>
+          </div>
+        </div>
+        <div>
+          <div class="ps-row"><span class="ps-tile-label" data-ps-str="ps_lighting_hot_c">Hot from</span><span class="max"></span><span class="ps-tile-label" id="ps-lighting-hot-c-value" data-ps-no-i18n>—</span></div>
+          <label class="slider" data-ps-no-i18n><input type="range" min="0" max="300" step="5" id="ps-lighting-hot-c" data-ps-str-aria="ps_lighting_hot_c_aria" aria-label="Threshold, degrees Celsius"><span></span></label>
+        </div>
+        <label class="field prefix border small ps-colour-field" data-ps-no-i18n>
+          <span class="ps-dot" id="ps-lighting-hot-colour-dot"></span>
+          <input type="text" id="ps-lighting-hot-colour" data-ps-layerc="hot" data-ps-str-aria="ps_lighting_hot_colour_aria" aria-label="Warning colour">
+          <span class="helper" data-ps-str="ps_lighting_hot_colour">Colour</span>
+        </label>
+      </div>
+      <div class="ps-tile-label" data-ps-str="ps_lighting_hot_help">The pulse sits over the effect or the solid colour rather than replacing it; the threshold is compared with the whole degree the printer reports.</div>
+    </div>
+
     <div class="ps-tile" id="ps-lighting-colours">
       <div class="ps-tile-label" data-ps-str="ps_lighting_colours">State colours</div>
       <div class="ps-grid ps-grid-2" data-ps-no-i18n>

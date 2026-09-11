@@ -344,5 +344,15 @@
   "ps_lighting_tg_lo_aria": "차가운 쪽 온도(섭씨)",
   "ps_lighting_tg_hi": "뜨거운 쪽",
   "ps_lighting_tg_hi_aria": "뜨거운 쪽 온도(섭씨)",
-  "ps_lighting_tg_help": "온도 그라데이션을 보여 주는 상태용입니다. 차가운 쪽보다 낮으면 막대는 꺼진 색, 뜨거운 쪽보다 높으면 켜진 색을 보여 줍니다."
+  "ps_lighting_tg_help": "온도 그라데이션을 보여 주는 상태용입니다. 차가운 쪽보다 낮으면 막대는 꺼진 색, 뜨거운 쪽보다 높으면 켜진 색을 보여 줍니다.",
+  "ps_feature_hot_warning": "고온 경고",
+  "ps_feature_hot_warning_help": "어떤 온도가 임계값에 이르거나 넘는 동안, 막대는 표시 중인 것 위에 한 색을 맥동시킵니다. 두 모드 모두에서 동작합니다.",
+  "ps_feature_hot_warning_aria": "고온 경고",
+  "ps_lighting_hot_source": "감시 대상",
+  "ps_lighting_hot_source_aria": "경고가 감시하는 온도",
+  "ps_lighting_hot_c": "고온 기준",
+  "ps_lighting_hot_c_aria": "임계값(섭씨)",
+  "ps_lighting_hot_colour": "색",
+  "ps_lighting_hot_colour_aria": "경고 색",
+  "ps_lighting_hot_help": "맥동은 효과나 단색 위에 겹쳐지며 대체하지 않습니다. 임계값은 프린터가 보고하는 정수 온도와 비교됩니다."
 }

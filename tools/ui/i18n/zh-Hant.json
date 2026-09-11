@@ -344,5 +344,15 @@
   "ps_lighting_tg_lo_aria": "冷端溫度（攝氏度）",
   "ps_lighting_tg_hi": "熱端",
   "ps_lighting_tg_hi_aria": "熱端溫度（攝氏度）",
-  "ps_lighting_tg_help": "用於顯示溫度漸變的狀態。低於冷端時燈帶顯示熄滅色，高於熱端時顯示點亮色。"
+  "ps_lighting_tg_help": "用於顯示溫度漸變的狀態。低於冷端時燈帶顯示熄滅色，高於熱端時顯示點亮色。",
+  "ps_feature_hot_warning": "高溫警告",
+  "ps_feature_hot_warning_help": "只要某個溫度達到或超過門檻，燈帶就會在目前顯示之上以一種顏色脈動，兩種模式下都有效。",
+  "ps_feature_hot_warning_aria": "高溫警告",
+  "ps_lighting_hot_source": "監視",
+  "ps_lighting_hot_source_aria": "警告監視哪個溫度",
+  "ps_lighting_hot_c": "高溫起點",
+  "ps_lighting_hot_c_aria": "門檻（攝氏度）",
+  "ps_lighting_hot_colour": "顏色",
+  "ps_lighting_hot_colour_aria": "警告顏色",
+  "ps_lighting_hot_help": "脈動疊加在效果或純色之上而不是取代它們；門檻與印表機回報的整數溫度比較。"
 }

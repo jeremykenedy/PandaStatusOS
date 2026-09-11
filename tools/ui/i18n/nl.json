@@ -344,5 +344,15 @@
   "ps_lighting_tg_lo_aria": "Temperatuur aan het koude uiteinde, graden Celsius",
   "ps_lighting_tg_hi": "Heet bij",
   "ps_lighting_tg_hi_aria": "Temperatuur aan het hete uiteinde, graden Celsius",
-  "ps_lighting_tg_help": "Voor de toestanden die het temperatuurverloop tonen. Onder het koude uiteinde toont de balk de gedoofde kleur, boven het hete uiteinde de brandende."
+  "ps_lighting_tg_help": "Voor de toestanden die het temperatuurverloop tonen. Onder het koude uiteinde toont de balk de gedoofde kleur, boven het hete uiteinde de brandende.",
+  "ps_feature_hot_warning": "Hittewaarschuwing",
+  "ps_feature_hot_warning_help": "Zolang een temperatuur een drempel bereikt of overschrijdt, pulseert de balk in een kleur over wat hij toont, in beide standen.",
+  "ps_feature_hot_warning_aria": "Hittewaarschuwing",
+  "ps_lighting_hot_source": "Bewaakt",
+  "ps_lighting_hot_source_aria": "Welke temperatuur de waarschuwing bewaakt",
+  "ps_lighting_hot_c": "Heet vanaf",
+  "ps_lighting_hot_c_aria": "Drempel, graden Celsius",
+  "ps_lighting_hot_colour": "Kleur",
+  "ps_lighting_hot_colour_aria": "Waarschuwingskleur",
+  "ps_lighting_hot_help": "De puls ligt over het effect of de effen kleur en vervangt ze niet; de drempel wordt vergeleken met de hele graad die de printer meldt."
 }

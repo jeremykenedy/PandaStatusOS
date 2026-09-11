@@ -18,6 +18,9 @@ Everything so far. No release has been made and no device has been flashed.
 - The clone's own JSON route, `/api/features`: the page discovers a clone by its 200 where
   the factory answers 302, and shows a Features card on the System page only then. The
   socket document stays the factory's (D-033).
+- A11, the hot warning, behind `hot_warning`: the first layer, a pulse of one colour over
+  whatever the bar shows while the nozzle, bed or chamber is at or past a threshold, in
+  both modes (D-037).
 - A10, the temperature gradient, behind `fx_temp`: one colour between the unlit and the
   lit colour, following the nozzle, bed or chamber temperature between two configurable
   ends; the three temperatures from the report reach the engine. The config blob moves to

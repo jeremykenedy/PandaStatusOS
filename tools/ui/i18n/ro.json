@@ -344,5 +344,15 @@
   "ps_lighting_tg_lo_aria": "Temperatura la capătul rece, grade Celsius",
   "ps_lighting_tg_hi": "Fierbinte la",
   "ps_lighting_tg_hi_aria": "Temperatura la capătul fierbinte, grade Celsius",
-  "ps_lighting_tg_help": "Pentru stările care arată gradientul de temperatură. Sub capătul rece bara arată culoarea stinsă; peste capătul fierbinte, culoarea aprinsă."
+  "ps_lighting_tg_help": "Pentru stările care arată gradientul de temperatură. Sub capătul rece bara arată culoarea stinsă; peste capătul fierbinte, culoarea aprinsă.",
+  "ps_feature_hot_warning": "Avertizare de căldură",
+  "ps_feature_hot_warning_help": "Cât timp o temperatură atinge sau depășește un prag, bara pulsează într-o culoare peste ceea ce arată, în ambele moduri.",
+  "ps_feature_hot_warning_aria": "Avertizare de căldură",
+  "ps_lighting_hot_source": "Urmărește",
+  "ps_lighting_hot_source_aria": "Ce temperatură urmărește avertizarea",
+  "ps_lighting_hot_c": "Fierbinte de la",
+  "ps_lighting_hot_c_aria": "Prag, grade Celsius",
+  "ps_lighting_hot_colour": "Culoare",
+  "ps_lighting_hot_colour_aria": "Culoarea avertizării",
+  "ps_lighting_hot_help": "Pulsul stă peste efect sau peste culoarea plină fără a le înlocui; pragul se compară cu gradul întreg raportat de imprimantă."
 }

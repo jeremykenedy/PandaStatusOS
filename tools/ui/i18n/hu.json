@@ -344,5 +344,15 @@
   "ps_lighting_tg_lo_aria": "Hőmérséklet a hideg végen, Celsius-fok",
   "ps_lighting_tg_hi": "Forró",
   "ps_lighting_tg_hi_aria": "Hőmérséklet a forró végen, Celsius-fok",
-  "ps_lighting_tg_help": "A hőmérséklet-átmenetet mutató állapotokhoz. A hideg vég alatt a sáv a sötét színt mutatja, a forró vég fölött a világítót."
+  "ps_lighting_tg_help": "A hőmérséklet-átmenetet mutató állapotokhoz. A hideg vég alatt a sáv a sötét színt mutatja, a forró vég fölött a világítót.",
+  "ps_feature_hot_warning": "Forróság-figyelmeztetés",
+  "ps_feature_hot_warning_help": "Amíg egy hőmérséklet eléri vagy meghaladja a küszöböt, a sáv egy színnel lüktet afölött, amit épp mutat, mindkét módban.",
+  "ps_feature_hot_warning_aria": "Forróság-figyelmeztetés",
+  "ps_lighting_hot_source": "Figyeli",
+  "ps_lighting_hot_source_aria": "Melyik hőmérsékletet figyeli a figyelmeztetés",
+  "ps_lighting_hot_c": "Forró ettől",
+  "ps_lighting_hot_c_aria": "Küszöb, Celsius-fok",
+  "ps_lighting_hot_colour": "Szín",
+  "ps_lighting_hot_colour_aria": "A figyelmeztetés színe",
+  "ps_lighting_hot_help": "A lüktetés az effekt vagy az egyszínű sáv fölé kerül, nem váltja fel őket; a küszöböt a nyomtató által jelentett egész fokkal veti össze."
 }
