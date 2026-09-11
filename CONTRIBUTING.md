@@ -21,9 +21,13 @@ The rest of the tree refers to these by name.
 
 1. **The flashing rule.** Nothing is flashed without the maintainer saying so in that
    message, cable in hand or install address in hand. `firmware/SAFETY.md` is the gate.
-2. **The secret-hygiene rule.** The repository is public. Flash dumps, the NVS
-   partition, captures and credentials live outside the tree; documents name a
+2. **The secret-hygiene rule.** The repository is public. Flash dumps, captures and
+   credentials live under the gitignored `private/`, never in a commit; documents name a
    credential by placeholder only; the hook scans every commit, inside gzip members too.
+   A full flash image contains NVS, which holds the Wi-Fi password, the printer serial and
+   its access code in plaintext, so `private/backups/` is ignored a second time by its own
+   rule and the hook refuses ignored paths, the `.bin` extension and NVS-shaped names.
+   `private/backups/NOTICE.txt` says so where somebody will actually read it.
 3. **One author, no trailers.** Every commit is the maintainer's, with no co-author or
    generated-with trailer in any message, comment or document.
 4. **Working areas are never committed.** `private/` holds working material, notes and
@@ -153,8 +157,9 @@ could have gone another way, with its alternatives and its reversal cost.
 
 ## What lives outside the tree
 
-Flash dumps, the NVS partition, reference video and anything confidential live outside
-the repository entirely. Working notes, material and secrets live in `private/`; it is
-gitignored and refused by the hook. Credentials, MAC
+Working notes, harness dependencies, secrets, reference video and full flash images all
+live under `private/`, which is gitignored and refused by the hook. Flash images go to
+`private/backups/`, which the flash tools use by default so that whoever runs them gets
+their own images under their own checkout. Nothing there is ever committed. Credentials, MAC
 addresses and serial numbers are referred to in documents by placeholder only:
 `<WIFI_SSID>`, `<PRINTER_SN>`, never by value.

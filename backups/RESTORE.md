@@ -95,7 +95,8 @@ Keep the `.broken-` copy until you are certain. Disk is cheap.
 
 ## A.6 What the tarball does NOT contain
 
-- **Flash dumps.** They live at `/Users/jeremykenedy/backups/PandaStatus/` and are never
+- **Flash dumps.** They live at `private/backups/` inside the checkout, gitignored and
+  refused by the hook, and are never
   inside the repo tree, so they are never inside a repo tarball. See Part B.
 - **The NVS partition.** Same location, same rule, and it holds live credentials.
 - **The `private/` contents.** Gitignored; present on disk and therefore in the tarball,
@@ -143,11 +144,11 @@ What IS known today, and where it was established:
 | Flash size | **`<PENDING DUMP>`** | nothing in this repo establishes it; `flash-id` at the bench |
 | Partition table | **`<PENDING DUMP>`** | parsed from the dump at offset 0x8000 by `tools/fw/flashimage.py` |
 | Stock app's IDF version | **`<PENDING DUMP>`** | `esp_app_desc` in the dump, printed by `preflight.sh` |
-| Backup root | `/Users/jeremykenedy/backups/PandaStatus/` | `docs/PLAN.md`, Phase 0 |
+| Backup root | `private/backups/` in the checkout, or `PS_BACKUPS_DIR` | `docs/PLAN.md`, Phase 0 |
 
 ## B.1 What a complete backup set looks like
 
-All under `/Users/jeremykenedy/backups/PandaStatus/`, **outside every repository**, written
+All under `private/backups/`, **gitignored and refused by the pre-commit hook**, written
 and checked by `tools/fw/golden.sh`:
 
 ```

@@ -11,9 +11,10 @@
 #       taken BEFORE anything is written. Read-only on the device.
 #   tools/fw/golden.sh verify <image.bin>
 #       hash it against its .sha256 and parse it again.
-#   tools/fw/golden.sh copy <image.bin> <dest-dir>
+#   tools/fw/golden.sh copy <image.bin> <dest-dir | host:/dest-dir>
 #       the off-machine copy: copy it, hash it THERE, record path and hash in OFFMACHINE.tsv
-#       beside the source. preflight.sh check 4 reads that record.
+#       beside the source. preflight.sh check 4 reads that record. A destination of the form
+#       host:/path goes over ssh, which is what "off this machine" usually means.
 #
 # The rules, from firmware/SAFETY.md, each one paid for on the Panda Vent:
 #   - a golden is taken BEFORE any flash, never after. A backup taken after the damage is
@@ -32,7 +33,13 @@
 # size, written once and checked on every later USB read), <root>/*/OFFMACHINE.tsv.
 set -uo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
-ROOT="${PS_BACKUPS_DIR:-/Users/jeremykenedy/backups/PandaStatus}"
+# The backup root. It defaults to the repository's own gitignored working area, so whoever
+# runs this gets their images under their own checkout instead of a path with somebody
+# else's name in it. Goldens are never committed and cannot be: private/ is ignored,
+# private/backups/ is ignored again, and the pre-commit hook refuses ignored paths, the
+# .bin extension and anything named like an NVS artifact. PS_BACKUPS_DIR relocates it,
+# which is how the test suite points the tools at synthetic data.
+ROOT="${PS_BACKUPS_DIR:-$(cd "$HERE/../.." && pwd)/private/backups}"
 FI="python3 $HERE/flashimage.py"
 MODE="${1:-}"; shift || true
 NOTE=""; PORT=""; READS=3; STOCK=0
@@ -140,7 +147,26 @@ verify)
     $FI inspect "$F"
     ;;
 copy)
-    F="${1:-}"; DEST="${2:-}"; [ -f "$F" ] && [ -n "$DEST" ] || die "usage: golden.sh copy <image.bin> <dest-dir>"
+    F="${1:-}"; DEST="${2:-}"; [ -f "$F" ] && [ -n "$DEST" ] || die "usage: golden.sh copy <image.bin> <dest-dir | host:/dest-dir>"
+    # A destination with a colon and no local directory of that name is a host: scp it and
+    # hash it over there, which is the whole point of an off-machine copy. The remote may
+    # spell the hasher either way, so ask it for both.
+    case "$DEST" in
+      *:*) if [ ! -d "$DEST" ]; then
+             RHOST="${DEST%%:*}"; RPATH="${DEST#*:}"; RT="$RPATH/$(basename "$F")"
+             ssh -o BatchMode=yes "$RHOST" "mkdir -p '$RPATH'" || die "cannot create $RPATH on $RHOST"
+             ssh -o BatchMode=yes "$RHOST" "test -e '$RT'" && die "$DEST/$(basename "$F") already exists; nothing is overwritten"
+             scp -q "$F" "$RHOST:$RT" && scp -q "${F%.bin}.sha256" "$RHOST:${RT%.bin}.sha256" || die "copy to $RHOST failed"
+             SRC="$(awk '{print $1}' "${F%.bin}.sha256")"
+             THERE="$(ssh -o BatchMode=yes "$RHOST" "sha256sum '$RT' 2>/dev/null || shasum -a 256 '$RT'" | awk '{print $1}')"
+             [ -n "$THERE" ] || die "could not hash the copy on $RHOST; it is left in place, verify it by hand"
+             [ "$SRC" = "$THERE" ] || die "the copy hashes differently on $RHOST; it is left in place, do not trust it"
+             ssh -o BatchMode=yes "$RHOST" "chmod 444 '$RT' '${RT%.bin}.sha256'" || true
+             printf '%s\t%s\t%s\t%s\n' "$THERE" "$RHOST:$RT" "$(date +%Y-%m-%dT%H:%M:%S%z)" "$(hostname)" >> "$(dirname "$F")/OFFMACHINE.tsv"
+             echo "copied and re-hashed on $RHOST: $RT"; echo "recorded in $(dirname "$F")/OFFMACHINE.tsv"
+             exit 0
+           fi ;;
+    esac
     mkdir -p "$DEST" || die "cannot create $DEST"
     T="$DEST/$(basename "$F")"; [ -e "$T" ] && die "$T already exists; nothing is overwritten"
     cp "$F" "$T" && cp "${F%.bin}.sha256" "${T%.bin}.sha256" || die "copy failed"

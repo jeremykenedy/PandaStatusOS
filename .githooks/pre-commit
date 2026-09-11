@@ -50,7 +50,7 @@ fi
 # ---------------------------------------------------------------------------
 BLOB_HITS="$(printf '%s\n' "$STAGED" | grep -Ei '\.(bin|dump|img|nvs|hex|elf)$' || true)"
 if [ -n "$BLOB_HITS" ]; then
-    fail "firmware blobs are staged. Dumps live outside the repo."
+    fail "firmware blobs are staged. A dump never enters a commit, wherever it is kept."
     printf '%s\n' "$BLOB_HITS" | sed 's/^/        /' >&2
 fi
 

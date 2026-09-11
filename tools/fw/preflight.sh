@@ -26,6 +26,12 @@
 set -uo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
 ROOT="${PS_REPO_ROOT:-$(cd "$HERE/../.." && pwd)}"
-BACKUPS="${PS_BACKUPS_DIR:-/Users/jeremykenedy/backups/PandaStatus}"
+# The backup root. It defaults to the repository's own gitignored working area, so whoever
+# runs this gets their images under their own checkout instead of a path with somebody
+# else's name in it. Goldens are never committed and cannot be: private/ is ignored,
+# private/backups/ is ignored again, and the pre-commit hook refuses ignored paths, the
+# .bin extension and anything named like an NVS artifact. PS_BACKUPS_DIR relocates it,
+# which is how the test suite points the tools at synthetic data.
+BACKUPS="${PS_BACKUPS_DIR:-$ROOT/private/backups}"
 echo "preflight: stock dump at $BACKUPS/stock, repository at $ROOT"
 exec python3 "$HERE/flashimage.py" preflight --backups "$BACKUPS" --repo "$ROOT"

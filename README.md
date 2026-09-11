@@ -267,8 +267,28 @@ tools/fw/golden.sh usb --stock --reads 3
 ```
 
 Three reads of the whole flash over the cable, two of which must agree, hashed, parsed
-and set read-only, plus one copy off this machine. `tools/fw/preflight.sh` refuses every
-install until that is complete and verified, and it has no override.
+and set read-only. `tools/fw/preflight.sh` refuses every install until that is complete
+and verified, and it has no override.
+
+**Where it writes.** `private/backups/stock/`, inside your own checkout. That directory is
+gitignored twice over and the pre-commit hook refuses ignored paths, the `.bin` extension
+and anything named like an NVS artifact, so an image cannot reach a commit even with
+`git add -f`. `PS_BACKUPS_DIR` moves the root if you would rather keep it elsewhere.
+
+**Read `private/backups/NOTICE.txt` once.** A full image contains the NVS partition, which
+holds your Wi-Fi password, your printer's serial number and its access code in plaintext.
+Treat the file as that list written down.
+
+**Then put a copy somewhere that is not this machine**, which is the step the gate checks:
+
+```bash
+tools/fw/golden.sh copy private/backups/stock/GOLDEN-<stamp>-full-4MB.bin /Volumes/<drive>/panda
+tools/fw/golden.sh copy private/backups/stock/GOLDEN-<stamp>-full-4MB.bin you@nas:/path/panda
+```
+
+Either form copies the image, hashes it again at the destination, refuses the copy if the
+two hashes differ, and records where it went. No P2 image is published by anyone, so this
+copy is the only thing standing between a dead flash and a dead device.
 
 ### First Install, Over The Network
 
@@ -299,10 +319,27 @@ after and says FLASHED or NOT LANDED.
 
 ### Going Back
 
-Three ways, in order of how much they write, all in
+Three ways, in order of how much they write, all spelled out with every offset in
 [backups/RESTORE.md](backups/RESTORE.md): the factory app back over the network with no
 cable, the factory app into one slot over the cable, and the whole image back over the
-cable, which is the only one that touches the bootloader. `GET /backup` takes a fresh full
+cable, which is the only one that touches the bootloader.
+
+The last of those, the one that puts a unit back exactly as it left the factory, is a
+single command against the image you took:
+
+```bash
+# verify what you are about to write, first, every time
+tools/fw/golden.sh verify private/backups/stock/GOLDEN-<stamp>-full-4MB.bin
+
+. ~/esp/esp-idf/export.sh
+python3 -m esptool --chip esp32c3 --port <YOUR-PORT> --baud 460800 \
+  write_flash 0x0 private/backups/stock/GOLDEN-<stamp>-full-4MB.bin
+```
+
+That writes the bootloader, the partition table, both app slots and NVS, so it restores
+your Wi-Fi and printer settings along with the firmware. Esptool version 5 spells the
+subcommand `write-flash`; version 4 spells it `write_flash`. Do not run it against an
+image whose hash you have not just checked. `GET /backup` takes a fresh full
 image over Wi-Fi in seconds, so every later restore point costs nothing. The factory image
 is the vendor's and is not redistributed here; the copy you took is the only one there is.
 
@@ -366,7 +403,7 @@ moved no layout. [docs/CONFIG.md](docs/CONFIG.md) has every key, its range and i
 | `docs/` | everything above, plus the screenshots |
 | `backups/` | the restore document and the stock capture run sheet; the dumps live outside the tree |
 | `.githooks/` | the pre-commit hook that keeps secrets and vendor material out |
-| `private/` | gitignored: working notes, harness dependencies, and anything confidential |
+| `private/` | gitignored: working notes, harness dependencies, and `backups/`, where full flash images are written |
 
 ## Testing
 
