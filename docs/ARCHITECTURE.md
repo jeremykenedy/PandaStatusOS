@@ -119,7 +119,7 @@ fetch path is one build flag and no call site changes (D-016, D-025).
 | `tools/ui/harness/contrast.js` | every page, both themes, both widths, WCAG ratios from composited grounds |
 | `tools/ui/harness/resilience.js` | one mock lie per sweep row |
 | `tools/ui/harness/sweep.sh` | the one table of harness, fixture and environment |
-| `firmware/test/host/` | the config module compiled on the host against a fake NVS |
+| `firmware/test/host/` | the config and state modules compiled on the host against a fake NVS and the IDF's cJSON |
 | `tools/fw/gen_partitions.py` | the partition table from one number |
 | `tools/art/gen_marks.py` | the marks from primitives, with `--check` |
 | `tools/residue-sweep.sh`, `tools/test-hook.sh` | the clean-room sweep and the hook's suite |

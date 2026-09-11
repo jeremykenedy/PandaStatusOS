@@ -70,7 +70,10 @@ make test-fw
 ```
 
 Compiles the real `firmware/main/ps_cfg.c` against stub headers and a fake NVS with
-plain `gcc`, no toolchain, and runs 32 assertions.
+plain `gcc`, no toolchain, and runs 32 assertions. When an ESP-IDF checkout is present
+(`IDF_PATH`, else `~/esp/esp-idf`) it also compiles the real `ps_state.c` with the IDF's
+own cJSON and the other modules replaced by recorders, and runs 41 more: the six-root
+document's shape and every inbound frame's effect on the state.
 
 ## The marks
 

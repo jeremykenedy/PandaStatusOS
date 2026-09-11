@@ -178,7 +178,7 @@ only one there is.
 | Command | What it proves |
 |---|---|
 | `tools/ui/harness/sweep.sh` | every page against the mock at both themes and both widths, every control's exact wire frame, contrast on every page, and one row per lie the device can tell (30 rows) |
-| `make test-fw` | the config module's load, save, defaults, clamps and migrations, on the host |
+| `make test-fw` | on the host: the config module's load, save, defaults, clamps and migrations (32 assertions), and the state module's six-root document and inbound dispatcher against the protocol document (41) |
 | `make test-hook` | the pre-commit hook's regression suite |
 | `make residue` | the tracked tree carries nothing of the vendor's expression |
 | `python3 tools/ui/build/build.py --check` | the committed page is exactly what the build produces |
