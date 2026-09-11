@@ -15,7 +15,7 @@
 # the whole-image restore in backups/RESTORE.md, and none that erases the chip.
 #
 # Gate: tools/fw/preflight.sh first, then the chip must be an ESP32-C3 with the recorded
-# flash size and the recorded MAC. Rule 0 governs the write: it runs only when the
+# flash size and the recorded MAC. The flashing rule governs the write: it runs only when the
 # maintainer says so in that message.
 set -uo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
@@ -71,7 +71,7 @@ fi
 read -r OFFSET SIZE <<< "$(echo "$SLOTS_JSON" | python3 -c 'import json,sys; s=[x for x in json.load(sys.stdin) if x[0]==sys.argv[1]]; print(s[0][1], s[0][2]) if s else print("", "")' "$SLOT")"
 [ -n "$OFFSET" ] || die "no app slot named $SLOT in the stock table"
 [ "$IMG_SIZE" -le "$SIZE" ] || die "the image ($IMG_SIZE bytes) does not fit slot $SLOT ($SIZE bytes)"
-say "writing $IMG_SIZE bytes to $SLOT at $(printf '0x%x' "$OFFSET") (Rule 0: only because the maintainer said so in this message)"
+say "writing $IMG_SIZE bytes to $SLOT at $(printf '0x%x' "$OFFSET") (the flashing rule: only because the maintainer said so in this message)"
 $ESPTOOL --chip esp32c3 --port "$PORT" -b 460800 --before default_reset --after hard_reset write-flash "$(printf '0x%x' "$OFFSET")" "$BIN" || die "write failed; read firmware/SAFETY.md, 'if something goes wrong'"
 BACK="$(mktemp)"
 $ESPTOOL --chip esp32c3 --port "$PORT" -b 460800 --before default_reset --after hard_reset read-flash "$(printf '0x%x' "$OFFSET")" "$IMG_SIZE" "$BACK" >/dev/null 2>&1 || die "read-back failed"

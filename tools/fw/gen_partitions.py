@@ -5,7 +5,7 @@
     python3 tools/fw/gen_partitions.py --flash 16MB --check   # compares, exit 1 on drift
 
 The flash size of the Panda Status P2 is UNKNOWN until Phase 0 reads it off the device
-(CLAUDE.md, Phase 0 b and e). No number in this repository establishes it: the 0x480000,
+(docs/PLAN.md, Phase 0). No number in this repository establishes it: the 0x480000,
 0x6E0000 and 0x180000 upload caps in the factory page are shared framework constants
 (docs/protocol-websocket.md, "The 0x480000 question"). The committed CSV is PROVISIONAL and
 says so in its header; regenerating for the real size is this one command.

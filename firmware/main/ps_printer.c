@@ -13,7 +13,7 @@
  *
  * What the report says about the print, and how it maps to the bar's three states, is NOT
  * a fact in this repository: the MQTT capture that would establish the field names has not
- * run (standing rule 9). The parser below looks for "print"."gcode_state" and maps it,
+ * run (the harnesses never touch hardware). The parser below looks for "print"."gcode_state" and maps it,
  * marked INFERENCE, in one function that the capture will correct.
  *
  * printer.state values and meanings are FACT (protocol doc, Enumerations); which transport

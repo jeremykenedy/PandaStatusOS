@@ -13,14 +13,38 @@ sha256 values. Those are facts about how the device talks, and a clone has to sp
 them. Their **expression** is what stays out: how they wrote it.
 
 A shared misspelling is the fingerprint that proves copying. If one appears, it is a
-defect, not a coincidence. The full rule is Rule 6 in [CLAUDE.md](CLAUDE.md).
+defect, not a coincidence. The residue sweep below is how the rule is enforced.
+
+## The standing rules
+
+The rest of the tree refers to these by name.
+
+1. **The flashing rule.** Nothing is flashed without the maintainer saying so in that
+   message, cable in hand or install address in hand. `firmware/SAFETY.md` is the gate.
+2. **The secret-hygiene rule.** The repository is public. Flash dumps, the NVS
+   partition, captures and credentials live outside the tree; documents name a
+   credential by placeholder only; the hook scans every commit, inside gzip members too.
+3. **One author, no trailers.** Every commit is the maintainer's, with no co-author or
+   generated-with trailer in any message, comment or document.
+4. **Working areas are never committed.** `private/` holds working material, notes and
+   secrets; it is gitignored and the hook refuses any ignored path.
+5. **The parity rule.** Factory parity is the default configuration; every feature beyond
+   it sits behind a flag that defaults off ([docs/FEATURES.md](docs/FEATURES.md)).
+6. **The clean-room rule**, above.
+7. **The string-table rule.** Every key and every English value is this project's own;
+   nothing is inherited from any other project or vendor.
+8. **The naming convention**, below: `ps-` for IDs and classes, never `id_` or `c_`.
+9. **The harness rule.** The harnesses run against the mock device and nothing else.
+
+The phases the work is staged in, and the gates each must pass, are in
+[docs/PLAN.md](docs/PLAN.md).
 
 ## The residue sweep
 
 `make residue` reads every tracked file and reports, per category, anything that looks
 like the vendor's expression: their element IDs and class names, their function names,
 their code shapes, their UI copy, their i18n pairs, their misspellings, the V1/V2 effect
-list as a set, and any AI attribution. It exits non-zero on any hit and runs before
+list as a set, and any attribution trailer. It exits non-zero on any hit and runs before
 every commit. Do not add an allowlist entry to get past it; fix the thing it found.
 
 ## The naming convention
@@ -47,7 +71,7 @@ clone:
 make hooks
 ```
 
-It refuses a commit that stages anything under `.claude/work/` or `private/`, any
+It refuses a commit that stages anything git ignores (`private/` and the rest), any
 firmware blob or NVS artifact, or content matching a secret pattern: MAC addresses,
 credential assignments, bearer tokens, private key blocks, AWS and GitHub tokens, Bambu
 printer serials. It reads inside gzip members as well as plain files, because a
@@ -130,7 +154,7 @@ could have gone another way, with its alternatives and its reversal cost.
 ## What lives outside the tree
 
 Flash dumps, the NVS partition, reference video and anything confidential live outside
-the repository entirely. Working notes live in `.claude/work/`, working material in
-`private/`; both are gitignored and both are refused by the hook. Credentials, MAC
+the repository entirely. Working notes, material and secrets live in `private/`; it is
+gitignored and refused by the hook. Credentials, MAC
 addresses and serial numbers are referred to in documents by placeholder only:
 `<WIFI_SSID>`, `<PRINTER_SN>`, never by value.

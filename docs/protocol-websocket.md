@@ -113,7 +113,7 @@ would understand them coming back.
 equivalence: every control the factory UI exposes must be present in the clone and must
 reach the device with the same wire message. Controls that are dead in the factory UI
 send nothing, so there is nothing for the clone to match. Whether to wire them up is a
-decision for after every Phase 2 gate passes, under standing rule 5.
+decision for after every Phase 2 gate passes, under the parity rule.
 
 Testing whether the firmware honours them would mean sending a message the factory UI
 never sends. That is out of scope for the stock capture session and is not on the run

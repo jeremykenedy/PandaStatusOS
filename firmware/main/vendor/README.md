@@ -48,7 +48,7 @@ assuming MIT applies.
 
 This directory is for third-party material this project is entitled to redistribute
 under a licence. It is **not** a place for factory reference material. Under standing
-rule 6, no BIQU or BIGTREETECH code, asset, string, translation, or artwork enters this
+the clean-room rule, no BIQU or BIGTREETECH code, asset, string, translation, or artwork enters this
 repository in any form, vendored or otherwise. Factory reference material lives outside
 the tree.
 

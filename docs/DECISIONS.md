@@ -3,9 +3,8 @@
 Every non-obvious call made on this project, with the reasoning, so a later reader can
 tell a deliberate choice from an accident and can reverse it knowing what it cost.
 
-Under standing rule 10, an unsupervised run does not stop on ambiguity. It decides,
-records the decision here, and continues. A decision recorded and wrong is recoverable.
-A night spent blocked is not.
+This project does not stop on ambiguity. A call is made, recorded here, and the work
+continues. A decision recorded and wrong is recoverable; a stall is not.
 
 Each entry carries: the date, what was decided, the alternatives, why this one, the
 reversal cost, and what evidence would change it. Entries are never deleted; a reversed
@@ -86,26 +85,27 @@ not consciously held at the moment it matters.
 
 **Date** 2026-09-10 · **Reversal** cheap
 
-**Decided.** The amended Rule 5 and the new Rules 9 and 10 each carry the date and the
-words "authorized by Jeremy for the autonomous run" in the rule text itself.
+**Decided.** When a standing rule is amended (the parity rule was, on this date, to admit
+features behind flags that default off), the amendment carries its date and its reason in
+the rule's own text rather than replacing the rule as if it had always read that way.
 
-**Alternatives.** Rewrite the rules in place so they read as if they had always said this.
+**Alternatives.** Rewrite the rules in place.
 
-**Why.** A reader comparing the history of `CLAUDE.md` should be able to see that the
-parity-first rule was relaxed on a specific day under a specific authorization, not assume
-the project never held it. The rules are the contract; changes to the contract are dated.
+**Why.** A reader comparing the history of the rules should be able to see that the
+parity-first rule was relaxed on a specific day for a specific reason, not assume the
+project never held it. The rules are the contract; changes to the contract are dated.
 
 ## D-006 Part 2 reading notes are staged outside the repo, then moved in
 
 **Date** 2026-09-10 · **Reversal** cheap
 
-**Decided.** The ten porting notes from reading the sibling project are written to the
-session scratchpad first, then copied into `.claude/work/notes/pandavent/` after the
-Part 0 backup tarball has verified.
+**Decided.** The ten porting notes from reading the sibling project are written outside
+the tree first, then copied into the working notes after the Part 0 backup tarball has
+verified.
 
-**Why.** The backup tars `.claude/` while it runs. Agents writing into `.claude/work/notes/`
-during that tar would race it. Writing elsewhere and moving afterwards costs one `cp` and
-removes the race entirely.
+**Why.** The backup tars the working area while it runs. Writing into it during that tar
+would race it. Writing elsewhere and moving afterwards costs one `cp` and removes the
+race entirely.
 
 ## D-007 Part 0 and Part 1 are one commit
 
@@ -363,7 +363,7 @@ holds for every page after this one.
 
 **Date** 2026-09-10 · **Reversal** cheap
 
-**Decided.** Colour fields carry `data-ps-colour` or `data-ps-block` (Rule 8), never
+**Decided.** Colour fields carry `data-ps-colour` or `data-ps-block` (the naming convention), never
 Coloris's own `data-coloris`. Coloris binds those selectors explicitly with `wrap: false`
 on **every** bind call, including the re-bind after block fields are created.
 
@@ -396,7 +396,7 @@ device holds), the input is Beer's, the picker is Coloris's. One job each.
 - The per-slot size guard runs in the browser before any request, naming the limit in MB.
   That is what the factory UI does (FACT: the constant is compared against the file size
   and rendered into the rejection). The 240 x 240 dimension check does **not** run: it is
-  disabled in the shipped factory UI, and Rule 5 says parity by default. If it comes back
+  disabled in the shipped factory UI, and the parity rule says parity by default. If it comes back
   it is a flag that defaults off.
 - The device's answer (`response {type:"ota_img", ok, gif}`) is the verdict a slot shows.
   On the mock it arrives on the socket before the HTTP status does, so an HTTP failure
@@ -494,7 +494,7 @@ would also stop catching `wifi_password = ...`, a real leak shape).
 
 **Why.** Part 4 of the run brief, again: fix the check's precision, never add an exemption.
 Renaming keys to fool a scanner leaves the scanner wrong and the names worse. The strip
-is exact: only tokens that follow standing rule 8's naming are removed, and the literal
+is exact: only tokens that follow the naming convention are removed, and the literal
 known-secret scan still reads every line whole.
 
 ---
@@ -597,7 +597,7 @@ for, and the cost is small on every reading of the flash size that is possible.
   host test includes the real `ps_cfg.c`. Reversal: freeze, bump, migrate, as the file says.
 - Defaults are PROVISIONAL: they are the factory page's post-reset expectations and the
   mock's factory fixture, not values read off the device. Gate 3 replaces them.
-- `features` is a 32-bit field of flags, all zero: standing rule 5's "every feature behind
+- `features` is a 32-bit field of flags, all zero: the parity rule's "every feature behind
   a flag that defaults off" has a home before any feature exists.
 - OTA rollback is enabled in `sdkconfig.defaults`: a bad image boots the last good slot.
   This is not on the wire and costs the owner nothing; the alternative on a device with no
@@ -605,7 +605,7 @@ for, and the cost is small on every reading of the flash size that is possible.
 - Home Assistant discovery is deferred: the factory page exposes no broker setting, so
   whatever the factory firmware publishes has no configuration surface here to mirror.
   Recorded as a gap for the MQTT capture and Phase 1, not built blind.
-- Nothing here flashes. `idf.py build` is the only target; standing rule 0 holds.
+- Nothing here flashes. `idf.py build` is the only target; the flashing rule holds.
 
 **Why.** Each of these is the cheapest shape that cannot be quietly wrong: a generated
 table cannot drift from its input, a pinned struct cannot drift from its tests, a flag
@@ -624,7 +624,7 @@ identify the hardware, exactly as the disclaimer draws the line.
 **What changed.** `project(pandastatusos)` in `firmware/CMakeLists.txt`, so `esp_app_desc`
 inside the image and the binary's filename (`pandastatusos.bin`) carry the name; the page's
 `<title>` and brand; the MQTT client id and the capture tools' identities; the default
-hostname placeholder; the Kconfig menu; the titles of README, CLAUDE.md and the hook; the
+hostname placeholder; the Kconfig menu; the titles of README and the hook; the
 bridge document's prose; the working notes.
 
 **The product name in the string tables.** It appeared in two keys in every language,
@@ -711,7 +711,7 @@ across the forehead. All four were rendered at 16, 64 and 180 on both grounds
 (`gen_marks.py --options`) and looked at.
 
 **Why.** D-011 avoided the panda because its author could not be established; that is
-settled: the panda is Jeremy's and crosses freely (Rule 6 as clarified). What remains is
+settled: the panda is Jeremy's and crosses freely (the clean-room rule as clarified). What remains is
 the design question he raised: two products with one favicon are indistinguishable as two
 tabs, two repositories, two pages. A shared silhouette says one project line; a
 per-product element tells them apart. The bar is the Status's identity and reads at 16 px
@@ -771,7 +771,7 @@ must equal what the device emits); a clone-only root sent only while a feature i
 page could never offer the first switch); a feature field inside `settings` (a wire
 difference on every connect).
 
-**Why.** Gate 2 and Rule 5 both want the wire to be the factory's by default, and the page
+**Why.** Gate 2 and the parity rule both want the wire to be the factory's by default, and the page
 still needs a way to learn that a switch exists. A route the factory answers with a
 redirect gives the page that knowledge at the cost of one request the factory ignores,
 and it is the seed of the JSON API the queue asks for (C2). The mock carries the same
@@ -787,7 +787,7 @@ other than the redirect; then the path moves.
 
 **Decided.** `ps_fx.c` is PandaVentOS's effect engine, Jeremy Kenedy's own work, adapted to
 one strip and this project's colour type, with this project's effect ids and this
-project's English names for them ("Solid", "Hue cycle", "Scanner", and so on; Rule 7). It
+project's English names for them ("Solid", "Hue cycle", "Scanner", and so on; the string-table rule). It
 compiles without the IDF so the host test drives the shipping body. Effects that need a
 live input (progress, temperature) are in the engine but not yet selectable; each arrives
 with its feature and its input.
@@ -841,7 +841,7 @@ cyan. With no reading it holds the start, because a print that has not reported 
 done.
 
 **Alternatives.** One switch for all four (the queue lists them as four items with four
-flags, and a flag per item is Rule 5); validating ids against the bits before the
+flags, and a flag per item is the parity rule); validating ids against the bits before the
 document (a document that turns a switch on and picks its effect in one POST would be
 refused); leaving stored ids in place when a switch goes off (the first whole-table POST
 after that is refused, and the page cannot recover from it, which the harness found:

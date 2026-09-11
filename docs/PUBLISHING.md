@@ -1,7 +1,7 @@
 # Publishing PandaStatusOS
 
 The repository is on GitHub, private, at `git@github.com:jeremykenedy/PandaStatusOS.git`,
-and pushing to it is routine (`CLAUDE.md`, Rule 1 as amended 2026-09-10). The one step
+and pushing to it is routine. The one step
 that cannot be taken back is the flip from private to public. This checklist gates that
 flip. It is run in full on the day, by the maintainer, and read before the setting is
 changed. Nothing in this repository changes the setting: it is done by hand on GitHub,
@@ -12,7 +12,7 @@ once, one way.
 The day the repository goes public, every commit ever pushed becomes visible, not just
 the current tree: every version of every file, every commit message, every author line,
 every path that ever existed and was later deleted. Pushed history is never rewritten
-(Rule 1), so nothing pushed while private can be taken back before the flip, and nothing
+(the maintainer never rewrites pushed history), so nothing pushed while private can be taken back before the flip, and nothing
 can be hidden after it.
 
 That moves the weight of this checklist. The working-tree checks (steps 2 to 4) prove the
@@ -33,7 +33,8 @@ commit; this checklist is the gate on the flip.
 - The repository is **private** (`gh repo view`; a signed-out request for the repository
   page answers 404). It stays private until this checklist has been run and read on the
   day the maintainer decides.
-- Every commit is authored and committed by Jeremy Kenedy, one identity.
+- Every commit is authored and committed by Jeremy Kenedy, one identity, except the
+  image optimiser's commits (`ImgBotApp`), which touch images only and are merged by hand.
 - The history was reset before commit one (`docs/DECISIONS.md`, D-001 to D-007), and every
   commit since was made through the pre-commit hook. Step 5 proves that again on the day
   rather than trusting it.
@@ -89,9 +90,9 @@ it: blank lines and `#` comments ignored, values shorter than four characters ig
 A missing file fails the step; it does not skip it.
 
 ```
-F=.claude/work/secrets/forbidden-strings.txt; test -s "$F" || echo "MISSING: $F. The literal scan cannot run and this step fails."
+F=private/secrets/forbidden-strings.txt; test -s "$F" || echo "MISSING: $F. The literal scan cannot run and this step fails."
 grep -vE '^(#|[[:space:]]*$)' "$F" | awk 'length($0) >= 4' > /tmp/ps-forbidden.$$ \
-  && git grep -n -F -f /tmp/ps-forbidden.$$ -- . ':!.claude' ; echo "exit $? (1 wanted)"; rm -f /tmp/ps-forbidden.$$
+  && git grep -n -F -f /tmp/ps-forbidden.$$ -- . ':!private' ; echo "exit $? (1 wanted)"; rm -f /tmp/ps-forbidden.$$
 ```
 
 ## 4. The licence audit
@@ -120,11 +121,13 @@ This is the load-bearing step. Everything it scans becomes public on the day of 
 ```
 # one identity, author and committer, every commit
 git log --all --format='%an <%ae> | %cn <%ce>' | sort | uniq -c
-# zero attribution in any message (bracketed so the pattern cannot match itself in the residue sweep; the regex is unchanged)
-git log --all --format=%B | grep -ciE 'co-auth[o]red|anthr[o]pic|generated w[i]th|claude c[o]de' ; echo "(0 wanted)"
+# zero tool trailers in any message (bracketed so the pattern cannot match itself in the residue sweep)
+git log --all --format=%B | grep -ciE 'co-auth[o]red|generated w[i]th|generated b[y]' ; echo "(0 wanted)"
+# and none of the maintainer's forbidden literals in any message, ever
+git log --all --format=%B | grep -cFf <(grep -vE '^(#|[[:space:]]*$)' private/secrets/forbidden-strings.txt | awk 'length($0) >= 4') ; echo "(0 wanted)"
 # every path that ever existed in any commit, checked for dumps, snapshots, secrets, working areas
 git rev-list --all | while read c; do git ls-tree -r --name-only "$c"; done | sort -u \
-  | grep -iE '\.(bin|dump|img|nvs|hex|elf)$|nvs|secret|dump|snapshot|\.claude/work|^private/|xindex|index\.raw|stock-ui' \
+  | grep -iE '\.(bin|dump|img|nvs|hex|elf)$|nvs|secret|dump|snapshot|^private/|xindex|index\.raw|stock-ui' \
   | grep -vE '\.(c|h|py|sh)$' ; echo "exit $? (1 wanted; sources named after what they read are not artifacts)"
 # the hook's credential patterns over every added line in all history
 git log -p --all -- . ':!tools/test-hook.sh' ':!.githooks/pre-commit' ':!tools/residue-sweep.sh' \
@@ -137,7 +140,8 @@ git rev-list --all | while read c; do git ls-tree -r --name-only "$c" \
   | grep -acE '\bid_[a-z][a-zA-Z0-9_]*\b|\bc_[a-z][a-zA-Z0-9_]*\b' ; echo "(0 wanted; the three pattern-definition files carry the tokens by definition)"
 ```
 
-The expected answers: one identity line; 0; exit 1; exit 1; 0. Anything else stops the
+The expected answers: the maintainer's identity line, plus the image optimiser's
+(`ImgBotApp`, images only, merged by hand); 0; 0; exit 1; exit 1; 0. Anything else stops the
 flip, and because pushed history is never rewritten, a finding here is not fixed by a
 commit that deletes it: the repository stays private, and what to do next is the
 maintainer's decision. The repository was reset before commit one precisely so that this

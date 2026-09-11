@@ -13,8 +13,8 @@
 
 set -uo pipefail
 
-OUTDIR="$HOME/backups/PandaStatus/ws-capture"   # outside the repository, per CLAUDE.md rule 2
-HOST_FILE="$(dirname "$0")/../.claude/work/secrets/device-host.txt"
+OUTDIR="$HOME/backups/PandaStatus/ws-capture"   # outside the repository, per the secret-hygiene rule
+HOST_FILE="$(dirname "$0")/../private/secrets/device-host.txt"
 LOGGER="$(dirname "$0")/ws_logger.py"
 
 NAMES=(
@@ -97,4 +97,4 @@ PY
 
 printf '\n  This file holds live credentials in plaintext. It stays outside the repo.\n'
 printf '  Redact a working copy with:\n'
-printf '    python3 tools/redact_ws.py %s \\\n      -o .claude/work/analysis/%s.redacted.jsonl\n' "$OUT" "$NAME"
+printf '    python3 tools/redact_ws.py %s \\\n      -o private/analysis/%s.redacted.jsonl\n' "$OUT" "$NAME"

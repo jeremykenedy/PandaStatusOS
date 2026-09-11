@@ -167,7 +167,7 @@ static uint32_t apply_settings(cJSON *m, int client)
     const char *lang = str(m, "language");
     if (lang) { copy_str(c->language, sizeof c->language, lang); changed |= PS_ROOT_SETTINGS; }
     /* settings.on, settings.follow, settings.printing_ui_type: handled inbound by the factory
-     * page, sent by no control of it (FACT). Not honoured here: standing rule 5. */
+     * page, sent by no control of it (FACT). Not honoured here: the parity rule. */
     if (changed) { ps_cfg_save(c); ps_effect_notify(); }
     return changed;
 }

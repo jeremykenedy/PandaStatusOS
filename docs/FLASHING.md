@@ -64,7 +64,7 @@ The reason for that ceremony: the stock `/ota` answers 200 with an empty body wh
 upload landed or not. Three Panda Vent builds were each reported as flashed by their 200,
 and none had landed. A 200 is recorded and means nothing.
 
-Rule 0 governs this command like any other flash: it runs when the maintainer says so in
+The flashing rule governs this command like any other flash: it runs when the maintainer says so in
 that message, and not before. Every run is appended to `flash-log.txt` under the backup
 root.
 

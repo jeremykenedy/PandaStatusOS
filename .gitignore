@@ -1,7 +1,3 @@
-# Agent working area. Never committed. Enforced by .githooks/pre-commit as well.
-.claude/work/
-.claude/settings.local.json
-
 # Working material: the page build system, the harnesses, factory reference
 # material, the standalone secret scan. Never committed, in its entirety.
 # Also enforced by .githooks/pre-commit.

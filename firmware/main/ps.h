@@ -2,7 +2,7 @@
  *
  * Interface facts (wire fields, roots, enums, endpoints, caps) are from
  * docs/protocol-websocket.md. Anything marked PROVISIONAL or INFERENCE is not a fact yet.
- * Standing rule 5: the wire behaviour is the factory's; every departure sits behind a
+ * The parity rule: the wire behaviour is the factory's; every departure sits behind a
  * feature bit in ps_cfg_t.features that defaults to zero. */
 #ifndef PS_H
 #define PS_H

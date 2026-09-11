@@ -2,7 +2,7 @@
 
 The mock device, the harnesses that run against it, and (from Q3) the page build.
 
-Standing rule 9: nothing here ever talks to real hardware. Every harness runs against the
+The harness rule: nothing here ever talks to real hardware. Every harness runs against the
 mock, and the mock is the only thing any harness is allowed to connect to.
 
 ## Layout

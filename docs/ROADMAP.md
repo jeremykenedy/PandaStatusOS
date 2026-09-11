@@ -1,6 +1,6 @@
 # Roadmap
 
-**This is a catalogue, not a work queue.** Standing rule 5 holds: nothing on this list
+**This is a catalogue, not a work queue.** The parity rule holds: nothing on this list
 gets built until every Phase 2 gate is green. Writing an item down is not scheduling it.
 
 Each item carries what it does, what it depends on, and whether that dependency is
@@ -8,7 +8,7 @@ Each item carries what it does, what it depends on, and whether that dependency 
 `docs/`. UNKNOWN means the dependency has not been established and the item cannot be
 sized, let alone built.
 
-Nothing here is built from BIQU material. Rule 6 applies to every item on this page:
+Nothing here is built from BIQU material. The clean-room rule applies to every item on this page:
 what the factory device does is a fact we may reimplement; how it does it is theirs.
 
 ---
@@ -460,7 +460,7 @@ that is the single biggest architectural decision on this list.
 
 ### Is splitting the tables out of the first load worth it?
 
-**Yes. It is deferred by rule 5, not blocked by Gate 1, and it gets designed for now even
+**Yes. It is deferred by the parity rule, not blocked by Gate 1, and it gets designed for now even
 though it is not enabled now.**
 
 PROVEN: the factory device serves **exactly one document**. `GET /` returns the page and
@@ -476,14 +476,14 @@ table adds no control, removes no control, and changes no wire message. **It doe
 Gate 1.** An earlier draft of this section claimed it did; that was an over-read of the
 gate, and the distinction matters for the next paragraph.
 
-What defers the split is **rule 5**: no customization until every Phase 2 gate is green.
+What defers the split is **the parity rule**: no customization until every Phase 2 gate is green.
 That is a scheduling rule. So the split is a Tier 2 item waiting its turn, not an
 architectural impossibility, and the reason it waits is the calendar rather than the gate.
 
 Consequences, in order:
 
 1. **The first build carries all languages in the single document.** Not because a split
-   would fail a gate, but because rule 5 puts it after the gates.
+   would fail a gate, but because the parity rule puts it after the gates.
 2. **When it is done, the win is large.** This is close to the best possible case for lazy
    loading: one language is needed per viewer, 24 are shipped, the tables are the largest
    component, and the selected language is known before the page needs any string. Serving
@@ -516,7 +516,7 @@ conditions: after the dump has just revealed that the tables do not fit, with th
 already passed and the page already written.
 
 So: build the seam in the first implementation, ship it inline, and leave the fetched path
-unbuilt behind it until rule 5 releases it or the flash budget forces it.
+unbuilt behind it until the parity rule releases it or the flash budget forces it.
 
 **The order that follows from all of this:** write the English table first, measure it,
 generate the CJK subset and measure that, and only then choose the language list. Choosing

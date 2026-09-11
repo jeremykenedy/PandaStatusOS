@@ -2,7 +2,7 @@
 
 Everything recorded here is **Jeremy Kenedy's own work**, first-party, under this repository's
 MIT licence (`LICENSE.md`), with the same standing as the source code. None of it is a
-vendored component and none of it gets a vendor row (CLAUDE.md, Rule 6 as clarified). The
+vendored component and none of it gets a vendor row (the clean-room rule, as clarified). The
 one third-party icon set, Heroicons, has its own record under `firmware/main/vendor/heroicons/`
 and this file claims nothing about it.
 

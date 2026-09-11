@@ -21,7 +21,7 @@ project shipped):
   - every text-bearing element carries a data-ps-str key, every key exists in the English
     table, and every tr('...') in the modules does too (English fallback hides a missing
     key; five shipped that way)
-  - no id_ or c_ token anywhere in the output (standing rule 8, at build time)
+  - no id_ or c_ token anywhere in the output (the naming convention, at build time)
   - no inline on*= handlers (modules wire their own listeners)
   - no external asset reference: the device serves ONE file and nothing else
   - every card has a data-ps-card and an id; every nav target names a card that exists
@@ -265,7 +265,7 @@ def assemble(strings_mode):
     if re.search(r'\son[a-z]+="', html):
         die("inline on*= handler in output; modules wire their own listeners")
     if re.search(r"\b(id_|c_)[a-z]", html):
-        die("id_ or c_ token in output; standing rule 8")
+        die("id_ or c_ token in output; the naming convention")
     ext = re.findall(r'(?:src|href)="(https?://[^"]+)"', html)
     ext = [e for e in ext if not e.startswith("http://www.w3.org/")]
     if ext:

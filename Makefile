@@ -1,5 +1,5 @@
 # PandaStatusOS, a clean-room firmware for the Panda Status P2.
-# See CLAUDE.md for standing rules and firmware/SAFETY.md before touching the device.
+# See CONTRIBUTING.md for the standing rules and firmware/SAFETY.md before touching the device.
 
 .DEFAULT_GOAL := help
 

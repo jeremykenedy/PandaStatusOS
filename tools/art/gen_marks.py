@@ -4,12 +4,12 @@ Generate the project's marks and favicon from primitives. Standard library only.
 
 Provenance by construction. Every shape in every output is drawn by the code below from a
 handful of numbers, so the origin of the artwork is this file and nothing else. Re-running
-the script reproduces every byte; `--check` proves it by regenerating into a temporary
+the script reproduces every pixel; `--check` proves it by regenerating into a temporary
 directory and comparing against what is committed.
 
 The mark is a family mark. The panda face is Jeremy Kenedy's, the same primitives his
 PandaVentOS banner generator draws (his own work; it crosses into this project freely,
-CLAUDE.md Rule 6). It says these two products are one project line. Under it sits the
+the clean-room rule). It says these two products are one project line. Under it sits the
 light bar, this product's own element: four round LEDs in a housing, three lit. The vent
 carries the face alone; the Status carries the face over its bar. See D-011 (revised) and
 D-030.
@@ -295,21 +295,33 @@ def build(outdir):
     return written
 
 
+def same_pixels(a, b):
+    """A PNG may be re-encoded by an image optimiser (a palette, other filters) without
+    changing what it shows; what the generator owns is the pixels, so that is what is
+    compared. The SVGs and MARKS.md are compared byte for byte."""
+    from PIL import Image
+    with Image.open(a) as ia, Image.open(b) as ib:
+        return ia.size == ib.size and ia.convert("RGBA").tobytes() == ib.convert("RGBA").tobytes()
+
 def check():
     with tempfile.TemporaryDirectory() as tmp:
         build(tmp)
-        drift = []
+        drift, reencoded = [], []
         for name, _ in OUTPUTS + [("MARKS.md", None)]:
             a, b = os.path.join(ART, name), os.path.join(tmp, name)
             if not os.path.exists(a):
                 drift.append(f"missing: art/{name}"); continue
-            if open(a, "rb").read() != open(b, "rb").read():
-                drift.append(f"differs: art/{name}")
+            if open(a, "rb").read() == open(b, "rb").read():
+                continue
+            if name.endswith(".png") and same_pixels(a, b):
+                reencoded.append(name); continue
+            drift.append(f"differs: art/{name}")
         if drift:
             print("DRIFT between art/ and the generator:")
             for d in drift: print("  " + d)
             return 1
-        print(f"art/ matches the generator byte for byte ({len(OUTPUTS) + 1} files)")
+        note = f"; {len(reencoded)} PNG re-encoded, same pixels" if reencoded else ""
+        print(f"art/ matches the generator ({len(OUTPUTS) + 1} files, pixels for the PNGs, bytes for the rest{note})")
         return 0
 
 

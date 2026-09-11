@@ -5,7 +5,7 @@ One generator, two palettes, so the two files can never drift apart. The panda i
 not embedded: a banner is the one image that gets scaled to whatever width a reader's
 browser feels like, and a raster blown up looks like a mistake. The face is Jeremy
 Kenedy's, the same primitives as tools/art/gen_marks.py and PandaVentOS's own banner
-(his work; it crosses freely, CLAUDE.md Rule 6); the light bar on the right is this
+(his work; it crosses freely, the clean-room rule); the light bar on the right is this
 product's.
 
     python3 tools/art/gen_banner.py            writes art/banner-light.svg and art/banner-dark.svg

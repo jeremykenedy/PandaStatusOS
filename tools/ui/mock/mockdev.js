@@ -4,13 +4,13 @@
  * Mock Panda Status P2. One process: HTTP serves the page, a WebSocket at /ws speaks the
  * protocol in docs/protocol-websocket.md, a JSON fixture is the whole device state.
  *
- * Every harness runs against this and nothing else. Standing rule 9: no real device.
+ * Every harness runs against this and nothing else. No real device, ever.
  *
  * What it reproduces, and where each fact comes from (docs/protocol-websocket.md unless
  * stated):
  *   - one WebSocket at /ws, JSON text, one frame may carry several roots
  *   - connect-time push of exactly six roots in ONE frame: wifi sta ap printer settings
- *     block (measured; the redacted capture in .claude/work/analysis/ has the shape)
+ *     block (measured; the redacted capture in private/analysis/ has the shape)
  *   - settings in that push carries list2, current_mode, fw_version, language and NOT
  *     img_version, which the UI handles but the device did not send. The mock is as
  *     unkind as the hardware: img_version is absent unless PS_IMG_VERSION is set

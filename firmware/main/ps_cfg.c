@@ -113,7 +113,7 @@ const char *const ps_gif_slot_names[PS_GIF_SLOTS] = {
 static void set_str(char *dst, size_t n, const char *src) { strncpy(dst, src, n - 1); dst[n - 1] = 0; }
 
 /* PROVISIONAL defaults. Phase 2 gate 3 needs the values the device reports after its own
- * factory reset (CLAUDE.md, Phase 1, last bullet). Until that read, these are the values
+ * factory reset (docs/PLAN.md, Phase 1). Until that read, these are the values
  * the factory page expects after a lighting reset (docs/protocol-websocket.md) and the
  * mock's factory fixture. Writes through c only. */
 void ps_cfg_factory_defaults(ps_cfg_t *c)

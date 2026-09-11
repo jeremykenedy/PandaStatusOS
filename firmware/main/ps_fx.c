@@ -2,7 +2,7 @@
  * body with gcc; ps_effect.c owns the task, the inputs and the strip.
  *
  * This is Jeremy Kenedy's engine, the one PandaVentOS renders with (his own work, it
- * crosses freely: CLAUDE.md Rule 6), adapted to one strip and to this project's colour
+ * crosses freely: the clean-room rule), adapted to one strip and to this project's colour
  * type. What it is not: anything of the Panda Status factory's. The factory's two modes are
  * rendered as the placeholder in ps_effect.c until Phase 1 recovers them; everything here
  * sits behind feature bits that default off (docs/FEATURES.md).

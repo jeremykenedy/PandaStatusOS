@@ -119,7 +119,7 @@ int main(void)
     ch = apply("{\"settings\":{\"factory_reset\":1,\"device_wakeup\":1}}");
     t("factory_reset answers, erases, restarts", ch == 0 && !strcmp(last_response, "factory_reset:1:-") && called(calls, "restart:settings.factory_reset") && find("cfg") < 0, calls);
     ch = apply("{\"settings\":{\"on\":0,\"follow\":1,\"printing_ui_type\":\"x\",\"device_wakeup\":1}}");
-    t("the three dead controls change nothing (standing rule 5)", ch == 0, NULL);
+    t("the three dead controls change nothing (the parity rule)", ch == 0, NULL);
 
     /* ---- inbound: wifi, sta, ap ---- */
     ps_state_init();

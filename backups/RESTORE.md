@@ -30,14 +30,14 @@ factory firmware is gone from the world, not just from this device.
 
 ```
 /Users/jeremykenedy/backups/PandaStatus-preNUKE-<timestamp>.tgz    before the history reset
-/Users/jeremykenedy/backups/PandaStatus-autorun-<timestamp>.tgz    at each autonomous-run checkpoint
+/Users/jeremykenedy/backups/PandaStatus-autorun-<timestamp>.tgz    at each checkpoint
 ```
 
 Each is a plain `tar -czf` of the whole `PandaStatus/` directory taken from its parent,
-so it contains `PandaStatus/.git/`, `PandaStatus/.claude/` (the working area, including
+so it contains `PandaStatus/.git/`, `PandaStatus/private/` (the working area, including
 `secrets/`) and every tracked file. Newest timestamp is newest state.
 
-Every tarball's sha256 is recorded in `.claude/work/notes/SESSION-STATE.md` at the time it
+Every tarball's sha256 is recorded in the working notes under `private/` at the time it
 was taken. **If the tarball you are about to trust has no recorded sha256, or the hash does
 not match, do not use it.** Find an older one that verifies.
 
@@ -46,10 +46,10 @@ not match, do not use it.** Find an older one that verifies.
 ```bash
 cd /Users/jeremykenedy/backups
 shasum -a 256 PandaStatus-autorun-<timestamp>.tgz
-# compare against the value recorded in SESSION-STATE.md for that timestamp
+# compare against the value recorded in the working notes for that timestamp
 
 tar -tzf PandaStatus-autorun-<timestamp>.tgz | grep -c '^PandaStatus/\.git/'          # must be > 0
-tar -tzf PandaStatus-autorun-<timestamp>.tgz | grep -c '^PandaStatus/\.claude/work/'  # must be > 0
+tar -tzf PandaStatus-autorun-<timestamp>.tgz | grep -c '^PandaStatus/private/'        # must be > 0
 ```
 
 ## A.3 Extract to a FRESH location, never over the existing tree
@@ -143,7 +143,7 @@ What IS known today, and where it was established:
 | Flash size | **`<PENDING DUMP>`** | nothing in this repo establishes it; `flash-id` at the bench |
 | Partition table | **`<PENDING DUMP>`** | parsed from the dump at offset 0x8000 by `tools/fw/flashimage.py` |
 | Stock app's IDF version | **`<PENDING DUMP>`** | `esp_app_desc` in the dump, printed by `preflight.sh` |
-| Backup root | `/Users/jeremykenedy/backups/PandaStatus/` | `CLAUDE.md` Phase 0 |
+| Backup root | `/Users/jeremykenedy/backups/PandaStatus/` | `docs/PLAN.md`, Phase 0 |
 
 ## B.1 What a complete backup set looks like
 
@@ -226,7 +226,7 @@ The device will not boot, so it cannot serve `/ota`:
 The script runs the gate, checks chip, flash size and MAC, reads the slot offsets out of the
 stock dump's partition table, reads `otadata` off the device to learn which slot the
 bootloader boots, writes the image there, and reads it back to verify. `--slot <name>`
-names another slot. It never writes anything else. **Rule 0 applies**: only when the
+names another slot. It never writes anything else. **The flashing rule applies**: only when the
 maintainer says so in that message.
 
 The offsets, once the dump exists:
@@ -257,7 +257,7 @@ python3 -m esptool --chip esp32c3 --port <PORT> -b 460800 \
     0x0 GOLDEN-<ts>-full-<size>.bin
 ```
 
-**Rule 0 applies to step 2.** It runs only with Jeremy's authorization in that message and
+**The flashing rule applies to step 2.** It runs only with Jeremy's authorization in that message and
 the cable confirmed connected. If your esptool prints `write_flash` (underscore) in its
 help, you have an older version; both spellings are accepted.
 
@@ -334,6 +334,6 @@ overwrites a slot that cannot be recovered.
 
 ## What this document is not
 
-It is not authorization. Rule 0 in `CLAUDE.md` and `firmware/SAFETY.md` governs every
+It is not authorization. The flashing rule in `firmware/SAFETY.md` governs every
 write, every time, per message. This document tells you how. It never tells you that you
 may.

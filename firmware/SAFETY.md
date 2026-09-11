@@ -89,8 +89,8 @@ Nothing is flashed unless Jeremy says so in that message.
   governs it: the script is run only when that message says to run it.
 
 Read operations (chip-id, flash-id, read-flash, read-mac, GET /backup) are not flashing,
-but they wait for the phase gate that precedes them, and under Rule 9 they never run
-unsupervised.
+but they wait for the phase gate that precedes them, and they run only with the
+maintainer present.
 
 ## THE ORDER
 
@@ -184,7 +184,7 @@ v2.0.0 image carries an embedded page, a gzip member titled "Panda Status V1" at
 
 The NVS partition holds the live Wi-Fi credentials, the printer serial and the access code.
 
-- It never enters the repository. Not committed, not gitignored, not in `.claude/work/`.
+- It never enters the repository. Not committed, not gitignored, not in `private/`.
 - It lives only inside the goldens under `/Users/jeremykenedy/backups/PandaStatus/`.
 - Values recovered from it are referenced in `docs/` by name only (`<WIFI_SSID>`,
   `<PRINTER_ACCESS_CODE>`, `<DEVICE_MAC>`, `<DEVICE_SERIAL>`), never by value.

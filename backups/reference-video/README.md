@@ -82,6 +82,6 @@ session and keep the mark timestamps with it.
 ## What does not go in this repo
 
 The footage. Any still frame taken from it. Any measurement that has not been reduced to
-timing data. Under standing rule 6, nothing read out of the factory application's own
+timing data. Under the clean-room rule, nothing read out of the factory application's own
 markup or code goes here either: this document records how to point a camera at the
 hardware, and the run sheet records what the hardware does.

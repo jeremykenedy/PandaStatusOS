@@ -122,7 +122,7 @@ and placeholders. A language ships when all 248 strings are in it.
 
 - **Drive the bar the way the factory does.** The animations, Music mode's reaction to
   sound and the meaning of the speed value are recovered from the stock unit in Phase 1
-  (see [CLAUDE.md](CLAUDE.md)). Until then the renderer paints the state colour, solid,
+  (see [docs/PLAN.md](docs/PLAN.md)). Until then the renderer paints the state colour, solid,
   at the set brightness, and says so in its source.
 - **Know the flash size or the LED count.** Both are read off a real unit. The partition
   table is generated from one number so the real one is a single command away.
@@ -203,7 +203,8 @@ redistributed here; the copy you took is the only one there is.
 | [docs/BUILDING.md](docs/BUILDING.md), [docs/FLASHING.md](docs/FLASHING.md), [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) | building, flashing, and what to do when something does not work |
 | [docs/DECISIONS.md](docs/DECISIONS.md) | every decision, its alternatives, its reversal cost |
 | [docs/ROADMAP.md](docs/ROADMAP.md) | what may be built, in tiers, and what each tier waits on |
-| [CONTRIBUTING.md](CONTRIBUTING.md) | the clean-room rule, the sweep, the naming convention, the harnesses |
+| [docs/PLAN.md](docs/PLAN.md) | the three phases, the five gates, the evidence standard |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | the standing rules, the clean-room rule, the sweep, the naming convention, the harnesses |
 | [CHANGELOG.md](CHANGELOG.md) | what changed |
 
 ## Vendored components

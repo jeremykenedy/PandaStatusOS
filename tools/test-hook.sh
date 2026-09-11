@@ -76,7 +76,7 @@ check "vendor element ID"          'set every state with `id_btn1` on the RGB ca
 check "vendor element ID, bare"    'the id_settings_rgb_type select offers two modes'  BLOCK
 check "vendor CSS class"           'the swatch carries class c_readonly in the markup' BLOCK
 check "our own wire field passes"  '| `rgb_state_index` | addresses colour per state |' PASS
-# Rule 8 conformance. Our own convention is ps-<area>-<control> and ps-<block>,
+# Naming-convention conformance. Our own convention is ps-<area>-<control> and ps-<block>,
 # hyphenated, which cannot match the id_ or c_ patterns. These four prove the blocks
 # above stay absolute WITHOUT ever needing an allowlist entry for our own markup.
 check "our element ID passes"      'the slider is `ps-light-brightness` on the page'   PASS
@@ -144,7 +144,7 @@ check "CJK in a comment still blocks"   '// 状態表示ライト'              
 # very scan it was testing.
 echo
 echo "=== literal forbidden-strings scan ==="
-FORBIDDEN=.claude/work/secrets/forbidden-strings.txt
+FORBIDDEN=private/secrets/forbidden-strings.txt
 SENTINEL='ZZ-HOOK-TEST-SENTINEL-DO-NOT-USE'
 if [ -f "$FORBIDDEN" ]; then
   cp "$FORBIDDEN" "$FORBIDDEN.testbak"

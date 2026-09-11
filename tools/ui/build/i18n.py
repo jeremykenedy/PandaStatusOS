@@ -7,7 +7,7 @@ The i18n mechanism. Standard library only. One module, four subcommands, one lan
     python3 tools/ui/build/i18n.py collect    derive tools/ui/i18n/en.json from the markup + js_strings.json
     python3 tools/ui/build/i18n.py strings    validate every other language against English, emit ps_strings.js
 
-Standing rule 7. Every key is minted by this project from this project's own pages. Every
+The string-table rule. Every key is minted by this project from this project's own pages. Every
 English value is written for this project: it lives in the markup, and en.json is DERIVED
 from the markup every build, never accumulated (accumulating once shrank a table and left
 75 strings printing their own key). The other languages are translated from en.json and

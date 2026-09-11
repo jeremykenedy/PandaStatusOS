@@ -491,7 +491,7 @@ If the bar is genuinely three states while the display walks 15 stages, then **p
 bar colour is the single biggest customization this device can take.**
 
 **That is a Phase 2 plus item, not a clone item. Record the mapping. Build nothing.**
-Standing rule 5: no customization until every Phase 2 gate passes. Writing it down is
+The parity rule: no customization until every Phase 2 gate passes. Writing it down is
 the job here. Wanting to build it is not a reason to start.
 
 ### Pause and error
@@ -515,7 +515,7 @@ of this capture.
 file is non-empty. Then make redacted working copies:
 
 ```
-python3 tools/redact_ws.py <raw>.jsonl -o .claude/work/analysis/<name>.redacted.jsonl
+python3 tools/redact_ws.py <raw>.jsonl -o private/analysis/<name>.redacted.jsonl
 ```
 
 ## 10. The reset ladder
@@ -606,7 +606,7 @@ what the device reports, never against this table.
 ## 11. Re-onboard
 
 Have the credentials to hand **before** step 11. Anything recovered goes into
-`.claude/work/secrets/` and into `forbidden-strings.txt`.
+`private/secrets/` and into `forbidden-strings.txt`.
 
 ---
 

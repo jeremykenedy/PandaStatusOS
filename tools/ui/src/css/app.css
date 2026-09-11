@@ -1,4 +1,4 @@
-/* Layout and the project's own components. Rule 8: every class is ps-<block>-<part>. Beer
+/* Layout and the project's own components. The naming convention: every class is ps-<block>-<part>. Beer
    CSS supplies the primitives (nav, article, field, slider, switch, button, dialog,
    snackbar); this file places them and adds what the device page needs on top. */
 

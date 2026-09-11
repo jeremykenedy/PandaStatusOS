@@ -11,7 +11,7 @@ any other way: the report goes printer to device, so the device's own WebSocket 
 carries it. This tool connects to the printer directly as a second client.
 
 SCOPE. This talks to the PRINTER. The Panda Status device is not involved and is not
-touched. Nothing is flashed. Standing rule 0 is not in play.
+touched. Nothing is flashed. The flashing rule is not in play.
 
     *** THIS TOOL PUBLISHES. It is not a purely passive subscribe. ***
 
@@ -32,7 +32,7 @@ The encryption still applies; only the identity check is skipped. Do not copy th
 pattern into anything that talks to the internet.
 
 SECRETS. The printer host, serial and access code are read from
-.claude/work/secrets/printer.txt, never from the command line and never from the repo.
+private/secrets/printer.txt, never from the command line and never from the repo.
 That mirrors how tools/read-config.sh reads the device host. Run with no arguments to
 see the file template.
 
@@ -80,8 +80,8 @@ import ssl
 import sys
 import time
 
-SECRETS = ".claude/work/secrets/printer.txt"
-OUTDIR = os.path.expanduser("~/backups/PandaStatus/mqtt-capture")   # outside the repository, per CLAUDE.md rule 2
+SECRETS = "private/secrets/printer.txt"
+OUTDIR = os.path.expanduser("~/backups/PandaStatus/mqtt-capture")   # outside the repository, per the secret-hygiene rule
 
 TEMPLATE = """\
 # Printer connection details for tools/capture-mqtt.py.
@@ -393,7 +393,7 @@ def main():
         print("\n  This file holds the printer serial and may hold job names.")
         print("  It stays outside the repo. Make a scrubbed copy before quoting it:")
         print(f"    python3 tools/redact_mqtt.py {out_path} \\")
-        print(f"      -o .claude/work/analysis/{args.name}.redacted.jsonl")
+        print(f"      -o private/analysis/{args.name}.redacted.jsonl")
     return rc
 
 

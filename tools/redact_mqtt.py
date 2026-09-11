@@ -15,7 +15,7 @@ type-and-length descriptor, so shape analysis still works:
 **What is deliberately NOT redacted, because it is the point of the capture.** Field
 names, message shapes, enum values, temperatures, progress, layer counts, stage and state
 values, fan speeds, filament types and tray colours all survive intact. Those are
-interface facts under standing rule 6 and the whole reason the capture exists. Redacting
+interface facts under the clean-room rule and the whole reason the capture exists. Redacting
 them would produce a clean file with no evidence in it.
 
 The raw input file is opened read-only and never modified.
