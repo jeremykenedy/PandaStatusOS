@@ -42,7 +42,7 @@ idf.py set-target esp32c3
 idf.py build
 ```
 
-The result is `firmware/build/panda_status.bin` plus the bootloader and partition table
+The result is `firmware/build/pandastatusos.bin` plus the bootloader and partition table
 next to it, and `build/flash_args` listing every offset. As of this writing the app is
 0x1005d0 bytes with 33% of a 0x180000 slot free.
 

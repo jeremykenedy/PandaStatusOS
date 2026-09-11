@@ -4,6 +4,15 @@
 
 Everything so far. No release has been made and no device has been flashed.
 
+### The name
+
+- The project is PandaStatusOS (D-027). The firmware image reports it in `esp_app_desc`
+  and builds as `pandastatusos.bin`; the page's title and brand say it. The hardware is
+  still BIGTREETECH's Panda Status P2 wherever it is named. The product name is a token
+  in every string table, filled in by the page, never translated.
+- The hotspot's default name is a placeholder pending the bench session; the factory's
+  own name is a parity fact, not a branding choice.
+
 ### The page
 
 - Eight pages speaking the factory wire protocol frame for frame: dashboard, lighting,

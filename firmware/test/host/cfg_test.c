@@ -59,7 +59,7 @@ int main(void)
     wipe(); memset(&c, 0xAA, sizeof c);
     t("load with no blob returns 0", ps_cfg_load(&c) == 0, 0);
     t("  and leaves the factory magic", c.magic == PS_CFG_MAGIC, c.magic);
-    t("  and the factory hostname", !strcmp(c.hostname, "pandastatus"), 0);
+    t("  and the factory hostname", !strcmp(c.hostname, "pandastatusos"), 0);
     t("  and H2D at 50%", c.current_mode == PS_MODE_H2D && c.mode[1].brightness == 50, c.mode[1].brightness);
     t("  and every feature bit off", c.features == 0, c.features);
     t("  every nvs handle closed", opened == 0, opened);
@@ -78,13 +78,13 @@ int main(void)
 
     /* 4. junk falls back to defaults: wrong magic, short blob, long blob, garbage */
     wipe(); fill_distinct(&d); d.magic = 0x12345678; put(&d, sizeof d); ps_cfg_load(&c);
-    t("wrong magic: defaults", !strcmp(c.hostname, "pandastatus") && c.magic == PS_CFG_MAGIC, 0);
+    t("wrong magic: defaults", !strcmp(c.hostname, "pandastatusos") && c.magic == PS_CFG_MAGIC, 0);
     wipe(); fill_distinct(&d); put(&d, sizeof d - 8); ps_cfg_load(&c);
-    t("short blob: defaults", !strcmp(c.hostname, "pandastatus"), 0);
+    t("short blob: defaults", !strcmp(c.hostname, "pandastatusos"), 0);
     wipe(); { uint8_t big[sizeof d + 16]; memcpy(big, &d, sizeof d); memset(big + sizeof d, 0, 16); put(big, sizeof big); } ps_cfg_load(&c);
-    t("long blob: defaults", !strcmp(c.hostname, "pandastatus"), 0);
+    t("long blob: defaults", !strcmp(c.hostname, "pandastatusos"), 0);
     wipe(); { uint8_t junk[sizeof d]; for (size_t i = 0; i < sizeof junk; i++) junk[i] = (uint8_t)(i * 7 + 3); put(junk, sizeof junk); } ps_cfg_load(&c);
-    t("garbage of the right size: defaults", !strcmp(c.hostname, "pandastatus") && c.magic == PS_CFG_MAGIC, 0);
+    t("garbage of the right size: defaults", !strcmp(c.hostname, "pandastatusos") && c.magic == PS_CFG_MAGIC, 0);
 
     /* 5. save then load is the identity, twice */
     wipe(); fill_distinct(&d); t("save returns 0", ps_cfg_save(&d) == 0, 0);
@@ -103,7 +103,7 @@ int main(void)
 
     /* 7. erase */
     wipe(); fill_distinct(&d); put(&d, sizeof d); ps_cfg_erase(); ps_cfg_load(&c);
-    t("erase then load: defaults", !strcmp(c.hostname, "pandastatus"), 0);
+    t("erase then load: defaults", !strcmp(c.hostname, "pandastatusos"), 0);
 
     /* 8. colour on the wire */
     char w[10]; ps_rgba_t x = { 0xFF, 0x00, 0xAA, 0x80 };

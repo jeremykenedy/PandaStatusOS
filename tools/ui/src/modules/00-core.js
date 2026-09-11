@@ -25,11 +25,14 @@ var PS = (function () {
 
   // ---------- i18n: the one accessor ----------
   function table() { return (typeof PS_STRINGS !== 'undefined') ? PS_STRINGS : null; }
+  // The product name is never in a table: tables carry {product} and this is the one place
+  // it is filled in, so no translation can split, transliterate or misspell it.
+  function product(s) { return s.indexOf('{product}') >= 0 ? s.split('{product}').join(typeof PS_PRODUCT !== 'undefined' ? PS_PRODUCT : 'PandaStatusOS') : s; }
   function tr(key, fallback) {
     var t = table();
     if (t) {
-      if (t[lang] && typeof t[lang][key] === 'string') return t[lang][key];
-      if (t.en && typeof t.en[key] === 'string') return t.en[key];
+      if (t[lang] && typeof t[lang][key] === 'string') return product(t[lang][key]);
+      if (t.en && typeof t.en[key] === 'string') return product(t.en[key]);
     }
     return (fallback !== undefined) ? fallback : key;
   }

@@ -18,9 +18,9 @@ this table with it.
 | `features` | u32 bitfield | any | 0, every flag off | v1 | [FEATURES.md](FEATURES.md); nothing yet |
 | `wifi_ssid` | char[33] | up to 32 bytes | empty | v1 | `wifi.ssid` |
 | `wifi_password` | char[65] | up to 64 bytes | empty | v1 | `wifi.password` |
-| `ap_ssid` | char[33] | up to 32 bytes | `PandaStatus` | v1 | `ap.ssid` |
+| `ap_ssid` | char[33] | up to 32 bytes | `PandaStatus`, a placeholder: the factory's hotspot name is a bench-session fact (D-027) | v1 | `ap.ssid` |
 | `ap_password` | char[65] | up to 64 bytes; under 8 means an open hotspot | empty | v1 | `ap.password` |
-| `hostname` | char[33] | up to 32 bytes | `pandastatus` | v1 | `sta.hostname` |
+| `hostname` | char[33] | up to 32 bytes | `pandastatusos`, a placeholder: the factory's default hostname is a bench-session fact (D-027) | v1 | `sta.hostname` |
 | `printer_name` | char[33] | up to 32 bytes | empty | v1 | `printer.name` |
 | `printer_sn` | char[33] | up to 32 bytes | empty | v1 | `printer.sn` |
 | `printer_access_code` | char[17] | up to 16 bytes | empty | v1 | `printer.access_code` |

@@ -1,10 +1,10 @@
 # The Panda Vent bridge
 
-A protocol between two devices on the same LAN: a Panda Status running this firmware
-and a Panda Vent running its own open firmware. Both ends are this project's family, so
+A protocol between two devices on the same LAN: a Panda Status P2 running PandaStatusOS
+and a Panda Vent running PandaVentOS. Both ends are this project's family, so
 this is a specification written from scratch; nothing in it is lifted from either
 factory firmware. It is **not built yet**. This document is the contract the two sides
-build against, and the Status side is built against a mock vent before either touches
+build against, and the PandaStatusOS side is built against a mock vent before either touches
 the other.
 
 Unbound is the default. The bridge lives behind feature bit 0 of `ps_cfg_t.features`
@@ -19,7 +19,7 @@ advertised, no socket is opened and nothing on the page mentions it.
 | policy visible without a browser | vent to status | when the vent is overriding its policy (material-aware sealing), the bar says so |
 | chamber temperature as a ramp | vent to status | the vent already reads it; the bar shows it as a colour ramp between two configurable ends |
 | vent errors on the bar | vent to status | an error on the vent surfaces as the bar's error state |
-| status drives the vent | status to vent | open, close, and the policy toggle, from the Status page, so control lives in one place |
+| status drives the vent | status to vent | open, close, and the policy toggle, from the PandaStatusOS page, so control lives in one place |
 | shared printer state | either way | one device polls the printer's MQTT and pushes what it reads to the other, halving the load on the printer |
 | coordinated lighting | either way | the same state colours and mode on both bars |
 | each the other's backup | either way | a device holds the other's configuration blob and can hand it back |
@@ -46,7 +46,7 @@ same fields as the TXT record.
 Pairing is a one-time exchange that produces a shared token. Both devices show the
 same six-digit code on their pages for sixty seconds; the person confirms on both.
 
-1. Status opens the socket and sends `hello` with its identity and a random nonce.
+1. PandaStatusOS opens the socket and sends `hello` with its identity and a random nonce.
 2. Vent answers `hello` with its identity, its nonce, and `pair: true` if it has no
    token for that identity.
 3. Both compute `code = decimal(sha256(nonce_a ‖ nonce_b ‖ identity_a ‖ identity_b)) mod 1000000`
@@ -82,7 +82,7 @@ that carries secrets; see below.
 ### `hello`
 
 ```json
-{ "hello": { "seq": 1, "ver": 1, "id": "<16 hex>", "kind": "status", "name": "pandastatus",
+{ "hello": { "seq": 1, "ver": 1, "id": "<16 hex>", "kind": "status", "name": "pandastatusos",
              "nonce": "<32 hex>", "auth": "<64 hex>", "caps": ["vent_state", "printer_state", "light", "backup"] } }
 ```
 
@@ -159,17 +159,17 @@ a room: sealing pulses, moving sweeps, an error strobes the error colour.
 
 ## What the mock vent does
 
-`tools/ui/mock/mockvent.js` (to be written with the Status side) advertises itself,
+`tools/ui/mock/mockvent.js` (to be written with the PandaStatusOS side) advertises itself,
 answers the pairing exchange, sends `vent` frames on a timer, accepts commands and
 echoes the state change, and lies on demand like `mockdev.js`: slow, silent, gone,
-wrong identity, wrong token. The Status side is built and tested against it; the real
+wrong identity, wrong token. The PandaStatusOS side is built and tested against it; the real
 vent is never touched during that work.
 
 ## Order of work
 
 1. This document, agreed by both projects.
 2. The mock vent.
-3. Status side: the flag, discovery, pairing, `vent` in and `light` out, on the page
+3. PandaStatusOS side: the flag, discovery, pairing, `vent` in and `light` out, on the page
    behind the flag, with harnesses and screenshots.
 4. Vent side, in its own repository, against a mock status.
 5. Shared printer state and backups, last, because they carry the most consequence.

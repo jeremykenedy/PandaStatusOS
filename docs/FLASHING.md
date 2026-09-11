@@ -36,19 +36,19 @@ esptool.py --chip esp32c3 --before default_reset --after hard_reset write_flash 
     0x0     build/bootloader/bootloader.bin \
     0x8000  build/partition_table/partition-table.bin \
     0xf000  build/ota_data_initial.bin \
-    0x20000 build/panda_status.bin
+    0x20000 build/pandastatusos.bin
 ```
 
 Standing rule 0: this runs only when the maintainer says so in that message, with the
 cable connected. It is never run from a script, a make target, or a habit.
 
-After the first boot the device raises its hotspot (`PandaStatus`, open, 192.168.4.1
-by default) and its page shows the setup card, because it has no network.
+After the first boot the device raises its hotspot (the placeholder name `PandaStatus`,
+open, 192.168.4.1; the factory's own hotspot name is a bench-session fact, D-027) and its page shows the setup card, because it has no network.
 
 ## Updates, over the network
 
 Once the clone is on the unit, firmware updates go through the System page: choose the
-new `panda_status.bin`, it is sent at once as `POST /ota` with `OTA-Type: ota_fw`, the
+new `pandastatusos.bin`, it is sent at once as `POST /ota` with `OTA-Type: ota_fw`, the
 device answers on the socket, and restarts into the new slot. Rollback is enabled: an
 image that fails to bring the web server up boots the previous slot on the next reset,
 so a bad build costs a power cycle, not a cable.

@@ -310,7 +310,7 @@ def main():
         emit({"dir": "evt", "event": "disconnected"})
         state["connected"] = False
 
-    client = make_client(f"panda-status-capture-{int(t0)}")
+    client = make_client(f"pandastatusos-capture-{int(t0)}")
     client.on_connect = on_connect
     client.on_subscribe = on_subscribe
     client.on_message = on_message

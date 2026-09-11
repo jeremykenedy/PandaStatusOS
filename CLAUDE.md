@@ -1,4 +1,4 @@
-# Panda Status Factory Clone
+# PandaStatusOS: Panda Status P2 Factory Clone
 
 Clean-room reimplementation of the BIGTREETECH Panda Status P2 firmware, written from
 the observed behaviour of a stock unit. New project. Unrelated to PandaVent or

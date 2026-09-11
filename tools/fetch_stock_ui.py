@@ -50,7 +50,7 @@ def slug(path):
 
 def fetch(host, port, path, accept_gzip=True, timeout=20):
     conn = http.client.HTTPConnection(host, port, timeout=timeout)
-    headers = {"Accept": "*/*", "User-Agent": "panda-status-stock-capture/1"}
+    headers = {"Accept": "*/*", "User-Agent": "pandastatusos-stock-capture/1"}
     if accept_gzip:
         headers["Accept-Encoding"] = "gzip, deflate"
     else:

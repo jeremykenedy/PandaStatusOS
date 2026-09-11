@@ -1,4 +1,4 @@
-menu "Panda Status"
+menu "PandaStatusOS"
 
 config PS_LED_COUNT
     int "LED count on the bar (PROVISIONAL)"

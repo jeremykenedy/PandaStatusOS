@@ -26,7 +26,7 @@ See `docs/DECISIONS.md` D-013.
 ```bash
 mkdir -p private/uiwork
 cat > private/uiwork/package.json <<'EOF'
-{ "name": "panda-status-uiwork", "private": true, "dependencies": { "ws": "^8.18.0" } }
+{ "name": "pandastatusos-uiwork", "private": true, "dependencies": { "ws": "^8.18.0" } }
 EOF
 (cd private/uiwork && npm install)
 ```

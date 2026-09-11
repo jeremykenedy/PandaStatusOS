@@ -612,4 +612,40 @@ field cannot be forgotten, a rollback cannot be regretted.
 
 ---
 
+## D-027 The project is PandaStatusOS; the hardware stays Panda Status P2
+
+**Date** 2026-09-10 · **Reversal** cheap (the name lives in a handful of places, listed)
+
+**Decided.** The firmware and this repository are **PandaStatusOS**, on the precedent of
+PandaVentOS. "Panda Status" and "Panda Status P2" remain BIGTREETECH's product name and
+identify the hardware, exactly as the disclaimer draws the line.
+
+**What changed.** `project(pandastatusos)` in `firmware/CMakeLists.txt`, so `esp_app_desc`
+inside the image and the binary's filename (`pandastatusos.bin`) carry the name; the page's
+`<title>` and brand; the MQTT client id and the capture tools' identities; the default
+hostname placeholder; the Kconfig menu; the titles of README, CLAUDE.md and the hook; the
+bridge document's prose; the working notes.
+
+**The product name in the string tables.** It appeared in two keys in every language,
+embedded in translated sentences. It is now the token `{product}` in every table: the
+build derives the English value with the token, refuses any table that writes the name
+out, and emits `PS_PRODUCT`; the page's one string accessor fills the token in. The
+markup carries the literal for first paint. A rename is now one constant in the build
+and two lines of markup, and no translation can split, transliterate or misspell it.
+
+**What deliberately did not change.** The directory (`sites/PandaStatus`, as PandaVent's
+is `sites/PandaVent`); the `ps_` and `ps-` and `PS_` conventions (they read correctly and
+touch every file); the commit history; every "Panda Status P2" that names the hardware;
+BIGTREETECH's own repository path and published filenames quoted in `SAFETY.md`; the
+backup tarball names, which are the directory's.
+
+**Left open, on purpose: the hotspot name.** The placeholder `ap_ssid` default is still
+`PandaStatus`. What the factory names its hotspot is a bench-session fact, and under the
+parity rule the default must match it; renaming the placeholder now would be a branding
+decision dressed as a rename. The same holds for the default hostname, whose placeholder
+was renamed with the project because it had to be something. Both are on JEREMY-QUEUE
+item 3.
+
+---
+
 *Entries continue below as the run proceeds.*

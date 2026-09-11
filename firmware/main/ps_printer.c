@@ -118,7 +118,7 @@ void ps_printer_bind(void)
     const char *code = g_ps.cfg.printer_access_code;
     bool usable = g_ps.cfg.printer_sn[0] && g_ps.cfg.printer_ip[0];
     uint8_t mac[6]; esp_read_mac(mac, ESP_MAC_WIFI_STA);
-    snprintf(s_client_id, sizeof s_client_id, "pandastatus-%02x%02x%02x", mac[3], mac[4], mac[5]);
+    snprintf(s_client_id, sizeof s_client_id, "pandastatusos-%02x%02x%02x", mac[3], mac[4], mac[5]);
     esp_mqtt_client_config_t mc = {
         .broker.address.uri = s_uri,
         .credentials.username = "bblp",

@@ -1,4 +1,4 @@
-# Panda Status
+# PandaStatusOS
 
 <p align="center">
   <picture>

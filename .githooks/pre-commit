@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Panda Status pre-commit hook.
+# PandaStatusOS pre-commit hook.
 #
 # Two jobs:
 #   1. Hard fail if anything under .claude/work/ or private/ is staged.

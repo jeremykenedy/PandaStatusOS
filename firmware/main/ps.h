@@ -1,4 +1,4 @@
-/* Panda Status P2 clone: the one header every module shares.
+/* PandaStatusOS, the Panda Status P2 clone: the one header every module shares.
  *
  * Interface facts (wire fields, roots, enums, endpoints, caps) are from
  * docs/protocol-websocket.md. Anything marked PROVISIONAL or INFERENCE is not a fact yet.
