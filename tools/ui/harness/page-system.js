@@ -75,10 +75,26 @@ async function drive(browser, combo) {
   await pw.shot(page, `system-${combo.theme}-${combo.width}`);
   await pw.shot(page, `system-${combo.theme}-${combo.width}`, { full: true });
 
+  // ---- A2. the language: sent to the device, echoed, the table switches, RTL when it must ----
+  // only run once the table has more than English; the option list already proved itself
+  if (langs.length > 1) {
+    const n0 = await count();
+    await $(page, 'ps-system-language').selectOption('ar');
+    const got0 = await sentAfter(n0);
+    t(`${tag} A10 choosing Arabic sends settings.language ar, once`, got0.length === 1 && got0[0] === frame('settings', { language: 'ar' }), got0);
+    t(`${tag} A11 the echo switches the table: the page title is Arabic and the document is RTL`, await page.waitForFunction(() => PS.lang === 'ar' && document.documentElement.dir === 'rtl', null, { timeout: 3000 }).then(() => true).catch(() => false) && (await text(page, 'ps-card-system').then((s) => s.includes('النظام'))));
+    await pw.shot(page, `system-rtl-ar-${combo.theme}-${combo.width}`);
+    await $(page, 'ps-system-language').selectOption('ja');
+    t(`${tag} A12 Japanese: LTR again, the nav shows Japanese labels`, await page.waitForFunction(() => PS.lang === 'ja' && document.documentElement.dir === 'ltr', null, { timeout: 3000 }).then(() => true).catch(() => false) && (await page.$eval('#ps-rail a[data-ps-nav="system"] div', (e) => e.textContent)) !== 'System');
+    await $(page, 'ps-system-language').selectOption('en');
+    t(`${tag} A13 back to English`, await page.waitForFunction(() => PS.lang === 'en', null, { timeout: 3000 }).then(() => true).catch(() => false) && (await text(page, 'ps-system-fw-status')) === (await tr(page, 'ps_system_status_idle')));
+  }
+
   // ---- B. theme: browser-side only ----
+  const base = await count();                 // the language switches above are on the wire by design
   const other = combo.theme === 'dark' ? 'light' : 'dark';
   await $(page, 'ps-system-theme').selectOption(other);
-  t(`${tag} B1 choosing ${other} repaints the body and stores the preference, nothing on the wire`, (await bodyTheme(page)) === other && (await stored(page)) === other && (await count()) === 0, { body: await bodyTheme(page), stored: await stored(page) });
+  t(`${tag} B1 choosing ${other} repaints the body and stores the preference, nothing on the wire`, (await bodyTheme(page)) === other && (await stored(page)) === other && (await count()) === base, { body: await bodyTheme(page), stored: await stored(page) });
   await $(page, 'ps-system-theme').selectOption('auto');
   t(`${tag} B2 auto follows the system (${combo.theme} here) and stores auto`, (await bodyTheme(page)) === combo.theme && (await stored(page)) === 'auto', { body: await bodyTheme(page), stored: await stored(page) });
   await pw.tap(page, '#ps-topbar-theme');
@@ -109,7 +125,7 @@ async function drive(browser, combo) {
   await choose(page, 'ps-system-img-file', Buffer.alloc(CAP_IMG + 1, 0), 'huge.bin');
   await pw.sleep(300);
   t(`${tag} D5 a file over 0x6E0000 bytes is refused in the browser, naming 6.875 MB, no request`, (await text(page, 'ps-system-img-status')) === (await tr(page, 'ps_system_status_too_big')).replace('{limit}', '6.875 MB') && reqs.length === 2, { status: await text(page, 'ps-system-img-status'), reqs: reqs.length });
-  t(`${tag} D6 uploads put nothing on the socket`, (await count()) === 0);
+  t(`${tag} D6 uploads put nothing on the socket`, (await count()) === base);
 
   // ---- E. nav, and the lighting link inside the resets tile ----
   await pw.tap(page, '#ps-system-resets a[data-ps-nav="lighting"]');
