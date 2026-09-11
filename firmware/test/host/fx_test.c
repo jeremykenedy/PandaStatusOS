@@ -44,7 +44,8 @@ int main(void)
 
     /* reverse mirrors the marquee at the same phase */
     { ps_fx_phase_t q; ps_fx_phase_init(&p); ps_fx_phase_init(&q);
-      for (int k = 0; k < 7; k++) { ps_fx_render(PS_FX_MARQUEE, WHITE, BLACK, 100, 50, false, 0, &NO_IN, &p, px, 16); ps_fx_render(PS_FX_MARQUEE, WHITE, BLACK, 100, 50, true, 0, &NO_IN, &q, py, 16); }
+      for (int k = 0; k < 7; k++) { ps_fx_render(PS_FX_MARQUEE, WHITE, BLACK, 100, 50, false, 0, &NO_IN, &p, px, 16);
+      ps_fx_render(PS_FX_MARQUEE, WHITE, BLACK, 100, 50, true, 0, &NO_IN, &q, py, 16); }
       int mirror = 1; for (int i = 0; i < 16; i++) if (px[i].r != py[15 - i].r) mirror = 0;
       t("marquee reversed is the marquee mirrored", mirror, 0);
       int lit = 0; for (int i = 0; i < 16; i++) if (px[i].r) lit++;
@@ -67,7 +68,8 @@ int main(void)
 
     /* every effect, many frames, two lengths: bounded, finite, a sane period */
     { int bad = 0; long worst = 0;
-      for (int fx = 0; fx < PS_FX_COUNT; fx++) for (int n = 8; n <= 16; n += 8) for (int rev = 0; rev < 2; rev++) {   /* the hue ramp included */
+      for (int fx = 0; fx < PS_FX_COUNT; fx++) for (int n = 8;
+      n <= 16; n += 8) for (int rev = 0; rev < 2; rev++) {   /* the hue ramp included */
           ps_fx_phase_init(&p);
           ps_fx_in_t in = { 42, 40, 25, 60 };
           for (int k = 0; k < 300; k++) {
@@ -123,26 +125,35 @@ int main(void)
 
     /* A11: the pulse layer over a base frame, pure in time */
     { ps_rgba_t red = { 200, 0, 0, 255 }, base = { 0, 100, 0, 255 }; ps_rgba_t f4[4];
-      for (int i = 0; i < 4; i++) f4[i] = base; ps_fx_layer_pulse(f4, 4, red, 100, 0, 2000);
+      for (int i = 0; i < 4; i++) f4[i] = base;
+      ps_fx_layer_pulse(f4, 4, red, 100, 0, 2000);
       t("at the trough the layer leaves the base untouched", f4[0].g == 100 && f4[0].r == 0 && f4[3].g == 100, f4[0].g);
-      for (int i = 0; i < 4; i++) f4[i] = base; ps_fx_layer_pulse(f4, 4, red, 100, 1000, 2000);
+      for (int i = 0; i < 4; i++) f4[i] = base;
+      ps_fx_layer_pulse(f4, 4, red, 100, 1000, 2000);
       t("at the peak the strip is the layer's colour", f4[0].r == 200 && f4[0].g == 0 && f4[3].r == 200, f4[0].r);
-      for (int i = 0; i < 4; i++) f4[i] = base; ps_fx_layer_pulse(f4, 4, red, 100, 500, 2000);
+      for (int i = 0; i < 4; i++) f4[i] = base;
+      ps_fx_layer_pulse(f4, 4, red, 100, 500, 2000);
       t("halfway up it is the mix of the two", f4[0].r == 100 && f4[0].g == 50, f4[0].r);
-      for (int i = 0; i < 4; i++) f4[i] = base; ps_fx_layer_pulse(f4, 4, red, 50, 1000, 2000);
+      for (int i = 0; i < 4; i++) f4[i] = base;
+      ps_fx_layer_pulse(f4, 4, red, 50, 1000, 2000);
       t("the layer's brightness scales its colour", f4[0].r == 100 && f4[0].g == 0, f4[0].r);
-      for (int i = 0; i < 4; i++) f4[i] = base; ps_fx_layer_pulse(f4, 4, red, 100, 4000, 2000);
+      for (int i = 0; i < 4; i++) f4[i] = base;
+      ps_fx_layer_pulse(f4, 4, red, 100, 4000, 2000);
       t("the pulse repeats every period", f4[0].g == 100 && f4[0].r == 0, f4[0].g); }
 
     /* A12: the strobe layer, pure in time */
     { ps_rgba_t red = { 200, 0, 0, 255 }, base = { 0, 100, 0, 255 }; ps_rgba_t f4[4];
-      for (int i = 0; i < 4; i++) f4[i] = base; bool on = ps_fx_layer_strobe(f4, 4, red, 100, 0, 100);
+      for (int i = 0; i < 4; i++) f4[i] = base;
+      bool on = ps_fx_layer_strobe(f4, 4, red, 100, 0, 100);
       t("the strobe is on for the first half period: the strip is the colour", on && f4[0].r == 200 && f4[0].g == 0 && f4[3].r == 200, f4[0].r);
-      for (int i = 0; i < 4; i++) f4[i] = base; on = ps_fx_layer_strobe(f4, 4, red, 100, 150, 100);
+      for (int i = 0; i < 4; i++) f4[i] = base;
+      on = ps_fx_layer_strobe(f4, 4, red, 100, 150, 100);
       t("and off for the second: the base untouched", !on && f4[0].g == 100 && f4[0].r == 0, f4[0].g);
-      for (int i = 0; i < 4; i++) f4[i] = base; on = ps_fx_layer_strobe(f4, 4, red, 100, 200, 100);
+      for (int i = 0; i < 4; i++) f4[i] = base;
+      on = ps_fx_layer_strobe(f4, 4, red, 100, 200, 100);
       t("on again after a whole period", on && f4[0].r == 200, f4[0].r);
-      for (int i = 0; i < 4; i++) f4[i] = base; on = ps_fx_layer_strobe(f4, 4, red, 25, 0, 100);
+      for (int i = 0; i < 4; i++) f4[i] = base;
+      on = ps_fx_layer_strobe(f4, 4, red, 25, 0, 100);
       t("the strobe's brightness scales its colour", on && f4[0].r == 50 && f4[0].g == 0, f4[0].r);
       t("the rate is the engine's period: faster at 100 than at 0", ps_fx_period(100) < ps_fx_period(0), (long)ps_fx_period(100)); }
 
