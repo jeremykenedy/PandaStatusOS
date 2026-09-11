@@ -26,5 +26,6 @@ void app_main(void)
     ps_effect_start();
     ps_wifi_start();
     ps_ws_start();
+    ps_ota_confirm_boot();                       /* the page is reachable: this image stays */
     ps_printer_start();
 }

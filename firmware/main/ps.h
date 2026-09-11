@@ -166,6 +166,7 @@ void ps_printer_scan(void);
 int  ps_ota_begin(const char *type, size_t declared_len, void **ctx);
 int  ps_ota_write(void *ctx, const void *data, size_t len);
 int  ps_ota_end(void *ctx, bool ok);
+void ps_ota_confirm_boot(void);                       /* once the server is up: cancel rollback */
 
 /* ------------------------------------------------------------------ utility ---- */
 void ps_restart(const char *why);
