@@ -204,6 +204,7 @@ redistributed here; the copy you took is the only one there is.
 | [docs/DECISIONS.md](docs/DECISIONS.md) | every decision, its alternatives, its reversal cost |
 | [docs/ROADMAP.md](docs/ROADMAP.md) | what may be built, in tiers, and what each tier waits on |
 | [docs/PLAN.md](docs/PLAN.md) | the three phases, the five gates, the evidence standard |
+| [docs/API.md](docs/API.md) | the JSON surface: discovery, the read-only routes, the switches' routes, the rules |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | the standing rules, the clean-room rule, the sweep, the naming convention, the harnesses |
 | [CHANGELOG.md](CHANGELOG.md) | what changed |
 

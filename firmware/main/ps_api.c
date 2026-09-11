@@ -18,6 +18,8 @@
 #include "esp_log.h"
 #include "esp_http_server.h"
 #include "cJSON.h"
+#include "esp_system.h"
+#include "esp_flash.h"
 #include "esp_timer.h"
 #include "ps.h"
 
@@ -550,6 +552,51 @@ int ps_api_stages_post(httpd_req_t *req)
     free(buf);
     if (rc != 0) { httpd_resp_set_status(req, "400 Bad Request"); return httpd_resp_send(req, "refused", HTTPD_RESP_USE_STRLEN); }
     return send_stages(req);
+}
+
+/* ---- C2: the read-only surface every clone answers, like /api/features (D-033, D-041):
+ * identification for whoever is helping (curl /api/info), and the six-root state document
+ * as JSON over HTTP for tools, the same document the socket pushes on connect. /api/info
+ * carries no network name, address, serial or credential; /api/state carries exactly what
+ * the socket gives any client on the network, no more. ---- */
+static esp_err_t send_json(httpd_req_t *req, char *s)
+{
+    if (!s) { httpd_resp_set_status(req, "500 Internal Server Error"); return httpd_resp_send(req, "no memory", HTTPD_RESP_USE_STRLEN); }
+    httpd_resp_set_type(req, "application/json");
+    httpd_resp_set_hdr(req, "Cache-Control", "no-store");
+    esp_err_t e = httpd_resp_send(req, s, HTTPD_RESP_USE_STRLEN);
+    cJSON_free(s);
+    return e;
+}
+
+int ps_api_info_get(httpd_req_t *req)
+{
+    cJSON *doc = cJSON_CreateObject();
+    if (!doc) return send_json(req, NULL);
+    uint32_t flash = 0; esp_flash_get_physical_size(NULL, &flash);
+    ps_lock(); uint32_t feat = g_ps.cfg.features; uint8_t mode = g_ps.cfg.current_mode; ps_unlock();
+    cJSON_AddStringToObject(doc, "product", "PandaStatusOS");
+    cJSON_AddStringToObject(doc, "build", ps_build_id());
+    cJSON_AddStringToObject(doc, "version", PS_FW_VERSION);
+    cJSON_AddStringToObject(doc, "idf", esp_get_idf_version());
+    cJSON_AddNumberToObject(doc, "uptime_s", (double)(esp_timer_get_time() / 1000000));
+    cJSON_AddNumberToObject(doc, "heap_free", (double)esp_get_free_heap_size());
+    cJSON_AddNumberToObject(doc, "flash_size", (double)flash);
+    cJSON_AddNumberToObject(doc, "leds", CONFIG_PS_LED_COUNT);
+    cJSON_AddNumberToObject(doc, "mode", mode);
+    cJSON_AddNumberToObject(doc, "features", (double)feat);
+    cJSON_AddStringToObject(doc, "config_layout", "PS04");
+    char *s = cJSON_PrintUnformatted(doc);
+    cJSON_Delete(doc);
+    return send_json(req, s);
+}
+
+int ps_api_state_get(httpd_req_t *req)
+{
+    ps_lock();
+    char *s = ps_state_json(PS_ROOT_ALL);
+    ps_unlock();
+    return send_json(req, s);
 }
 
 static esp_err_t send_doc(httpd_req_t *req)

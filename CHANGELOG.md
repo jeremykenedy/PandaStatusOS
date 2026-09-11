@@ -18,6 +18,10 @@ Everything so far. No release has been made and no device has been flashed.
 - The clone's own JSON route, `/api/features`: the page discovers a clone by its 200 where
   the factory answers 302, and shows a Features card on the System page only then. The
   socket document stays the factory's (D-033).
+- C2, the JSON API as one surface: `GET /api/info` (identification, no network name or
+  credential) and `GET /api/state` (the six-root document over HTTP), answered by every
+  clone; `docs/API.md` documents every route and the rules they follow; an API harness
+  runs twice in the sweep, as the factory and as the clone (D-041).
 - B3, the stage-aware preview: the pin takes a print stage as well, so every per-stage
   row can be seen without a print; a stage select in the preview tile.
 - B1 and B2, effects per stage with inheritance, behind `stage_effects`: fifteen rows,
@@ -111,7 +115,7 @@ Everything so far. No release has been made and no device has been flashed.
 - A mock device with knobs for every lie a device can tell, and a wire harness that
   proves the mock before any page trusts it.
 - Page harnesses that drive every control and assert the exact frame the device
-  receives; a resilience harness with one lie per row; thirty-five sweep rows in all.
+  receives; a resilience harness with one lie per row; thirty-seven sweep rows in all.
 - A pre-commit hook that keeps secrets and the vendor's expression out, with a
   57-case suite; a residue sweep over the tracked tree.
 - Tools to capture the printer's MQTT report stream and redact it, not yet run against

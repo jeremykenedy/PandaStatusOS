@@ -30,6 +30,8 @@ exists so the rule has a home before any feature does. Its value is zero.
 
 ## How a feature reaches the page
 
+The whole JSON surface, route by route, is in [API.md](API.md).
+
 The socket document is the factory's and stays byte-exact (gate 2). Features live on the
 clone's own JSON route instead (D-033):
 
@@ -151,6 +153,8 @@ default is not a revert path. Both are invisible to the page and to the wire (D-
 |---|---|---|
 | `GET /backup`, the whole flash as bytes, `X-Flash-Size` before the body, station interface only | `firmware/main/ps_backup.c` | the only revert path this hardware has is a full flash image, and the factory offers no way to take one |
 | `X-Build` on `GET /` and `GET /backup`, the build identifier | `firmware/main/ps_ws.c` | the factory's `/ota` answers 200 whether or not an upload landed; `tools/fw/ota-install.sh` proves a flash by this header and the served page |
+| `GET /api/info`, identification without any network name, address or credential | `firmware/main/ps_api.c` | whoever is helping asks for it first; a clone that cannot say what it is cannot be helped (C2, D-041) |
+| `GET /api/state`, the six-root document as JSON over HTTP | `firmware/main/ps_api.c` | gate 2 compares this document to the device's; a tool should not need a socket client to read it (C2, D-041) |
 
 ## Reserved
 

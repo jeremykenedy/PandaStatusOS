@@ -1037,4 +1037,33 @@ really is the right granularity for the bar (it is the queue's premise).
 
 ---
 
+## D-041 Two read-only routes every clone answers: identification and the state document
+
+**Date** 2026-09-11 · **Reversal** cheap (two handlers)
+
+**Decided.** `GET /api/info` and `GET /api/state` are answered by every clone, switch or
+no switch, like `GET /api/features` (D-033) and `GET /backup` (D-029): they are not
+features, they change nothing the device does, and a clone that cannot say what it is
+cannot be helped. `/api/info` carries the product, the build id (the same value as
+`X-Build`), the version, the framework version, uptime, free heap, flash size, LED
+count, the mode, the switch bits as a number and the config layout, and nothing about
+the network, the printer or a credential. `/api/state` is the six-root document the
+socket pushes on connect, as JSON over HTTP, so a tool and gate 2 can read it with
+`curl` rather than a socket client; it carries exactly what the socket gives any client
+on the network. The surface is documented as one thing in `docs/API.md`, and a harness
+proves it twice: as the factory (every `/api` path a 302) and as the clone.
+
+**Alternatives.** Behind a switch (a device that has to be switched on before it can be
+identified defeats the purpose); `/api/info` carrying the network name and address (the
+socket already does, but a route made for pasting into a support thread should not).
+
+**Why.** The queue's C2 asks for a real JSON API; the write routes already existed one
+feature at a time, and what was missing was the read surface and the one document that
+says how the whole thing behaves.
+
+**What would change it.** A reason to authenticate the surface, which would apply to the
+socket first.
+
+---
+
 *Entries continue below as the run proceeds.*

@@ -601,6 +601,21 @@ async function handleHttp(req, res) {
     res.writeHead(200, hdr);
     return res.end(page);
   }
+  if (p === '/api/info' && knobFlag('PS_CLONE')) {
+    // C2: identification, always answered by a clone; no network name, address, serial or credential
+    if (req.method !== 'GET') { res.writeHead(405); return res.end(); }
+    if (!FEAT) FEAT = featDefaults();
+    let bits = 0; FEATURE_NAMES.forEach((k, i) => { if (FEAT.features[k]) bits |= (1 << (i + 1)); });
+    const info = { product: 'PandaStatusOS', build: LANDED ? LANDED.build : String(knob('PS_BUILD', 'mock')), version: (STATE.settings && STATE.settings.fw_version) || 'V1.0.0', idf: 'v5.3.1',
+                   uptime_s: Math.floor((Date.now() - t0) / 1000), heap_free: 180000, flash_size: 4194304, leds: 16, mode: (STATE.settings && STATE.settings.current_mode) || 0, features: bits, config_layout: 'PS04' };
+    res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }); return res.end(JSON.stringify(info));
+  }
+  if (p === '/api/state' && knobFlag('PS_CLONE')) {
+    // C2: the six-root document the socket pushes on connect, as JSON over HTTP
+    if (req.method !== 'GET') { res.writeHead(405); return res.end(); }
+    const doc = {}; for (const r of ['wifi', 'sta', 'ap', 'printer', 'settings', 'block']) doc[r] = rootBody(r);
+    res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }); return res.end(JSON.stringify(doc));
+  }
   if (p === '/api/features' && knobFlag('PS_CLONE')) {
     if (!FEAT) FEAT = featDefaults();
     const doc = () => JSON.stringify(Object.assign({ build: LANDED ? LANDED.build : String(knob('PS_BUILD', 'mock')) }, FEAT));

@@ -48,6 +48,10 @@ ROWS=(
   "p2-idle.json      | page-setup.js | "
   # --- features (D-033): against the factory (no route, 302) nothing appears and nothing is
   #     sent; against the clone (PS_CLONE=1) the switches and their settings, exact bodies ---
+  # --- the JSON API (C2): against the factory every /api path is a 302; against the clone the
+  # read-only routes answer and the gated ones answer only while their switch is on ---
+  "p2-idle.json      | api.js | "
+  "p2-idle.json      | api.js | PS_CLONE=1"
   "p2-idle.json      | page-features.js | "
   "p2-idle.json      | page-features.js | PS_CLONE=1"
   # --- the push policy is INFERENCE (D-014). The pages must hold under either reading:

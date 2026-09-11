@@ -215,6 +215,8 @@ int ps_ws_start(void)
     httpd_uri_t ota    = { .uri = "/ota", .method = HTTP_POST, .handler = ota_post };
     httpd_uri_t ws     = { .uri = "/ws",  .method = HTTP_GET,  .handler = ws_handler, .is_websocket = true };
     httpd_uri_t backup = { .uri = "/backup", .method = HTTP_GET, .handler = ps_backup_get };   /* the clone's own; the factory has none */
+    httpd_uri_t info_g = { .uri = "/api/info",     .method = HTTP_GET,  .handler = ps_api_info_get };       /* the clone's own (ps_api.c), always answered */
+    httpd_uri_t st_g   = { .uri = "/api/state",    .method = HTTP_GET,  .handler = ps_api_state_get };
     httpd_uri_t api_g  = { .uri = "/api/features", .method = HTTP_GET,  .handler = ps_api_features_get };   /* the clone's own (ps_api.c) */
     httpd_uri_t api_p  = { .uri = "/api/features", .method = HTTP_POST, .handler = ps_api_features_post };
     httpd_uri_t pv_g   = { .uri = "/api/preview",  .method = HTTP_GET,  .handler = ps_api_preview_get };    /* A13; answers 302 while its bit is off */
@@ -232,6 +234,8 @@ int ps_ws_start(void)
     httpd_register_uri_handler(s_hd, &ota);
     httpd_register_uri_handler(s_hd, &ws);
     httpd_register_uri_handler(s_hd, &backup);
+    httpd_register_uri_handler(s_hd, &info_g);
+    httpd_register_uri_handler(s_hd, &st_g);
     httpd_register_uri_handler(s_hd, &api_g);
     httpd_register_uri_handler(s_hd, &api_p);
     httpd_register_uri_handler(s_hd, &pv_g);

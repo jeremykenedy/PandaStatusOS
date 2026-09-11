@@ -115,7 +115,7 @@ directory:
 mkdir -p private/uiwork && cd private/uiwork
 npm init -y && npm install ws playwright && npx playwright install chromium
 cd ../..
-tools/ui/harness/sweep.sh                 # the whole table, 30 rows
+tools/ui/harness/sweep.sh                 # the whole table, 37 rows
 tools/ui/harness/run.sh p2-idle.json page-lighting.js   # one harness, one fixture
 ```
 

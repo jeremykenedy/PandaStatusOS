@@ -350,6 +350,8 @@ int ps_api_preview_post(httpd_req_t *req);
 int ps_preview_apply(const char *json, size_t len);   /* the pin from its JSON, whole or refused; 0 on success */
 char *ps_preview_json(void);                          /* the pin as the page reads it; cJSON_free() it */
 int ps_http_redirect_portal(httpd_req_t *req);        /* the wildcard's answer, for a route that must look absent */
+int ps_api_info_get(httpd_req_t *req);                /* C2: GET /api/info, identification; always answered by a clone */
+int ps_api_state_get(httpd_req_t *req);               /* C2: GET /api/state, the six-root document as JSON; always answered */
 int ps_api_stages_get(httpd_req_t *req);              /* B1, B2: GET/POST /api/stages; a 302 while bit 15 is off */
 int ps_api_stages_post(httpd_req_t *req);
 int ps_stages_apply(const char *json, size_t len);    /* assign a named effect to a stage, clear one, or the whole table; 0 on success */
