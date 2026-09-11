@@ -60,6 +60,42 @@ def die(msg):
     sys.exit(1)
 
 
+def check_readme_claims():
+    """Numbers in the README are claims, and an unchecked claim drifts.
+
+    This one had already drifted: it said 248 strings for a table of 433, 30 harness rows
+    for 38, and 32 config assertions for 75, because nothing compared them. Only counts
+    that can be derived from a file are checked here. Prose is not, and neither is the
+    factory column of the comparison table, because that describes somebody else's
+    firmware and no file here can settle it.
+    """
+    import glob
+    import json as _json
+    readme = read(os.path.join(ROOT, "README.md"))
+    psh = read(os.path.join(ROOT, "firmware", "main", "ps.h"))
+    sweep = read(os.path.join(ROOT, "tools", "ui", "harness", "sweep.sh"))
+    fx_names = re.findall(r"\bPS_FX_[A-Z0-9_]+\b", re.sub(r"/\*.*?\*/", "", re.search(r"enum ps_fx\s*\{(.*?)\}", psh, re.S).group(1), flags=re.S))
+    claims = [
+        ("languages",   len([f for f in glob.glob(os.path.join(I18N, "*.json")) if "js_strings" not in f]),
+                        r"badge/languages-(\d+)-orange"),
+        ("strings",     len(_json.loads(read(os.path.join(I18N, "en.json")))),
+                        r"all (\d+) strings are in it"),
+        ("harness rows (badge)", len(re.findall(r"^\s+\"", sweep, re.M)),
+                        r"badge/harness%20rows-(\d+)-"),
+        ("harness rows (table)", len(re.findall(r"^\s+\"", sweep, re.M)),
+                        r"\| (\d+) rows: every page"),
+        ("effects",     len(fx_names) - 1,
+                        r"\*\*Effects per bar state\*\*[^|]*\|[^|]*\| :white_check_mark: \*\*(\d+)\*\*"),
+    ]
+    for what, real, pat in claims:
+        m = re.search(pat, readme)
+        if not m:
+            die(f"README no longer states a {what} count where the check looks for one")
+        if int(m.group(1)) != real:
+            die(f"README says {m.group(1)} {what}, the tree says {real}")
+    return ", ".join(f"{r} {w}" for w, r, _ in claims)
+
+
 def read(p, mode="r"):
     with open(p, mode, encoding=None if "b" in mode else "utf-8") as fh:
         return fh.read()
@@ -294,11 +330,14 @@ def main():
     data = html.encode("utf-8")
     gz = subprocess.run(["gzip", "-9", "-n", "-c"], input=data, capture_output=True).stdout
 
+    claims = check_readme_claims()
+
     if args.check:
         if not os.path.exists(OUT) or read(OUT, "rb") != data:
             print("DRIFT: firmware/main/ui.html is not what the build produces. Rebuild and commit.")
             return 1
         print("firmware/main/ui.html matches the build")
+        print(f"README agrees with the tree on: {claims}")
         return 0
 
     with open(OUT, "wb") as fh:
@@ -307,6 +346,7 @@ def main():
     print(f"  size  {len(data):,} B   gzip -9 -n  {len(gz):,} B   sha256 {sha256(data)[:16]}...")
     print(f"  sprite: {info['icons']} icons, sha256 {info['sprite_sha256']}")
     print(f"  i18n keys used by the page: {info['keys_used']}")
+    print(f"  README agrees with the tree on: {claims}")
     return 0
 
 
