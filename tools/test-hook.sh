@@ -144,6 +144,26 @@ check "CJK beside another code still blocks"   '| Something | 状态灯 | `de` |
 check "CJK in a text file still blocks" 'status text 状态灯 here'                    BLOCK
 check "CJK in a comment still blocks"   '// 状態表示ライト'                            BLOCK
 
+# --- the binary classifier, asserted directly --------------------------------
+# A text file wrongly called binary drops out of the CJK scan and nothing else changes.
+# That is silent: every other case still passes and the scan simply stops running. It is
+# how a broken classifier reached CI while the suite was green on the machine that wrote
+# it. These two assert the mechanism, so a future platform difference names itself.
+echo
+echo "=== the binary classifier ==="
+classifies() {   # $1 label, $2 path, $3 content-writer, $4 expected word
+  eval "$3"
+  git add -f "$2" 2>/dev/null
+  got="$(PS_HOOK_DEBUG=1 ./.githooks/pre-commit 2>&1 >/dev/null | sed -n "s|^classifier: $2 ||p" | head -1)"
+  git reset -q >/dev/null 2>&1; rm -f "$2"
+  if [ "$got" = "$4" ]; then printf '  OK    %-48s %s\n' "$1" "$got"; pass=$((pass+1))
+  else printf '  FAIL  %-48s got=%s want=%s\n' "$1" "${got:-nothing}" "$4"; fail=$((fail+1)); fi
+}
+classifies "a text file is classified text" docs/_t_cls.md \
+  "printf 'plain text with 0 and octal 200 in it\n' > docs/_t_cls.md" text
+classifies "a file holding a NUL is classified binary" docs/_t_cls.md \
+  "printf 'text\\000more\n' > docs/_t_cls.md" binary
+
 # --- literal forbidden-strings scan -----------------------------------------
 # Tested with a throwaway sentinel. The real values are never written into this
 # file: that is the whole point of the mechanism being tested, and an earlier

@@ -374,7 +374,7 @@ moved no layout. [docs/CONFIG.md](docs/CONFIG.md) has every key, its range and i
 | --- | --- |
 | `tools/ui/harness/sweep.sh` | 38 rows: every page against the mock at both themes and both widths, every control's exact wire frame, the JSON API as the factory and as a clone, contrast on every page, and one row per lie a device can tell |
 | `make test-fw` | on the host, compiling the shipping code with plain gcc: the config blob and its migrations (75), the effect engine (73), the rebind decision (13), the fault codes (24), and the state document and inbound dispatcher against the protocol (41) |
-| `make test-hook` | the pre-commit hook's regression suite, 63 cases |
+| `make test-hook` | the pre-commit hook's regression suite, including two cases that assert its binary classifier rather than only its effect |
 | `make residue` | the tracked tree carries nothing of the vendor's expression |
 | `make test-flash-tools` | 55 cases over the flash tools, against a synthetic image and the mock |
 | `python3 tools/ui/build/build.py --check` | the committed page is exactly what the build produces, and this README's numbers still match the tree |

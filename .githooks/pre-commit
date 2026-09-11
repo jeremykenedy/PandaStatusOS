@@ -194,7 +194,7 @@ scan_vendor() {
             while IFS= read -r line; do
                 fail "$label in $where"
                 printf '        %s\n' "$line" >&2
-            done < <(staged_view "$file" "$view" | grep -a -nE "$pattern" | { if [ -n "$skipre" ]; then grep -avE "$skipre"; else cat; fi; } || true)
+            done < <(staged_view "$file" "$view" | LC_ALL=C grep -a -nE "$pattern" | { if [ -n "$skipre" ]; then LC_ALL=C grep -avE "$skipre"; else cat; fi; } || true)
         done
     done
 }
@@ -204,11 +204,21 @@ scan_vendor "vendor CSS class"    '\bc_[a-z][a-zA-Z0-9_]*\b'
 scan_vendor "vendor identifier"   '\b(ws_send_data|ws_send_json|ws_on_close|ws_on_open|ws_on_message|show_ws_not_open|html_require_refresh|dialog_create|resetSettings|updateUIAfterReset|rgb_color_list|rgb_brightness_list|rgb_speed_list|colorButton_id|g_websocket|g_rgb_type_str|g_gif_name|g_lang_resources|ota_btn_click|ota_file_selected|speedSlider|device_req_restart|show_pop_factory|h2d_mode)\b'
 # CJK scan skips binary files (a NUL in the first 8 KiB): decoded bytes can spell CJK
 # codepoints by chance, and a PNG tripped this. The ASCII scans above still run on them.
-# The NUL is found through od: a bash string cannot hold a NUL, so grep -q $'\x00' was
-# grep -q '' and matched everything, which made every file "binary" and the scan a no-op.
-# grep -c, not -q: under pipefail a -q that stops at the first match hands od a broken
-# pipe and the whole test reads as "not binary".
-is_binary() { [ "$(git show ":$1" 2>/dev/null | head -c 8192 | od -An -c | grep -c '\\0')" -gt 0 ]; }
+#
+# The NUL is found by deleting NULs and seeing whether the length changed. A bash string
+# cannot hold a NUL, so the obvious spellings are all traps: grep -q $'\x00' is grep -q ''
+# and matches everything, and piping od through grep for a backslash-escaped NUL depends on
+# how that grep reads an undefined escape. This version has no escape and no pattern, so
+# every platform agrees. It matters more than it looks: on CI every text file was being
+# called binary, which disabled the CJK scan silently, and the suite caught it only because
+# it asserts that CJK is blocked rather than that the scan ran.
+is_binary() {
+    local blob n m
+    blob="$(git show ":$1" 2>/dev/null | head -c 8192 | LC_ALL=C tr -d '\000' | wc -c)"
+    m="$(git show ":$1" 2>/dev/null | head -c 8192 | wc -c)"
+    n="$blob"
+    [ "${n:-0}" -lt "${m:-0}" ]
+}
 # Our own translations (tools/ui/i18n/<lang>.json, and the generated string-table line of
 # the built page) carry CJK by design; CJK anywhere else is source text and a hit.
 scan_vendor_text_only() {
@@ -216,7 +226,14 @@ scan_vendor_text_only() {
     local saved="$STAGED" keep=""
     for file in $STAGED; do
         [ -f "$REPO_ROOT/$file" ] || continue
-        if is_binary "$file"; then continue; fi
+        # PS_HOOK_DEBUG=1 prints what the classifier decided. A file wrongly called binary
+        # drops out of this scan and nothing else changes, which is silent by construction,
+        # so the suite asserts these lines rather than only the blocking.
+        if is_binary "$file"; then
+            [ "${PS_HOOK_DEBUG:-}" = "1" ] && printf 'classifier: %s binary\n' "$file" >&2
+            continue
+        fi
+        [ "${PS_HOOK_DEBUG:-}" = "1" ] && printf 'classifier: %s text\n' "$file" >&2
         case "$file" in tools/ui/i18n/*.json) continue ;; esac
         keep="$keep $file"
     done
@@ -224,7 +241,11 @@ scan_vendor_text_only() {
     # code span, is a language table naming a language in its own script.
     STAGED="$keep"; scan_vendor "$label" "$pattern" '(^[0-9]+:var PS_STRINGS = |`(zh-Hans|zh-Hant|ja|ko)`)'; STAGED="$saved"
 }
-scan_vendor_text_only "CJK source text" '[^[:print:][:space:]]*[一-龥ぁ-ヿ가-힣]'
+# CJK, kana and hangul in UTF-8 all begin with a lead byte between E3 and ED, so the scan
+# is a byte range read in the C locale. A bracket expression over multibyte CHARACTERS,
+# which is what this used to be, is read differently by different greps and in different
+# locales; a byte range is read the same way everywhere.
+scan_vendor_text_only "CJK source text" $'[\xe3-\xed]'
 
 scan_pattern "MAC address"            '([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}'
 # Proximity heuristic for prose and configs that say "wifi ... psk <value>" with no
