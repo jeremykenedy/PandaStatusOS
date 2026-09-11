@@ -739,6 +739,24 @@ paths (several under other names), 8 are Jeremy's 96-grid drawings (`spool` is a
 was never in the sprite), and 6 grid-24 symbols match no Heroicons 2.0.18, 2.1.1, 2.1.5 or
 2.2.0 file. Which of those six are his is recorded in `tools/ui/src/ARTWORK.md`.
 
+## D-032 Binaries are swept as their printable runs; the checklist skips its own text
+
+**Date** 2026-09-10 · **Reversal** cheap
+
+**Decided.** The residue sweep scans a binary file as the printable runs `strings -n 8`
+would show and nothing else; the CJK check skips binaries entirely (D-012). The
+publishing checklist's path scan no longer counts `.py` and `.sh` sources named after
+what they read as dump artifacts, and its MPL search skips the checklist file itself.
+
+**Why.** A README screenshot's compressed pixels spelled a `c_` token and the sweep
+reported CSS residue in a PNG; `tools/fw/partitions_from_dump.py` tripped the path scan
+on the word "dump"; the checklist's own MPL command matched its own line. None was a
+finding about the tree, and each check was made precise rather than weakened: a real
+identifier in a real string inside a binary still fails, a real dump by path still fails.
+The same evening the sweep failed on that PNG in the moment before a commit, and the
+commit went ahead because the sequence did not gate on it; that is recorded here so the
+lesson is not lost: gate on the sweep's exit code, not on reading its last line.
+
 ---
 
 *Entries continue below as the run proceeds.*

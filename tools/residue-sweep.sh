@@ -136,15 +136,24 @@ print(f"residue sweep: {len(scanned)} tracked files "
 print(f"{'CATEGORY':30s} {'HITS':>5s}")
 print("-" * 78)
 
-# A binary file decoded as text produces byte runs that can spell CJK codepoints by
-# chance; a PNG tripped this once. Binary files are not source text, so they skip the
-# CJK-text check. Every ASCII-pattern check still runs on them, because an identifier
-# or a credential hidden in a binary is still an identifier or a credential.
+# A binary file decoded as text produces byte runs that can spell anything by chance: a
+# PNG once tripped the CJK check, and a screenshot's compressed pixels once spelled a c_
+# token (D-032). An identifier or a credential hidden in a binary is still an identifier
+# or a credential, and it lives in a printable string; three bytes of image data do not.
+# So a binary is scanned as the printable runs `strings -n 8` would show, and the CJK
+# check, which is about text, skips it entirely. Nothing is exempted: a real token in a
+# real string inside a binary still fails.
 def is_binary(path):
     try:
         return b'\x00' in open(path, 'rb').read(8192)
     except OSError:
         return False
+
+def text_of(path):
+    if is_binary(path):
+        runs = re.findall(rb'[\x20-\x7e]{8,}', open(path, 'rb').read())
+        return "\n".join(r.decode('ascii') for r in runs)
+    return open(path, encoding='utf-8', errors='replace').read()
 
 # Our own translations live in tools/ui/i18n/<lang>.json and, once built, on the one line
 # of the page that is the generated string table. CJK there is our work; the check for
@@ -161,7 +170,7 @@ for name, pat in CHECKS:
         if name == "CJK source text" and is_binary(f):
             continue
         try:
-            t = open(f, encoding='utf-8', errors='replace').read()
+            t = text_of(f)
         except OSError:
             continue
         for i, line in enumerate(t.split('\n'), 1):

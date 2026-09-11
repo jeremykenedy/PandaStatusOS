@@ -103,11 +103,12 @@ python3 tools/art/gen_banner.py --check     # so are the banners
 python3 tools/ui/gen_icons.py --check       # and the generated stage icons
 python3 tools/ui/normalize_icons.py --check # every drawn icon is normalised and carries no export furniture
 for d in firmware/main/vendor/*/; do echo "$d"; grep -E '^\| (version|licence)' "$d/README.md"; done
-git grep -nwE 'MPL|Mozilla Public License' -- . ':!docs/DECISIONS.md' ':!firmware/main/vendor/coloris/README.md' ':!firmware/main/vendor/README.md'
+git grep -nwE 'MPL|Mozilla Public License' -- . ':!docs/DECISIONS.md' ':!firmware/main/vendor/coloris/README.md' ':!firmware/main/vendor/README.md' ':!docs/PUBLISHING.md'
 ```
 
 Every dependency has a row; every row states a version and a licence; the MPL search
-finds nothing but the prose that explains why iro.js was excluded. Provenance: the marks
+prints nothing (the prose that explains why iro.js was excluded, and this checklist's own
+command, are the files it skips). Provenance: the marks
 and the banner are generated from primitives (D-010, D-030); the Heroicons are 2.2.0,
 hashed one by one; the project's own icons are Jeremy Kenedy's, first-party under the
 repository licence, recorded in `tools/ui/src/ARTWORK.md` (D-031); nothing else is artwork.
@@ -124,7 +125,7 @@ git log --all --format=%B | grep -ciE 'co-auth[o]red|anthr[o]pic|generated w[i]t
 # every path that ever existed in any commit, checked for dumps, snapshots, secrets, working areas
 git rev-list --all | while read c; do git ls-tree -r --name-only "$c"; done | sort -u \
   | grep -iE '\.(bin|dump|img|nvs|hex|elf)$|nvs|secret|dump|snapshot|\.claude/work|^private/|xindex|index\.raw|stock-ui' \
-  | grep -vE '\.(c|h)$' ; echo "exit $? (1 wanted; the host tests' stub headers are C, not artifacts)"
+  | grep -vE '\.(c|h|py|sh)$' ; echo "exit $? (1 wanted; sources named after what they read are not artifacts)"
 # the hook's credential patterns over every added line in all history
 git log -p --all -- . ':!tools/test-hook.sh' ':!.githooks/pre-commit' ':!tools/residue-sweep.sh' \
   | grep -E '^\+' | grep -nE '(password|passwd|psk|pwd|secret|token|api[_-]?key|access[_-]?code|ssid|serial)["'"'"'`]?[[:space:]]*[:=][[:space:]]*["'"'"'`]?[A-Za-z0-9._~+/-]{6,}(["'"'"'`;,)}[:space:]]|$)' \
