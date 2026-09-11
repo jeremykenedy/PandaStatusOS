@@ -151,7 +151,7 @@ let STATE = null;
 let booting = false;                    // true while a "restart" is in progress
 let LANDED = null;                      // {build, page, until}: the image an ota_fw upload installed (PS_OTA_LANDS)
 let FEAT = null;                        // the clone's feature document (PS_CLONE); null until first asked
-const FEATURE_NAMES = ['state_brightness', 'state_effects', 'effect_colours', 'effect_params', 'effect_ramp', 'fx_progress', 'fx_progress_anim', 'fx_barber', 'fx_hue_ramp', 'fx_temp', 'hot_warning', 'error_flash', 'preview', 'presets', 'stage_effects'];
+const FEATURE_NAMES = ['state_brightness', 'state_effects', 'effect_colours', 'effect_params', 'effect_ramp', 'fx_progress', 'fx_progress_anim', 'fx_barber', 'fx_hue_ramp', 'fx_temp', 'hot_warning', 'error_flash', 'preview', 'presets', 'stage_effects', 'config_io'];
 const FX_SELECTABLE = 17;
 // which effect ids the bits allow, as the firmware's ps_fx_allowed(): the seventeen need only the
 // effect switch; the ones that read the print each wait for their own
@@ -163,7 +163,7 @@ function fxAllowed(id, features) {
 }
 const fxDefault = (colour) => ({ effect: 0, brightness: 50, speed: 100, bright_end: 0, opt: 0, aux: 0, colours: [colour, colour, '#000000FF', '#000000FF'] });
 function featDefaults() {
-  return { features: { state_brightness: false, state_effects: false, effect_colours: false, effect_params: false, effect_ramp: false, fx_progress: false, fx_progress_anim: false, fx_barber: false, fx_hue_ramp: false, fx_temp: false, hot_warning: false, error_flash: false, preview: false, presets: false, stage_effects: false },
+  return { features: { state_brightness: false, state_effects: false, effect_colours: false, effect_params: false, effect_ramp: false, fx_progress: false, fx_progress_anim: false, fx_barber: false, fx_hue_ramp: false, fx_temp: false, hot_warning: false, error_flash: false, preview: false, presets: false, stage_effects: false, config_io: false },
            config: { state_brightness: [[50, 50, 50], [50, 50, 50]],
                      state_effects: [fxDefault('#FFFFFFFF'), fxDefault('#FFFFFFFF'), fxDefault('#FF0000FF')],
                      temp_gradient: { source: 0, lo: 25, hi: 250 },
@@ -263,6 +263,34 @@ let PRESETS = { presets: [], max: 8 };  // A14: the named effects
 const SLOT_NAMES = ['standby', 'nozzle_heating', 'bed_heating', 'bed_leveling', 'homing', 'nozzle_cleaning', 'calibrating_flow', 'xy_mesh_mode_sweep', 'filament_check_location', 'filament_cut', 'filament_pull_back_cur', 'filament_push_new', 'filament_purge_old', 'printing_ok', 'printing'];
 function stagesDefault() { return { stages: SLOT_NAMES.map((slot) => Object.assign({ slot, set: false, name: '' }, fxDefault('#FFFFFFFF'))), current: 0 }; }
 let STAGES = stagesDefault();           // B1, B2: the per-stage rows
+// the whole presets list from its JSON, or null; validated under the bits in force
+function presetsParse(v) {
+  if (!Array.isArray(v) || v.length > 8) return null;
+  const out = [], names = new Set();
+  for (const o of v) {
+    if (!o || typeof o !== 'object' || Array.isArray(o)) return null;
+    const { name, ...rest } = o;
+    if (typeof name !== 'string' || name.length < 1 || name.length > 15 || names.has(name)) return null;
+    names.add(name);
+    const fx = fxParse(rest, fxDefault('#FFFFFFFF'), FEAT.features); if (!fx) return null;
+    out.push(Object.assign({ name }, fx));
+  }
+  return out;
+}
+// the whole stage table from its JSON, or null; each object overlays the stored row
+function stagesParse(v) {
+  if (!Array.isArray(v) || v.length !== 15) return null;
+  const out = [];
+  for (let i = 0; i < 15; i++) {
+    const o = v[i]; if (!o || typeof o !== 'object' || Array.isArray(o) || typeof o.set !== 'boolean') return null;
+    const { set, name, slot, ...rest } = o;
+    if (name !== undefined && (typeof name !== 'string' || name.length > 15)) return null;
+    const fx = fxParse(rest, STAGES.stages[i], FEAT.features); if (!fx) return null;
+    delete fx.slot; delete fx.set; delete fx.name;
+    out.push(Object.assign({ slot: SLOT_NAMES[i], set, name: name !== undefined ? name : STAGES.stages[i].name }, fx));
+  }
+  return out;
+}
 const PUSHED = [];                      // frames the device sent
 const t0 = Date.now();
 
@@ -616,6 +644,67 @@ async function handleHttp(req, res) {
     const doc = {}; for (const r of ['wifi', 'sta', 'ap', 'printer', 'settings', 'block']) doc[r] = rootBody(r);
     res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }); return res.end(JSON.stringify(doc));
   }
+  if (p === '/api/config' && knobFlag('PS_CLONE') && FEAT && FEAT.features.config_io) {
+    // C3: the settings as one document; the export leaves the three passwords out, the import is
+    // taken whole or refused whole and then pushed to every socket client
+    const toH2D = (s) => { const h = String(s || '').replace('#', '').toUpperCase(); return '#' + h.slice(0, 6) + (h.length >= 8 ? h.slice(6, 8) : 'FF'); };
+    const exportDoc = () => {
+      let bits = 0; FEATURE_NAMES.forEach((k, i) => { if (FEAT.features[k]) bits |= (1 << (i + 1)); });
+      const modes = (STATE.settings.list2 || []).map((m, i) => ({ brightness: m.brightness, speed: m.speed === undefined ? 100 : m.speed, colours: (m.rgb_rgba || []).map(toH2D) }));
+      return { layout: 'PS04', features: bits, wifi: { ssid: STATE.wifi.ssid }, ap: { ssid: STATE.ap.ssid, ip: STATE.ap.ip, on: STATE.ap.on }, hostname: STATE.sta.hostname,
+               printer: { name: STATE.printer.name, sn: STATE.printer.sn, ip: STATE.printer.ip }, language: STATE.settings.language, mode: STATE.settings.current_mode, modes,
+               blocks: (STATE.block.blocklist || []).map((b) => ({ id: b.blockID, colour: toH2D(b.blockrgba) })),
+               state_brightness: FEAT.config.state_brightness, state_effects: FEAT.config.state_effects, temp_gradient: FEAT.config.temp_gradient, hot_warning: FEAT.config.hot_warning, error_flash: FEAT.config.error_flash,
+               presets: PRESETS.presets, stages: STAGES.stages };
+    };
+    if (req.method === 'GET') { res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store', 'Content-Disposition': 'attachment; filename="pandastatusos-settings.json"' }); return res.end(JSON.stringify(exportDoc())); }
+    if (req.method !== 'POST') { res.writeHead(405); return res.end(); }
+    const { body } = await readBody(req, 1 << 14);
+    const rec = { t: Date.now(), rel_ms: Date.now() - t0, api: '/api/config', text: '' };
+    let j;
+    try { j = JSON.parse(body.toString('utf8')); } catch (_) { rec.error = 'not json'; SENT.push(rec); log({ ev: 'api_refused', detail: 'not json' }); res.writeHead(400); return res.end('refused'); }
+    rec.text = JSON.stringify({ api: '/api/config', body: j }); rec.frame = j; rec.roots = ['api'];
+    const refuse = () => { rec.error = 'refused'; SENT.push(rec); log({ ev: 'api_refused', detail: 'config' }); res.writeHead(400); res.end('refused'); };
+    const TOP = ['layout', 'features', 'wifi', 'ap', 'hostname', 'printer', 'language', 'mode', 'modes', 'blocks', 'state_brightness', 'state_effects', 'temp_gradient', 'hot_warning', 'error_flash', 'presets', 'stages'];
+    const isObj = (o) => o && typeof o === 'object' && !Array.isArray(o);
+    const str = (v, max) => v === undefined || (typeof v === 'string' && v.length <= max);
+    const ipOk = (v) => v === undefined || v === '' || (typeof v === 'string' && /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/.test(v) && v.split('.').every((n) => Number(n) <= 255));
+    if (!isObj(j) || !Object.keys(j).every((k) => TOP.includes(k))) return refuse();
+    if (j.features !== undefined && (!Number.isInteger(j.features) || j.features < 0 || j.features > 0x1FFFE)) return refuse();
+    if (j.wifi !== undefined && (!isObj(j.wifi) || !Object.keys(j.wifi).every((k) => ['ssid', 'password'].includes(k)) || !str(j.wifi.ssid, 32) || !str(j.wifi.password, 64))) return refuse();
+    if (j.ap !== undefined && (!isObj(j.ap) || !Object.keys(j.ap).every((k) => ['ssid', 'password', 'ip', 'on'].includes(k)) || !str(j.ap.ssid, 32) || !str(j.ap.password, 64) || !ipOk(j.ap.ip) || (j.ap.on !== undefined && j.ap.on !== 0 && j.ap.on !== 1))) return refuse();
+    if (!str(j.hostname, 32) || !str(j.language, 7)) return refuse();
+    if (j.printer !== undefined && (!isObj(j.printer) || !Object.keys(j.printer).every((k) => ['name', 'sn', 'ip', 'access_code'].includes(k)) || !str(j.printer.name, 32) || !str(j.printer.sn, 32) || !str(j.printer.access_code, 16) || !ipOk(j.printer.ip))) return refuse();
+    if (j.mode !== undefined && j.mode !== 0 && j.mode !== 1) return refuse();
+    if (j.modes !== undefined && (!Array.isArray(j.modes) || j.modes.length !== 2 || !j.modes.every((m) => isObj(m) && Object.keys(m).every((k) => ['brightness', 'speed', 'colours'].includes(k))
+        && (m.brightness === undefined || (Number.isInteger(m.brightness) && m.brightness >= 0 && m.brightness <= 100)) && (m.speed === undefined || (Number.isInteger(m.speed) && m.speed >= 0 && m.speed <= 100))
+        && (m.colours === undefined || (Array.isArray(m.colours) && m.colours.length === 3 && m.colours.every((c) => /^#?[0-9A-Fa-f]{6}([0-9A-Fa-f]{2})?$/.test(c))))))) return refuse();
+    if (j.blocks !== undefined && (!Array.isArray(j.blocks) || j.blocks.length > 15 || !j.blocks.every((b) => isObj(b) && Number.isInteger(b.id) && b.id >= 0 && b.id <= 255 && /^#?[0-9A-Fa-f]{6}([0-9A-Fa-f]{2})?$/.test(b.colour)))) return refuse();
+    // the feature settings and the switches go through the features route's own validation, on a copy
+    const saved = JSON.parse(JSON.stringify(FEAT));
+    const feats = {}; if (j.features !== undefined) FEATURE_NAMES.forEach((k, i) => { feats[k] = !!(j.features & (1 << (i + 1))); });
+    const cfg = {}; for (const k of ['state_brightness', 'state_effects', 'temp_gradient', 'hot_warning', 'error_flash']) if (j[k] !== undefined) cfg[k] = j[k];
+    const sub = {}; if (Object.keys(feats).length) sub.features = feats; if (Object.keys(cfg).length) sub.config = cfg;
+    if (Object.keys(sub).length && !featApply(sub)) { FEAT = saved; return refuse(); }
+    let presets = null, stages = null;
+    if (j.presets !== undefined) { presets = presetsParse(j.presets); if (!presets) { FEAT = saved; return refuse(); } }
+    if (j.stages !== undefined) { stages = stagesParse(j.stages); if (!stages) { FEAT = saved; return refuse(); } }
+    if (presets) PRESETS = { presets, max: 8 };
+    if (stages) STAGES.stages = stages;
+    if (j.wifi) { if (j.wifi.ssid !== undefined) STATE.wifi.ssid = j.wifi.ssid; if (j.wifi.password !== undefined) STATE.wifi.password = j.wifi.password; }
+    if (j.ap) { for (const k of ['ssid', 'password', 'ip', 'on']) if (j.ap[k] !== undefined) STATE.ap[k] = j.ap[k]; }
+    if (j.hostname !== undefined) STATE.sta.hostname = j.hostname;
+    if (j.printer) { for (const k of ['name', 'sn', 'ip', 'access_code']) if (j.printer[k] !== undefined) STATE.printer[k] = j.printer[k]; }
+    if (j.language !== undefined) STATE.settings.language = j.language;
+    if (j.mode !== undefined) STATE.settings.current_mode = j.mode;
+    if (j.modes) j.modes.forEach((m, i) => { const cur = STATE.settings.list2[i]; if (m.brightness !== undefined) cur.brightness = m.brightness; if (m.speed !== undefined && i === 1) cur.speed = m.speed;
+      if (m.colours) cur.rgb_rgba = m.colours.map((c) => i === 0 ? toH2D(c).slice(1, 7) : toH2D(c)); });
+    if (j.blocks) STATE.block.blocklist = j.blocks.map((b) => ({ blockID: b.id, blockrgba: toH2D(b.colour) }));
+    SENT.push(rec);
+    log({ ev: 'api_config', detail: 'imported' });
+    for (const ws of sockets) push(ws, fullDocument(), 'import');
+    res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }); return res.end(JSON.stringify(exportDoc()));
+  }
   if (p === '/api/features' && knobFlag('PS_CLONE')) {
     if (!FEAT) FEAT = featDefaults();
     const doc = () => JSON.stringify(Object.assign({ build: LANDED ? LANDED.build : String(knob('PS_BUILD', 'mock')) }, FEAT));
@@ -677,16 +766,7 @@ async function handleHttp(req, res) {
     const hasList = Object.prototype.hasOwnProperty.call(j, 'presets'), hasApply = Object.prototype.hasOwnProperty.call(j, 'apply');
     if (hasList === hasApply) return refuse();
     if (hasList) {
-      const v = j.presets; if (!Array.isArray(v) || v.length > 8) return refuse();
-      const out = [], names = new Set();
-      for (const o of v) {
-        if (!o || typeof o !== 'object' || Array.isArray(o)) return refuse();
-        const { name, ...rest } = o;
-        if (typeof name !== 'string' || name.length < 1 || name.length > 15 || names.has(name)) return refuse();
-        names.add(name);
-        const fx = fxParse(rest, fxDefault('#FFFFFFFF'), FEAT.features); if (!fx) return refuse();
-        out.push(Object.assign({ name }, fx));
-      }
+      const out = presetsParse(j.presets); if (!out) return refuse();
       PRESETS = { presets: out, max: 8 };
     } else {
       const a = j.apply;
@@ -724,16 +804,7 @@ async function handleHttp(req, res) {
       const c = j.clear; if (!c || typeof c !== 'object' || !stageOk(c.stage)) return refuse();
       STAGES.stages[c.stage].set = false; STAGES.stages[c.stage].name = '';
     } else {
-      const v = j.stages; if (!Array.isArray(v) || v.length !== 15) return refuse();
-      const out = [];
-      for (let i = 0; i < 15; i++) {
-        const o = v[i]; if (!o || typeof o !== 'object' || Array.isArray(o) || typeof o.set !== 'boolean') return refuse();
-        const { set, name, slot, ...rest } = o;
-        if (name !== undefined && (typeof name !== 'string' || name.length > 15)) return refuse();
-        const fx = fxParse(rest, STAGES.stages[i], FEAT.features); if (!fx) return refuse();
-        delete fx.slot; delete fx.set; delete fx.name;
-        out.push(Object.assign({ slot: SLOT_NAMES[i], set, name: name !== undefined ? name : STAGES.stages[i].name }, fx));
-      }
+      const out = stagesParse(j.stages); if (!out) return refuse();
       STAGES.stages = out;
     }
     SENT.push(rec);

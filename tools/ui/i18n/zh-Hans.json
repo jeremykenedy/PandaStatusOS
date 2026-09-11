@@ -407,5 +407,15 @@
   "ps_lighting_st_row_aria": "此阶段的效果",
   "ps_lighting_pv_stage": "阶段",
   "ps_lighting_pv_stage_aria": "预览哪个阶段",
-  "ps_lighting_pv_stage_none": "按状态"
+  "ps_lighting_pv_stage_none": "按状态",
+  "ps_feature_config_io": "设置文件",
+  "ps_feature_config_io_help": "把所有设置导出为一个 JSON 文件并可再导入；三个密码不包含在内。",
+  "ps_feature_config_io_aria": "设置文件",
+  "ps_system_cfg_export": "导出设置",
+  "ps_system_cfg_export_aria": "把设置下载为文件",
+  "ps_system_cfg_import": "导入设置",
+  "ps_system_cfg_import_aria": "选择设置文件",
+  "ps_system_cfg_help": "文件会写明你的网络和打印机，并包含除 Wi‑Fi、热点和访问码密码之外的全部设置；请勿外传。导入时要么应用整个文件，要么什么都不应用。",
+  "ps_system_cfg_done": "设置已导入。",
+  "ps_system_cfg_failed": "文件被拒绝。"
 }

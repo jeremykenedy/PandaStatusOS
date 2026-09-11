@@ -407,5 +407,15 @@
   "ps_lighting_st_row_aria": "この段階の効果",
   "ps_lighting_pv_stage": "段階",
   "ps_lighting_pv_stage_aria": "プレビューする段階",
-  "ps_lighting_pv_stage_none": "状態に従う"
+  "ps_lighting_pv_stage_none": "状態に従う",
+  "ps_feature_config_io": "設定をファイルに",
+  "ps_feature_config_io_help": "すべての設定を1つのJSONファイルに書き出し、読み込み直せます。3つのパスワードは含まれません。",
+  "ps_feature_config_io_aria": "設定をファイルに",
+  "ps_system_cfg_export": "設定を書き出す",
+  "ps_system_cfg_export_aria": "設定をファイルとしてダウンロード",
+  "ps_system_cfg_import": "設定を読み込む",
+  "ps_system_cfg_import_aria": "設定ファイルを選ぶ",
+  "ps_system_cfg_help": "ファイルにはネットワーク名とプリンターが記され、Wi‑Fi、ホットスポット、アクセスコードのパスワードを除くすべての設定が含まれます。他人に渡さないでください。読み込みはファイル全体を適用するか、何も適用しません。",
+  "ps_system_cfg_done": "設定を読み込みました。",
+  "ps_system_cfg_failed": "ファイルは拒否されました。"
 }

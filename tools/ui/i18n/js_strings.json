@@ -86,5 +86,7 @@
   "ps_lighting_ed_use_error": "Use for error",
   "ps_lighting_ed_load": "Edit",
   "ps_lighting_ed_delete": "Delete",
-  "ps_lighting_ed_full": "Eight saved effects is the limit; delete one first."
+  "ps_lighting_ed_full": "Eight saved effects is the limit; delete one first.",
+  "ps_system_cfg_done": "Settings imported.",
+  "ps_system_cfg_failed": "The file was refused."
 }

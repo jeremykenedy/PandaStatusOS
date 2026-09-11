@@ -57,6 +57,13 @@ check "wifi psk with a value still blocks" 'set WiFi psk = Tr0ub4dor3x'         
 check "wifi far from a token on one line passes" "$(printf 'Wi-Fi%0200d passed through unchanged' 0)" PASS
 check "wifi near a token on one line blocks" 'Wi-Fi network, password: hunter2swordfish'   BLOCK
 check "quoted value still blocks"  'password = "hunter2swordfish"'                       BLOCK
+# Code that COPIES a field by path is not a credential: the value is an identifier path
+# (STATE.wifi.ssid), which no real secret is. A quoted dotted value is still a value, and
+# a bare word after a key is still a value. These two paths blocked the settings export.
+check "field copied by code path passes"   'wifi: { ssid: STATE.wifi.ssid }, ap: { ssid: STATE.ap.ssid }'  PASS
+check "field assigned from a path passes"  'STATE.wifi.password = j.wifi.password;'                         PASS
+check "quoted dotted value still blocks"   'password = "not.a.path.value"'                                   BLOCK
+check "path beside a real value still blocks" 'ssid: STATE.wifi.ssid, password: hunter2swordfish'           BLOCK
 # Our i18n keys are ps_<page>_<what> and can end in a credential word. The key is a name,
 # its value is UI copy; neither is an assignment of a secret.
 check "i18n key ending in password passes" '"ps_network_ap_password": "Hotspot password",' PASS

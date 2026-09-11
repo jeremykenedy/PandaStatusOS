@@ -58,6 +58,8 @@ extern const char *const ps_gif_slot_names[PS_GIF_SLOTS];
 #define PS_FEAT_PREVIEW           (1u << 13)  /* A13: the live preview route, a pinned printer state */
 #define PS_FEAT_PRESETS           (1u << 14)  /* A14: the named effects and the two palette effects */
 #define PS_FEAT_STAGE_EFFECTS     (1u << 15)  /* B1, B2: an effect per print stage, inheriting the bar state's */
+#define PS_FEAT_CONFIG_IO         (1u << 16)  /* C3: settings export and import as one JSON document */
+#define PS_FEAT_KNOWN             0x1FFFEu    /* every switch bit defined above, bit 0 (the bridge) excluded */
 
 /* which of the printer's temperatures a feature follows (INFERENCE: the report's
  * nozzle_temper, bed_temper and chamber_temper, the fields the vent reads) */
@@ -350,6 +352,10 @@ int ps_api_preview_post(httpd_req_t *req);
 int ps_preview_apply(const char *json, size_t len);   /* the pin from its JSON, whole or refused; 0 on success */
 char *ps_preview_json(void);                          /* the pin as the page reads it; cJSON_free() it */
 int ps_http_redirect_portal(httpd_req_t *req);        /* the wildcard's answer, for a route that must look absent */
+int ps_api_config_get(httpd_req_t *req);              /* C3: GET/POST /api/config, the settings as one document; a 302 while bit 16 is off */
+int ps_api_config_post(httpd_req_t *req);
+char *ps_config_json(void);                           /* the export: everything stored except the three passwords; cJSON_free() it */
+int ps_config_apply(const char *json, size_t len);    /* the import, whole or refused; 0 on success */
 int ps_api_info_get(httpd_req_t *req);                /* C2: GET /api/info, identification; always answered by a clone */
 int ps_api_state_get(httpd_req_t *req);               /* C2: GET /api/state, the six-root document as JSON; always answered */
 int ps_api_stages_get(httpd_req_t *req);              /* B1, B2: GET/POST /api/stages; a 302 while bit 15 is off */

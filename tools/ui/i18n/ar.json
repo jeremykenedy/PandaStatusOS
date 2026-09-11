@@ -407,5 +407,15 @@
   "ps_lighting_st_row_aria": "التأثير لهذه المرحلة",
   "ps_lighting_pv_stage": "المرحلة",
   "ps_lighting_pv_stage_aria": "أي مرحلة تُعاين",
-  "ps_lighting_pv_stage_none": "حسب الحالة"
+  "ps_lighting_pv_stage_none": "حسب الحالة",
+  "ps_feature_config_io": "الإعدادات كملف",
+  "ps_feature_config_io_help": "تصدير كل الإعدادات إلى ملف JSON واحد واستيرادها مجددًا؛ تبقى كلمات المرور الثلاث خارجه.",
+  "ps_feature_config_io_aria": "الإعدادات كملف",
+  "ps_system_cfg_export": "تصدير الإعدادات",
+  "ps_system_cfg_export_aria": "تنزيل الإعدادات كملف",
+  "ps_system_cfg_import": "استيراد الإعدادات",
+  "ps_system_cfg_import_aria": "اختيار ملف إعدادات",
+  "ps_system_cfg_help": "يسمّي الملف شبكتك وطابعتك ويحوي كل إعداد عدا كلمات مرور Wi‑Fi ونقطة الاتصال ورمز الوصول؛ احتفظ به لنفسك. يطبّق الاستيراد الملف كله أو لا شيء منه.",
+  "ps_system_cfg_done": "تم استيراد الإعدادات.",
+  "ps_system_cfg_failed": "رُفض الملف."
 }

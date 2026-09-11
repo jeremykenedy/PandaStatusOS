@@ -88,6 +88,11 @@ ALLOW_PATTERNS='f317a8a76f1b575467bec007a9768e7951c51603dfdf9de68c4152721a573732
 # identifier followed by "(" where a value would end, and is not an assignment of a secret.
 # That distinction is what stopped the mock device from committing.
 SENS_ASSIGN='(password|passwd|psk|pwd|secret|token|api[_-]?key|access[_-]?code|ssid|serial)["'"'"'`]?[[:space:]]*[:=][[:space:]]*["'"'"'`]?[A-Za-z0-9._~+/-]{6,}(["'"'"'`;,)}[:space:]]|$)'
+# Code that COPIES a field by path is not a credential either:  ssid: STATE.wifi.ssid  or
+# STATE.wifi.password = j.wifi.password  assign an identifier path, which no real secret is.
+# Such an unquoted path value is blanked before the line is scanned, so the rest of the
+# line is still read. A quoted dotted value ("a.b.c") is still a value and still matches.
+PATH_ASSIGN='s/((password|passwd|psk|pwd|secret|token|api[_-]?key|access[_-]?code|ssid|serial)["'"'"'`]?[[:space:]]*[:=][[:space:]]*)[A-Za-z_$][A-Za-z0-9_$]*(\.[A-Za-z_$][A-Za-z0-9_$]*)+/\1()/g'
 
 # Is this staged file a gzip member? Magic bytes first, so a gzip under a name that
 # does not say .gz is still caught; extension as a second trigger.
@@ -128,6 +133,7 @@ scan_pattern() {
         for view in $(views_for "$file"); do
             [ "$view" = "gz" ] && where="$file (inside gzip)" || where="$file"
             while IFS= read -r line; do
+                line="$(printf '%s' "$line" | sed -E "$PATH_ASSIGN")"
                 printf '%s' "$line" | grep -Eq "$ALLOW_PATTERNS" && continue
                 # Documentation that only NAMES fields, never assigns them. Requires a
                 # backtick (so it is a code span) AND no credential assignment anywhere

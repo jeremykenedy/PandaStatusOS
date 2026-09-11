@@ -407,5 +407,15 @@
   "ps_lighting_st_row_aria": "Эффект для этого этапа",
   "ps_lighting_pv_stage": "Этап",
   "ps_lighting_pv_stage_aria": "Какой этап показать в предпросмотре",
-  "ps_lighting_pv_stage_none": "По состоянию"
+  "ps_lighting_pv_stage_none": "По состоянию",
+  "ps_feature_config_io": "Настройки в виде файла",
+  "ps_feature_config_io_help": "Экспорт всех настроек в один JSON-файл и обратный импорт; три пароля остаются за его пределами.",
+  "ps_feature_config_io_aria": "Настройки в виде файла",
+  "ps_system_cfg_export": "Экспортировать настройки",
+  "ps_system_cfg_export_aria": "Скачать настройки файлом",
+  "ps_system_cfg_import": "Импортировать настройки",
+  "ps_system_cfg_import_aria": "Выбрать файл настроек",
+  "ps_system_cfg_help": "Файл называет вашу сеть и принтер и содержит каждую настройку, кроме паролей Wi-Fi, точки доступа и кода доступа; храните его при себе. Импорт применяет весь файл или ничего.",
+  "ps_system_cfg_done": "Настройки импортированы.",
+  "ps_system_cfg_failed": "Файл отклонён."
 }

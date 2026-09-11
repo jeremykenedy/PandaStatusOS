@@ -18,6 +18,9 @@ Everything so far. No release has been made and no device has been flashed.
 - The clone's own JSON route, `/api/features`: the page discovers a clone by its 200 where
   the factory answers 302, and shows a Features card on the System page only then. The
   socket document stays the factory's (D-033).
+- C3, the settings as one file, behind `config_io`: export everything stored except the
+  three passwords, import the same document whole or refused, every client pushed the
+  result; Export and Import on the System page (D-042).
 - C2, the JSON API as one surface: `GET /api/info` (identification, no network name or
   credential) and `GET /api/state` (the six-root document over HTTP), answered by every
   clone; `docs/API.md` documents every route and the rules they follow; an API harness

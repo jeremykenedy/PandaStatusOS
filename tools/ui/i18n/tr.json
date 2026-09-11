@@ -407,5 +407,15 @@
   "ps_lighting_st_row_aria": "Bu aşama için efekt",
   "ps_lighting_pv_stage": "Aşama",
   "ps_lighting_pv_stage_aria": "Hangi aşamanın önizleneceği",
-  "ps_lighting_pv_stage_none": "Duruma göre"
+  "ps_lighting_pv_stage_none": "Duruma göre",
+  "ps_feature_config_io": "Ayarlar dosya olarak",
+  "ps_feature_config_io_help": "Tüm ayarları tek bir JSON dosyasına aktarın ve geri alın; üç parola dışarıda kalır.",
+  "ps_feature_config_io_aria": "Ayarlar dosya olarak",
+  "ps_system_cfg_export": "Ayarları dışa aktar",
+  "ps_system_cfg_export_aria": "Ayarları dosya olarak indir",
+  "ps_system_cfg_import": "Ayarları içe aktar",
+  "ps_system_cfg_import_aria": "Bir ayar dosyası seçin",
+  "ps_system_cfg_help": "Dosya ağınızı ve yazıcınızı adlandırır ve Wi-Fi, erişim noktası ve erişim kodu parolaları dışında her ayarı içerir; kendinize saklayın. İçe aktarma dosyanın tamamını uygular ya da hiçbirini.",
+  "ps_system_cfg_done": "Ayarlar içe aktarıldı.",
+  "ps_system_cfg_failed": "Dosya reddedildi."
 }

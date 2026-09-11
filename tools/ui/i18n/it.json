@@ -407,5 +407,15 @@
   "ps_lighting_st_row_aria": "Effetto per questa fase",
   "ps_lighting_pv_stage": "Fase",
   "ps_lighting_pv_stage_aria": "Quale fase mostrare in anteprima",
-  "ps_lighting_pv_stage_none": "In base allo stato"
+  "ps_lighting_pv_stage_none": "In base allo stato",
+  "ps_feature_config_io": "Impostazioni come file",
+  "ps_feature_config_io_help": "Esporta tutte le impostazioni in un file JSON e reimportale; le tre password restano fuori.",
+  "ps_feature_config_io_aria": "Impostazioni come file",
+  "ps_system_cfg_export": "Esporta impostazioni",
+  "ps_system_cfg_export_aria": "Scarica le impostazioni come file",
+  "ps_system_cfg_import": "Importa impostazioni",
+  "ps_system_cfg_import_aria": "Scegli un file di impostazioni",
+  "ps_system_cfg_help": "Il file nomina la tua rete e la tua stampante e contiene ogni impostazione tranne le password del Wi-Fi, dell'hotspot e del codice di accesso; tienilo privato. Un'importazione applica tutto il file o niente.",
+  "ps_system_cfg_done": "Impostazioni importate.",
+  "ps_system_cfg_failed": "Il file è stato rifiutato."
 }

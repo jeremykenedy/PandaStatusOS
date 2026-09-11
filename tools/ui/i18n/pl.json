@@ -407,5 +407,15 @@
   "ps_lighting_st_row_aria": "Efekt dla tego etapu",
   "ps_lighting_pv_stage": "Etap",
   "ps_lighting_pv_stage_aria": "Który etap pokazać w podglądzie",
-  "ps_lighting_pv_stage_none": "Według stanu"
+  "ps_lighting_pv_stage_none": "Według stanu",
+  "ps_feature_config_io": "Ustawienia jako plik",
+  "ps_feature_config_io_help": "Eksportuj wszystkie ustawienia do jednego pliku JSON i importuj je z powrotem; trzy hasła zostają poza nim.",
+  "ps_feature_config_io_aria": "Ustawienia jako plik",
+  "ps_system_cfg_export": "Eksportuj ustawienia",
+  "ps_system_cfg_export_aria": "Pobierz ustawienia jako plik",
+  "ps_system_cfg_import": "Importuj ustawienia",
+  "ps_system_cfg_import_aria": "Wybierz plik ustawień",
+  "ps_system_cfg_help": "Plik wymienia twoją sieć i drukarkę i zawiera każde ustawienie oprócz haseł Wi-Fi, hotspotu i kodu dostępu; zachowaj go dla siebie. Import stosuje cały plik albo nic.",
+  "ps_system_cfg_done": "Ustawienia zaimportowane.",
+  "ps_system_cfg_failed": "Plik został odrzucony."
 }

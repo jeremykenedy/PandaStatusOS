@@ -407,5 +407,15 @@
   "ps_lighting_st_row_aria": "Efekt pro tuto fázi",
   "ps_lighting_pv_stage": "Fáze",
   "ps_lighting_pv_stage_aria": "Která fáze se zobrazí v náhledu",
-  "ps_lighting_pv_stage_none": "Podle stavu"
+  "ps_lighting_pv_stage_none": "Podle stavu",
+  "ps_feature_config_io": "Nastavení jako soubor",
+  "ps_feature_config_io_help": "Exportovat všechna nastavení do jednoho souboru JSON a znovu je importovat; tři hesla zůstávají venku.",
+  "ps_feature_config_io_aria": "Nastavení jako soubor",
+  "ps_system_cfg_export": "Exportovat nastavení",
+  "ps_system_cfg_export_aria": "Stáhnout nastavení jako soubor",
+  "ps_system_cfg_import": "Importovat nastavení",
+  "ps_system_cfg_import_aria": "Vybrat soubor nastavení",
+  "ps_system_cfg_help": "Soubor jmenuje vaši síť a tiskárnu a obsahuje každé nastavení kromě hesel Wi-Fi, hotspotu a přístupového kódu; nechte si ho pro sebe. Import použije celý soubor, nebo nic.",
+  "ps_system_cfg_done": "Nastavení importována.",
+  "ps_system_cfg_failed": "Soubor byl odmítnut."
 }

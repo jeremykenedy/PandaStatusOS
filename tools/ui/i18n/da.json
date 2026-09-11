@@ -407,5 +407,15 @@
   "ps_lighting_st_row_aria": "Effekt for dette trin",
   "ps_lighting_pv_stage": "Trin",
   "ps_lighting_pv_stage_aria": "Hvilket trin der forhåndsvises",
-  "ps_lighting_pv_stage_none": "Efter tilstand"
+  "ps_lighting_pv_stage_none": "Efter tilstand",
+  "ps_feature_config_io": "Indstillinger som fil",
+  "ps_feature_config_io_help": "Eksportér alle indstillinger som én JSON-fil og importér dem igen; de tre adgangskoder holdes udenfor.",
+  "ps_feature_config_io_aria": "Indstillinger som fil",
+  "ps_system_cfg_export": "Eksportér indstillinger",
+  "ps_system_cfg_export_aria": "Download indstillingerne som fil",
+  "ps_system_cfg_import": "Importér indstillinger",
+  "ps_system_cfg_import_aria": "Vælg en indstillingsfil",
+  "ps_system_cfg_help": "Filen navngiver dit netværk og din printer og indeholder hver indstilling undtagen wifi-, hotspot- og adgangskode-adgangskoderne; hold den privat. En import anvender hele filen eller intet.",
+  "ps_system_cfg_done": "Indstillinger importeret.",
+  "ps_system_cfg_failed": "Filen blev afvist."
 }

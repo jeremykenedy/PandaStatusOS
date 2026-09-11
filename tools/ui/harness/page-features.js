@@ -618,6 +618,42 @@ async function drive(browser, combo) {
   got = await sentAfter(n);
   t(`${tag} Q6 preview off again`, got.length === 1 && got[0] === apiFrame({ features: { preview: false } }), got);
   await page.waitForFunction(() => PS.features.features.preview === false, null, { timeout: 2000 }).catch(() => {});
+
+  // ---- C3: the settings as one file ----
+  const cfFrame = (body) => JSON.stringify({ api: '/api/config', body });
+  const cfPost = (body) => page.evaluate(async (b) => { const r = await fetch('/api/config', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(b), redirect: 'manual' }); return r.type === 'opaqueredirect' ? 302 : r.status; }, body);
+  await go(page, '#system');
+  await waitHidden(page, 'ps-system-features', false);
+  t(`${tag} R1 with config_io off the tile is hidden and the route answers 302`, (await hidden(page, 'ps-system-cfg')) && (await cfPost({ hostname: 'x' })) === 302);
+  n = await count();
+  await toggle(page, 'ps-system-feature-config-io');
+  got = await sentAfter(n);
+  t(`${tag} R2 turning settings-as-a-file on sends exactly {"features":{"config_io":true}}`, got.length === 1 && got[0] === apiFrame({ features: { config_io: true } }), got);
+  await page.waitForFunction(() => PS.features.features.config_io === true, null, { timeout: 2000 }).catch(() => {});
+  t(`${tag} R3 the tile shows`, await waitHidden(page, 'ps-system-cfg', false));
+  const exported = await page.evaluate(async () => { const r = await fetch('/api/config', { cache: 'no-store' }); return r.status === 200 ? await r.json() : null; });
+  t(`${tag} R4 the export names the network and the printer and holds every section, and none of the three passwords`, !!exported && exported.layout === 'PS04' && typeof exported.features === 'number'
+    && typeof exported.wifi.ssid === 'string' && !('password' in exported.wifi) && !('password' in exported.ap) && !('access_code' in exported.printer)
+    && Array.isArray(exported.modes) && exported.modes.length === 2 && Array.isArray(exported.state_effects) && Array.isArray(exported.presets) && exported.stages.length === 15, exported && Object.keys(exported));
+  const dl = page.waitForEvent('download', { timeout: 4000 }).then((d) => d.path()).catch(() => null);
+  await $(page, 'ps-system-cfg-export').click();
+  const dlPath = await dl;
+  let dlDoc = null; try { dlDoc = dlPath ? JSON.parse(require('fs').readFileSync(dlPath, 'utf8')) : null; } catch (_) { dlDoc = null; }
+  t(`${tag} R5 Export downloads the same document as a file`, !!dlDoc && JSON.stringify(dlDoc) === JSON.stringify(exported), dlPath);
+  const imported = JSON.parse(JSON.stringify(exported)); imported.state_brightness[1][2] = 77; imported.hostname = 'ps-imported';
+  n = await count();
+  await $(page, 'ps-system-cfg-file').setInputFiles({ name: 'pandastatusos-settings.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(imported)) });
+  got = await sentAfter(n);
+  t(`${tag} R6 Import sends the file's document whole to /api/config`, got.length === 1 && got[0] === cfFrame(imported), got && got[0] && got[0].slice(0, 120));
+  t(`${tag} R7 the answer lands: the features document and the socket document carry the imported values`, await page.waitForFunction(() => PS.features.config.state_brightness[1][2] === 77 && PS.state.sta && PS.state.sta.hostname === 'ps-imported' && document.getElementById('ps-system-cfg-status').textContent.length > 0, null, { timeout: 3000 }).then(() => true).catch(() => false));
+  await pw.shot(page, `features-system-cfg-${combo.theme}-${combo.width}`, { full: true });
+  t(`${tag} R8 an unknown section and a bad colour are refused whole (400)`, (await cfPost({ nonsense: 1 })) === 400 && (await cfPost({ modes: [{ colours: ['red', '#000000FF', '#000000FF'] }, {}] })) === 400);
+  n = await count();
+  await toggle(page, 'ps-system-feature-config-io');
+  got = await sentAfter(n);
+  t(`${tag} R9 turning it off sends exactly {"features":{"config_io":false}}`, got.length === 1 && got[0] === apiFrame({ features: { config_io: false } }), got);
+  await page.waitForFunction(() => PS.features.features.config_io === false, null, { timeout: 2000 }).catch(() => {});
+  t(`${tag} R10 the tile hides and the route is gone`, await waitHidden(page, 'ps-system-cfg', true) && (await cfPost({ hostname: 'x' })) === 302);
   await go(page, '#system');
   await waitHidden(page, 'ps-system-features', false);
   n = await count();

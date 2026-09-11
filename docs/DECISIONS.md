@@ -1066,4 +1066,34 @@ socket first.
 
 ---
 
+## D-042 The settings file leaves the three passwords out, and an import is validated section by section before anything is written
+
+**Date** 2026-09-11 · **Reversal** cheap
+
+**Decided.** `GET /api/config` (bit 16, `config_io`) exports everything the device stores,
+the presets and the stage rows included, except the Wi-Fi password, the hotspot password
+and the printer access code. The socket document carries those three to any client on
+the network, as the factory's does, but a file has a life of its own: it gets attached
+to a support thread or copied to another machine, and the three things that must never
+travel that way are the three that can be typed again. The import takes the same
+document, with or without those three, and is whole or refused like every other route:
+the parity fields are validated into a copy, the presets and the stage rows are parsed
+into copies under the switch bits the document brings, the feature settings go through
+the features route's own validate-then-apply parse with those bits, and only then is
+anything written and saved. Afterwards the six roots are pushed to every socket client,
+so every open page shows the imported settings.
+
+**Alternatives.** A file with the passwords (the reason above); sections applied in
+order with a refusal leaving earlier ones in place (simpler, and not what every other
+route promises).
+
+**Why.** A settings file is the cheapest recovery there is for everything the flash
+image does not need to carry, and a file that cannot leak a credential is the only
+kind worth telling people to keep.
+
+**What would change it.** Network names taking effect without a restart (today a
+hostname or hotspot change from an import waits for the next restart, which C4 adds).
+
+---
+
 *Entries continue below as the run proceeds.*

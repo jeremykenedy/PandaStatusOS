@@ -407,5 +407,15 @@
   "ps_lighting_st_row_aria": "Efeito para esta etapa",
   "ps_lighting_pv_stage": "Etapa",
   "ps_lighting_pv_stage_aria": "Qual etapa mostrar na prévia",
-  "ps_lighting_pv_stage_none": "Pelo estado"
+  "ps_lighting_pv_stage_none": "Pelo estado",
+  "ps_feature_config_io": "Configurações como arquivo",
+  "ps_feature_config_io_help": "Exportar todas as configurações em um arquivo JSON e importá-las de volta; as três senhas ficam de fora.",
+  "ps_feature_config_io_aria": "Configurações como arquivo",
+  "ps_system_cfg_export": "Exportar configurações",
+  "ps_system_cfg_export_aria": "Baixar as configurações como arquivo",
+  "ps_system_cfg_import": "Importar configurações",
+  "ps_system_cfg_import_aria": "Escolher um arquivo de configurações",
+  "ps_system_cfg_help": "O arquivo nomeia sua rede e sua impressora e contém cada configuração exceto as senhas do Wi-Fi, do hotspot e do código de acesso; mantenha-o privado. Uma importação aplica o arquivo inteiro ou nada.",
+  "ps_system_cfg_done": "Configurações importadas.",
+  "ps_system_cfg_failed": "O arquivo foi recusado."
 }

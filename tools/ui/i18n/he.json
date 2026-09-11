@@ -407,5 +407,15 @@
   "ps_lighting_st_row_aria": "אפקט לשלב זה",
   "ps_lighting_pv_stage": "שלב",
   "ps_lighting_pv_stage_aria": "איזה שלב להציג בתצוגה המקדימה",
-  "ps_lighting_pv_stage_none": "לפי המצב"
+  "ps_lighting_pv_stage_none": "לפי המצב",
+  "ps_feature_config_io": "הגדרות כקובץ",
+  "ps_feature_config_io_help": "ייצוא כל ההגדרות לקובץ JSON אחד וייבוא חזרה; שלוש הסיסמאות נשארות בחוץ.",
+  "ps_feature_config_io_aria": "הגדרות כקובץ",
+  "ps_system_cfg_export": "ייצוא הגדרות",
+  "ps_system_cfg_export_aria": "הורדת ההגדרות כקובץ",
+  "ps_system_cfg_import": "ייבוא הגדרות",
+  "ps_system_cfg_import_aria": "בחירת קובץ הגדרות",
+  "ps_system_cfg_help": "הקובץ מציין את הרשת והמדפסת שלך ומכיל כל הגדרה מלבד סיסמאות ה‑Wi‑Fi, נקודת הגישה וקוד הגישה; שמרו אותו לעצמכם. ייבוא מחיל את הקובץ כולו או כלום.",
+  "ps_system_cfg_done": "ההגדרות יובאו.",
+  "ps_system_cfg_failed": "הקובץ נדחה."
 }

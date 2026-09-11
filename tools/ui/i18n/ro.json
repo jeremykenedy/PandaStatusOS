@@ -407,5 +407,15 @@
   "ps_lighting_st_row_aria": "Efect pentru această etapă",
   "ps_lighting_pv_stage": "Etapă",
   "ps_lighting_pv_stage_aria": "Ce etapă se previzualizează",
-  "ps_lighting_pv_stage_none": "După stare"
+  "ps_lighting_pv_stage_none": "După stare",
+  "ps_feature_config_io": "Setări ca fișier",
+  "ps_feature_config_io_help": "Exportă toate setările într-un fișier JSON și importă-le înapoi; cele trei parole rămân în afara lui.",
+  "ps_feature_config_io_aria": "Setări ca fișier",
+  "ps_system_cfg_export": "Exportă setările",
+  "ps_system_cfg_export_aria": "Descarcă setările ca fișier",
+  "ps_system_cfg_import": "Importă setările",
+  "ps_system_cfg_import_aria": "Alege un fișier de setări",
+  "ps_system_cfg_help": "Fișierul numește rețeaua și imprimanta ta și conține fiecare setare în afară de parolele Wi-Fi, ale hotspotului și ale codului de acces; păstrează-l privat. Un import aplică tot fișierul sau nimic.",
+  "ps_system_cfg_done": "Setări importate.",
+  "ps_system_cfg_failed": "Fișierul a fost refuzat."
 }

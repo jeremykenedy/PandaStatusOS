@@ -214,6 +214,30 @@
           <div class="ps-tile-label" data-ps-str="ps_feature_stage_effects_help">Each of the display's fifteen stages gets its own named effect; a stage without one inherits its state's effect.</div>
         </div>
       </div>
+      <div class="ps-feature">
+        <label class="switch" data-ps-no-i18n>
+          <input type="checkbox" id="ps-system-feature-config-io" data-ps-feature="config_io" data-ps-str-aria="ps_feature_config_io_aria" aria-label="Settings as a file">
+          <span></span>
+        </label>
+        <div class="ps-feature-text">
+          <div class="ps-feature-name" data-ps-str="ps_feature_config_io">Settings as a file</div>
+          <div class="ps-tile-label" data-ps-str="ps_feature_config_io_help">Export every setting as one JSON file and import it back; the three passwords stay out of it.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- C3, behind config_io: the settings as one file, out and back in -->
+    <div class="ps-tile" id="ps-system-cfg" hidden>
+      <div class="ps-tile-label" data-ps-str="ps_feature_config_io">Settings as a file</div>
+      <div class="ps-row ps-pv-actions">
+        <button class="border small" id="ps-system-cfg-export" data-ps-str-aria="ps_system_cfg_export_aria" aria-label="Download the settings as a file"><span data-ps-str="ps_system_cfg_export">Export settings</span></button>
+        <button class="border small">
+          <span data-ps-str="ps_system_cfg_import">Import settings</span>
+          <input type="file" id="ps-system-cfg-file" accept="application/json,.json" data-ps-str-aria="ps_system_cfg_import_aria" aria-label="Choose a settings file">
+        </button>
+        <span class="ps-tile-label" id="ps-system-cfg-status" data-ps-no-i18n></span>
+      </div>
+      <div class="ps-tile-label" data-ps-str="ps_system_cfg_help">The file names your network and your printer and holds every setting except the Wi-Fi, hotspot and access-code passwords; keep it private. Importing applies the whole file or none of it.</div>
     </div>
 
     <div class="ps-tile" id="ps-system-resets">

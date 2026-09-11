@@ -407,5 +407,15 @@
   "ps_lighting_st_row_aria": "Effekt för detta steg",
   "ps_lighting_pv_stage": "Steg",
   "ps_lighting_pv_stage_aria": "Vilket steg som förhandsvisas",
-  "ps_lighting_pv_stage_none": "Efter tillstånd"
+  "ps_lighting_pv_stage_none": "Efter tillstånd",
+  "ps_feature_config_io": "Inställningar som fil",
+  "ps_feature_config_io_help": "Exportera alla inställningar som en JSON-fil och importera dem igen; de tre lösenorden hålls utanför.",
+  "ps_feature_config_io_aria": "Inställningar som fil",
+  "ps_system_cfg_export": "Exportera inställningar",
+  "ps_system_cfg_export_aria": "Ladda ner inställningarna som fil",
+  "ps_system_cfg_import": "Importera inställningar",
+  "ps_system_cfg_import_aria": "Välj en inställningsfil",
+  "ps_system_cfg_help": "Filen namnger ditt nätverk och din skrivare och innehåller varje inställning utom wifi-, hotspot- och åtkomstkodslösenorden; håll den privat. En import tillämpar hela filen eller inget.",
+  "ps_system_cfg_done": "Inställningar importerade.",
+  "ps_system_cfg_failed": "Filen avvisades."
 }

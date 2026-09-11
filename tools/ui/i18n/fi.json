@@ -407,5 +407,15 @@
   "ps_lighting_st_row_aria": "Tehoste tälle vaiheelle",
   "ps_lighting_pv_stage": "Vaihe",
   "ps_lighting_pv_stage_aria": "Mikä vaihe esikatsellaan",
-  "ps_lighting_pv_stage_none": "Tilan mukaan"
+  "ps_lighting_pv_stage_none": "Tilan mukaan",
+  "ps_feature_config_io": "Asetukset tiedostona",
+  "ps_feature_config_io_help": "Vie kaikki asetukset yhtenä JSON-tiedostona ja tuo ne takaisin; kolme salasanaa jäävät ulkopuolelle.",
+  "ps_feature_config_io_aria": "Asetukset tiedostona",
+  "ps_system_cfg_export": "Vie asetukset",
+  "ps_system_cfg_export_aria": "Lataa asetukset tiedostona",
+  "ps_system_cfg_import": "Tuo asetukset",
+  "ps_system_cfg_import_aria": "Valitse asetustiedosto",
+  "ps_system_cfg_help": "Tiedosto nimeää verkkosi ja tulostimesi ja sisältää jokaisen asetuksen paitsi Wi-Fi-, yhteyspiste- ja pääsykoodisalasanat; pidä se omana tietonasi. Tuonti ottaa käyttöön koko tiedoston tai ei mitään.",
+  "ps_system_cfg_done": "Asetukset tuotu.",
+  "ps_system_cfg_failed": "Tiedosto hylättiin."
 }

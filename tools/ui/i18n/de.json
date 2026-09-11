@@ -407,5 +407,15 @@
   "ps_lighting_st_row_aria": "Effekt für diese Phase",
   "ps_lighting_pv_stage": "Phase",
   "ps_lighting_pv_stage_aria": "Welche Druckphase in der Vorschau gezeigt wird",
-  "ps_lighting_pv_stage_none": "Nach Zustand"
+  "ps_lighting_pv_stage_none": "Nach Zustand",
+  "ps_feature_config_io": "Einstellungen als Datei",
+  "ps_feature_config_io_help": "Alle Einstellungen als eine JSON-Datei exportieren und wieder importieren; die drei Passwörter bleiben draußen.",
+  "ps_feature_config_io_aria": "Einstellungen als Datei",
+  "ps_system_cfg_export": "Einstellungen exportieren",
+  "ps_system_cfg_export_aria": "Einstellungen als Datei herunterladen",
+  "ps_system_cfg_import": "Einstellungen importieren",
+  "ps_system_cfg_import_aria": "Eine Einstellungsdatei wählen",
+  "ps_system_cfg_help": "Die Datei nennt dein Netzwerk und deinen Drucker und enthält jede Einstellung außer dem WLAN-, Hotspot- und Zugangscode-Passwort; behalte sie für dich. Ein Import übernimmt die ganze Datei oder nichts davon.",
+  "ps_system_cfg_done": "Einstellungen importiert.",
+  "ps_system_cfg_failed": "Die Datei wurde abgelehnt."
 }

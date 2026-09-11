@@ -41,6 +41,7 @@ carries on `GET /`; `tools/fw/ota-install.sh` proves an install by it.
 | `GET`/`POST /api/preview` | bit 13 `preview` | `{"state":0..2,"percent"?,"temps"?,"stage"?,"seconds":0..600}`; `{"seconds":0}` clears | [FEATURES.md](FEATURES.md), A13 and B3 |
 | `GET`/`POST /api/presets` | bit 14 `presets` | `{"presets":[…]}` or `{"apply":{"name","state"}}` | [FEATURES.md](FEATURES.md), A14 |
 | `GET`/`POST /api/stages` | bit 15 `stage_effects` | `{"assign":{"stage","name"}}`, `{"clear":{"stage"}}` or `{"stages":[…15]}` | [FEATURES.md](FEATURES.md), B1 and B2 |
+| `GET`/`POST /api/config` | bit 16 `config_io` | the settings as one document: the export leaves the three passwords out, the import takes them if given; whole or refused; the answer is the export | C3, D-042 |
 | `GET /backup` | none (required) | the whole flash, `X-Flash-Size` before the body; station interface only | [FLASHING.md](FLASHING.md), D-029 |
 
 ## Examples

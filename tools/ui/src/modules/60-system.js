@@ -53,7 +53,36 @@
     if (document.activeElement !== sel && typeof set.language === 'string') sel.value = set.language;
   }
   // the feature switches: shown when the clone's route answered, each one the device's own word
+  // C3: the settings as one file, behind config_io
+  function renderCfg(doc) {
+    var tile = $('ps-system-cfg'); if (!tile) return;
+    tile.hidden = !(doc && doc.features && doc.features.config_io);
+  }
+  function wireCfg() {
+    var exp = $('ps-system-cfg-export'); if (!exp) return;
+    exp.addEventListener('click', function () {
+      PS.get('/api/config', function (cfg) {
+        if (!cfg) { $('ps-system-cfg-status').textContent = PS.tr('ps_system_cfg_failed'); return; }
+        var blob = new Blob([JSON.stringify(cfg, null, 2)], { type: 'application/json' });
+        var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'pandastatusos-settings.json';
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+      });
+    });
+    $('ps-system-cfg-file').addEventListener('change', function () {
+      var f = this.files && this.files[0]; this.value = ''; if (!f) return;
+      var status = $('ps-system-cfg-status');
+      f.text().then(function (text) {
+        var doc; try { doc = JSON.parse(text); } catch (e) { status.textContent = PS.tr('ps_system_cfg_failed'); return; }
+        PS.post('/api/config', doc, function (answer) {
+          status.textContent = PS.tr(answer ? 'ps_system_cfg_done' : 'ps_system_cfg_failed');
+          if (answer) PS.refreshFeatures();
+        });
+      });
+    });
+  }
   function renderFeatures(doc) {
+    renderCfg(doc);
     var tile = $('ps-system-features');
     if (!doc || !doc.features) { tile.hidden = true; return; }
     tile.hidden = false;
@@ -74,6 +103,7 @@
     $('ps-topbar-theme').addEventListener('click', function () { setTimeout(renderTheme, 0); });   // the top-bar cycle changes the same preference
     $('ps-system-fw-file').addEventListener('change', function () { var f = this.files && this.files[0]; this.value = ''; if (f) sendFile('fw', 'ota_fw', f); });
     $('ps-system-img-file').addEventListener('change', function () { var f = this.files && this.files[0]; this.value = ''; if (f) sendFile('img', 'ota_img', f); });
+    wireCfg();
     document.querySelectorAll('[data-ps-feature]').forEach(function (cb) {
       cb.addEventListener('change', function () {
         var body = { features: {} }; body.features[cb.getAttribute('data-ps-feature')] = cb.checked;

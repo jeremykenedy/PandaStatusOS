@@ -407,5 +407,15 @@
   "ps_lighting_st_row_aria": "Effekt ehhez a fázishoz",
   "ps_lighting_pv_stage": "Fázis",
   "ps_lighting_pv_stage_aria": "Melyik fázis jelenjen meg az előnézetben",
-  "ps_lighting_pv_stage_none": "Állapot szerint"
+  "ps_lighting_pv_stage_none": "Állapot szerint",
+  "ps_feature_config_io": "Beállítások fájlként",
+  "ps_feature_config_io_help": "Minden beállítás exportálása egyetlen JSON-fájlba és visszaimportálása; a három jelszó kimarad.",
+  "ps_feature_config_io_aria": "Beállítások fájlként",
+  "ps_system_cfg_export": "Beállítások exportálása",
+  "ps_system_cfg_export_aria": "A beállítások letöltése fájlként",
+  "ps_system_cfg_import": "Beállítások importálása",
+  "ps_system_cfg_import_aria": "Beállításfájl kiválasztása",
+  "ps_system_cfg_help": "A fájl megnevezi a hálózatot és a nyomtatót, és minden beállítást tartalmaz a Wi-Fi, a hotspot és a hozzáférési kód jelszaván kívül; tartsa meg magának. Az importálás a teljes fájlt alkalmazza, vagy semmit.",
+  "ps_system_cfg_done": "Beállítások importálva.",
+  "ps_system_cfg_failed": "A fájl el lett utasítva."
 }

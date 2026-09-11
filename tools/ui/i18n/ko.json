@@ -407,5 +407,15 @@
   "ps_lighting_st_row_aria": "이 단계의 효과",
   "ps_lighting_pv_stage": "단계",
   "ps_lighting_pv_stage_aria": "미리 볼 단계",
-  "ps_lighting_pv_stage_none": "상태에 따름"
+  "ps_lighting_pv_stage_none": "상태에 따름",
+  "ps_feature_config_io": "설정을 파일로",
+  "ps_feature_config_io_help": "모든 설정을 하나의 JSON 파일로 내보내고 다시 가져옵니다. 세 가지 비밀번호는 포함되지 않습니다.",
+  "ps_feature_config_io_aria": "설정을 파일로",
+  "ps_system_cfg_export": "설정 내보내기",
+  "ps_system_cfg_export_aria": "설정을 파일로 다운로드",
+  "ps_system_cfg_import": "설정 가져오기",
+  "ps_system_cfg_import_aria": "설정 파일 선택",
+  "ps_system_cfg_help": "파일에는 네트워크와 프린터 이름이 들어 있고 Wi‑Fi, 핫스팟, 액세스 코드 비밀번호를 제외한 모든 설정이 담깁니다. 외부에 공유하지 마세요. 가져오기는 파일 전체를 적용하거나 아무것도 적용하지 않습니다.",
+  "ps_system_cfg_done": "설정을 가져왔습니다.",
+  "ps_system_cfg_failed": "파일이 거부되었습니다."
 }

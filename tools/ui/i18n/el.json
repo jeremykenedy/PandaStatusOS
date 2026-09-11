@@ -407,5 +407,15 @@
   "ps_lighting_st_row_aria": "Εφέ για αυτό το στάδιο",
   "ps_lighting_pv_stage": "Στάδιο",
   "ps_lighting_pv_stage_aria": "Ποιο στάδιο προεπισκοπείται",
-  "ps_lighting_pv_stage_none": "Κατά την κατάσταση"
+  "ps_lighting_pv_stage_none": "Κατά την κατάσταση",
+  "ps_feature_config_io": "Ρυθμίσεις ως αρχείο",
+  "ps_feature_config_io_help": "Εξαγωγή όλων των ρυθμίσεων σε ένα αρχείο JSON και εισαγωγή τους ξανά· οι τρεις κωδικοί μένουν απέξω.",
+  "ps_feature_config_io_aria": "Ρυθμίσεις ως αρχείο",
+  "ps_system_cfg_export": "Εξαγωγή ρυθμίσεων",
+  "ps_system_cfg_export_aria": "Λήψη των ρυθμίσεων ως αρχείο",
+  "ps_system_cfg_import": "Εισαγωγή ρυθμίσεων",
+  "ps_system_cfg_import_aria": "Επιλογή αρχείου ρυθμίσεων",
+  "ps_system_cfg_help": "Το αρχείο κατονομάζει το δίκτυο και τον εκτυπωτή σας και περιέχει κάθε ρύθμιση εκτός από τους κωδικούς Wi-Fi, hotspot και κωδικού πρόσβασης· κρατήστε το ιδιωτικό. Μια εισαγωγή εφαρμόζει όλο το αρχείο ή τίποτα.",
+  "ps_system_cfg_done": "Οι ρυθμίσεις εισήχθησαν.",
+  "ps_system_cfg_failed": "Το αρχείο απορρίφθηκε."
 }

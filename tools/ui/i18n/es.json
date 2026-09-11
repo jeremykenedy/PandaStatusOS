@@ -407,5 +407,15 @@
   "ps_lighting_st_row_aria": "Efecto para esta etapa",
   "ps_lighting_pv_stage": "Etapa",
   "ps_lighting_pv_stage_aria": "Qué etapa mostrar en la vista previa",
-  "ps_lighting_pv_stage_none": "Según el estado"
+  "ps_lighting_pv_stage_none": "Según el estado",
+  "ps_feature_config_io": "Ajustes como archivo",
+  "ps_feature_config_io_help": "Exportar todos los ajustes a un archivo JSON y volver a importarlos; las tres contraseñas se quedan fuera.",
+  "ps_feature_config_io_aria": "Ajustes como archivo",
+  "ps_system_cfg_export": "Exportar ajustes",
+  "ps_system_cfg_export_aria": "Descargar los ajustes como archivo",
+  "ps_system_cfg_import": "Importar ajustes",
+  "ps_system_cfg_import_aria": "Elegir un archivo de ajustes",
+  "ps_system_cfg_help": "El archivo nombra tu red y tu impresora y contiene cada ajuste salvo las contraseñas del Wi-Fi, del punto de acceso y del código de acceso; guárdalo en privado. Una importación aplica todo el archivo o nada.",
+  "ps_system_cfg_done": "Ajustes importados.",
+  "ps_system_cfg_failed": "El archivo fue rechazado."
 }

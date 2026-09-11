@@ -110,6 +110,14 @@ the row was assigned from, and a `ps_fx_cfg_t`), 664 bytes, pinned by `_Static_a
 read whole or not at all like the presets. A row that is not set inherits the bar state's
 effect; nothing in the config blob changes for them.
 
+## The settings as a file (C3)
+
+`GET /api/config` (bit 16) writes the whole of the above, plus the presets and the stage
+rows, as one JSON document, everything except the Wi-Fi password, the hotspot password
+and the printer access code; `POST /api/config` reads the same document back, whole or
+refused, and takes the three passwords if a hand-edited file carries them. The
+document's shape is in [API.md](API.md).
+
 ## Reading and writing it on the host
 
 `make test-fw` compiles the real `ps_cfg.c` against a fake NVS: no blob, wrong magic,

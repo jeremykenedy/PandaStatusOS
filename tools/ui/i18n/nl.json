@@ -407,5 +407,15 @@
   "ps_lighting_st_row_aria": "Effect voor deze fase",
   "ps_lighting_pv_stage": "Fase",
   "ps_lighting_pv_stage_aria": "Welke fase het voorbeeld toont",
-  "ps_lighting_pv_stage_none": "Volgens de toestand"
+  "ps_lighting_pv_stage_none": "Volgens de toestand",
+  "ps_feature_config_io": "Instellingen als bestand",
+  "ps_feature_config_io_help": "Alle instellingen als één JSON-bestand exporteren en weer importeren; de drie wachtwoorden blijven erbuiten.",
+  "ps_feature_config_io_aria": "Instellingen als bestand",
+  "ps_system_cfg_export": "Instellingen exporteren",
+  "ps_system_cfg_export_aria": "De instellingen als bestand downloaden",
+  "ps_system_cfg_import": "Instellingen importeren",
+  "ps_system_cfg_import_aria": "Een instellingenbestand kiezen",
+  "ps_system_cfg_help": "Het bestand noemt je netwerk en je printer en bevat elke instelling behalve het wifi-, hotspot- en toegangscodewachtwoord; houd het privé. Een import past het hele bestand toe of niets.",
+  "ps_system_cfg_done": "Instellingen geïmporteerd.",
+  "ps_system_cfg_failed": "Het bestand is geweigerd."
 }

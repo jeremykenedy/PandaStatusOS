@@ -407,5 +407,15 @@
   "ps_lighting_st_row_aria": "Effekt for dette trinnet",
   "ps_lighting_pv_stage": "Trinn",
   "ps_lighting_pv_stage_aria": "Hvilket trinn som forhåndsvises",
-  "ps_lighting_pv_stage_none": "Etter tilstand"
+  "ps_lighting_pv_stage_none": "Etter tilstand",
+  "ps_feature_config_io": "Innstillinger som fil",
+  "ps_feature_config_io_help": "Eksporter alle innstillingene som én JSON-fil og importer dem igjen; de tre passordene holdes utenfor.",
+  "ps_feature_config_io_aria": "Innstillinger som fil",
+  "ps_system_cfg_export": "Eksporter innstillinger",
+  "ps_system_cfg_export_aria": "Last ned innstillingene som fil",
+  "ps_system_cfg_import": "Importer innstillinger",
+  "ps_system_cfg_import_aria": "Velg en innstillingsfil",
+  "ps_system_cfg_help": "Filen navngir nettverket og skriveren din og inneholder hver innstilling unntatt wifi-, hotspot- og tilgangskodepassordene; hold den privat. En import tar i bruk hele filen eller ingenting.",
+  "ps_system_cfg_done": "Innstillinger importert.",
+  "ps_system_cfg_failed": "Filen ble avvist."
 }
