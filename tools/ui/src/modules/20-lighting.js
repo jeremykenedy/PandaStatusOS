@@ -44,7 +44,7 @@
   }
 
   function render() {
-    renderSb();
+    renderSb(); renderFx();
     var m = mode(), e = entry();
     if (m !== null && document.activeElement !== modeSel) modeSel.value = String(m);
     var isMusic = m === 0;
@@ -89,6 +89,25 @@
       var cfg = JSON.parse(JSON.stringify(f.config.state_brightness));
       cfg[m][i] = Number(sb[i].value);
       PS.api({ config: { state_brightness: cfg } });
+    });
+  }
+  // A2: the per-state effect selects, only while the feature is on
+  var fxSel = [];
+  function renderFx() {
+    var tile = $('ps-lighting-fx'); if (!tile) return;
+    var f = PS.features;
+    var on = !!(f && f.features && f.features.state_effects && f.config && f.config.state_effects && f.config.state_effects.length === 3);
+    tile.hidden = !on;
+    if (!on) return;
+    for (var i = 0; i < 3; i++) if (document.activeElement !== fxSel[i]) fxSel[i].value = String(f.config.state_effects[i].effect);
+  }
+  function wireFx(i) {
+    fxSel[i] = $('ps-lighting-fx-' + i);
+    fxSel[i].addEventListener('change', function () {
+      var f = PS.features; if (!f || !f.config || !f.config.state_effects) return;
+      var cfg = JSON.parse(JSON.stringify(f.config.state_effects));
+      cfg[i].effect = Number(fxSel[i].value);
+      PS.api({ config: { state_effects: cfg } });
     });
   }
   function renderBlocks() {
@@ -138,7 +157,7 @@
     });
     bright.addEventListener('input', function () { brightVal.textContent = bright.value + '%'; });
     bright.addEventListener('change', function () { PS.send('settings', { rgb_info_brightness: Number(bright.value) }); });
-    for (var i = 0; i < 3; i++) wireSb(i);
+    for (var i = 0; i < 3; i++) { wireSb(i); wireFx(i); }
     speed.addEventListener('input', function () { if (speed.disabled) return; speedTouched = true; speedVal.textContent = speed.value + '%'; });
     speed.addEventListener('change', function () { if (!speed.disabled) PS.send('settings', { rgb_info_speed: Number(speed.value) }); });
 
@@ -163,5 +182,5 @@
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', wire); else wire();
   PS.on('state', function () { render(); });
-  PS.on('features', function () { renderSb(); });
+  PS.on('features', function () { renderSb(); renderFx(); });
 })();

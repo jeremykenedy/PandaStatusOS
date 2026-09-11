@@ -99,11 +99,16 @@ CHECKS = [
 #
 # What is actually residue is the V1/V2 DOCTRINE: the claim that this device has seven
 # named effects, or that specific ordered list presented as its effect set. The P2 has
-# two modes. So the trigger is three or more of the list appearing together, on one line
-# or inside one markdown table, which is what a lifted effect table looks like and what
-# our own single-effect prose never does.
+# two modes. This project now has its own effect engine (ps_fx.c, Jeremy's, from the
+# vent) with seventeen and more effects that share six of those generic words, so "three
+# of the words together" can no longer tell theirs from ours and was made precise (D-034):
+# the vendor's fingerprint is its SEVEN in ITS ORDER, or its spelling `color_cycle` beside
+# any other name of the list. This project writes "hue cycle", never the vendor's token,
+# and lists its effects in its own order.
 EFFECT_SET = r'\b(static|breathing|strobing|wave|marquee|color_cycle|rainbow)\b'
-EFFECT_MIN = 3
+EFFECT_ORDER = r'\bstatic\b.{0,40}\bbreathing\b.{0,40}\bstrobing\b.{0,40}\bwave\b.{0,40}\bmarquee\b.{0,40}\bcolor_cycle\b.{0,40}\brainbow\b'
+def effect_hit(names, text):
+    return ('color_cycle' in names and len(names) >= 2) or re.search(EFFECT_ORDER, text) is not None
 
 def effect_set_rows(files):
     rows = []
@@ -114,20 +119,19 @@ def effect_set_rows(files):
             continue
         # per line
         for i, line in enumerate(lines, 1):
-            if len(set(m.lower() for m in re.findall(EFFECT_SET, line))) >= EFFECT_MIN:
+            if effect_hit(set(m.lower() for m in re.findall(EFFECT_SET, line)), line):
                 rows.append((f, i, line.strip()[:88]))
         # per contiguous markdown table block
-        start, seen = None, set()
+        start, seen, block = None, set(), []
         for i, line in enumerate(lines + [''], 1):
             if line.lstrip().startswith('|'):
                 if start is None:
-                    start, seen = i, set()
-                seen.update(m.lower() for m in re.findall(EFFECT_SET, line))
+                    start, seen, block = i, set(), []
+                seen.update(m.lower() for m in re.findall(EFFECT_SET, line)); block.append(line)
             else:
-                if start is not None and len(seen) >= EFFECT_MIN:
-                    rows.append((f, start, f'markdown table carries {len(seen)} of the '
-                                          f'V1/V2 effect list: {", ".join(sorted(seen))}'))
-                start, seen = None, set()
+                if start is not None and effect_hit(seen, ' '.join(block)):
+                    rows.append((f, start, f'markdown table carries the V1/V2 effect list: {", ".join(sorted(seen))}'))
+                start, seen, block = None, set(), []
     return rows
 
 scanned = [f for f in files if f not in SKIP]

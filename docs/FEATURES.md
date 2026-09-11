@@ -13,6 +13,10 @@ exists so the rule has a home before any feature does. Its value is zero.
 | Bit | Flag | What it does | Default | Depends on |
 |---|---|---|---|---|
 | 1 | `state_brightness` | one brightness per bar state (idle, printing, error) in each mode, instead of the factory's one per mode (A1) | off | nothing beyond the bar state the printer already drives |
+| 2 | `state_effects` | in H2D, each bar state runs an effect from the engine in the state's colour instead of a solid fill (A2); seventeen effects that need no live input | off | the bar state; the LED count is PROVISIONAL, so the shapes are right and the scale is not yet |
+| 3 | `effect_colours` | reserved for A3: the effect's own four colours | off | A2 |
+| 4 | `effect_params` | reserved for A4: the effect's own brightness, speed and direction | off | A2 |
+| 5 | `effect_ramp` | reserved for A5: the brightness ramp | off | A4 |
 
 ## How a feature reaches the page
 
@@ -24,6 +28,12 @@ GET  /api/features   {"build":"…","features":{"state_brightness":false},
                       "config":{"state_brightness":[[50,50,50],[50,50,50]]}}
 POST /api/features   {"features":{…}} and/or {"config":{…}}: taken whole or refused whole (400)
 ```
+
+`config.state_effects` is three objects, one per bar state, each `{effect, brightness,
+speed, bright_end, opt, aux, colours[4]}` in the engine's model; a POST may carry any
+subset of an object's keys, and the whole three-object array is required. Which keys the
+renderer reads depends on which bits are on (A2 reads `effect`; A3 to A5 will read the
+rest), so a setting can be made before its switch exists and takes effect when it does.
 
 The factory answers 302 to that path like any unknown one, so the page knows which device
 it is talking to by the 200: against the factory it shows nothing the factory page would

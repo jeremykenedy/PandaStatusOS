@@ -151,8 +151,32 @@ let STATE = null;
 let booting = false;                    // true while a "restart" is in progress
 let LANDED = null;                      // {build, page, until}: the image an ota_fw upload installed (PS_OTA_LANDS)
 let FEAT = null;                        // the clone's feature document (PS_CLONE); null until first asked
-const FEATURE_NAMES = ['state_brightness'];
-function featDefaults() { return { features: { state_brightness: false }, config: { state_brightness: [[50, 50, 50], [50, 50, 50]] } }; }
+const FEATURE_NAMES = ['state_brightness', 'state_effects'];
+const FX_SELECTABLE = 17;
+const fxDefault = (colour) => ({ effect: 0, brightness: 50, speed: 100, bright_end: 0, opt: 0, aux: 0, colours: [colour, colour, '#000000FF', '#000000FF'] });
+function featDefaults() {
+  return { features: { state_brightness: false, state_effects: false },
+           config: { state_brightness: [[50, 50, 50], [50, 50, 50]],
+                     state_effects: [fxDefault('#FFFFFFFF'), fxDefault('#FFFFFFFF'), fxDefault('#FF0000FF')] } };
+}
+const isColour = (s) => typeof s === 'string' && /^#[0-9A-Fa-f]{8}$/.test(s);
+// one stored effect from its JSON: every key optional, any unknown key or bad value refuses (as the firmware does)
+function fxParse(o, cur) {
+  if (!o || typeof o !== 'object' || Array.isArray(o)) return null;
+  const out = JSON.parse(JSON.stringify(cur));
+  for (const k of Object.keys(o)) {
+    const v = o[k];
+    if (k === 'colours') { if (!Array.isArray(v) || v.length !== 4 || !v.every(isColour)) return null; out.colours = v.map((s) => s.toUpperCase()); continue; }
+    if (!Number.isInteger(v) || v < 0) return null;
+    if (k === 'effect') { if (v >= FX_SELECTABLE) return null; }
+    else if (k === 'brightness' || k === 'speed' || k === 'bright_end') { if (v > 100) return null; }
+    else if (k === 'opt') { if (v > 0x1F) return null; }
+    else if (k === 'aux') { if (v > 255) return null; }
+    else return null;
+    out[k] = v;
+  }
+  return out;
+}
 // whole or nothing, as the firmware does: unknown names, non-booleans, bad shapes and out-of-range numbers refuse the document
 function featApply(j) {
   if (!j || typeof j !== 'object' || Array.isArray(j)) return false;
@@ -161,15 +185,21 @@ function featApply(j) {
   if (f !== undefined && (typeof f !== 'object' || f === null || Array.isArray(f))) return false;
   if (c !== undefined && (typeof c !== 'object' || c === null || Array.isArray(c))) return false;
   if (f) for (const k of Object.keys(f)) if (!FEATURE_NAMES.includes(k) || typeof f[k] !== 'boolean') return false;
-  let sb = null;
+  let sb = null, se = null;
   if (c) for (const k of Object.keys(c)) {
-    if (k !== 'state_brightness') return false;
     const v = c[k];
-    if (!Array.isArray(v) || v.length !== 2 || !v.every((r) => Array.isArray(r) && r.length === 3 && r.every((n) => Number.isInteger(n) && n >= 0 && n <= 100))) return false;
-    sb = v.map((r) => r.slice());
+    if (k === 'state_brightness') {
+      if (!Array.isArray(v) || v.length !== 2 || !v.every((r) => Array.isArray(r) && r.length === 3 && r.every((n) => Number.isInteger(n) && n >= 0 && n <= 100))) return false;
+      sb = v.map((r) => r.slice());
+    } else if (k === 'state_effects') {
+      if (!Array.isArray(v) || v.length !== 3) return false;
+      se = v.map((o, i) => fxParse(o, FEAT.config.state_effects[i]));
+      if (se.some((x) => x === null)) return false;
+    } else return false;
   }
   if (f) for (const k of Object.keys(f)) FEAT.features[k] = f[k];
   if (sb) FEAT.config.state_brightness = sb;
+  if (se) FEAT.config.state_effects = se;
   return true;
 }
 const timers = new Set();               // every pending timer, outside STATE

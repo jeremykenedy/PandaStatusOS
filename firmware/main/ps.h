@@ -35,18 +35,73 @@ extern const char *const ps_gif_slot_names[PS_GIF_SLOTS];
  * bump the magic, add an arm to the chain, extend the host test. Never let a frozen
  * struct reference a live type or a live count. */
 #define PS_CFG_MAGIC_V1  0x50533031u   /* 'P' 'S' '0' '1': the first layout, 492 bytes, frozen in ps_cfg.c */
-#define PS_CFG_MAGIC_V2  0x50533032u   /* 'P' 'S' '0' '2': v1 plus the Phase A fields below */
-#define PS_CFG_MAGIC     PS_CFG_MAGIC_V2
+#define PS_CFG_MAGIC_V2  0x50533032u   /* 'P' 'S' '0' '2': v1 plus state_brightness, 500 bytes, frozen in ps_cfg.c */
+#define PS_CFG_MAGIC_V3  0x50533033u   /* 'P' 'S' '0' '3': v2 plus the per-state effects */
+#define PS_CFG_MAGIC     PS_CFG_MAGIC_V3
 
 /* feature bits in ps_cfg_t.features. Every one defaults to 0 and leaves the device at
  * factory parity; docs/FEATURES.md is the table. Bit 0 is reserved for the vent bridge. */
 #define PS_FEAT_BRIDGE            (1u << 0)
 #define PS_FEAT_STATE_BRIGHTNESS  (1u << 1)   /* A1: one brightness per bar state instead of one per mode */
+#define PS_FEAT_STATE_EFFECTS     (1u << 2)   /* A2: an effect per bar state in H2D, in the state's colour */
+#define PS_FEAT_EFFECT_COLOURS    (1u << 3)   /* A3, reserved: the effect's own four colours */
+#define PS_FEAT_EFFECT_PARAMS     (1u << 4)   /* A4, reserved: the effect's own brightness, speed, direction */
+#define PS_FEAT_EFFECT_RAMP       (1u << 5)   /* A5, reserved: the brightness ramp */
+
+typedef struct { uint8_t r, g, b, a; } ps_rgba_t;
+
+/* ---- the effects (ps_fx.c). Ids are this project's; the engine is Jeremy's, from the vent. ---- */
+enum ps_fx {
+    PS_FX_STATIC = 0, PS_FX_BREATHING, PS_FX_STROBING, PS_FX_WAVE, PS_FX_MARQUEE, PS_FX_HUE_CYCLE, PS_FX_RAINBOW,
+    PS_FX_CYLON, PS_FX_BOUNCE, PS_FX_MARQUEE_OUT, PS_FX_MARQUEE_IN, PS_FX_FILL_OUT, PS_FX_FILL_IN,
+    PS_FX_BOUNCE_OUT, PS_FX_BOUNCE_IN, PS_FX_BOUNCE_FILL_OUT, PS_FX_BOUNCE_FILL_IN,
+    PS_FX_PROGRESS, PS_FX_PROGRESS_ANIM, PS_FX_BARBER, PS_FX_TEMP_GRADIENT,
+    PS_FX_COUNT
+};
+#define PS_FX_SELECTABLE 17    /* A2 offers ids 0..16, the ones that need no live input; the rest arrive with their features */
+#define PS_FX_RAMP_STEPS 100
+
+/* one effect's stored parameters; the vent's model. Which fields are read depends on the
+ * feature bits: A2 reads effect; A3 the colours; A4 brightness, speed and the reverse bit;
+ * A5 bright_end. Everything else stays the factory's. */
+#define PS_FX_OPT_BG_PRINTING  0x01   /* colour[2] is set: the inactive colour while printing */
+#define PS_FX_OPT_BG_IDLE      0x02   /* colour[3] is set: the inactive colour while not printing */
+#define PS_FX_OPT_RAMP         0x04   /* bright_end is set */
+#define PS_FX_OPT_AUX          0x08   /* aux is set (the pole's band width, for the effects that read it) */
+#define PS_FX_OPT_REVERSE      0x10   /* this effect runs the other way round */
+typedef struct {
+    uint8_t   effect;                  /* enum ps_fx */
+    uint8_t   brightness;              /* 0..100 */
+    uint8_t   speed;                   /* 0..100 */
+    uint8_t   bright_end;              /* 0..100, the ramp's end */
+    uint8_t   opt;                     /* PS_FX_OPT_* */
+    uint8_t   aux;
+    uint8_t   _pad[2];
+    ps_rgba_t colour[4];               /* active printing, active not printing, inactive printing, inactive not printing */
+} ps_fx_cfg_t;                         /* 24 bytes */
+
+/* the engine's live inputs; a negative reading means none */
+typedef struct { int percent; int temp_c; int temp_lo; int temp_hi; } ps_fx_in_t;
+
+/* every effect's animation phase, owned by whoever renders; ps_fx_phase_init() before the first frame */
+typedef struct {
+    float breath_phase, breath_step; bool strobe_on;
+    float marquee_pos, bounce_pos, bounce_dir, cylon_pos, cylon_dir;
+    float split_pos, fill_pos, sbounce_pos, sbounce_dir, sfill_pos, sfill_dir;
+    float progress_shown, wave_pos, cycle_hue, rainbow_phase;
+    int   chase_pos, anim_breath, barber_pos, ramp_step;
+} ps_fx_phase_t;
+
+uint32_t ps_fx_period(uint8_t speed);                              /* ms per frame for this speed */
+void     ps_fx_phase_init(ps_fx_phase_t *p);
+uint8_t  ps_fx_ramp(ps_fx_phase_t *p, uint8_t bright, int bright_end);   /* bright_end < 0: no ramp */
+/* fills px[0..n-1], advances the phase once, returns the ms to wait before the next frame */
+uint32_t ps_fx_render(int fx, ps_rgba_t colour, ps_rgba_t bg, uint8_t bright100, uint8_t speed, bool reverse,
+                      int band, const ps_fx_in_t *in, ps_fx_phase_t *p, ps_rgba_t *px, int n);
 #define PS_CFG_NVS_NS    "ps"
 #define PS_CFG_NVS_KEY   "cfg"
 #define PS_BLOCKS_MAX    15            /* PROVISIONAL: the block list's true bound is a bench fact */
 
-typedef struct { uint8_t r, g, b, a; } ps_rgba_t;
 
 typedef struct {                       /* one lighting mode: settings.list2[mode] */
     uint8_t   brightness;              /* 0..100 step 5 */
@@ -85,11 +140,13 @@ typedef struct {
      * so a default blob and a migrated blob both leave the device at parity. ---- */
     uint8_t   state_brightness[2][3];  /* A1: [mode][bar state], 0..100 */
     uint8_t   _pad1[2];
+    /* ---- v3, PS03 ---- */
+    ps_fx_cfg_t fx[3];                 /* A2 to A5: the effect per bar state, H2D */
 } ps_cfg_t;
 
 /* the whole blob and its NVS budget; both pinned in ps_cfg.c and in the host test */
-#define PS_CFG_SIZE      500
-#define PS_CFG_NVS_BUDGET 1600
+#define PS_CFG_SIZE      572
+#define PS_CFG_NVS_BUDGET 2048
 
 /* ---------------------------------------------------------- the live state ---- */
 typedef struct { char ssid[33]; int8_t rssi; } ps_wifi_hit_t;          /* INFERENCE shape */

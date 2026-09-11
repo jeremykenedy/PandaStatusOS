@@ -781,6 +781,35 @@ factory the harness asserts that nothing appears and nothing is sent.
 **What would change it.** The bench showing the factory answers `/api/*` with something
 other than the redirect; then the path moves.
 
+## D-034 The effect engine is the vent's, ported as pure C; the sweep's effect-list check names the vendor's fingerprint
+
+**Date** 2026-09-10 · **Reversal** moderate (the engine is one file; the check is one regex)
+
+**Decided.** `ps_fx.c` is PandaVentOS's effect engine, Jeremy Kenedy's own work, adapted to
+one strip and this project's colour type, with this project's effect ids and this
+project's English names for them ("Solid", "Hue cycle", "Scanner", and so on; Rule 7). It
+compiles without the IDF so the host test drives the shipping body. Effects that need a
+live input (progress, temperature) are in the engine but not yet selectable; each arrives
+with its feature and its input.
+
+The residue sweep's "effect list as a set" check fired on any three of the vendor's seven
+effect names appearing together. This project now has seventeen effects of its own that
+share six of those generic English words, so that rule could no longer tell the vendor's
+table from ours; it was made precise, not weakened: the vendor's fingerprint is its seven
+in its own order, or its own spelling of the colour-cycle effect (the American spelling
+with an underscore, which the sweep also forbids on its own) beside any other name of the
+list. This project writes "hue cycle" and lists its effects in its own order.
+
+**Alternatives.** Writing an engine from scratch (the queue asks for the vent's model, and
+the vent's engine is his); different words for the six shared effects (contortion for
+the reader, and the words are not ownable).
+
+**Why.** The queue names the vent's model as the target for Phase A, and both ends are
+Jeremy's.
+
+**What would change it.** Phase 1 recovering the factory's H2D animation: it becomes the
+placeholder's replacement, not an effect, and stays outside the engine.
+
 ---
 
 *Entries continue below as the run proceeds.*

@@ -1,0 +1,334 @@
+/* The effect engine. Pure C, no IDF, so firmware/test/host/fx_test.c drives the shipping
+ * body with gcc; ps_effect.c owns the task, the inputs and the strip.
+ *
+ * This is Jeremy Kenedy's engine, the one PandaVentOS renders with (his own work, it
+ * crosses freely: CLAUDE.md Rule 6), adapted to one strip and to this project's colour
+ * type. What it is not: anything of the Panda Status factory's. The factory's two modes are
+ * rendered as the placeholder in ps_effect.c until Phase 1 recovers them; everything here
+ * sits behind feature bits that default off (docs/FEATURES.md).
+ *
+ * One case per effect. Each fills px[0..n-1] for this instant, advances its own phase
+ * once per call, and returns the MILLISECONDS to wait before the next frame: the frame
+ * period is the effect's, from one shared speed curve (ps_fx_period), so a given speed
+ * means the same liveliness on every effect. Every effect reaches the INACTIVE colour
+ * through mix3(), so the one rule "unlit is the inactive colour, or black when none is
+ * set" holds everywhere. Channel scaling is integer, colour * brightness / 100; effects
+ * that ease within a frame keep that integer product intact and apply the float factor
+ * before the divide, so full brightness with no easing is byte-exact. */
+#include <math.h>
+#include <string.h>
+#include "ps.h"
+
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
+
+static inline uint8_t chan(uint8_t colour, uint8_t bright100) { return (uint8_t)(((uint32_t)colour * (uint32_t)bright100) / 100u); }
+static inline uint8_t chan_f(uint8_t colour, uint8_t bright100, float f) { return (uint8_t)(((float)((uint32_t)colour * (uint32_t)bright100) * f) / 100.0f); }
+
+/* out = active * f + inactive * (1 - f), each through the brightness; the factors sum to
+ * one so no channel can exceed a full-brightness one. Alpha is carried, never mixed. */
+static inline ps_rgba_t mix3(ps_rgba_t a, ps_rgba_t bg, uint8_t b, float f)
+{
+    ps_rgba_t o;
+    o.r = (uint8_t)(chan_f(a.r, b, f) + chan_f(bg.r, b, 1.0f - f));
+    o.g = (uint8_t)(chan_f(a.g, b, f) + chan_f(bg.g, b, 1.0f - f));
+    o.b = (uint8_t)(chan_f(a.b, b, f) + chan_f(bg.b, b, 1.0f - f));
+    o.a = 0xFF;
+    return o;
+}
+
+/* hue -> RGB at full saturation and value: the S=V=1 case of the six-sector HSV conversion */
+static ps_rgba_t hsv_full(uint16_t h)
+{
+    h %= 360;
+    uint8_t sector = (uint8_t)(h / 60);
+    uint8_t rise = (uint8_t)(((h % 60) * 255) / 60);
+    uint8_t fall = (uint8_t)(255 - rise);
+    switch (sector) {
+    case 0:  return (ps_rgba_t){ 255, rise, 0, 0xFF };
+    case 1:  return (ps_rgba_t){ fall, 255, 0, 0xFF };
+    case 2:  return (ps_rgba_t){ 0, 255, rise, 0xFF };
+    case 3:  return (ps_rgba_t){ 0, fall, 255, 0xFF };
+    case 4:  return (ps_rgba_t){ rise, 0, 255, 0xFF };
+    default: return (ps_rgba_t){ 255, 0, fall, 0xFF };
+    }
+}
+
+/* speed 0..100 -> frame interval, geometric: each equal step in speed multiplies the frame
+ * RATE by a constant, because liveliness reads as a ratio. 16 ms at 100 so the fast end
+ * stays smooth, 500 ms at 0 so it is a slow pulse rather than a stall. */
+uint32_t ps_fx_period(uint8_t speed)
+{
+    if (speed > 100) speed = 100;
+    const float fast_ms = 16.0f, slow_ms = 500.0f;
+    float t = (float)(100 - speed) / 100.0f;
+    return (uint32_t)(fast_ms * powf(slow_ms / fast_ms, t) + 0.5f);
+}
+
+void ps_fx_phase_init(ps_fx_phase_t *p)
+{
+    memset(p, 0, sizeof *p);
+    p->strobe_on = true;
+    p->bounce_dir = p->cylon_dir = p->sbounce_dir = p->sfill_dir = 1.0f;
+}
+
+/* The optional brightness ramp: one sawtooth from bright to bright_end over PS_FX_RAMP_STEPS
+ * frames, then over again. bright_end < 0 means no ramp, and parks the sweep at its start
+ * so switching a ramp on begins at bright rather than mid-sweep. An integer step, not an
+ * accumulated float: adding 0.01f a hundred times lands at 0.99999997. */
+uint8_t ps_fx_ramp(ps_fx_phase_t *p, uint8_t bright, int bright_end)
+{
+    if (bright_end < 0) { p->ramp_step = 0; return bright; }
+    float f = (float)p->ramp_step / (float)PS_FX_RAMP_STEPS;
+    float b = (float)bright + ((float)bright_end - (float)bright) * f;
+    if (b < 0.0f) b = 0.0f; else if (b > 100.0f) b = 100.0f;
+    if (++p->ramp_step >= PS_FX_RAMP_STEPS) p->ramp_step = 0;
+    return (uint8_t)(b + 0.5f);
+}
+
+#define BREATH_FLOOR   0.12f
+#define BREATH_DELTA   0.02f
+#define WAVE_CYCLES    2.0f
+#define WAVE_DELTA     0.05f
+#define MARQUEE_WFRAC  4
+#define MARQUEE_DELTA  0.5f
+#define CYCLE_DELTA    3.0f
+#define RAINBOW_DELTA  3.0f
+
+uint32_t ps_fx_render(int fx, ps_rgba_t colour, ps_rgba_t bg, uint8_t bright100, uint8_t speed, bool reverse,
+                      int band, const ps_fx_in_t *in, ps_fx_phase_t *p, ps_rgba_t *px, int n)
+{
+    if (n < 1) return ps_fx_period(speed);
+    switch (fx) {
+
+    /* every pixel the active colour, scaled; chan() directly so full brightness is byte-exact */
+    case PS_FX_STATIC:
+        for (int i = 0; i < n; i++) px[i] = (ps_rgba_t){ chan(colour.r, bright100), chan(colour.g, bright100), chan(colour.b, bright100), 0xFF };
+        return ps_fx_period(speed);
+
+    /* the whole strip one colour easing up and down together: a triangle, cosine-eased into
+     * a swell; the trough is the inactive colour when one is set, a floored dim active
+     * colour (never black) when not */
+    case PS_FX_BREATHING: {
+        if (p->breath_step == 0.0f) p->breath_step = BREATH_DELTA;
+        p->breath_phase += p->breath_step;
+        if (p->breath_phase >= 1.0f)      { p->breath_phase = 1.0f; p->breath_step = -BREATH_DELTA; }
+        else if (p->breath_phase <= 0.0f) { p->breath_phase = 0.0f; p->breath_step =  BREATH_DELTA; }
+        float eased = 0.5f - 0.5f * cosf((float)M_PI * p->breath_phase);
+        bool has_bg = bg.r || bg.g || bg.b;
+        float envlo = has_bg ? 0.0f : BREATH_FLOOR;
+        float env = envlo + (1.0f - envlo) * eased;
+        for (int i = 0; i < n; i++) px[i] = mix3(colour, bg, bright100, env);
+        return ps_fx_period(speed);
+    }
+
+    /* hard on, hard off, in phase; the off half is the inactive colour or black */
+    case PS_FX_STROBING: {
+        p->strobe_on = !p->strobe_on;
+        float f = p->strobe_on ? 1.0f : 0.0f;
+        for (int i = 0; i < n; i++) px[i] = mix3(colour, bg, bright100, f);
+        return ps_fx_period(speed);
+    }
+
+    /* a sinusoidal brightness pattern travelling along the run; direction flips with reverse */
+    case PS_FX_WAVE: {
+        float dir = reverse ? -1.0f : 1.0f;
+        for (int i = 0; i < n; i++) {
+            float cyc = (float)i * WAVE_CYCLES / (float)n;
+            float f = 0.5f + 0.5f * sinf(2.0f * (float)M_PI * (cyc - dir * p->wave_pos));
+            px[i] = mix3(colour, bg, bright100, f);
+        }
+        p->wave_pos += WAVE_DELTA;
+        if (p->wave_pos >= 1.0f) p->wave_pos -= 1.0f;
+        return ps_fx_period(speed);
+    }
+
+    /* one lit block walking the run and wrapping */
+    case PS_FX_MARQUEE: {
+        int w = n / MARQUEE_WFRAC; if (w < 1) w = 1;
+        for (int i = 0; i < n; i++) {
+            int ri = reverse ? (n - 1 - i) : i;
+            float rel = (float)ri - p->marquee_pos;
+            while (rel < 0.0f) rel += (float)n;
+            while (rel >= (float)n) rel -= (float)n;
+            px[i] = mix3(colour, bg, bright100, rel < (float)w ? 1.0f : 0.0f);
+        }
+        p->marquee_pos += MARQUEE_DELTA;
+        if (p->marquee_pos >= (float)n) p->marquee_pos -= (float)n;
+        return ps_fx_period(speed);
+    }
+
+    /* the whole strip one hue, walking the wheel; never black */
+    case PS_FX_HUE_CYCLE: {
+        ps_rgba_t h = hsv_full((uint16_t)p->cycle_hue % 360);
+        ps_rgba_t o = { chan(h.r, bright100), chan(h.g, bright100), chan(h.b, bright100), 0xFF };
+        for (int i = 0; i < n; i++) px[i] = o;
+        p->cycle_hue += CYCLE_DELTA;
+        if (p->cycle_hue >= 360.0f) p->cycle_hue -= 360.0f;
+        return ps_fx_period(speed);
+    }
+
+    /* a bright head sweeping end to end with a tail fading behind it: asymmetric, so it reads
+     * as motion even frozen, and the asymmetry flips when the head turns */
+    case PS_FX_CYLON: {
+        const float TAIL = 5.0f;
+        float head = reverse ? (float)(n - 1) - p->cylon_pos : p->cylon_pos;
+        float dir = reverse ? -p->cylon_dir : p->cylon_dir;
+        for (int i = 0; i < n; i++) {
+            float rel = ((float)i - head) * dir;
+            float f;
+            if (rel >= 0.0f) f = rel > 1.5f ? 0.0f : expf(-(rel * rel) / 0.9f);
+            else { float back = -rel; f = back > TAIL ? 0.0f : 1.0f - back / TAIL; f = f * f; }
+            px[i] = mix3(colour, bg, bright100, f);
+        }
+        p->cylon_pos += p->cylon_dir * 0.35f;
+        if (p->cylon_pos >= (float)(n - 1)) { p->cylon_pos = (float)(n - 1); p->cylon_dir = -1.0f; }
+        else if (p->cylon_pos <= 0.0f)      { p->cylon_pos = 0.0f;            p->cylon_dir = 1.0f; }
+        return ps_fx_period(speed);
+    }
+
+    /* the marquee's travelling Gaussian, reflecting at the ends instead of wrapping; reverse
+     * mirrors the strip rather than negating the step, which would fight the turnaround */
+    case PS_FX_BOUNCE: {
+        float pos = reverse ? (float)(n - 1) - p->bounce_pos : p->bounce_pos;
+        for (int i = 0; i < n; i++) {
+            float d = fabsf((float)i - pos);
+            px[i] = mix3(colour, bg, bright100, d > 5.0f ? 0.0f : expf(-(d * d) / 4.5f));
+        }
+        p->bounce_pos += p->bounce_dir * 0.3f;
+        if (p->bounce_pos >= (float)(n - 1)) { p->bounce_pos = (float)(n - 1); p->bounce_dir = -1.0f; }
+        else if (p->bounce_pos <= 0.0f)      { p->bounce_pos = 0.0f;            p->bounce_dir = 1.0f; }
+        return ps_fx_period(speed);
+    }
+
+    /* The centre-referenced family. h is half the strip rounded up; depth is a pixel's
+     * distance from the ORIGIN, the middle for the outward effects and the ends for the
+     * inward ones, so an out/in pair differs by one subtraction and the halves stay
+     * symmetric on any count. */
+    case PS_FX_MARQUEE_OUT:
+    case PS_FX_MARQUEE_IN: {
+        int h = (n + 1) / 2; bool out = (fx == PS_FX_MARQUEE_OUT);
+        for (int i = 0; i < n; i++) {
+            int half = i < h ? (h - 1 - i) : (i - (n - h));
+            float depth = out ? (float)half : (float)(h - 1 - half);
+            float d = fabsf(depth - p->split_pos);
+            px[i] = mix3(colour, bg, bright100, d > 5.0f ? 0.0f : expf(-(d * d) / 4.5f));
+        }
+        p->split_pos += reverse ? -0.3f : 0.3f;
+        if (p->split_pos >= (float)h) p->split_pos = 0.0f;
+        else if (p->split_pos < 0.0f) p->split_pos = (float)h - 1e-6f;
+        return ps_fx_period(speed);
+    }
+
+    case PS_FX_FILL_OUT:
+    case PS_FX_FILL_IN: {
+        int h = (n + 1) / 2; bool out = (fx == PS_FX_FILL_OUT);
+        for (int i = 0; i < n; i++) {
+            int half = i < h ? (h - 1 - i) : (i - (n - h));
+            float depth = out ? (float)half : (float)(h - 1 - half);
+            float head = p->fill_pos - depth;
+            px[i] = mix3(colour, bg, bright100, head >= 1.0f ? 1.0f : (head <= 0.0f ? 0.0f : head));
+        }
+        p->fill_pos += reverse ? -0.3f : 0.3f;
+        if (p->fill_pos >= (float)h + 1.0f) p->fill_pos = 0.0f;       /* seen FULL for a moment before it resets */
+        else if (p->fill_pos < 0.0f)        p->fill_pos = (float)h + 1.0f;
+        return ps_fx_period(speed);
+    }
+
+    case PS_FX_BOUNCE_OUT:
+    case PS_FX_BOUNCE_IN: {
+        int h = (n + 1) / 2; bool out = (fx == PS_FX_BOUNCE_OUT);
+        float pos = reverse ? (float)(h - 1) - p->sbounce_pos : p->sbounce_pos;
+        for (int i = 0; i < n; i++) {
+            int half = i < h ? (h - 1 - i) : (i - (n - h));
+            float depth = out ? (float)half : (float)(h - 1 - half);
+            float d = fabsf(depth - pos);
+            px[i] = mix3(colour, bg, bright100, d > 5.0f ? 0.0f : expf(-(d * d) / 4.5f));
+        }
+        p->sbounce_pos += p->sbounce_dir * 0.3f;
+        if (p->sbounce_pos >= (float)(h - 1)) { p->sbounce_pos = (float)(h - 1); p->sbounce_dir = -1.0f; }
+        else if (p->sbounce_pos <= 0.0f)      { p->sbounce_pos = 0.0f;            p->sbounce_dir = 1.0f; }
+        return ps_fx_period(speed);
+    }
+
+    case PS_FX_BOUNCE_FILL_OUT:
+    case PS_FX_BOUNCE_FILL_IN: {
+        int h = (n + 1) / 2; bool out = (fx == PS_FX_BOUNCE_FILL_OUT);
+        float base = reverse ? (float)h - p->sfill_pos : p->sfill_pos;
+        for (int i = 0; i < n; i++) {
+            int half = i < h ? (h - 1 - i) : (i - (n - h));
+            float depth = out ? (float)half : (float)(h - 1 - half);
+            float head = base - depth;
+            px[i] = mix3(colour, bg, bright100, head >= 1.0f ? 1.0f : (head <= 0.0f ? 0.0f : head));
+        }
+        p->sfill_pos += p->sfill_dir * 0.3f;
+        if (p->sfill_pos >= (float)h)  { p->sfill_pos = (float)h; p->sfill_dir = -1.0f; }
+        else if (p->sfill_pos <= 0.0f) { p->sfill_pos = 0.0f;     p->sfill_dir = 1.0f; }
+        return ps_fx_period(speed);
+    }
+
+    /* Three ways to draw one number, the print percentage: a plain bar; the bar with a
+     * chase and a breathing tip; a two-colour pole crawling through the bar. They share the
+     * fill, the easing and the reversal because they ARE the same number. The shown value
+     * chases the reported one, snapping on a big jump so a new print does not spend five
+     * seconds draining. The boundary pixel is lit partially so a short strip still resolves
+     * single percent steps. */
+    case PS_FX_PROGRESS:
+    case PS_FX_PROGRESS_ANIM:
+    case PS_FX_BARBER: {
+        float target = (float)(in && in->percent >= 0 ? (in->percent > 100 ? 100 : in->percent) : 0);
+        float delta = target - p->progress_shown;
+        if (delta > 25.0f || delta < -25.0f) p->progress_shown = target; else p->progress_shown += delta * 0.15f;
+        float lit = p->progress_shown * (float)n / 100.0f;
+        if (fx == PS_FX_BARBER && lit < 0.5f) lit = (float)n;          /* a pole with no job fills the run */
+        int litn = (int)(lit + 0.5f);
+        int w = band; if (w <= 0) w = n / 5; if (w < 1) w = 1; if (w > n) w = n;
+        for (int i = 0; i < n; i++) {
+            int idx = reverse ? (n - 1 - i) : i;
+            float head = lit - (float)i;
+            float f = head >= 1.0f ? 1.0f : (head <= 0.0f ? 0.0f : head);
+            if (fx == PS_FX_PROGRESS || f <= 0.0f) { px[idx] = mix3(colour, bg, bright100, f); continue; }
+            if (fx == PS_FX_BARBER) {
+                int bnd = ((i + p->barber_pos) / w) & 1;
+                ps_rgba_t c = mix3(colour, bg, bright100, bnd ? 0.0f : 1.0f);
+                px[idx] = (f >= 1.0f) ? c : (ps_rgba_t){ (uint8_t)(c.r * f), (uint8_t)(c.g * f), (uint8_t)(c.b * f), 0xFF };
+                continue;
+            }
+            float lv = 0.70f;
+            if (litn > 1) { int d = i - p->chase_pos; if (d < 0) d = -d; if (d < 3) { float boost = 0.70f + (float)(3 - d) * 0.10f; lv = boost > 1.0f ? 1.0f : boost; } }
+            if (i == litn - 1) { float ph = (float)(p->anim_breath & 63) / 63.0f; float w2 = ph < 0.5f ? (ph * 2.0f) : ((1.0f - ph) * 2.0f); lv = 0.65f + w2 * 0.35f; }
+            if (lv > f) lv = f;
+            px[idx] = mix3(colour, bg, bright100, lv);
+        }
+        if (fx == PS_FX_PROGRESS_ANIM) { p->chase_pos = (p->chase_pos + 1) % (litn < 1 ? 1 : litn); ++p->anim_breath; }
+        else if (fx == PS_FX_BARBER)   { p->barber_pos = (p->barber_pos + 1) % (w * 2); }
+        return ps_fx_period(speed);
+    }
+
+    /* the temperature as a colour: the inactive colour at the cold end, the active at the
+     * hot end, exact beyond either end so they stay readable; no reading holds the cold colour */
+    case PS_FX_TEMP_GRADIENT: {
+        int lo = in ? in->temp_lo : 0, hi = in ? in->temp_hi : 0;
+        if (hi <= lo) hi = lo + 1;
+        int tC = in ? in->temp_c : -1000;
+        float f = (tC < lo) ? 0.0f : (tC >= hi) ? 1.0f : (float)(tC - lo) / (float)(hi - lo);
+        for (int i = 0; i < n; i++) px[i] = mix3(colour, bg, bright100, f);
+        return ps_fx_period(speed);
+    }
+
+    /* the hue wheel spread across the run, scrolling; also the answer to an unknown id */
+    case PS_FX_RAINBOW:
+    default: {
+        for (int i = 0; i < n; i++) {
+            int ri = reverse ? (n - 1 - i) : i;
+            float hue = p->rainbow_phase + (360.0f * (float)ri) / (float)n;
+            ps_rgba_t h = hsv_full((uint16_t)hue % 360);
+            px[i] = (ps_rgba_t){ chan(h.r, bright100), chan(h.g, bright100), chan(h.b, bright100), 0xFF };
+        }
+        p->rainbow_phase += RAINBOW_DELTA;
+        if (p->rainbow_phase >= 360.0f) p->rainbow_phase -= 360.0f;
+        return ps_fx_period(speed);
+    }
+    }
+}

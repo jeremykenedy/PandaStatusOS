@@ -1,11 +1,12 @@
 # Configuration
 
 Everything the device remembers across a power cycle lives in one NVS blob, namespace
-`ps`, key `cfg`, laid out by `ps_cfg_t` in `firmware/main/ps.h`. The layout is version 2,
-magic `0x50533032` ("PS02"), 500 bytes, pinned by `_Static_assert` to that size and to
-the offsets of its arrays so the host tests and the target agree byte for byte. Version 1
-("PS01", 492 bytes) is frozen inside `ps_cfg.c`; a v1 blob is migrated on its first load,
-field by field, and written back as v2, and the host test proves it survives.
+`ps`, key `cfg`, laid out by `ps_cfg_t` in `firmware/main/ps.h`. The layout is version 3,
+magic `0x50533033` ("PS03"), 572 bytes, pinned by `_Static_assert` to that size and to
+the offsets of its arrays so the host tests and the target agree byte for byte. Versions 1
+("PS01", 492 bytes) and 2 ("PS02", 500 bytes) are frozen inside `ps_cfg.c`; a v1 or v2 blob
+is migrated on its first load, field by field, and written back as v3, and the host test
+proves every field survives both paths.
 
 Defaults are **PROVISIONAL**: they are the values the factory page expects after a
 lighting reset and the mock's factory fixture, not values read off a device. Phase 2
@@ -38,6 +39,10 @@ this table with it.
 | `block[15].id` | u8 | 0 to 255 | segment 0 | v1 | `block.blockID` |
 | `block[15].colour` | RGBA | any | white | v1 | `block.blockrgba` |
 | `state_brightness[2][3]` | u8 | 0 to 100 | 50 everywhere, the same as the global default | v2 | `POST /api/features` `config.state_brightness`; read by the renderer only while feature bit 1 is set (A1) |
+| `fx[3].effect` | u8 | an `enum ps_fx` id below 17 | 0, solid | v3 | `POST /api/features` `config.state_effects[].effect`; read in H2D while bit 2 is set (A2) |
+| `fx[3].brightness`, `.speed`, `.bright_end` | u8 | 0 to 100 | 50, 100, 0 | v3 | `config.state_effects[]`; read while bits 4 and 5 are set (A4, A5, reserved) |
+| `fx[3].opt`, `.aux` | u8 | option bits, one number for the effect that reads it | 0 | v3 | `config.state_effects[]`; A3 to A5 |
+| `fx[3].colour[4]` | RGBA | any | the H2D state colour for the two active entries, black for the two inactive ones | v3 | `config.state_effects[].colours`, `#RRGGBBAA`; read while bit 3 is set (A3, reserved) |
 
 The colour indices are 0 idle, 1 printing, 2 error. The mode indices are 0 Music,
 1 H2D. Colours are stored as four bytes and written to the wire in the format the
@@ -49,8 +54,9 @@ factory uses for each mode: bare `RRGGBB` for Music, `#RRGGBBAA` for H2D.
    and touches no global, so it can be called on a scratch struct to read a default.
 2. The stored blob is read into a buffer the size of the NVS budget.
 3. The chain, newest layout first: if the size matches the layout and the magic matches,
-   the layout is copied whole (v2, the current one) or overlaid field by field (v1: every
-   field by name onto the defaults, the v2 field at its default, then saved back as v2).
+   the layout is copied whole (v3, the current one) or overlaid field by field (v1 and v2:
+   every stored field by name onto the defaults, the newer fields at their defaults, the
+   effects' active colours taken from the migrated H2D colours, then saved back as v3).
 4. `ps_cfg_clamp()` bounds every value that is used as an index or a range: the mode,
    the block count, brightness, speed, `ap_on`, and terminates every string. A blob
    written by a corrupt or newer image cannot become an array subscript.
@@ -60,20 +66,21 @@ factory uses for each mode: bare `RRGGBB` for Music, `#RRGGBBAA` for H2D.
 
 The instructions are in `ps_cfg.c` above the chain, and the host test enforces them:
 
-1. Copy the current `ps_cfg_t` into `ps_cfg.c` as `ps_cfg_v2_t`, `static`, with its own
+1. Copy the current `ps_cfg_t` into `ps_cfg.c` as `ps_cfg_v3_t`, `static`, with its own
    `_Static_assert` on the literal size, referencing no live type and no live count
-   (`ps_cfg_v1_t` there is the model).
-2. Define `PS_CFG_MAGIC_V3` and point `PS_CFG_MAGIC` at it.
-3. Add the v2 arm above the v1 arm: defaults, overlay every v2 field, set what v3 added, save.
-4. Extend `firmware/test/host/cfg_test.c` with a v2 blob that must survive.
+   (`ps_cfg_v1_t` and `ps_cfg_v2_t` there are the model).
+2. Define `PS_CFG_MAGIC_V4` and point `PS_CFG_MAGIC` at it.
+3. Add the v3 arm above the v2 arm: defaults, overlay every v3 field, set what v4 added, save.
+4. Extend `firmware/test/host/cfg_test.c` with a v3 blob that must survive.
 
 A frozen struct that points at a live type is correct only by luck.
 
 ## The budget
 
 The blob is written twice during a rewrite (NVS keeps the old copy until the new one is
-committed), so the budget is twice the blob plus a page of slack, against a 0x6000-byte
-partition shared with nothing else the firmware stores. A blob over budget saves
+committed), so the budget is twice the blob plus a page of slack (2,048 bytes for the
+572-byte v3 blob), against a 0x6000-byte partition shared with nothing else the firmware
+stores. A blob over budget saves
 silently-failing and a reboot loses everything; the assert makes that a compile error.
 
 ## Reading and writing it on the host

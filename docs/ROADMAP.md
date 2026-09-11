@@ -127,6 +127,10 @@ order, not against the list order.
 
 ### More than seven effects
 
+**BUILT (A2, D-034).** Feature bit 2, `state_effects`: the engine from PandaVentOS,
+seventeen effects selectable per bar state in H2D, the rest of the engine waiting on their
+inputs ([FEATURES.md](FEATURES.md)).
+
 **What it does.** Progress bar driven by real print progress, animated progress,
 barber-pole stripe, temperature gradient, error strobe with configurable colour and rate.
 

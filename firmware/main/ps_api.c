@@ -5,8 +5,9 @@
  * without a single change to the socket document (D-033). Every feature defaults off,
  * and a device with every bit clear is at parity on the wire and on the bar.
  *
- *   GET  /api/features   {"build":"…","features":{"state_brightness":false},
- *                         "config":{"state_brightness":[[50,50,50],[50,50,50]]}}
+ *   GET  /api/features   {"build":"…","features":{"state_brightness":false,"state_effects":false},
+ *                         "config":{"state_brightness":[[50,50,50],[50,50,50]],
+ *                                   "state_effects":[{effect,brightness,speed,bright_end,opt,aux,colours[4]} x3]}}
  *   POST /api/features   {"features":{…}} and/or {"config":{…}}: applied whole or refused
  *                         whole (400); the answer is the same document as GET
  *
@@ -23,7 +24,46 @@ static const char *TAG = "ps_api";
 
 static const struct { const char *name; uint32_t bit; } FEATURES[] = {
     { "state_brightness", PS_FEAT_STATE_BRIGHTNESS },
+    { "state_effects",    PS_FEAT_STATE_EFFECTS },
 };
+
+static cJSON *fx_json(const ps_fx_cfg_t *f)
+{
+    cJSON *o = cJSON_CreateObject();
+    cJSON_AddNumberToObject(o, "effect", f->effect);
+    cJSON_AddNumberToObject(o, "brightness", f->brightness);
+    cJSON_AddNumberToObject(o, "speed", f->speed);
+    cJSON_AddNumberToObject(o, "bright_end", f->bright_end);
+    cJSON_AddNumberToObject(o, "opt", f->opt);
+    cJSON_AddNumberToObject(o, "aux", f->aux);
+    cJSON *cols = cJSON_AddArrayToObject(o, "colours");
+    for (int i = 0; i < 4; i++) { char w[10]; ps_rgba_to_wire(f->colour[i], PS_MODE_H2D, w); cJSON_AddItemToArray(cols, cJSON_CreateString(w)); }
+    return o;
+}
+
+/* one stored effect from its JSON: every key optional, any unknown key or bad value refuses */
+static bool fx_parse(cJSON *o, ps_fx_cfg_t *f)
+{
+    if (!cJSON_IsObject(o)) return false;
+    for (cJSON *it = o->child; it; it = it->next) {
+        const char *k = it->string; if (!k) return false;
+        if (!strcmp(k, "colours")) {
+            if (!cJSON_IsArray(it) || cJSON_GetArraySize(it) != 4) return false;
+            for (int i = 0; i < 4; i++) { cJSON *s = cJSON_GetArrayItem(it, i); if (!cJSON_IsString(s) || !ps_rgba_from_wire(s->valuestring, &f->colour[i])) return false; }
+            continue;
+        }
+        if (!cJSON_IsNumber(it) || it->valuedouble < 0) return false;
+        int v = (int)it->valuedouble;
+        if      (!strcmp(k, "effect"))     { if (v >= PS_FX_SELECTABLE) return false; f->effect = (uint8_t)v; }
+        else if (!strcmp(k, "brightness")) { if (v > 100) return false; f->brightness = (uint8_t)v; }
+        else if (!strcmp(k, "speed"))      { if (v > 100) return false; f->speed = (uint8_t)v; }
+        else if (!strcmp(k, "bright_end")) { if (v > 100) return false; f->bright_end = (uint8_t)v; }
+        else if (!strcmp(k, "opt"))        { if (v > 0x1F) return false; f->opt = (uint8_t)v; }
+        else if (!strcmp(k, "aux"))        { if (v > 255) return false; f->aux = (uint8_t)v; }
+        else return false;
+    }
+    return true;
+}
 #define N_FEATURES (sizeof FEATURES / sizeof FEATURES[0])
 
 char *ps_features_json(void)
@@ -41,6 +81,8 @@ char *ps_features_json(void)
         for (int i = 0; i < 3; i++) cJSON_AddItemToArray(row, cJSON_CreateNumber(g_ps.cfg.state_brightness[m][i]));
         cJSON_AddItemToArray(sb, row);
     }
+    cJSON *se = cJSON_AddArrayToObject(cfg, "state_effects");
+    for (int s = 0; s < 3; s++) cJSON_AddItemToArray(se, fx_json(&g_ps.cfg.fx[s]));
     ps_unlock();
     char *s = cJSON_PrintUnformatted(doc);
     cJSON_Delete(doc);
@@ -66,9 +108,15 @@ int ps_features_apply(const char *json, size_t len)
         }
     }
     uint8_t sb[2][3]; bool have_sb = false;
+    ps_fx_cfg_t fx[3]; bool have_fx = false;
     if (cfg) {
         for (cJSON *it = cfg->child; it; it = it->next) {
-            if (it->string && !strcmp(it->string, "state_brightness")) {
+            if (it->string && !strcmp(it->string, "state_effects")) {
+                if (!cJSON_IsArray(it) || cJSON_GetArraySize(it) != 3) { cJSON_Delete(root); return -1; }
+                ps_lock(); memcpy(fx, g_ps.cfg.fx, sizeof fx); ps_unlock();   /* partial objects overlay the stored block */
+                for (int s = 0; s < 3; s++) if (!fx_parse(cJSON_GetArrayItem(it, s), &fx[s])) { cJSON_Delete(root); return -1; }
+                have_fx = true;
+            } else if (it->string && !strcmp(it->string, "state_brightness")) {
                 if (!cJSON_IsArray(it) || cJSON_GetArraySize(it) != 2) { cJSON_Delete(root); return -1; }
                 for (int m = 0; m < 2; m++) {
                     cJSON *row = cJSON_GetArrayItem(it, m);
@@ -91,6 +139,7 @@ int ps_features_apply(const char *json, size_t len)
     g_ps.cfg.features = (g_ps.cfg.features | set) & ~clear;
     changed = g_ps.cfg.features != before;
     if (have_sb && memcmp(g_ps.cfg.state_brightness, sb, sizeof sb) != 0) { memcpy(g_ps.cfg.state_brightness, sb, sizeof sb); changed = true; }
+    if (have_fx && memcmp(g_ps.cfg.fx, fx, sizeof fx) != 0) { memcpy(g_ps.cfg.fx, fx, sizeof fx); changed = true; }
     if (changed) ps_cfg_save(&g_ps.cfg);
     ps_unlock();
     if (changed) { ps_effect_notify(); ESP_LOGI(TAG, "features 0x%08x", (unsigned)g_ps.cfg.features); }

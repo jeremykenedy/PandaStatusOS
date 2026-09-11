@@ -18,6 +18,9 @@ Everything so far. No release has been made and no device has been flashed.
 - The clone's own JSON route, `/api/features`: the page discovers a clone by its 200 where
   the factory answers 302, and shows a Features card on the System page only then. The
   socket document stays the factory's (D-033).
+- A2, an effect per state: the effect engine (Jeremy's, from PandaVentOS, pure C and
+  host-tested) behind the `state_effects` switch; in H2D each state runs one of seventeen
+  effects in its own colour. The config blob moves to layout v3; v1 and v2 migrate.
 - A1, per-state brightness: one brightness for idle, one for printing, one for error, in
   each mode, on the Lighting page while the switch is on. The config blob moves to layout
   v2 with a v1 migration proven by the host test.

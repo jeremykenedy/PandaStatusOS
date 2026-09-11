@@ -7,6 +7,7 @@
  *   PS_CLONE unset   the factory. GET /api/features is a 302, so the page must show no
  *                    Features card, no per-state tile, and must send nothing to the route.
  *   PS_CLONE=1       the clone. The card shows with every switch off; turning one on sends
+ *                    (A1, then A2: an effect per state, the select's exact table)
  *                    exactly {"features":{"state_brightness":true}}; the Lighting page then
  *                    shows the three sliders for the current mode and a nudge sends exactly
  *                    the whole 2 x 3 table; the factory's own brightness slider keeps sending
@@ -54,6 +55,7 @@ async function drive(browser, combo) {
     t(`${tag} F3 factory: nothing was sent to the route`, (await apiSent()).length === 0, await apiSent());
     await go(page, '#lighting');
     t(`${tag} F4 factory: the per-state tile stays hidden`, await hidden(page, 'ps-lighting-sb'));
+    t(`${tag} F4b factory: the effect tile stays hidden`, await hidden(page, 'ps-lighting-fx'));
     await pw.shot(page, `features-factory-lighting-${combo.theme}-${combo.width}`);
     t(`${tag} F5 no page errors`, errors.length === 0, errors);
     await ctx.close();
@@ -105,6 +107,38 @@ async function drive(browser, combo) {
   await page.reload(); await pw.sleep(900);
   t(`${tag} C13 after a reload the tile is back and H2D's printing value is still 55`,
     await waitHidden(page, 'ps-lighting-sb', false) && await page.evaluate(() => PS.features.config.state_brightness[1][1] === 55));
+
+  // ---- A2: an effect per state ----
+  await go(page, '#system');
+  await waitHidden(page, 'ps-system-features', false);
+  t(`${tag} E1 the effect switch is off and the tile hidden`, !(await page.$eval('#ps-system-feature-state-effects', (el) => el.checked)));
+  n = await count();
+  await toggle(page, 'ps-system-feature-state-effects');
+  got = await sentAfter(n);
+  t(`${tag} E2 turning effects on sends exactly {"features":{"state_effects":true}}`, got.length === 1 && got[0] === apiFrame({ features: { state_effects: true } }), got);
+  await go(page, '#lighting');
+  t(`${tag} E3 the effect tile shows with three selects at Solid`, await waitHidden(page, 'ps-lighting-fx', false)
+    && (await val(page, 'ps-lighting-fx-0')) === '0' && (await val(page, 'ps-lighting-fx-1')) === '0' && (await val(page, 'ps-lighting-fx-2')) === '0');
+  t(`${tag} E4 the select offers the seventeen effects`, (await page.$eval('#ps-lighting-fx-1', (el) => el.options.length)) === 17);
+  n = await count();
+  await $(page, 'ps-lighting-fx-1').selectOption('1');
+  got = await sentAfter(n);
+  const before = await page.evaluate(() => JSON.parse(JSON.stringify(PS.features.config.state_effects)));
+  const want = JSON.parse(JSON.stringify(before)); want[1].effect = 1;
+  t(`${tag} E5 choosing Breathing for printing sends the whole three-state table with effect 1`, got.length === 1 && got[0] === apiFrame({ config: { state_effects: want } }), got);
+  t(`${tag} E6 the answer lands: printing reads Breathing`, await page.waitForFunction(() => PS.features.config.state_effects[1].effect === 1, null, { timeout: 2000 }).then(() => true).catch(() => false)
+    && (await val(page, 'ps-lighting-fx-1')) === '1');
+  await pw.shot(page, `features-lighting-fx-${combo.theme}-${combo.width}`, { fullPage: true });
+  await page.reload(); await pw.sleep(900);
+  t(`${tag} E7 after a reload printing is still Breathing`, await waitHidden(page, 'ps-lighting-fx', false) && (await val(page, 'ps-lighting-fx-1')) === '1');
+  await go(page, '#system');
+  await waitHidden(page, 'ps-system-features', false);
+  n = await count();
+  await toggle(page, 'ps-system-feature-state-effects');
+  got = await sentAfter(n);
+  t(`${tag} E8 turning effects off sends exactly {"features":{"state_effects":false}}`, got.length === 1 && got[0] === apiFrame({ features: { state_effects: false } }), got);
+  await go(page, '#lighting');
+  t(`${tag} E9 the effect tile hides again`, await waitHidden(page, 'ps-lighting-fx', true));
 
   // ---- off again ----
   await go(page, '#system');

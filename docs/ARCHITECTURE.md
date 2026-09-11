@@ -79,12 +79,23 @@ The first install of the firmware is an OTA into one of the factory's app slots;
 in the repository writes the bootloader or the partition table, and every flash path goes
 through `tools/fw/preflight.sh` first (D-028, [FLASHING.md](FLASHING.md)).
 
+### The effect engine
+
+`ps_fx.c` is pure C with no IDF in it: one function fills a frame for one effect, advances
+that effect's phase and returns the milliseconds the effect wants before the next frame,
+so a fast effect and a slow one share the one render task and the host test drives the
+shipping body with gcc. It is Jeremy Kenedy's engine, the one PandaVentOS renders with,
+adapted to one strip and this project's colour type (D-034). `ps_effect.c` owns the task,
+the inputs and the strip, and renders the engine only in H2D and only while the
+`state_effects` bit is set; everything else is the placeholder that Phase 1 replaces.
+
 ### Storage
 
-One NVS blob, 492 bytes, pinned by `_Static_assert` to its size and its array offsets so
-the host tests and the target agree byte for byte. Its magic is its version. A layout
-change means freezing the old struct inside `ps_cfg.c`, bumping the magic, adding an arm
-to the chain and a blob to the host test. [CONFIG.md](CONFIG.md) lists every key.
+One NVS blob, 572 bytes, pinned by `_Static_assert` to its size and its array offsets so
+the host tests and the target agree byte for byte. Its magic is its version; two older
+layouts are frozen inside `ps_cfg.c` and migrate on first load. A layout change means
+freezing the current struct there, bumping the magic, adding an arm to the chain and a
+blob to the host test. [CONFIG.md](CONFIG.md) lists every key.
 
 The partition table is generated from one number, the flash size, and is PROVISIONAL
 until a unit's flash has been read: two app slots, an `images` partition of custom type

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Build and run the host tests: the config module with plain gcc, and the state module
+# Build and run the host tests: the config module and the effect engine with plain gcc, and the state module
 # with the IDF's own cJSON when an IDF checkout is present (IDF_PATH, else ~/esp/esp-idf).
 # No device, no toolchain.
 set -euo pipefail
@@ -7,6 +7,9 @@ HERE="$(cd "$(dirname "$0")" && pwd)"
 OUT="${TMPDIR:-/tmp}/ps_host_test"
 gcc -std=c11 -Wall -Wextra -Werror -I "$HERE/stub" -I "$HERE/../../main" -o "$OUT-cfg" "$HERE/cfg_test.c"
 "$OUT-cfg"
+echo
+gcc -std=c11 -Wall -Wextra -Werror -I "$HERE/stub" -I "$HERE/../../main" -o "$OUT-fx" "$HERE/fx_test.c" "$HERE/../../main/ps_fx.c" -lm
+"$OUT-fx"
 IDF="${IDF_PATH:-$HOME/esp/esp-idf}"
 if [ -f "$IDF/components/json/cJSON/cJSON.c" ]; then
     echo

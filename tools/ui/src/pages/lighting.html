@@ -64,6 +64,91 @@
       <div class="ps-tile-label" data-ps-str="ps_lighting_sb_help">For the current mode. While this is on, the brightness slider above is not used.</div>
     </div>
 
+    <!-- A2, behind the state_effects feature: shown only while it is on. In H2D, each bar
+         state runs the effect chosen here in the colour it already has above. The effect
+         ids are the firmware's (enum ps_fx); the names are this project's own. -->
+    <div class="ps-tile" id="ps-lighting-fx" hidden>
+      <div class="ps-tile-label" data-ps-str="ps_feature_state_effects">Effect per state</div>
+      <div class="ps-grid ps-grid-3">
+        <div>
+          <div class="ps-tile-label" data-ps-str="ps_lighting_fx_idle">Idle</div>
+          <div class="field suffix border small" data-ps-no-i18n>
+            <select id="ps-lighting-fx-0" data-ps-fx="0" data-ps-str-aria="ps_lighting_fx_idle_aria" aria-label="Idle effect">
+            <option value="0" data-ps-str="ps_fx_solid">Solid</option>
+            <option value="1" data-ps-str="ps_fx_breathing">Breathing</option>
+            <option value="2" data-ps-str="ps_fx_strobe">Strobe</option>
+            <option value="3" data-ps-str="ps_fx_wave">Wave</option>
+            <option value="4" data-ps-str="ps_fx_marquee">Marquee</option>
+            <option value="5" data-ps-str="ps_fx_hue_cycle">Hue cycle</option>
+            <option value="6" data-ps-str="ps_fx_rainbow">Rainbow</option>
+            <option value="7" data-ps-str="ps_fx_scanner">Scanner</option>
+            <option value="8" data-ps-str="ps_fx_bounce">Bounce</option>
+            <option value="9" data-ps-str="ps_fx_marquee_out">Marquee outward</option>
+            <option value="10" data-ps-str="ps_fx_marquee_in">Marquee inward</option>
+            <option value="11" data-ps-str="ps_fx_fill_out">Fill outward</option>
+            <option value="12" data-ps-str="ps_fx_fill_in">Fill inward</option>
+            <option value="13" data-ps-str="ps_fx_bounce_out">Bounce outward</option>
+            <option value="14" data-ps-str="ps_fx_bounce_in">Bounce inward</option>
+            <option value="15" data-ps-str="ps_fx_fill_empty_out">Fill and empty outward</option>
+            <option value="16" data-ps-str="ps_fx_fill_empty_in">Fill and empty inward</option>
+            </select>
+            <svg class="ps-icon"><use href="#ps-icon-chevron-down"/></svg>
+          </div>
+        </div>
+        <div>
+          <div class="ps-tile-label" data-ps-str="ps_lighting_fx_printing">Printing</div>
+          <div class="field suffix border small" data-ps-no-i18n>
+            <select id="ps-lighting-fx-1" data-ps-fx="1" data-ps-str-aria="ps_lighting_fx_printing_aria" aria-label="Printing effect">
+            <option value="0" data-ps-str="ps_fx_solid">Solid</option>
+            <option value="1" data-ps-str="ps_fx_breathing">Breathing</option>
+            <option value="2" data-ps-str="ps_fx_strobe">Strobe</option>
+            <option value="3" data-ps-str="ps_fx_wave">Wave</option>
+            <option value="4" data-ps-str="ps_fx_marquee">Marquee</option>
+            <option value="5" data-ps-str="ps_fx_hue_cycle">Hue cycle</option>
+            <option value="6" data-ps-str="ps_fx_rainbow">Rainbow</option>
+            <option value="7" data-ps-str="ps_fx_scanner">Scanner</option>
+            <option value="8" data-ps-str="ps_fx_bounce">Bounce</option>
+            <option value="9" data-ps-str="ps_fx_marquee_out">Marquee outward</option>
+            <option value="10" data-ps-str="ps_fx_marquee_in">Marquee inward</option>
+            <option value="11" data-ps-str="ps_fx_fill_out">Fill outward</option>
+            <option value="12" data-ps-str="ps_fx_fill_in">Fill inward</option>
+            <option value="13" data-ps-str="ps_fx_bounce_out">Bounce outward</option>
+            <option value="14" data-ps-str="ps_fx_bounce_in">Bounce inward</option>
+            <option value="15" data-ps-str="ps_fx_fill_empty_out">Fill and empty outward</option>
+            <option value="16" data-ps-str="ps_fx_fill_empty_in">Fill and empty inward</option>
+            </select>
+            <svg class="ps-icon"><use href="#ps-icon-chevron-down"/></svg>
+          </div>
+        </div>
+        <div>
+          <div class="ps-tile-label" data-ps-str="ps_lighting_fx_error">Error</div>
+          <div class="field suffix border small" data-ps-no-i18n>
+            <select id="ps-lighting-fx-2" data-ps-fx="2" data-ps-str-aria="ps_lighting_fx_error_aria" aria-label="Error effect">
+            <option value="0" data-ps-str="ps_fx_solid">Solid</option>
+            <option value="1" data-ps-str="ps_fx_breathing">Breathing</option>
+            <option value="2" data-ps-str="ps_fx_strobe">Strobe</option>
+            <option value="3" data-ps-str="ps_fx_wave">Wave</option>
+            <option value="4" data-ps-str="ps_fx_marquee">Marquee</option>
+            <option value="5" data-ps-str="ps_fx_hue_cycle">Hue cycle</option>
+            <option value="6" data-ps-str="ps_fx_rainbow">Rainbow</option>
+            <option value="7" data-ps-str="ps_fx_scanner">Scanner</option>
+            <option value="8" data-ps-str="ps_fx_bounce">Bounce</option>
+            <option value="9" data-ps-str="ps_fx_marquee_out">Marquee outward</option>
+            <option value="10" data-ps-str="ps_fx_marquee_in">Marquee inward</option>
+            <option value="11" data-ps-str="ps_fx_fill_out">Fill outward</option>
+            <option value="12" data-ps-str="ps_fx_fill_in">Fill inward</option>
+            <option value="13" data-ps-str="ps_fx_bounce_out">Bounce outward</option>
+            <option value="14" data-ps-str="ps_fx_bounce_in">Bounce inward</option>
+            <option value="15" data-ps-str="ps_fx_fill_empty_out">Fill and empty outward</option>
+            <option value="16" data-ps-str="ps_fx_fill_empty_in">Fill and empty inward</option>
+            </select>
+            <svg class="ps-icon"><use href="#ps-icon-chevron-down"/></svg>
+          </div>
+        </div>
+      </div>
+      <div class="ps-tile-label" data-ps-str="ps_lighting_fx_help">For H2D mode. Each state keeps its colour from above; the animation is chosen here.</div>
+    </div>
+
     <div class="ps-tile" id="ps-lighting-colours">
       <div class="ps-tile-label" data-ps-str="ps_lighting_colours">State colours</div>
       <div class="ps-grid ps-grid-2" data-ps-no-i18n>
