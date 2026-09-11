@@ -84,6 +84,14 @@ usb)
     command -v esptool.py >/dev/null 2>&1 || . ~/esp/esp-idf/export.sh >/dev/null 2>&1 || true
     ESPTOOL="python3 -m esptool"
     $ESPTOOL version >/dev/null 2>&1 || die "esptool is not available; run . ~/esp/esp-idf/export.sh first"
+    # esptool v4 spells its subcommands and reset modes with underscores, v5 with hyphens.
+    # Ask this esptool which it speaks. The backup is not the place to find out that a
+    # subcommand name changed: on v4 the hyphenated spelling exits with a usage error, the
+    # chip name parses as empty, and the script stops before reading a single byte.
+    if $ESPTOOL --help 2>&1 | grep -q 'read_flash'; then U=_; else U=-; fi
+    if $ESPTOOL --help 2>&1 | grep -q 'default_reset'; then R=_; else R=-; fi
+    SUB_CHIP="chip${U}id"; SUB_FLASH="flash${U}id"; SUB_MAC="read${U}mac"; SUB_READ="read${U}flash"
+    BEFORE="default${R}reset"; AFTER="no${R}reset"
     if [ -z "$PORT" ]; then
         set +u; PORTS=( /dev/cu.usbmodem* /dev/cu.usbserial* /dev/cu.wchusbserial* /dev/cu.SLAB_USBtoUART* ); set -u
         PORTS=( $(for p in "${PORTS[@]}"; do [ -e "$p" ] && echo "$p"; done) )
@@ -93,12 +101,12 @@ usb)
     DEST="$ROOT/goldens"; [ "$STOCK" = 1 ] && DEST="$ROOT/stock"
     mkdir -p "$DEST"
     echo "identifying the chip on $PORT (read-only) ..."
-    CHIP="$($ESPTOOL --chip auto --port "$PORT" chip-id 2>&1 | awk -F'Chip is ' '/Chip is/{print $2}' | awk '{print $1}')"
-    [ -n "$CHIP" ] || die "chip-id gave no chip; is the device in download mode and the cable a data cable?"
-    case "$CHIP" in ESP32-C3*) ;; *) die "chip-id reports '$CHIP', not an ESP32-C3. Every assumption in this repository is about the C3. Stopping.";; esac
-    FLASH="$($ESPTOOL --chip auto --port "$PORT" flash-id 2>&1 | awk -F'Detected flash size: ' '/Detected flash size/{print $2}' | awk '{print $1}')"
-    MAC="$($ESPTOOL --chip auto --port "$PORT" read-mac 2>&1 | awk '/^MAC:/{print tolower($2)}' | head -1)"
-    [ -n "$FLASH" ] && [ -n "$MAC" ] || die "flash-id or read-mac gave nothing"
+    CHIP="$($ESPTOOL --chip auto --port "$PORT" "$SUB_CHIP" 2>&1 | awk -F'Chip is ' '/Chip is/{print $2}' | awk '{print $1}')"
+    [ -n "$CHIP" ] || die "the chip id gave no chip; is the device in download mode and the cable a data cable?"
+    case "$CHIP" in ESP32-C3*) ;; *) die "the chip id reports '$CHIP', not an ESP32-C3. Every assumption in this repository is about the C3. Stopping.";; esac
+    FLASH="$($ESPTOOL --chip auto --port "$PORT" "$SUB_FLASH" 2>&1 | awk -F'Detected flash size: ' '/Detected flash size/{print $2}' | awk '{print $1}')"
+    MAC="$($ESPTOOL --chip auto --port "$PORT" "$SUB_MAC" 2>&1 | awk '/^MAC:/{print tolower($2)}' | head -1)"
+    [ -n "$FLASH" ] && [ -n "$MAC" ] || die "the flash id or the MAC read gave nothing"
     case "$FLASH" in 2MB) BYTES=0x200000;; 4MB) BYTES=0x400000;; 8MB) BYTES=0x800000;; 16MB) BYTES=0x1000000;; *) die "unexpected flash size '$FLASH'";; esac
     echo "chip $CHIP, flash $FLASH, MAC recorded (not printed)"
     UNIT="$ROOT/stock/RESTORE-THIS-UNIT.txt"
@@ -115,7 +123,7 @@ usb)
         TS="$(date +%Y%m%d-%H%M%S)"; OUT="$DEST/GOLDEN-$TS-full-$FLASH.bin"
         [ -e "$OUT" ] && { sleep 1; TS="$(date +%Y%m%d-%H%M%S)"; OUT="$DEST/GOLDEN-$TS-full-$FLASH.bin"; }
         echo; echo "read $i of $READS: 0x0 .. $BYTES -> $OUT (minutes; do not unplug)"
-        $ESPTOOL --chip esp32c3 --port "$PORT" -b 460800 --before default_reset --after no_reset read-flash 0 "$BYTES" "$OUT" || die "read $i failed; the file, if any, is left for inspection"
+        $ESPTOOL --chip esp32c3 --port "$PORT" -b 460800 --before "$BEFORE" --after "$AFTER" "$SUB_READ" 0 "$BYTES" "$OUT" || die "read $i failed; the file, if any, is left for inspection"
         record_capture "$OUT" "usb:$PORT read$i/$READS" "$NOTE"
         HASHES+=( "$(awk '{print $1}' "${OUT%.bin}.sha256")" )
     done
