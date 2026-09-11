@@ -109,7 +109,7 @@ int main(void)
     char w[10]; ps_rgba_t x = { 0xFF, 0x00, 0xAA, 0x80 };
     ps_rgba_to_wire(x, PS_MODE_MUSIC, w); t("mode 0 colour is bare RRGGBB", !strcmp(w, "FF00AA"), 0);
     ps_rgba_to_wire(x, PS_MODE_H2D, w);   t("mode 1 colour is #RRGGBBAA", !strcmp(w, "#FF00AA80"), 0);
-    ps_rgba_t y;
+    ps_rgba_t y = { 0, 0, 0, 0 };     /* the reporting argument is not sequenced against the call beside it */
     t("parses bare lowercase", ps_rgba_from_wire("ff00aa", &y) && y.r == 0xFF && y.b == 0xAA && y.a == 0xFF, y.a);
     t("parses #RRGGBBAA", ps_rgba_from_wire("#1B00FF80", &y) && y.r == 0x1B && y.g == 0 && y.b == 0xFF && y.a == 0x80, y.a);
     t("parses 8 hex without #", ps_rgba_from_wire("1B00FF80", &y) && y.a == 0x80, y.a);

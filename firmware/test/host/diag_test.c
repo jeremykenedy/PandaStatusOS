@@ -13,7 +13,11 @@ static bool lit_at(const ps_diag_t *d, uint32_t ms) { ps_rgba_t px[4]; ps_diag_r
 
 int main(void)
 {
-    ps_diag_t d;
+    /* Initialised at the declaration, and not for tidiness: the reporting argument of t()
+     * is not sequenced against the ps_diag_pick() call in the argument beside it, so an
+     * uninitialised field here is read before it is written. GCC catches it, clang does
+     * not, and CI is where that difference showed up. */
+    ps_diag_t d = { false, { 0, 0, 0, 0 }, 0 };
 
     /* nothing wrong is not a pattern */
     t("connected to both is no diagnostic", !ps_diag_pick(PS_STA_CONNECTED, PS_PRN_CONNECTED, &d) && !d.active, d.blinks);
