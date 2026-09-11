@@ -123,6 +123,15 @@
               <span data-ps-str="ps_lighting_fxp_reverse">Run the other way</span>
             </label>
           </div>
+          <!-- A5, behind effect_ramp: the brightness sweeps to a second value each cycle -->
+          <div class="ps-fxr" data-ps-fxr-state="0" hidden>
+            <label class="checkbox ps-fxp-reverse" data-ps-no-i18n>
+              <input type="checkbox" id="ps-lighting-fxr-on-0" data-ps-fxr-on="0" data-ps-str-aria="ps_lighting_fxr_on_aria" aria-label="Ramp the effect's brightness">
+              <span data-ps-str="ps_lighting_fxr_on">Ramp the brightness</span>
+            </label>
+            <div class="ps-row"><span class="ps-tile-label" data-ps-str="ps_lighting_fxr_end">Ramp to</span><span class="max"></span><span class="ps-tile-label" id="ps-lighting-fxr-end-value-0" data-ps-no-i18n>—</span></div>
+            <label class="slider" data-ps-no-i18n><input type="range" min="0" max="100" step="5" id="ps-lighting-fxr-end-0" data-ps-fxr-end="0" data-ps-str-aria="ps_lighting_fxr_end_aria" aria-label="End of the ramp"><span></span></label>
+          </div>
         </div>
         <div>
           <div class="ps-tile-label" data-ps-str="ps_lighting_fx_printing">Printing</div>
@@ -175,6 +184,15 @@
               <input type="checkbox" id="ps-lighting-fxp-reverse-1" data-ps-fxp-reverse="1" data-ps-str-aria="ps_lighting_fxp_reverse_aria" aria-label="Run the effect the other way">
               <span data-ps-str="ps_lighting_fxp_reverse">Run the other way</span>
             </label>
+          </div>
+          <!-- A5, behind effect_ramp: the brightness sweeps to a second value each cycle -->
+          <div class="ps-fxr" data-ps-fxr-state="1" hidden>
+            <label class="checkbox ps-fxp-reverse" data-ps-no-i18n>
+              <input type="checkbox" id="ps-lighting-fxr-on-1" data-ps-fxr-on="1" data-ps-str-aria="ps_lighting_fxr_on_aria" aria-label="Ramp the effect's brightness">
+              <span data-ps-str="ps_lighting_fxr_on">Ramp the brightness</span>
+            </label>
+            <div class="ps-row"><span class="ps-tile-label" data-ps-str="ps_lighting_fxr_end">Ramp to</span><span class="max"></span><span class="ps-tile-label" id="ps-lighting-fxr-end-value-1" data-ps-no-i18n>—</span></div>
+            <label class="slider" data-ps-no-i18n><input type="range" min="0" max="100" step="5" id="ps-lighting-fxr-end-1" data-ps-fxr-end="1" data-ps-str-aria="ps_lighting_fxr_end_aria" aria-label="End of the ramp"><span></span></label>
           </div>
         </div>
         <div>
@@ -229,10 +247,20 @@
               <span data-ps-str="ps_lighting_fxp_reverse">Run the other way</span>
             </label>
           </div>
+          <!-- A5, behind effect_ramp: the brightness sweeps to a second value each cycle -->
+          <div class="ps-fxr" data-ps-fxr-state="2" hidden>
+            <label class="checkbox ps-fxp-reverse" data-ps-no-i18n>
+              <input type="checkbox" id="ps-lighting-fxr-on-2" data-ps-fxr-on="2" data-ps-str-aria="ps_lighting_fxr_on_aria" aria-label="Ramp the effect's brightness">
+              <span data-ps-str="ps_lighting_fxr_on">Ramp the brightness</span>
+            </label>
+            <div class="ps-row"><span class="ps-tile-label" data-ps-str="ps_lighting_fxr_end">Ramp to</span><span class="max"></span><span class="ps-tile-label" id="ps-lighting-fxr-end-value-2" data-ps-no-i18n>—</span></div>
+            <label class="slider" data-ps-no-i18n><input type="range" min="0" max="100" step="5" id="ps-lighting-fxr-end-2" data-ps-fxr-end="2" data-ps-str-aria="ps_lighting_fxr_end_aria" aria-label="End of the ramp"><span></span></label>
+          </div>
         </div>
       </div>
       <div class="ps-tile-label" data-ps-str="ps_lighting_fx_help">For H2D mode. Each state keeps its colour from above; the animation is chosen here.</div>
       <div class="ps-tile-label" id="ps-lighting-fxp-help" data-ps-str="ps_lighting_fxp_help" hidden>While this is on, the brightness and speed above are not used for effects; each effect has its own here.</div>
+      <div class="ps-tile-label" id="ps-lighting-fxr-help" data-ps-str="ps_lighting_fxr_help" hidden>Needs the setting above. An effect without a ramp runs at one brightness, as before.</div>
       <div class="ps-tile-label" id="ps-lighting-fxc-help" data-ps-str="ps_lighting_fxc_help" hidden>The lit colour paints where the effect is on; the unlit colour paints where it is off, black when cleared. Printing means a job is running or paused.</div>
     </div>
 

@@ -53,6 +53,7 @@ body.dark  .ps-mark-light { display: none; }
 .ps-fxc-clear { flex: none; min-width: 2.25rem; padding: 0 0.5rem; }
 .ps-fxp { display: grid; gap: 4px; margin-top: 8px; }
 .ps-fxp-reverse { margin-top: 4px; }
+.ps-fxr { display: grid; gap: 4px; margin-top: 8px; }
 .ps-tile-head .ps-tile-label { margin: 0; }
 
 /* --- navigation. Rail on wide screens, bottom bar on phones. Same destinations, same

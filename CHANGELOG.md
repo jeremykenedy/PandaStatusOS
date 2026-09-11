@@ -18,6 +18,8 @@ Everything so far. No release has been made and no device has been flashed.
 - The clone's own JSON route, `/api/features`: the page discovers a clone by its 200 where
   the factory answers 302, and shows a Features card on the System page only then. The
   socket document stays the factory's (D-033).
+- A5, the brightness ramp: each cycle the brightness sweeps from the effect's own value
+  to a second one, behind `effect_ramp`, for the effects that set it.
 - A4, the effect's own brightness, speed and direction as one setting, behind
   `effect_params`; the factory's sliders and the per-state brightness step aside for
   effects while it is on.

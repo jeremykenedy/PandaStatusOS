@@ -304,5 +304,13 @@
   "ps_lighting_fxp_reverse": "W drugą stronę",
   "ps_lighting_fxp_brightness_aria": "Jasność efektu",
   "ps_lighting_fxp_speed_aria": "Szybkość efektu",
-  "ps_lighting_fxp_reverse_aria": "Uruchom efekt w drugą stronę"
+  "ps_lighting_fxp_reverse_aria": "Uruchom efekt w drugą stronę",
+  "ps_feature_effect_ramp": "Rampa jasności",
+  "ps_feature_effect_ramp_help": "Jasność w każdym cyklu przechodzi od własnej wartości efektu do drugiej, po czym zaczyna od nowa.",
+  "ps_feature_effect_ramp_aria": "Rampa jasności",
+  "ps_lighting_fxr_help": "Wymaga ustawienia powyżej. Efekt bez rampy działa z jedną jasnością, jak dotąd.",
+  "ps_lighting_fxr_on": "Płynna zmiana jasności",
+  "ps_lighting_fxr_end": "Zmieniaj do",
+  "ps_lighting_fxr_on_aria": "Płynnie zmieniaj jasność efektu",
+  "ps_lighting_fxr_end_aria": "Koniec rampy"
 }

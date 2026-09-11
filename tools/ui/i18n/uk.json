@@ -304,5 +304,13 @@
   "ps_lighting_fxp_reverse": "У зворотний бік",
   "ps_lighting_fxp_brightness_aria": "Яскравість ефекту",
   "ps_lighting_fxp_speed_aria": "Швидкість ефекту",
-  "ps_lighting_fxp_reverse_aria": "Запустити ефект у зворотний бік"
+  "ps_lighting_fxp_reverse_aria": "Запустити ефект у зворотний бік",
+  "ps_feature_effect_ramp": "Плавна зміна яскравості",
+  "ps_feature_effect_ramp_help": "Яскравість за кожен цикл переходить від власного значення ефекту до другого й починає знову.",
+  "ps_feature_effect_ramp_aria": "Плавна зміна яскравості",
+  "ps_lighting_fxr_help": "Потребує налаштування вище. Ефект без плавної зміни працює з однією яскравістю, як раніше.",
+  "ps_lighting_fxr_on": "Плавно змінювати яскравість",
+  "ps_lighting_fxr_end": "Змінювати до",
+  "ps_lighting_fxr_on_aria": "Плавно змінювати яскравість ефекту",
+  "ps_lighting_fxr_end_aria": "Кінець переходу"
 }

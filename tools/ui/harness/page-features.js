@@ -58,6 +58,7 @@ async function drive(browser, combo) {
     t(`${tag} F4b factory: the effect tile stays hidden`, await hidden(page, 'ps-lighting-fx'));
     t(`${tag} F4c factory: no colour field box is shown`, await page.$$eval('[data-ps-fxc-state]', (els) => els.every((e) => e.hidden)));
     t(`${tag} F4d factory: no params box is shown`, await page.$$eval('[data-ps-fxp-state]', (els) => els.every((e) => e.hidden)));
+    t(`${tag} F4e factory: no ramp box is shown`, await page.$$eval('[data-ps-fxr-state]', (els) => els.every((e) => e.hidden)));
     await pw.shot(page, `features-factory-lighting-${combo.theme}-${combo.width}`);
     t(`${tag} F5 no page errors`, errors.length === 0, errors);
     await ctx.close();
@@ -213,6 +214,42 @@ async function drive(browser, combo) {
   t(`${tag} H7 the answer lands: the box is checked`, await page.waitForFunction(() => document.getElementById('ps-lighting-fxp-reverse-1').checked, null, { timeout: 2000 }).then(() => true).catch(() => false));
   t(`${tag} H8 the factory brightness slider still sends the factory frame`, await (async () => { const b = Number(await val(page, 'ps-lighting-brightness')); const m = await count(); await nudge(page, 'ps-lighting-brightness', 'ArrowLeft'); const g = await sentAfter(m); return g.length === 1 && g[0] === frame('settings', { rgb_info_brightness: b - 5 }); })());
   await pw.shot(page, `features-lighting-fxp-${combo.theme}-${combo.width}`, { full: true });
+
+  // ---- A5: the ramp, which needs the params switch too ----
+  t(`${tag} I1 with params on but the ramp switch off, the ramp boxes stay hidden`, await page.$$eval('[data-ps-fxr-state]', (els) => els.every((e) => e.hidden)));
+  await go(page, '#system');
+  await waitHidden(page, 'ps-system-features', false);
+  n = await count();
+  await toggle(page, 'ps-system-feature-effect-ramp');
+  got = await sentAfter(n);
+  t(`${tag} I2 turning the ramp on sends exactly {"features":{"effect_ramp":true}}`, got.length === 1 && got[0] === apiFrame({ features: { effect_ramp: true } }), got);
+  await go(page, '#lighting');
+  t(`${tag} I3 the ramp boxes show, unchecked, end at 0%`,
+    await page.waitForFunction(() => [...document.querySelectorAll('[data-ps-fxr-state]')].every((e) => !e.hidden), null, { timeout: 2000 }).then(() => true).catch(() => false)
+    && !(await page.$eval('#ps-lighting-fxr-on-1', (el) => el.checked)) && (await val(page, 'ps-lighting-fxr-end-1')) === '0');
+  n = await count();
+  await nudge(page, 'ps-lighting-fxr-end-1', 'ArrowRight');
+  got = await sentAfter(n);
+  cur = await page.evaluate(() => JSON.parse(JSON.stringify(PS.features.config.state_effects)));
+  want2 = JSON.parse(JSON.stringify(cur)); want2[1].bright_end = 5;
+  t(`${tag} I4 nudging the end sends the whole table with bright_end 5`, got.length === 1 && got[0] === apiFrame({ config: { state_effects: want2 } }), got);
+  await page.waitForFunction(() => PS.features.config.state_effects[1].bright_end === 5, null, { timeout: 2000 }).catch(() => {});
+  n = await count();
+  await page.locator('label.checkbox:has(#ps-lighting-fxr-on-1)').click();
+  got = await sentAfter(n);
+  cur = await page.evaluate(() => JSON.parse(JSON.stringify(PS.features.config.state_effects)));
+  want2 = JSON.parse(JSON.stringify(cur)); want2[1].opt = want2[1].opt | 0x04;
+  t(`${tag} I5 the ramp box sets bit 0x04 in opt`, got.length === 1 && got[0] === apiFrame({ config: { state_effects: want2 } }), got);
+  t(`${tag} I6 the answer lands: the box is checked`, await page.waitForFunction(() => document.getElementById('ps-lighting-fxr-on-1').checked, null, { timeout: 2000 }).then(() => true).catch(() => false));
+  await pw.shot(page, `features-lighting-fxr-${combo.theme}-${combo.width}`, { full: true });
+  await go(page, '#system');
+  await waitHidden(page, 'ps-system-features', false);
+  n = await count();
+  await toggle(page, 'ps-system-feature-effect-ramp');
+  got = await sentAfter(n);
+  t(`${tag} I7 turning the ramp off sends exactly {"features":{"effect_ramp":false}}`, got.length === 1 && got[0] === apiFrame({ features: { effect_ramp: false } }), got);
+  await go(page, '#lighting');
+  t(`${tag} I8 the ramp boxes hide again`, await page.waitForFunction(() => [...document.querySelectorAll('[data-ps-fxr-state]')].every((e) => e.hidden), null, { timeout: 2000 }).then(() => true).catch(() => false));
   await go(page, '#system');
   await waitHidden(page, 'ps-system-features', false);
   n = await count();

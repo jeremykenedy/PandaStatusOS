@@ -304,5 +304,13 @@
   "ps_lighting_fxp_reverse": "Kør den anden vej",
   "ps_lighting_fxp_brightness_aria": "Effektens lysstyrke",
   "ps_lighting_fxp_speed_aria": "Effektens tempo",
-  "ps_lighting_fxp_reverse_aria": "Kør effekten den anden vej"
+  "ps_lighting_fxp_reverse_aria": "Kør effekten den anden vej",
+  "ps_feature_effect_ramp": "Lysstyrkerampe",
+  "ps_feature_effect_ramp_help": "Lysstyrken glider i hver cyklus fra effektens egen værdi til en anden og begynder så forfra.",
+  "ps_feature_effect_ramp_aria": "Lysstyrkerampe",
+  "ps_lighting_fxr_help": "Kræver indstillingen ovenfor. En effekt uden rampe kører med én lysstyrke som før.",
+  "ps_lighting_fxr_on": "Lad lysstyrken glide",
+  "ps_lighting_fxr_end": "Glid til",
+  "ps_lighting_fxr_on_aria": "Lad effektens lysstyrke glide",
+  "ps_lighting_fxr_end_aria": "Rampens slutning"
 }

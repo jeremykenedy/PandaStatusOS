@@ -304,5 +304,13 @@
   "ps_lighting_fxp_reverse": "Αντίστροφη φορά",
   "ps_lighting_fxp_brightness_aria": "Φωτεινότητα του εφέ",
   "ps_lighting_fxp_speed_aria": "Ταχύτητα του εφέ",
-  "ps_lighting_fxp_reverse_aria": "Εκτέλεση του εφέ με αντίστροφη φορά"
+  "ps_lighting_fxp_reverse_aria": "Εκτέλεση του εφέ με αντίστροφη φορά",
+  "ps_feature_effect_ramp": "Ράμπα φωτεινότητας",
+  "ps_feature_effect_ramp_help": "Η φωτεινότητα γλιστρά σε κάθε κύκλο από τη δική της τιμή του εφέ σε μια δεύτερη και ξεκινά ξανά.",
+  "ps_feature_effect_ramp_aria": "Ράμπα φωτεινότητας",
+  "ps_lighting_fxr_help": "Χρειάζεται τη ρύθμιση παραπάνω. Ένα εφέ χωρίς ράμπα τρέχει με μία φωτεινότητα, όπως πριν.",
+  "ps_lighting_fxr_on": "Ολίσθηση φωτεινότητας",
+  "ps_lighting_fxr_end": "Ολίσθηση έως",
+  "ps_lighting_fxr_on_aria": "Ολίσθηση της φωτεινότητας του εφέ",
+  "ps_lighting_fxr_end_aria": "Τέλος της ράμπας"
 }

@@ -304,5 +304,13 @@
   "ps_lighting_fxp_reverse": "Aja toiseen suuntaan",
   "ps_lighting_fxp_brightness_aria": "Tehosteen kirkkaus",
   "ps_lighting_fxp_speed_aria": "Tehosteen nopeus",
-  "ps_lighting_fxp_reverse_aria": "Aja tehoste toiseen suuntaan"
+  "ps_lighting_fxp_reverse_aria": "Aja tehoste toiseen suuntaan",
+  "ps_feature_effect_ramp": "Kirkkausramppi",
+  "ps_feature_effect_ramp_help": "Kirkkaus liukuu joka kierroksella tehosteen omasta arvosta toiseen ja alkaa sitten alusta.",
+  "ps_feature_effect_ramp_aria": "Kirkkausramppi",
+  "ps_lighting_fxr_help": "Vaatii yllä olevan asetuksen. Tehoste ilman ramppia toimii yhdellä kirkkaudella, kuten ennen.",
+  "ps_lighting_fxr_on": "Liu'uta kirkkautta",
+  "ps_lighting_fxr_end": "Liu'uta arvoon",
+  "ps_lighting_fxr_on_aria": "Liu'uta tehosteen kirkkautta",
+  "ps_lighting_fxr_end_aria": "Rampin loppu"
 }

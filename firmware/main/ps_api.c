@@ -27,6 +27,7 @@ static const struct { const char *name; uint32_t bit; } FEATURES[] = {
     { "state_effects",    PS_FEAT_STATE_EFFECTS },
     { "effect_colours",   PS_FEAT_EFFECT_COLOURS },
     { "effect_params",    PS_FEAT_EFFECT_PARAMS },
+    { "effect_ramp",      PS_FEAT_EFFECT_RAMP },
 };
 
 static cJSON *fx_json(const ps_fx_cfg_t *f)

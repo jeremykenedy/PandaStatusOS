@@ -304,5 +304,13 @@
   "ps_lighting_fxp_reverse": "Fordítva fusson",
   "ps_lighting_fxp_brightness_aria": "Az effekt fényereje",
   "ps_lighting_fxp_speed_aria": "Az effekt sebessége",
-  "ps_lighting_fxp_reverse_aria": "Az effekt fordított futtatása"
+  "ps_lighting_fxp_reverse_aria": "Az effekt fordított futtatása",
+  "ps_feature_effect_ramp": "Fényerő-rámpa",
+  "ps_feature_effect_ramp_help": "A fényerő minden ciklusban az effekt saját értékéről egy másodikra siklik, majd elölről kezdi.",
+  "ps_feature_effect_ramp_aria": "Fényerő-rámpa",
+  "ps_lighting_fxr_help": "A fenti beállítást igényli. Rámpa nélküli effekt egy fényerővel fut, mint eddig.",
+  "ps_lighting_fxr_on": "A fényerő siklása",
+  "ps_lighting_fxr_end": "Siklás eddig",
+  "ps_lighting_fxr_on_aria": "Az effekt fényerejének siklása",
+  "ps_lighting_fxr_end_aria": "A rámpa vége"
 }

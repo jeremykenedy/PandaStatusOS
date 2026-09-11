@@ -304,5 +304,13 @@
   "ps_lighting_fxp_reverse": "تشغيل بالاتجاه المعاكس",
   "ps_lighting_fxp_brightness_aria": "سطوع التأثير",
   "ps_lighting_fxp_speed_aria": "سرعة التأثير",
-  "ps_lighting_fxp_reverse_aria": "تشغيل التأثير بالاتجاه المعاكس"
+  "ps_lighting_fxp_reverse_aria": "تشغيل التأثير بالاتجاه المعاكس",
+  "ps_feature_effect_ramp": "تدرّج السطوع",
+  "ps_feature_effect_ramp_help": "ينزلق السطوع في كل دورة من قيمة التأثير الخاصة إلى قيمة ثانية ثم يبدأ من جديد.",
+  "ps_feature_effect_ramp_aria": "تدرّج السطوع",
+  "ps_lighting_fxr_help": "يتطلب الإعداد أعلاه. التأثير بلا تدرّج يعمل بسطوع واحد كما في السابق.",
+  "ps_lighting_fxr_on": "تدرّج السطوع",
+  "ps_lighting_fxr_end": "تدرّج حتى",
+  "ps_lighting_fxr_on_aria": "تدرّج سطوع التأثير",
+  "ps_lighting_fxr_end_aria": "نهاية التدرّج"
 }

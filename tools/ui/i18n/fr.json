@@ -304,5 +304,13 @@
   "ps_lighting_fxp_reverse": "Dans l'autre sens",
   "ps_lighting_fxp_brightness_aria": "Luminosité de l'effet",
   "ps_lighting_fxp_speed_aria": "Vitesse de l'effet",
-  "ps_lighting_fxp_reverse_aria": "Faire tourner l'effet dans l'autre sens"
+  "ps_lighting_fxp_reverse_aria": "Faire tourner l'effet dans l'autre sens",
+  "ps_feature_effect_ramp": "Rampe de luminosité",
+  "ps_feature_effect_ramp_help": "La luminosité glisse à chaque cycle de la valeur propre de l'effet vers une seconde, puis recommence.",
+  "ps_feature_effect_ramp_aria": "Rampe de luminosité",
+  "ps_lighting_fxr_help": "Nécessite le réglage ci-dessus. Un effet sans rampe tourne à une seule luminosité, comme avant.",
+  "ps_lighting_fxr_on": "Faire glisser la luminosité",
+  "ps_lighting_fxr_end": "Glisser jusqu'à",
+  "ps_lighting_fxr_on_aria": "Faire glisser la luminosité de l'effet",
+  "ps_lighting_fxr_end_aria": "Fin de la rampe"
 }

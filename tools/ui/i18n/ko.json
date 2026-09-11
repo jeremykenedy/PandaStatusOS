@@ -304,5 +304,13 @@
   "ps_lighting_fxp_reverse": "반대 방향으로",
   "ps_lighting_fxp_brightness_aria": "효과 밝기",
   "ps_lighting_fxp_speed_aria": "효과 속도",
-  "ps_lighting_fxp_reverse_aria": "효과를 반대 방향으로 실행"
+  "ps_lighting_fxp_reverse_aria": "효과를 반대 방향으로 실행",
+  "ps_feature_effect_ramp": "밝기 램프",
+  "ps_feature_effect_ramp_help": "밝기는 매 주기마다 효과 자체의 값에서 두 번째 값으로 서서히 바뀐 뒤 다시 시작합니다.",
+  "ps_feature_effect_ramp_aria": "밝기 램프",
+  "ps_lighting_fxr_help": "위의 설정이 필요합니다. 램프가 없는 효과는 전과 같이 한 가지 밝기로 동작합니다.",
+  "ps_lighting_fxr_on": "밝기를 서서히 바꾸기",
+  "ps_lighting_fxr_end": "바꿀 끝값",
+  "ps_lighting_fxr_on_aria": "효과의 밝기를 서서히 바꾸기",
+  "ps_lighting_fxr_end_aria": "램프의 끝"
 }

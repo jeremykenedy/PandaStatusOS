@@ -41,7 +41,7 @@ this table with it.
 | `state_brightness[2][3]` | u8 | 0 to 100 | 50 everywhere, the same as the global default | v2 | `POST /api/features` `config.state_brightness`; read by the renderer only while feature bit 1 is set (A1) |
 | `fx[3].effect` | u8 | an `enum ps_fx` id below 17 | 0, solid | v3 | `POST /api/features` `config.state_effects[].effect`; read in H2D while bit 2 is set (A2) |
 | `fx[3].brightness`, `.speed` | u8 | 0 to 100 | 50, 100 | v3 | `config.state_effects[]`; read while bit 4 is set (A4), with `opt` bit 0x10 as the direction and `aux` as the band width when `opt` bit 0x08 is set |
-| `fx[3].bright_end` | u8 | 0 to 100 | 0 | v3 | `config.state_effects[]`; read while bits 4 and 5 are set and `opt` bit 0x04 is set (A5, reserved) |
+| `fx[3].bright_end` | u8 | 0 to 100 | 0 | v3 | `config.state_effects[]`; read while bits 4 and 5 are set and `opt` bit 0x04 is set (A5) |
 | `fx[3].opt`, `.aux` | u8 | option bits (0x01, 0x02 unlit colours set; 0x04 ramp; 0x08 aux set; 0x10 reverse), one number for the effect that reads it | 0 | v3 | `config.state_effects[]`; A3 to A5 |
 | `fx[3].colour[4]` | RGBA | any | the H2D state colour for the two lit entries, black for the two unlit ones | v3 | `config.state_effects[].colours`, `#RRGGBBAA`; read while bit 3 is set (A3): `[0]` lit and `[2]` unlit while a job is on, `[1]` and `[3]` otherwise; an unlit entry counts only while its `opt` bit (1 or 2) is set |
 

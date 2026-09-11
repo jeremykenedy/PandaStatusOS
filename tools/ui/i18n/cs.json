@@ -304,5 +304,13 @@
   "ps_lighting_fxp_reverse": "Opačným směrem",
   "ps_lighting_fxp_brightness_aria": "Jas efektu",
   "ps_lighting_fxp_speed_aria": "Rychlost efektu",
-  "ps_lighting_fxp_reverse_aria": "Spustit efekt opačným směrem"
+  "ps_lighting_fxp_reverse_aria": "Spustit efekt opačným směrem",
+  "ps_feature_effect_ramp": "Rampa jasu",
+  "ps_feature_effect_ramp_help": "Jas v každém cyklu přechází z vlastní hodnoty efektu na druhou a pak začne znovu.",
+  "ps_feature_effect_ramp_aria": "Rampa jasu",
+  "ps_lighting_fxr_help": "Vyžaduje nastavení výše. Efekt bez rampy běží s jedním jasem jako dřív.",
+  "ps_lighting_fxr_on": "Plynule měnit jas",
+  "ps_lighting_fxr_end": "Měnit do",
+  "ps_lighting_fxr_on_aria": "Plynule měnit jas efektu",
+  "ps_lighting_fxr_end_aria": "Konec rampy"
 }

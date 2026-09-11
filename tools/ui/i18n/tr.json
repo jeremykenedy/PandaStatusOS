@@ -304,5 +304,13 @@
   "ps_lighting_fxp_reverse": "Ters yönde çalıştır",
   "ps_lighting_fxp_brightness_aria": "Efekt parlaklığı",
   "ps_lighting_fxp_speed_aria": "Efekt hızı",
-  "ps_lighting_fxp_reverse_aria": "Efekti ters yönde çalıştır"
+  "ps_lighting_fxp_reverse_aria": "Efekti ters yönde çalıştır",
+  "ps_feature_effect_ramp": "Parlaklık rampası",
+  "ps_feature_effect_ramp_help": "Parlaklık her döngüde efektin kendi değerinden ikinci bir değere kayar ve sonra yeniden başlar.",
+  "ps_feature_effect_ramp_aria": "Parlaklık rampası",
+  "ps_lighting_fxr_help": "Yukarıdaki ayarı gerektirir. Rampasız bir efekt eskisi gibi tek parlaklıkta çalışır.",
+  "ps_lighting_fxr_on": "Parlaklığı kaydır",
+  "ps_lighting_fxr_end": "Şuraya kadar kaydır",
+  "ps_lighting_fxr_on_aria": "Efektin parlaklığını kaydır",
+  "ps_lighting_fxr_end_aria": "Rampanın sonu"
 }

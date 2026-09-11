@@ -304,5 +304,13 @@
   "ps_lighting_fxp_reverse": "Andersherum laufen",
   "ps_lighting_fxp_brightness_aria": "Helligkeit des Effekts",
   "ps_lighting_fxp_speed_aria": "Tempo des Effekts",
-  "ps_lighting_fxp_reverse_aria": "Den Effekt andersherum laufen lassen"
+  "ps_lighting_fxp_reverse_aria": "Den Effekt andersherum laufen lassen",
+  "ps_feature_effect_ramp": "Helligkeitsrampe",
+  "ps_feature_effect_ramp_help": "Die Helligkeit gleitet in jedem Durchlauf vom eigenen Wert des Effekts zu einem zweiten und beginnt dann von vorn.",
+  "ps_feature_effect_ramp_aria": "Helligkeitsrampe",
+  "ps_lighting_fxr_help": "Braucht die Einstellung darüber. Ein Effekt ohne Rampe läuft mit einer Helligkeit, wie bisher.",
+  "ps_lighting_fxr_on": "Helligkeit gleiten lassen",
+  "ps_lighting_fxr_end": "Gleiten bis",
+  "ps_lighting_fxr_on_aria": "Die Helligkeit des Effekts gleiten lassen",
+  "ps_lighting_fxr_end_aria": "Ende der Rampe"
 }

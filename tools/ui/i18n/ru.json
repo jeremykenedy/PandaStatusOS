@@ -304,5 +304,13 @@
   "ps_lighting_fxp_reverse": "В обратную сторону",
   "ps_lighting_fxp_brightness_aria": "Яркость эффекта",
   "ps_lighting_fxp_speed_aria": "Скорость эффекта",
-  "ps_lighting_fxp_reverse_aria": "Запустить эффект в обратную сторону"
+  "ps_lighting_fxp_reverse_aria": "Запустить эффект в обратную сторону",
+  "ps_feature_effect_ramp": "Плавное изменение яркости",
+  "ps_feature_effect_ramp_help": "Яркость за каждый цикл переходит от собственного значения эффекта ко второму и начинает заново.",
+  "ps_feature_effect_ramp_aria": "Плавное изменение яркости",
+  "ps_lighting_fxr_help": "Требует настройки выше. Эффект без плавного изменения работает с одной яркостью, как раньше.",
+  "ps_lighting_fxr_on": "Плавно менять яркость",
+  "ps_lighting_fxr_end": "Менять до",
+  "ps_lighting_fxr_on_aria": "Плавно менять яркость эффекта",
+  "ps_lighting_fxr_end_aria": "Конец перехода"
 }

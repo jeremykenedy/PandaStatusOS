@@ -304,5 +304,13 @@
   "ps_lighting_fxp_reverse": "逆方向に動かす",
   "ps_lighting_fxp_brightness_aria": "効果の明るさ",
   "ps_lighting_fxp_speed_aria": "効果の速さ",
-  "ps_lighting_fxp_reverse_aria": "効果を逆方向に動かす"
+  "ps_lighting_fxp_reverse_aria": "効果を逆方向に動かす",
+  "ps_feature_effect_ramp": "明るさのランプ",
+  "ps_feature_effect_ramp_help": "明るさは毎サイクル、効果自身の値から2つ目の値へ滑らかに変わり、また最初から始まります。",
+  "ps_feature_effect_ramp_aria": "明るさのランプ",
+  "ps_lighting_fxr_help": "上の設定が必要です。ランプのない効果は従来どおり一定の明るさで動きます。",
+  "ps_lighting_fxr_on": "明るさを滑らかに変える",
+  "ps_lighting_fxr_end": "変化の終点",
+  "ps_lighting_fxr_on_aria": "効果の明るさを滑らかに変える",
+  "ps_lighting_fxr_end_aria": "ランプの終点"
 }

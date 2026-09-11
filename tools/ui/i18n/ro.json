@@ -304,5 +304,13 @@
   "ps_lighting_fxp_reverse": "În sens invers",
   "ps_lighting_fxp_brightness_aria": "Luminozitatea efectului",
   "ps_lighting_fxp_speed_aria": "Viteza efectului",
-  "ps_lighting_fxp_reverse_aria": "Rulează efectul în sens invers"
+  "ps_lighting_fxp_reverse_aria": "Rulează efectul în sens invers",
+  "ps_feature_effect_ramp": "Rampă de luminozitate",
+  "ps_feature_effect_ramp_help": "Luminozitatea alunecă la fiecare ciclu de la valoarea proprie a efectului la una a doua, apoi reia.",
+  "ps_feature_effect_ramp_aria": "Rampă de luminozitate",
+  "ps_lighting_fxr_help": "Necesită setarea de mai sus. Un efect fără rampă rulează cu o singură luminozitate, ca înainte.",
+  "ps_lighting_fxr_on": "Alunecarea luminozității",
+  "ps_lighting_fxr_end": "Alunecă până la",
+  "ps_lighting_fxr_on_aria": "Alunecarea luminozității efectului",
+  "ps_lighting_fxr_end_aria": "Capătul rampei"
 }

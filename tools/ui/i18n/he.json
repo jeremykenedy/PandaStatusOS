@@ -304,5 +304,13 @@
   "ps_lighting_fxp_reverse": "להריץ בכיוון ההפוך",
   "ps_lighting_fxp_brightness_aria": "בהירות האפקט",
   "ps_lighting_fxp_speed_aria": "מהירות האפקט",
-  "ps_lighting_fxp_reverse_aria": "להריץ את האפקט בכיוון ההפוך"
+  "ps_lighting_fxp_reverse_aria": "להריץ את האפקט בכיוון ההפוך",
+  "ps_feature_effect_ramp": "מעבר בהירות",
+  "ps_feature_effect_ramp_help": "הבהירות עוברת בכל מחזור מהערך של האפקט לערך שני ואז מתחילה מחדש.",
+  "ps_feature_effect_ramp_aria": "מעבר בהירות",
+  "ps_lighting_fxr_help": "דורש את ההגדרה שלמעלה. אפקט ללא מעבר פועל בבהירות אחת, כמו קודם.",
+  "ps_lighting_fxr_on": "להחליק את הבהירות",
+  "ps_lighting_fxr_end": "להחליק עד",
+  "ps_lighting_fxr_on_aria": "להחליק את בהירות האפקט",
+  "ps_lighting_fxr_end_aria": "סוף המעבר"
 }

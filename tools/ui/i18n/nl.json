@@ -304,5 +304,13 @@
   "ps_lighting_fxp_reverse": "Andersom laten lopen",
   "ps_lighting_fxp_brightness_aria": "Helderheid van het effect",
   "ps_lighting_fxp_speed_aria": "Snelheid van het effect",
-  "ps_lighting_fxp_reverse_aria": "Het effect andersom laten lopen"
+  "ps_lighting_fxp_reverse_aria": "Het effect andersom laten lopen",
+  "ps_feature_effect_ramp": "Helderheidsverloop",
+  "ps_feature_effect_ramp_help": "De helderheid glijdt elke cyclus van de eigen waarde van het effect naar een tweede en begint dan opnieuw.",
+  "ps_feature_effect_ramp_aria": "Helderheidsverloop",
+  "ps_lighting_fxr_help": "Vereist de instelling hierboven. Een effect zonder verloop loopt op één helderheid, zoals voorheen.",
+  "ps_lighting_fxr_on": "Helderheid laten verlopen",
+  "ps_lighting_fxr_end": "Verlopen tot",
+  "ps_lighting_fxr_on_aria": "De helderheid van het effect laten verlopen",
+  "ps_lighting_fxr_end_aria": "Einde van het verloop"
 }

@@ -304,5 +304,13 @@
   "ps_lighting_fxp_reverse": "反向執行",
   "ps_lighting_fxp_brightness_aria": "效果亮度",
   "ps_lighting_fxp_speed_aria": "效果速度",
-  "ps_lighting_fxp_reverse_aria": "反向執行該效果"
+  "ps_lighting_fxp_reverse_aria": "反向執行該效果",
+  "ps_feature_effect_ramp": "亮度漸變",
+  "ps_feature_effect_ramp_help": "每個週期內亮度從效果自身的值漸變到第二個值，然後重新開始。",
+  "ps_feature_effect_ramp_aria": "亮度漸變",
+  "ps_lighting_fxr_help": "需要上方的設定。沒有漸變的效果像以前一樣以單一亮度執行。",
+  "ps_lighting_fxr_on": "漸變亮度",
+  "ps_lighting_fxr_end": "漸變至",
+  "ps_lighting_fxr_on_aria": "漸變該效果的亮度",
+  "ps_lighting_fxr_end_aria": "漸變終點"
 }
