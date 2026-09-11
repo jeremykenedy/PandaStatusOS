@@ -37,7 +37,7 @@ That mirrors how tools/read-config.sh reads the device host. Run with no argumen
 see the file template.
 
 CONFIRMED AGAINST. Every protocol constant below was checked against
-/Users/jeremykenedy/sites/PandaVent/firmware/main/pv_bambu.c, which talks to a bound
+the Panda Vent project's own Bambu client (pv_bambu.c), which talks to a bound
 Bambu printer over this same LAN link and is known working on hardware. Protocol facts
 only were taken from it; no code.
 
@@ -57,7 +57,7 @@ only were taken from it; no code.
       topic, so a bad serial produces a clean connect and then silence on the report
       topic (pv_bambu.c:1074-1075). The zero-message diagnostic below says so.
 
-OUTPUT. /Users/jeremykenedy/backups/PandaStatus/mqtt-capture/<name>.jsonl, outside the
+OUTPUT. ~/backups/PandaStatus/mqtt-capture/<name>.jsonl, outside the
 repo. The raw capture will contain the printer serial and may contain job and file names.
 Treat it like the WebSocket captures and the NVS dump. Make a scrubbed copy with
 tools/redact_mqtt.py before quoting anything from it.
@@ -81,7 +81,7 @@ import sys
 import time
 
 SECRETS = ".claude/work/secrets/printer.txt"
-OUTDIR = "/Users/jeremykenedy/backups/PandaStatus/mqtt-capture"
+OUTDIR = os.path.expanduser("~/backups/PandaStatus/mqtt-capture")   # outside the repository, per CLAUDE.md rule 2
 
 TEMPLATE = """\
 # Printer connection details for tools/capture-mqtt.py.

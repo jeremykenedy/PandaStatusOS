@@ -13,7 +13,7 @@
 
 set -uo pipefail
 
-OUTDIR="/Users/jeremykenedy/backups/PandaStatus/ws-capture"
+OUTDIR="$HOME/backups/PandaStatus/ws-capture"   # outside the repository, per CLAUDE.md rule 2
 HOST_FILE="$(dirname "$0")/../.claude/work/secrets/device-host.txt"
 LOGGER="$(dirname "$0")/ws_logger.py"
 

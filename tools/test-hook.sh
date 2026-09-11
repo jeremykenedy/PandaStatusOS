@@ -11,7 +11,7 @@
 # wrong diagnosis once already.
 #
 # Run:  make test-hook
-cd /Users/jeremykenedy/sites/PandaStatus
+cd "$(git rev-parse --show-toplevel)"
 SAVED=$(git diff --cached --name-only)
 git reset -q
 pass=0; fail=0
