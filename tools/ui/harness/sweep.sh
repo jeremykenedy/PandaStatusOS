@@ -46,6 +46,11 @@ ROWS=(
   "p2-idle.json      | page-logs.js | "
   "factory-defaults.json | page-setup.js | "
   "p2-idle.json      | page-setup.js | "
+  # --- the push policy is INFERENCE (D-014). The pages must hold under either reading:
+  #     only the changed root comes back, or every client hears every change. ---
+  "p2-idle.json      | page-lighting.js | PS_PUSH_CHANGED_ONLY=1"
+  "p2-idle.json      | page-network.js | PS_PUSH_CHANGED_ONLY=1"
+  "p2-idle.json      | page-printer.js | PS_BROADCAST=1"
   # --- the design system: every page, both themes, both widths, the furniture ---
   "p2-idle.json      | contrast.js | "
   # --- what the page survives. One lie per row, named in the row. ---
