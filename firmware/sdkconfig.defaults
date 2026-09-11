@@ -1,0 +1,20 @@
+# Panda Status P2 clone, ESP-IDF v5.3.1.
+CONFIG_IDF_TARGET="esp32c3"
+
+# PROVISIONAL flash size. Unknown until Phase 0 reads it off the device; see
+# tools/fw/gen_partitions.py. Change here and regenerate the partition table together.
+CONFIG_ESPTOOLPY_FLASHSIZE_4MB=y
+CONFIG_PARTITION_TABLE_CUSTOM=y
+CONFIG_PARTITION_TABLE_CUSTOM_FILENAME="partitions.csv"
+
+# One HTTP server carries the page, the upload endpoint and the WebSocket.
+CONFIG_HTTPD_WS_SUPPORT=y
+CONFIG_HTTPD_MAX_REQ_HDR_LEN=1024
+
+# A failed OTA image rolls back instead of bricking: the only revert path this hardware
+# has is the flash dump, so the bootloader keeps the last good slot until the new one
+# confirms itself (ps_ota.c marks the image valid after the page answers).
+CONFIG_BOOTLOADER_APP_ROLLBACK_ENABLE=y
+
+CONFIG_COMPILER_OPTIMIZATION_SIZE=y
+CONFIG_ESP_MAIN_TASK_STACK_SIZE=6144

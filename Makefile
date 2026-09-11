@@ -3,7 +3,7 @@
 
 .DEFAULT_GOAL := help
 
-.PHONY: help hooks check-hooks test-hook residue
+.PHONY: help hooks check-hooks test-hook residue test-fw partitions
 
 help: ## Show this help
 	@grep -hE '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) \
@@ -26,3 +26,9 @@ test-hook: ## Run the pre-commit hook regression suite
 
 residue: ## Sweep the tracked tree for BIQU residue (element IDs, class names, their copy)
 	@bash tools/residue-sweep.sh
+
+test-fw: ## Host tests for the firmware config module (gcc, no device)
+	@bash firmware/test/host/run.sh
+
+partitions: ## Regenerate firmware/partitions.csv (PROVISIONAL; FLASH=4MB by default)
+	@python3 tools/fw/gen_partitions.py --flash $${FLASH:-4MB}

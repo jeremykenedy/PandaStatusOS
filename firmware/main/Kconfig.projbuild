@@ -1,0 +1,22 @@
+menu "Panda Status"
+
+config PS_LED_COUNT
+    int "LED count on the bar (PROVISIONAL)"
+    default 8
+    range 1 255
+    help
+        Unknown until the bench session counts the bar and the block list is read off the
+        device. Nothing in the repository establishes it. Runtime config does not override
+        this; the number is a build fact until it is a measured one.
+
+config PS_LED_GPIO
+    int "LED data GPIO (PROVISIONAL)"
+    default 8
+    help
+        Unknown until the board is traced. Set from the hardware note, not from a guess.
+
+config PS_WS_MAX_CLIENTS
+    int "Concurrent WebSocket clients"
+    default 4
+
+endmenu

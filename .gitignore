@@ -24,8 +24,11 @@ backups/reference-video/*
 !backups/reference-video/README.md
 !backups/reference-video/timing/
 
-# ESP-IDF build output.
+# ESP-IDF build output, and the generated sdkconfig (sdkconfig.defaults is the source).
 firmware/build/
+firmware/sdkconfig
+firmware/sdkconfig.old
+firmware/dependencies.lock
 sdkconfig.old
 
 # The served page is BUILT from tools/ui/ by tools/ui/build/build.py and committed.
