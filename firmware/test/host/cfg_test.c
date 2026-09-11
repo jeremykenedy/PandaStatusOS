@@ -127,15 +127,15 @@ int main(void)
         t("v1 blob is 492 bytes", sizeof o == 492, (long)sizeof o);
         memset(&c, 0xAA, sizeof c);
         t("load of a v1 blob returns 0", ps_cfg_load(&c) == 0, 0);
-        t("v1 -> v3: every v1 field survives", !strcmp(c.hostname, "t-host") && c.features == 0x5 && c.current_mode == PS_MODE_MUSIC && c.block_count == 3
+        t("v1 -> v4: every v1 field survives", !strcmp(c.hostname, "t-host") && c.features == 0x5 && c.current_mode == PS_MODE_MUSIC && c.block_count == 3
           && c.mode[1].speed == 65 && c.mode[1].colour[2].a == 0x81 && c.block[2].colour.b == 4 && !strcmp(c.printer_access_code, "<T_CODE>") && c.printer_ip[3] == 20, c.mode[1].speed);
-        t("v1 -> v3: the v2 field takes its default", c.state_brightness[0][0] == 50 && c.state_brightness[1][2] == 50, c.state_brightness[1][2]);
-        t("v1 -> v3: the effects take their defaults in the migrated H2D colours", c.fx[0].effect == PS_FX_STATIC && c.fx[2].colour[0].r == 102 && c.fx[2].colour[1].a == 0x81 && c.fx[1].colour[2].r == 0 && c.fx[1].speed == 100, c.fx[2].colour[0].r);
-        t("v1 -> v3: the magic is now v3", c.magic == PS_CFG_MAGIC_V3, (long)c.magic);
+        t("v1 -> v4: the v2 field takes its default", c.state_brightness[0][0] == 50 && c.state_brightness[1][2] == 50, c.state_brightness[1][2]);
+        t("v1 -> v4: the effects take their defaults in the migrated H2D colours", c.fx[0].effect == PS_FX_STATIC && c.fx[2].colour[0].r == 102 && c.fx[2].colour[1].a == 0x81 && c.fx[1].colour[2].r == 0 && c.fx[1].speed == 100, c.fx[2].colour[0].r);
+        t("v1 -> v4: the magic is now v4", c.magic == PS_CFG_MAGIC_V4, (long)c.magic);
         size_t n = 0; nvs_get_blob(1, "cfg", NULL, &n);
-        t("v1 -> v3: saved back as a v3 blob", n == sizeof(ps_cfg_t), (long)n);
+        t("v1 -> v4: saved back as a v4 blob", n == sizeof(ps_cfg_t), (long)n);
         memset(&e, 0, sizeof e); ps_cfg_load(&e);
-        t("the migrated blob loads again as v3 with the same values", !strcmp(e.hostname, "t-host") && e.magic == PS_CFG_MAGIC_V3 && e.state_brightness[0][0] == 50 && e.mode[1].speed == 65, e.mode[1].speed);
+        t("the migrated blob loads again as v4 with the same values", !strcmp(e.hostname, "t-host") && e.magic == PS_CFG_MAGIC_V4 && e.state_brightness[0][0] == 50 && e.mode[1].speed == 65, e.mode[1].speed);
     }
 
     /* 9b. the v2 layout migrates the same way, carrying its own field */
@@ -148,11 +148,29 @@ int main(void)
         t("v2 blob is 500 bytes", sizeof o == 500, (long)sizeof o);
         memset(&c, 0xAA, sizeof c);
         t("load of a v2 blob returns 0", ps_cfg_load(&c) == 0, 0);
-        t("v2 -> v3: every v2 field survives", !strcmp(c.hostname, "t-host") && c.features == 0x5 && c.state_brightness[1][1] == 77 && c.state_brightness[0][2] == 9 && c.block[2].colour.b == 4, c.state_brightness[1][1]);
-        t("v2 -> v3: the effects take their defaults in the migrated H2D colours", c.fx[1].effect == PS_FX_STATIC && c.fx[1].colour[0].r == 101 && c.fx[1].colour[1].r == 101 && c.fx[0].brightness == 50, c.fx[1].colour[0].r);
-        t("v2 -> v3: the magic is now v3", c.magic == PS_CFG_MAGIC_V3, (long)c.magic);
+        t("v2 -> v4: every v2 field survives", !strcmp(c.hostname, "t-host") && c.features == 0x5 && c.state_brightness[1][1] == 77 && c.state_brightness[0][2] == 9 && c.block[2].colour.b == 4, c.state_brightness[1][1]);
+        t("v2 -> v4: the effects take their defaults in the migrated H2D colours", c.fx[1].effect == PS_FX_STATIC && c.fx[1].colour[0].r == 101 && c.fx[1].colour[1].r == 101 && c.fx[0].brightness == 50, c.fx[1].colour[0].r);
+        t("v2 -> v4: the magic is now v4", c.magic == PS_CFG_MAGIC_V4, (long)c.magic);
         size_t n = 0; nvs_get_blob(1, "cfg", NULL, &n);
-        t("v2 -> v3: saved back as a v3 blob", n == sizeof(ps_cfg_t), (long)n);
+        t("v2 -> v4: saved back as a v4 blob", n == sizeof(ps_cfg_t), (long)n);
+        t("v2 -> v4: the v4 fields take their defaults", c.temp_lo == 25 && c.temp_hi == 250 && c.temp_src == PS_TEMP_NOZZLE && c.hot_c == 50 && c.err_speed == 50 && c.err_colour.r == 0xFF, c.temp_hi);
+    }
+
+    /* 9c. the v3 layout migrates: a 572-byte PS03 blob loads, every effect field survives, the v4 fields take their defaults */
+    {
+        ps_cfg_v3_t o; memset(&o, 0, sizeof o);
+        fill_distinct(&d); d.fx[1].effect = PS_FX_CYLON; d.fx[1].brightness = 33; d.fx[2].opt = 0x15; d.fx[2].aux = 7; d.fx[0].colour[3] = (ps_rgba_t){ 9, 8, 7, 6 }; d.state_brightness[1][2] = 66;
+        memcpy(&o, &d, sizeof o);                      /* the v3 layout is the first 572 bytes of v4 */
+        o.magic = PS_CFG_MAGIC_V3;
+        wipe(); put(&o, sizeof o);
+        t("v3 blob is 572 bytes", sizeof o == 572, (long)sizeof o);
+        memset(&c, 0xAA, sizeof c);
+        t("load of a v3 blob returns 0", ps_cfg_load(&c) == 0, 0);
+        t("v3 -> v4: every v3 field survives", !strcmp(c.hostname, "t-host") && c.features == 0x5 && c.state_brightness[1][2] == 66 && c.fx[1].effect == PS_FX_CYLON && c.fx[1].brightness == 33 && c.fx[2].opt == 0x15 && c.fx[2].aux == 7 && c.fx[0].colour[3].g == 8 && c.fx[0].colour[3].a == 6, c.fx[1].effect);
+        t("v3 -> v4: the v4 fields take their defaults", c.temp_lo == 25 && c.temp_hi == 250 && c.temp_src == PS_TEMP_NOZZLE && c.hot_src == PS_TEMP_NOZZLE && c.hot_c == 50 && c.hot_colour.r == 0xFF && c.err_brightness == 50 && c.err_speed == 50, c.temp_lo);
+        t("v3 -> v4: the magic is now v4", c.magic == PS_CFG_MAGIC_V4, (long)c.magic);
+        size_t n = 0; nvs_get_blob(1, "cfg", NULL, &n);
+        t("v3 -> v4: saved back as a v4 blob of 592 bytes", n == sizeof(ps_cfg_t) && n == 592, (long)n);
     }
 
     /* 10. the v2 field: round trip and clamp */
@@ -169,6 +187,15 @@ int main(void)
     fill_distinct(&d); d.fx[0].effect = 200; d.fx[1].brightness = 250; d.fx[2].bright_end = 101; wipe(); put(&d, sizeof d); ps_cfg_load(&c);
     t("an effect id out of range clamps to solid, the numbers to 100", c.fx[0].effect == PS_FX_STATIC && c.fx[1].brightness == 100 && c.fx[2].bright_end == 100, c.fx[0].effect);
     t("a fresh default's effects are solid in the H2D colours with the inactive colours black", (ps_cfg_factory_defaults(&d), d.fx[2].effect == PS_FX_STATIC && d.fx[2].colour[0].r == 0xFF && d.fx[2].colour[0].g == 0 && d.fx[2].colour[2].r == 0), d.fx[2].colour[0].g);
+
+    /* 12. the v4 block: round trip and clamp */
+    fill_distinct(&d); d.temp_src = PS_TEMP_BED; d.temp_lo = 40; d.temp_hi = 110; d.hot_src = PS_TEMP_CHAMBER; d.hot_c = 45; d.hot_colour = (ps_rgba_t){ 1, 2, 3, 4 }; d.err_colour = (ps_rgba_t){ 5, 6, 7, 8 }; d.err_brightness = 20; d.err_speed = 90;
+    wipe(); put(&d, sizeof d); ps_cfg_load(&c);
+    t("the v4 fields round-trip", c.temp_src == PS_TEMP_BED && c.temp_lo == 40 && c.temp_hi == 110 && c.hot_src == PS_TEMP_CHAMBER && c.hot_c == 45 && c.hot_colour.b == 3 && c.err_colour.a == 8 && c.err_brightness == 20 && c.err_speed == 90, c.temp_hi);
+    fill_distinct(&d); d.temp_src = 7; d.hot_src = 200; d.temp_hi = 900; d.temp_lo = -5; d.hot_c = 1000; d.err_brightness = 250; d.err_speed = 101;
+    wipe(); put(&d, sizeof d); ps_cfg_load(&c);
+    t("a source out of range clamps to the nozzle, the degrees to the bound, the percentages to 100", c.temp_src == PS_TEMP_NOZZLE && c.hot_src == PS_TEMP_NOZZLE && c.temp_hi == PS_TEMP_MAX && c.temp_lo == 0 && c.hot_c == PS_TEMP_MAX && c.err_brightness == 100 && c.err_speed == 100, c.temp_hi);
+    t("a fresh default's gradient follows the nozzle from 25 to 250", (ps_cfg_factory_defaults(&d), d.temp_src == PS_TEMP_NOZZLE && d.temp_lo == 25 && d.temp_hi == 250), d.temp_hi);
 
     printf("\n%d passed, %d failed\n", pass, fail);
     return fail ? 1 : 0;

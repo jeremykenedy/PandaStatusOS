@@ -36,8 +36,9 @@ extern const char *const ps_gif_slot_names[PS_GIF_SLOTS];
  * struct reference a live type or a live count. */
 #define PS_CFG_MAGIC_V1  0x50533031u   /* 'P' 'S' '0' '1': the first layout, 492 bytes, frozen in ps_cfg.c */
 #define PS_CFG_MAGIC_V2  0x50533032u   /* 'P' 'S' '0' '2': v1 plus state_brightness, 500 bytes, frozen in ps_cfg.c */
-#define PS_CFG_MAGIC_V3  0x50533033u   /* 'P' 'S' '0' '3': v2 plus the per-state effects */
-#define PS_CFG_MAGIC     PS_CFG_MAGIC_V3
+#define PS_CFG_MAGIC_V3  0x50533033u   /* 'P' 'S' '0' '3': v2 plus the per-state effects, 572 bytes, frozen in ps_cfg.c */
+#define PS_CFG_MAGIC_V4  0x50533034u   /* 'P' 'S' '0' '4': v3 plus the temperature fields and the two layers */
+#define PS_CFG_MAGIC     PS_CFG_MAGIC_V4
 
 /* feature bits in ps_cfg_t.features. Every one defaults to 0 and leaves the device at
  * factory parity; docs/FEATURES.md is the table. Bit 0 is reserved for the vent bridge. */
@@ -51,7 +52,15 @@ extern const char *const ps_gif_slot_names[PS_GIF_SLOTS];
 #define PS_FEAT_FX_PROGRESS_ANIM  (1u << 7)   /* A7: the animated progress effect */
 #define PS_FEAT_FX_BARBER         (1u << 8)   /* A8: the barber pole, with its band width */
 #define PS_FEAT_FX_HUE_RAMP       (1u << 9)   /* A9: the colour ramp across the print */
-#define PS_FEAT_FX_TEMP           (1u << 10)  /* A10, reserved: the temperature gradient */
+#define PS_FEAT_FX_TEMP           (1u << 10)  /* A10: the temperature gradient may be chosen */
+#define PS_FEAT_HOT_WARNING       (1u << 11)  /* A11, reserved: the hot warning layer */
+#define PS_FEAT_ERROR_FLASH       (1u << 12)  /* A12, reserved: the error flash layer */
+
+/* which of the printer's temperatures a feature follows (INFERENCE: the report's
+ * nozzle_temper, bed_temper and chamber_temper, the fields the vent reads) */
+enum ps_temp_src { PS_TEMP_NOZZLE = 0, PS_TEMP_BED, PS_TEMP_CHAMBER, PS_TEMP_COUNT };
+#define PS_TEMP_NONE  (-1000)          /* no reading yet; below any cold end, so a gradient holds its cold colour */
+#define PS_TEMP_MAX   500              /* the ends and thresholds are bounded here, degrees C */
 
 typedef struct { uint8_t r, g, b, a; } ps_rgba_t;
 
@@ -149,10 +158,21 @@ typedef struct {
     uint8_t   _pad1[2];
     /* ---- v3, PS03 ---- */
     ps_fx_cfg_t fx[3];                 /* A2 to A5: the effect per bar state, H2D */
+    /* ---- v4, PS04: the temperature gradient's inputs and the two layers' settings. Laid
+     * down together so A10 to A12 share one migration; each is read only under its bit. ---- */
+    int16_t   temp_lo, temp_hi;        /* A10: the gradient's ends, degrees C */
+    uint8_t   temp_src;                /* A10: enum ps_temp_src, the reading the gradient follows */
+    uint8_t   hot_src;                 /* A11: enum ps_temp_src, the reading the hot warning watches */
+    int16_t   hot_c;                   /* A11: the threshold, degrees C */
+    ps_rgba_t hot_colour;              /* A11: the layer's colour */
+    ps_rgba_t err_colour;              /* A12: the error flash's colour */
+    uint8_t   err_brightness;          /* A12: 0..100 */
+    uint8_t   err_speed;               /* A12: the strobe rate as the engine's speed, 0..100 */
+    uint8_t   _pad2[2];
 } ps_cfg_t;
 
 /* the whole blob and its NVS budget; both pinned in ps_cfg.c and in the host test */
-#define PS_CFG_SIZE      572
+#define PS_CFG_SIZE      592
 #define PS_CFG_NVS_BUDGET 2048
 
 /* what to render this frame, from the config and the live state, honouring every feature
@@ -183,6 +203,7 @@ typedef struct {
     uint8_t  bar_state;                /* enum ps_bar_state, driven by the printer */
     uint8_t  job_active;               /* INFERENCE: a job is running, preparing or paused; the printing/not-printing crossing for A3's colours */
     int16_t  print_percent;            /* INFERENCE: print.mc_percent from the report, -1 until one arrives; the progress effects' input */
+    int16_t  temp_c[PS_TEMP_COUNT];    /* INFERENCE: nozzle_temper, bed_temper, chamber_temper from the report, PS_TEMP_NONE until one arrives */
     /* images */
     char     img_version[16];          /* empty until an image pack says otherwise */
 } ps_state_t;

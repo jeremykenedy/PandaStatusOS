@@ -330,5 +330,19 @@
   "ps_feature_fx_hue_ramp_help": "De hele balk in één kleur, die tijdens de afdruk van de gedoofde naar de brandende kleur verloopt.",
   "ps_feature_fx_hue_ramp_aria": "Kleurverloop van de voortgang",
   "ps_lighting_fxb_band": "Bandbreedte",
-  "ps_lighting_fxb_band_aria": "Bandbreedte van de paal in pixels"
+  "ps_lighting_fxb_band_aria": "Bandbreedte van de paal in pixels",
+  "ps_fx_temp_gradient": "Temperatuurverloop",
+  "ps_feature_fx_temp": "Temperatuurverloop",
+  "ps_feature_fx_temp_help": "De hele balk in één kleur, tussen de gedoofde kleur aan het koude uiteinde en de brandende aan het hete uiteinde, volgens één temperatuur van de printer.",
+  "ps_feature_fx_temp_aria": "Temperatuurverloop",
+  "ps_lighting_tg_source": "Volgt",
+  "ps_lighting_tg_source_aria": "Welke temperatuur het verloop volgt",
+  "ps_lighting_tsrc_nozzle": "Nozzle",
+  "ps_lighting_tsrc_bed": "Bed",
+  "ps_lighting_tsrc_chamber": "Kamer",
+  "ps_lighting_tg_lo": "Koud bij",
+  "ps_lighting_tg_lo_aria": "Temperatuur aan het koude uiteinde, graden Celsius",
+  "ps_lighting_tg_hi": "Heet bij",
+  "ps_lighting_tg_hi_aria": "Temperatuur aan het hete uiteinde, graden Celsius",
+  "ps_lighting_tg_help": "Voor de toestanden die het temperatuurverloop tonen. Onder het koude uiteinde toont de balk de gedoofde kleur, boven het hete uiteinde de brandende."
 }

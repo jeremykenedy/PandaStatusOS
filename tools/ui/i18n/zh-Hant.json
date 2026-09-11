@@ -330,5 +330,19 @@
   "ps_feature_fx_hue_ramp_help": "整條燈帶一種顏色，隨列印進度從熄滅色漸變到點亮色。",
   "ps_feature_fx_hue_ramp_aria": "進度色彩漸變",
   "ps_lighting_fxb_band": "條紋寬度",
-  "ps_lighting_fxb_band_aria": "燈柱條紋寬度（像素）"
+  "ps_lighting_fxb_band_aria": "燈柱條紋寬度（像素）",
+  "ps_fx_temp_gradient": "溫度漸變",
+  "ps_feature_fx_temp": "溫度漸變",
+  "ps_feature_fx_temp_help": "整條燈帶一種顏色，在冷端的熄滅色與熱端的點亮色之間，跟隨印表機的一個溫度變化。",
+  "ps_feature_fx_temp_aria": "溫度漸變",
+  "ps_lighting_tg_source": "跟隨",
+  "ps_lighting_tg_source_aria": "漸變跟隨哪個溫度",
+  "ps_lighting_tsrc_nozzle": "噴嘴",
+  "ps_lighting_tsrc_bed": "熱床",
+  "ps_lighting_tsrc_chamber": "艙內",
+  "ps_lighting_tg_lo": "冷端",
+  "ps_lighting_tg_lo_aria": "冷端溫度（攝氏度）",
+  "ps_lighting_tg_hi": "熱端",
+  "ps_lighting_tg_hi_aria": "熱端溫度（攝氏度）",
+  "ps_lighting_tg_help": "用於顯示溫度漸變的狀態。低於冷端時燈帶顯示熄滅色，高於熱端時顯示點亮色。"
 }

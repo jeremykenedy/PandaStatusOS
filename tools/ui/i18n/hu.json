@@ -330,5 +330,19 @@
   "ps_feature_fx_hue_ramp_help": "Az egész sáv egyetlen színben, amely a nyomtatás alatt a sötét színből a világítóba megy át.",
   "ps_feature_fx_hue_ramp_aria": "A folyamat színátmenete",
   "ps_lighting_fxb_band": "Csíkszélesség",
-  "ps_lighting_fxb_band_aria": "Az oszlop csíkszélessége pixelben"
+  "ps_lighting_fxb_band_aria": "Az oszlop csíkszélessége pixelben",
+  "ps_fx_temp_gradient": "Hőmérséklet-átmenet",
+  "ps_feature_fx_temp": "Hőmérséklet-átmenet",
+  "ps_feature_fx_temp_help": "Az egész sáv egyetlen színben, a hideg végen a sötét és a forró végen a világító szín között, a nyomtató egyik hőmérsékletét követve.",
+  "ps_feature_fx_temp_aria": "Hőmérséklet-átmenet",
+  "ps_lighting_tg_source": "Követi",
+  "ps_lighting_tg_source_aria": "Melyik hőmérsékletet követi az átmenet",
+  "ps_lighting_tsrc_nozzle": "Fúvóka",
+  "ps_lighting_tsrc_bed": "Tálca",
+  "ps_lighting_tsrc_chamber": "Kamra",
+  "ps_lighting_tg_lo": "Hideg",
+  "ps_lighting_tg_lo_aria": "Hőmérséklet a hideg végen, Celsius-fok",
+  "ps_lighting_tg_hi": "Forró",
+  "ps_lighting_tg_hi_aria": "Hőmérséklet a forró végen, Celsius-fok",
+  "ps_lighting_tg_help": "A hőmérséklet-átmenetet mutató állapotokhoz. A hideg vég alatt a sáv a sötét színt mutatja, a forró vég fölött a világítót."
 }

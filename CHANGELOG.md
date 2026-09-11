@@ -18,6 +18,11 @@ Everything so far. No release has been made and no device has been flashed.
 - The clone's own JSON route, `/api/features`: the page discovers a clone by its 200 where
   the factory answers 302, and shows a Features card on the System page only then. The
   socket document stays the factory's (D-033).
+- A10, the temperature gradient, behind `fx_temp`: one colour between the unlit and the
+  lit colour, following the nozzle, bed or chamber temperature between two configurable
+  ends; the three temperatures from the report reach the engine. The config blob moves to
+  layout v4, which also carries the fields for the hot warning and the error flash (D-036);
+  v1 to v3 migrate.
 - A6 to A9, the effects that read the print, each behind its own switch: the progress
   bar, the animated progress, the barber pole with its band width, and the colour ramp
   across the print by hue; the print percentage from the report reaches the engine.

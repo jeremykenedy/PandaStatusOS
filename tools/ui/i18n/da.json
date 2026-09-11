@@ -330,5 +330,19 @@
   "ps_feature_fx_hue_ramp_help": "Hele linjen i én farve, der går fra den slukkede til den tændte farve gennem udskriften.",
   "ps_feature_fx_hue_ramp_aria": "Farveovergang for fremskridt",
   "ps_lighting_fxb_band": "Båndbredde",
-  "ps_lighting_fxb_band_aria": "Stangens båndbredde i pixels"
+  "ps_lighting_fxb_band_aria": "Stangens båndbredde i pixels",
+  "ps_fx_temp_gradient": "Temperaturovergang",
+  "ps_feature_fx_temp": "Temperaturovergang",
+  "ps_feature_fx_temp_help": "Hele linjen i én farve, mellem den slukkede farve i den kolde ende og den tændte i den varme, efter en af printerens temperaturer.",
+  "ps_feature_fx_temp_aria": "Temperaturovergang",
+  "ps_lighting_tg_source": "Følger",
+  "ps_lighting_tg_source_aria": "Hvilken temperatur overgangen følger",
+  "ps_lighting_tsrc_nozzle": "Dyse",
+  "ps_lighting_tsrc_bed": "Plade",
+  "ps_lighting_tsrc_chamber": "Kammer",
+  "ps_lighting_tg_lo": "Koldt ved",
+  "ps_lighting_tg_lo_aria": "Temperatur i den kolde ende, grader Celsius",
+  "ps_lighting_tg_hi": "Varmt ved",
+  "ps_lighting_tg_hi_aria": "Temperatur i den varme ende, grader Celsius",
+  "ps_lighting_tg_help": "For de tilstande, der viser temperaturovergangen. Under den kolde ende viser linjen den slukkede farve, over den varme den tændte."
 }

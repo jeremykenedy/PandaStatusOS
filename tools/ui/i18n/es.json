@@ -330,5 +330,19 @@
   "ps_feature_fx_hue_ramp_help": "Toda la barra de un solo color, que pasa del color apagado al encendido a lo largo de la impresión.",
   "ps_feature_fx_hue_ramp_aria": "Degradado de progreso",
   "ps_lighting_fxb_band": "Ancho de banda",
-  "ps_lighting_fxb_band_aria": "Ancho de las bandas en píxeles"
+  "ps_lighting_fxb_band_aria": "Ancho de las bandas en píxeles",
+  "ps_fx_temp_gradient": "Degradado de temperatura",
+  "ps_feature_fx_temp": "Degradado de temperatura",
+  "ps_feature_fx_temp_help": "Toda la barra de un solo color, entre el color apagado en el extremo frío y el encendido en el extremo caliente, siguiendo una temperatura de la impresora.",
+  "ps_feature_fx_temp_aria": "Degradado de temperatura",
+  "ps_lighting_tg_source": "Sigue",
+  "ps_lighting_tg_source_aria": "Qué temperatura sigue el degradado",
+  "ps_lighting_tsrc_nozzle": "Boquilla",
+  "ps_lighting_tsrc_bed": "Cama",
+  "ps_lighting_tsrc_chamber": "Cámara",
+  "ps_lighting_tg_lo": "Frío a",
+  "ps_lighting_tg_lo_aria": "Temperatura en el extremo frío, grados Celsius",
+  "ps_lighting_tg_hi": "Caliente a",
+  "ps_lighting_tg_hi_aria": "Temperatura en el extremo caliente, grados Celsius",
+  "ps_lighting_tg_help": "Para los estados que muestran el degradado de temperatura. Por debajo del extremo frío la barra muestra el color apagado; por encima del caliente, el encendido."
 }

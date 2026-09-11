@@ -858,4 +858,42 @@ not the scale, the progress effects read (INFERENCE today; they would follow the
 
 ---
 
+## D-036 Layout v4 carries the fields for A10, A11 and A12 at once; a temperature feature names its source
+
+**Date** 2026-09-10 · **Reversal** cheap for the defaults and the route, expensive for the layout (a fifth layout is one more frozen struct and one more arm; the fields are twenty bytes and can stay unused)
+
+**Decided.** The config blob moves to v4 ("PS04", 592 bytes) with three groups of fields
+laid down together: the temperature gradient's source and ends (A10), the hot warning's
+source, threshold and colour (A11), and the error flash's colour, brightness and rate
+(A12). A10 is built on it now; A11 and A12 arrive with their bits and read fields that
+already exist, so Phase A needs one migration for the three, not three. Every field is
+read only under its bit, so a v3 blob migrated to v4 leaves the device exactly where it
+was.
+
+Each temperature feature names which reading it follows (nozzle, bed or chamber; the
+report's `nozzle_temper`, `bed_temper` and `chamber_temper`, INFERENCE, the fields the
+vent reads from the same stream). One threshold cannot serve a nozzle at 220 and a bed at
+60, so the gradient and the hot warning each carry their own source rather than sharing
+one. The gradient's defaults follow the nozzle from 25 to 250 degrees; the hot warning's
+default watches the nozzle past 50 degrees, in red; the error flash defaults to red at
+the parity brightness and half rate. The degrees are bounded at 0 to 500 in the clamp,
+the route and the mock.
+
+A stored temperature is a whole degree, `PS_TEMP_NONE` (-1000) until the first report,
+which sits below any cold end so a gradient with no reading holds its cold colour.
+
+**Alternatives.** One layout per feature (three migrations and three frozen structs in
+one phase); one shared temperature source (the nozzle-versus-bed problem above); ends as
+u8 like the vent's (a 300-degree hotend would not fit).
+
+**Why.** A frozen struct per layout is the migration recipe's cost, and three in one
+phase is three chances to get a frozen struct wrong; the fields are cheap and the bits
+keep them inert until their feature exists.
+
+**What would change it.** The capture showing the report carries the temperatures under
+other names or another scale (the parser follows the field; the layout stays), or A11 or
+A12 needing a field the twenty bytes do not have (then v5, by the recipe).
+
+---
+
 *Entries continue below as the run proceeds.*

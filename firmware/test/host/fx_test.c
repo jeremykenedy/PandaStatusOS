@@ -114,6 +114,13 @@ int main(void)
       ps_fx_resolve(&c, PS_MODE_H2D, PS_BAR_IDLE, false, &k); t("a stored progress id with its switch off resolves to solid", k.fx == PS_FX_STATIC, k.fx);
       c.features |= PS_FEAT_FX_PROGRESS; ps_fx_resolve(&c, PS_MODE_H2D, PS_BAR_IDLE, false, &k); t("and to itself once the switch is on", k.fx == PS_FX_PROGRESS, k.fx); }
 
+    { ps_cfg_t c; memset(&c, 0, sizeof c); c.features = PS_FEAT_STATE_EFFECTS; c.fx[2].effect = PS_FX_TEMP_GRADIENT; ps_fx_pick_t k;
+      ps_fx_resolve(&c, PS_MODE_H2D, PS_BAR_ERROR, false, &k); t("a stored gradient id with its switch off resolves to solid", k.fx == PS_FX_STATIC, k.fx);
+      c.features |= PS_FEAT_FX_TEMP; ps_fx_resolve(&c, PS_MODE_H2D, PS_BAR_ERROR, false, &k); t("and to the gradient once fx_temp is on", k.fx == PS_FX_TEMP_GRADIENT, k.fx); }
+    { ps_rgba_t red = { 255, 0, 0, 255 }; ps_fx_in_t none = { -1, PS_TEMP_NONE, 25, 250 };
+      ps_fx_phase_init(&p); ps_fx_render(PS_FX_TEMP_GRADIENT, red, BLACK, 100, 50, false, 0, &none, &p, px, 4);
+      t("with no reading the gradient holds its cold colour", px[0].r == 0 && px[0].g == 0 && px[0].b == 0, px[0].r); }
+
     /* the colour ramp across the print */
     { ps_rgba_t green = { 0, 255, 0, 255 }; ps_fx_in_t z = { 0, -1000, 0, 0 }, full = { 100, -1000, 0, 0 }, half = { 50, -1000, 0, 0 };
       ps_fx_phase_init(&p);

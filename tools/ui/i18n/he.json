@@ -330,5 +330,19 @@
   "ps_feature_fx_hue_ramp_help": "כל הפס בצבע אחד, העובר מהצבע הכבוי לצבע הדולק לאורך ההדפסה.",
   "ps_feature_fx_hue_ramp_aria": "מעבר צבע של ההתקדמות",
   "ps_lighting_fxb_band": "רוחב פס",
-  "ps_lighting_fxb_band_aria": "רוחב פסי העמוד בפיקסלים"
+  "ps_lighting_fxb_band_aria": "רוחב פסי העמוד בפיקסלים",
+  "ps_fx_temp_gradient": "מעבר טמפרטורה",
+  "ps_feature_fx_temp": "מעבר טמפרטורה",
+  "ps_feature_fx_temp_help": "כל הפס בצבע אחד, בין הצבע הכבוי בקצה הקר לצבע הדולק בקצה החם, לפי אחת מטמפרטורות המדפסת.",
+  "ps_feature_fx_temp_aria": "מעבר טמפרטורה",
+  "ps_lighting_tg_source": "עוקב אחר",
+  "ps_lighting_tg_source_aria": "אחרי איזו טמפרטורה המעבר עוקב",
+  "ps_lighting_tsrc_nozzle": "נחיר",
+  "ps_lighting_tsrc_bed": "משטח",
+  "ps_lighting_tsrc_chamber": "תא",
+  "ps_lighting_tg_lo": "קר ב",
+  "ps_lighting_tg_lo_aria": "הטמפרטורה בקצה הקר, מעלות צלזיוס",
+  "ps_lighting_tg_hi": "חם ב",
+  "ps_lighting_tg_hi_aria": "הטמפרטורה בקצה החם, מעלות צלזיוס",
+  "ps_lighting_tg_help": "למצבים שמציגים את מעבר הטמפרטורה. מתחת לקצה הקר הפס מציג את הצבע הכבוי, ומעל הקצה החם את הצבע הדולק."
 }

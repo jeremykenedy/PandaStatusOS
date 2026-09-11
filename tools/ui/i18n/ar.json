@@ -330,5 +330,19 @@
   "ps_feature_fx_hue_ramp_help": "الشريط كله بلون واحد ينتقل من اللون المطفأ إلى المضاء على مدار الطباعة.",
   "ps_feature_fx_hue_ramp_aria": "تدرّج لون التقدّم",
   "ps_lighting_fxb_band": "عرض الشريط",
-  "ps_lighting_fxb_band_aria": "عرض أشرطة العمود بالبكسل"
+  "ps_lighting_fxb_band_aria": "عرض أشرطة العمود بالبكسل",
+  "ps_fx_temp_gradient": "تدرّج الحرارة",
+  "ps_feature_fx_temp": "تدرّج الحرارة",
+  "ps_feature_fx_temp_help": "الشريط كله بلون واحد، بين اللون المطفأ عند الطرف البارد والمضاء عند الطرف الساخن، تبعًا لإحدى درجات حرارة الطابعة.",
+  "ps_feature_fx_temp_aria": "تدرّج الحرارة",
+  "ps_lighting_tg_source": "يتبع",
+  "ps_lighting_tg_source_aria": "أي درجة حرارة يتبعها التدرّج",
+  "ps_lighting_tsrc_nozzle": "الفوهة",
+  "ps_lighting_tsrc_bed": "السرير",
+  "ps_lighting_tsrc_chamber": "الحجرة",
+  "ps_lighting_tg_lo": "بارد عند",
+  "ps_lighting_tg_lo_aria": "درجة الحرارة عند الطرف البارد، بالدرجات المئوية",
+  "ps_lighting_tg_hi": "ساخن عند",
+  "ps_lighting_tg_hi_aria": "درجة الحرارة عند الطرف الساخن، بالدرجات المئوية",
+  "ps_lighting_tg_help": "للحالات التي تعرض تدرّج الحرارة. تحت الطرف البارد يعرض الشريط اللون المطفأ، وفوق الطرف الساخن اللون المضاء."
 }

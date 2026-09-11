@@ -324,6 +324,55 @@ async function drive(browser, combo) {
   want2 = JSON.parse(JSON.stringify(cur)); want2[1].effect = 1;
   t(`${tag} J15 Breathing for printing again sends the table with effect 1, the fallen-back ids echoed and accepted`, got.length === 1 && got[0] === apiFrame({ config: { state_effects: want2 } }), got);
   await page.waitForFunction(() => PS.features.config.state_effects[1].effect === 1, null, { timeout: 2000 }).catch(() => {});
+
+  // ---- A10: the temperature gradient, its source and its ends ----
+  t(`${tag} K1 with fx_temp off the gradient box is hidden and option 20 is hidden`, (await hidden(page, 'ps-lighting-tg')) && (await page.$eval('#ps-lighting-fx-0', (el) => [...el.options].find((o) => o.value === '20').hidden)));
+  await go(page, '#system');
+  await waitHidden(page, 'ps-system-features', false);
+  n = await count();
+  await toggle(page, 'ps-system-feature-fx-temp');
+  got = await sentAfter(n);
+  t(`${tag} K2 turning the gradient on sends exactly {"features":{"fx_temp":true}}`, got.length === 1 && got[0] === apiFrame({ features: { fx_temp: true } }), got);
+  await page.waitForFunction(() => PS.features.features.fx_temp === true, null, { timeout: 2000 }).catch(() => {});
+  await go(page, '#lighting');
+  t(`${tag} K3 the box shows: nozzle, cold at 25, hot at 250, and option 20 is offered`, await waitHidden(page, 'ps-lighting-tg', false)
+    && (await val(page, 'ps-lighting-tg-source')) === '0' && (await val(page, 'ps-lighting-tg-lo')) === '25' && (await val(page, 'ps-lighting-tg-hi')) === '250'
+    && (await text(page, 'ps-lighting-tg-hi-value')) === '250 \u00B0C'
+    && (await page.$eval('#ps-lighting-fx-0', (el) => [...el.options].filter((o) => !o.hidden).length)) === 18);
+  n = await count();
+  await $(page, 'ps-lighting-fx-0').selectOption('20');
+  got = await sentAfter(n);
+  cur = await page.evaluate(() => JSON.parse(JSON.stringify(PS.features.config.state_effects)));
+  want2 = JSON.parse(JSON.stringify(cur)); want2[0].effect = 20;
+  t(`${tag} K4 choosing the gradient for idle sends the table with effect 20`, got.length === 1 && got[0] === apiFrame({ config: { state_effects: want2 } }), got);
+  await page.waitForFunction(() => PS.features.config.state_effects[0].effect === 20, null, { timeout: 2000 }).catch(() => {});
+  n = await count();
+  await $(page, 'ps-lighting-tg-source').selectOption('1');
+  got = await sentAfter(n);
+  t(`${tag} K5 following the bed sends exactly {"config":{"temp_gradient":{"source":1,"lo":25,"hi":250}}}`, got.length === 1 && got[0] === apiFrame({ config: { temp_gradient: { source: 1, lo: 25, hi: 250 } } }), got);
+  await page.waitForFunction(() => PS.features.config.temp_gradient.source === 1, null, { timeout: 2000 }).catch(() => {});
+  n = await count();
+  await nudge(page, 'ps-lighting-tg-hi', 'ArrowRight');
+  got = await sentAfter(n);
+  t(`${tag} K6 nudging the hot end sends the whole setting with hi 255`, got.length === 1 && got[0] === apiFrame({ config: { temp_gradient: { source: 1, lo: 25, hi: 255 } } }), got);
+  await page.waitForFunction(() => PS.features.config.temp_gradient.hi === 255, null, { timeout: 2000 }).catch(() => {});
+  n = await count();
+  await nudge(page, 'ps-lighting-tg-lo', 'ArrowRight');
+  got = await sentAfter(n);
+  t(`${tag} K7 nudging the cold end sends the whole setting with lo 30`, got.length === 1 && got[0] === apiFrame({ config: { temp_gradient: { source: 1, lo: 30, hi: 255 } } }), got);
+  t(`${tag} K8 the answer lands: the label reads 30 \u00B0C`, await page.waitForFunction(() => document.getElementById('ps-lighting-tg-lo-value').textContent === '30 \u00B0C', null, { timeout: 2000 }).then(() => true).catch(() => false));
+  { const st = await page.evaluate(async () => { const r = await fetch('/api/features', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ config: { temp_gradient: { source: 3 } } }) }); return r.status; });
+    t(`${tag} K9 a fourth source is refused (400)`, st === 400, st); }
+  await pw.shot(page, `features-lighting-fxtemp-${combo.theme}-${combo.width}`, { full: true });
+  await go(page, '#system');
+  await waitHidden(page, 'ps-system-features', false);
+  n = await count();
+  await toggle(page, 'ps-system-feature-fx-temp');
+  got = await sentAfter(n);
+  t(`${tag} K10 turning the gradient off sends exactly {"features":{"fx_temp":false}}`, got.length === 1 && got[0] === apiFrame({ features: { fx_temp: false } }), got);
+  await page.waitForFunction(() => PS.features.features.fx_temp === false, null, { timeout: 2000 }).catch(() => {});
+  await go(page, '#lighting');
+  t(`${tag} K11 the box hides and idle fell back to Static`, await waitHidden(page, 'ps-lighting-tg', true) && (await val(page, 'ps-lighting-fx-0')) === '0');
   await go(page, '#system');
   await waitHidden(page, 'ps-system-features', false);
   n = await count();

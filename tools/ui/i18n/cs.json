@@ -330,5 +330,19 @@
   "ps_feature_fx_hue_ramp_help": "Celá lišta v jedné barvě, která během tisku přechází ze zhasnuté do svítící barvy.",
   "ps_feature_fx_hue_ramp_aria": "Barevný přechod průběhu",
   "ps_lighting_fxb_band": "Šířka pruhu",
-  "ps_lighting_fxb_band_aria": "Šířka pruhů tyče v pixelech"
+  "ps_lighting_fxb_band_aria": "Šířka pruhů tyče v pixelech",
+  "ps_fx_temp_gradient": "Teplotní přechod",
+  "ps_feature_fx_temp": "Teplotní přechod",
+  "ps_feature_fx_temp_help": "Celá lišta v jedné barvě, mezi zhasnutou barvou na studeném konci a svítící na horkém, podle jedné teploty tiskárny.",
+  "ps_feature_fx_temp_aria": "Teplotní přechod",
+  "ps_lighting_tg_source": "Sleduje",
+  "ps_lighting_tg_source_aria": "Kterou teplotu přechod sleduje",
+  "ps_lighting_tsrc_nozzle": "Tryska",
+  "ps_lighting_tsrc_bed": "Podložka",
+  "ps_lighting_tsrc_chamber": "Komora",
+  "ps_lighting_tg_lo": "Studené při",
+  "ps_lighting_tg_lo_aria": "Teplota na studeném konci, stupně Celsia",
+  "ps_lighting_tg_hi": "Horké při",
+  "ps_lighting_tg_hi_aria": "Teplota na horkém konci, stupně Celsia",
+  "ps_lighting_tg_help": "Pro stavy zobrazující teplotní přechod. Pod studeným koncem lišta ukazuje zhasnutou barvu, nad horkým koncem svítící."
 }

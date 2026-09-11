@@ -32,6 +32,7 @@ static const struct { const char *name; uint32_t bit; } FEATURES[] = {
     { "fx_progress_anim", PS_FEAT_FX_PROGRESS_ANIM },
     { "fx_barber",        PS_FEAT_FX_BARBER },
     { "fx_hue_ramp",      PS_FEAT_FX_HUE_RAMP },
+    { "fx_temp",          PS_FEAT_FX_TEMP },
 };
 
 static cJSON *fx_json(const ps_fx_cfg_t *f)
@@ -90,6 +91,10 @@ char *ps_features_json(void)
     }
     cJSON *se = cJSON_AddArrayToObject(cfg, "state_effects");
     for (int s = 0; s < 3; s++) cJSON_AddItemToArray(se, fx_json(&g_ps.cfg.fx[s]));
+    cJSON *tg = cJSON_AddObjectToObject(cfg, "temp_gradient");            /* A10: one setting for every state that runs it */
+    cJSON_AddNumberToObject(tg, "source", g_ps.cfg.temp_src);
+    cJSON_AddNumberToObject(tg, "lo", g_ps.cfg.temp_lo);
+    cJSON_AddNumberToObject(tg, "hi", g_ps.cfg.temp_hi);
     ps_unlock();
     char *s = cJSON_PrintUnformatted(doc);
     cJSON_Delete(doc);
@@ -116,7 +121,8 @@ int ps_features_apply(const char *json, size_t len)
     }
     uint8_t sb[2][3]; bool have_sb = false;
     ps_fx_cfg_t fx[3]; bool have_fx = false;
-    ps_lock(); uint32_t after = (g_ps.cfg.features | set) & ~clear; ps_unlock();   /* the bits this document leaves in force */
+    int tg_src, tg_lo, tg_hi; bool have_tg = false;
+    ps_lock(); uint32_t after = (g_ps.cfg.features | set) & ~clear; tg_src = g_ps.cfg.temp_src; tg_lo = g_ps.cfg.temp_lo; tg_hi = g_ps.cfg.temp_hi; ps_unlock();   /* the bits this document leaves in force; partial objects overlay the stored values */
     if (cfg) {
         for (cJSON *it = cfg->child; it; it = it->next) {
             if (it->string && !strcmp(it->string, "state_effects")) {
@@ -136,6 +142,17 @@ int ps_features_apply(const char *json, size_t len)
                     }
                 }
                 have_sb = true;
+            } else if (it->string && !strcmp(it->string, "temp_gradient")) {
+                if (!cJSON_IsObject(it)) { cJSON_Delete(root); return -1; }
+                for (cJSON *k = it->child; k; k = k->next) {
+                    if (!k->string || !cJSON_IsNumber(k) || k->valuedouble < 0) { cJSON_Delete(root); return -1; }
+                    int v = (int)k->valuedouble;
+                    if      (!strcmp(k->string, "source")) { if (v >= PS_TEMP_COUNT) { cJSON_Delete(root); return -1; } tg_src = v; }
+                    else if (!strcmp(k->string, "lo"))     { if (v > PS_TEMP_MAX) { cJSON_Delete(root); return -1; } tg_lo = v; }
+                    else if (!strcmp(k->string, "hi"))     { if (v > PS_TEMP_MAX) { cJSON_Delete(root); return -1; } tg_hi = v; }
+                    else { cJSON_Delete(root); return -1; }
+                }
+                have_tg = true;
             } else { cJSON_Delete(root); return -1; }         /* an unknown setting is refused, not ignored */
         }
     }
@@ -148,6 +165,9 @@ int ps_features_apply(const char *json, size_t len)
     changed = g_ps.cfg.features != before;
     if (have_sb && memcmp(g_ps.cfg.state_brightness, sb, sizeof sb) != 0) { memcpy(g_ps.cfg.state_brightness, sb, sizeof sb); changed = true; }
     if (have_fx && memcmp(g_ps.cfg.fx, fx, sizeof fx) != 0) { memcpy(g_ps.cfg.fx, fx, sizeof fx); changed = true; }
+    if (have_tg && (g_ps.cfg.temp_src != tg_src || g_ps.cfg.temp_lo != tg_lo || g_ps.cfg.temp_hi != tg_hi)) {
+        g_ps.cfg.temp_src = (uint8_t)tg_src; g_ps.cfg.temp_lo = (int16_t)tg_lo; g_ps.cfg.temp_hi = (int16_t)tg_hi; changed = true;
+    }
     /* a switch going off takes its effects with it: a stored id that needed the bit falls back to
      * solid, so what is stored is always something the bits in force can render, and the next
      * whole-table POST from the page is not refused for carrying it. The seventeen that come with

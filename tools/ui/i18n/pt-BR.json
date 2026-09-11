@@ -330,5 +330,19 @@
   "ps_feature_fx_hue_ramp_help": "A barra inteira em uma só cor, que vai da cor apagada à acesa ao longo da impressão.",
   "ps_feature_fx_hue_ramp_aria": "Gradiente de progresso",
   "ps_lighting_fxb_band": "Largura da faixa",
-  "ps_lighting_fxb_band_aria": "Largura das faixas em pixels"
+  "ps_lighting_fxb_band_aria": "Largura das faixas em pixels",
+  "ps_fx_temp_gradient": "Gradiente de temperatura",
+  "ps_feature_fx_temp": "Gradiente de temperatura",
+  "ps_feature_fx_temp_help": "A barra inteira em uma só cor, entre a cor apagada na ponta fria e a acesa na ponta quente, seguindo uma temperatura da impressora.",
+  "ps_feature_fx_temp_aria": "Gradiente de temperatura",
+  "ps_lighting_tg_source": "Segue",
+  "ps_lighting_tg_source_aria": "Qual temperatura o gradiente segue",
+  "ps_lighting_tsrc_nozzle": "Bico",
+  "ps_lighting_tsrc_bed": "Mesa",
+  "ps_lighting_tsrc_chamber": "Câmara",
+  "ps_lighting_tg_lo": "Frio em",
+  "ps_lighting_tg_lo_aria": "Temperatura na ponta fria, graus Celsius",
+  "ps_lighting_tg_hi": "Quente em",
+  "ps_lighting_tg_hi_aria": "Temperatura na ponta quente, graus Celsius",
+  "ps_lighting_tg_help": "Para os estados que mostram o gradiente de temperatura. Abaixo da ponta fria a barra mostra a cor apagada; acima da quente, a cor acesa."
 }

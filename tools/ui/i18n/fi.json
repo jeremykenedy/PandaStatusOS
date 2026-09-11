@@ -330,5 +330,19 @@
   "ps_feature_fx_hue_ramp_help": "Koko palkki yhtenä värinä, joka liukuu sammuneesta väristä palavaan tulostuksen aikana.",
   "ps_feature_fx_hue_ramp_aria": "Edistymisen väriliuku",
   "ps_lighting_fxb_band": "Raidan leveys",
-  "ps_lighting_fxb_band_aria": "Tangon raidan leveys pikseleinä"
+  "ps_lighting_fxb_band_aria": "Tangon raidan leveys pikseleinä",
+  "ps_fx_temp_gradient": "Lämpötilaliuku",
+  "ps_feature_fx_temp": "Lämpötilaliuku",
+  "ps_feature_fx_temp_help": "Koko palkki yhtenä värinä, sammuneesta väristä kylmässä päässä palavaan kuumassa päässä, yhden tulostimen lämpötilan mukaan.",
+  "ps_feature_fx_temp_aria": "Lämpötilaliuku",
+  "ps_lighting_tg_source": "Seuraa",
+  "ps_lighting_tg_source_aria": "Mitä lämpötilaa liuku seuraa",
+  "ps_lighting_tsrc_nozzle": "Suutin",
+  "ps_lighting_tsrc_bed": "Alusta",
+  "ps_lighting_tsrc_chamber": "Kammio",
+  "ps_lighting_tg_lo": "Kylmä",
+  "ps_lighting_tg_lo_aria": "Lämpötila kylmässä päässä, celsiusastetta",
+  "ps_lighting_tg_hi": "Kuuma",
+  "ps_lighting_tg_hi_aria": "Lämpötila kuumassa päässä, celsiusastetta",
+  "ps_lighting_tg_help": "Tiloille, jotka näyttävät lämpötilaliu'un. Kylmän pään alapuolella palkki näyttää sammuneen värin, kuuman pään yläpuolella palavan."
 }

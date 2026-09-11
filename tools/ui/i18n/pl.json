@@ -330,5 +330,19 @@
   "ps_feature_fx_hue_ramp_help": "Cały pasek w jednym kolorze, przechodzącym od zgaszonego do świecącego w trakcie wydruku.",
   "ps_feature_fx_hue_ramp_aria": "Gradient postępu",
   "ps_lighting_fxb_band": "Szerokość pasa",
-  "ps_lighting_fxb_band_aria": "Szerokość pasów słupa w pikselach"
+  "ps_lighting_fxb_band_aria": "Szerokość pasów słupa w pikselach",
+  "ps_fx_temp_gradient": "Gradient temperatury",
+  "ps_feature_fx_temp": "Gradient temperatury",
+  "ps_feature_fx_temp_help": "Cały pasek w jednym kolorze, między kolorem zgaszonym na zimnym końcu a świecącym na gorącym, według jednej temperatury drukarki.",
+  "ps_feature_fx_temp_aria": "Gradient temperatury",
+  "ps_lighting_tg_source": "Śledzi",
+  "ps_lighting_tg_source_aria": "Którą temperaturę śledzi gradient",
+  "ps_lighting_tsrc_nozzle": "Dysza",
+  "ps_lighting_tsrc_bed": "Stół",
+  "ps_lighting_tsrc_chamber": "Komora",
+  "ps_lighting_tg_lo": "Zimno przy",
+  "ps_lighting_tg_lo_aria": "Temperatura na zimnym końcu, stopnie Celsjusza",
+  "ps_lighting_tg_hi": "Gorąco przy",
+  "ps_lighting_tg_hi_aria": "Temperatura na gorącym końcu, stopnie Celsjusza",
+  "ps_lighting_tg_help": "Dla stanów pokazujących gradient temperatury. Poniżej zimnego końca pasek pokazuje kolor zgaszony, powyżej gorącego kolor świecący."
 }

@@ -330,5 +330,19 @@
   "ps_feature_fx_hue_ramp_help": "Toute la barre d'une seule couleur, qui glisse de la couleur éteinte à la couleur allumée au fil de l'impression.",
   "ps_feature_fx_hue_ramp_aria": "Dégradé de progression",
   "ps_lighting_fxb_band": "Largeur de bande",
-  "ps_lighting_fxb_band_aria": "Largeur des bandes en pixels"
+  "ps_lighting_fxb_band_aria": "Largeur des bandes en pixels",
+  "ps_fx_temp_gradient": "Dégradé de température",
+  "ps_feature_fx_temp": "Dégradé de température",
+  "ps_feature_fx_temp_help": "Toute la barre d'une seule couleur, entre la couleur éteinte à l'extrémité froide et la couleur allumée à l'extrémité chaude, suivant une température de l'imprimante.",
+  "ps_feature_fx_temp_aria": "Dégradé de température",
+  "ps_lighting_tg_source": "Suit",
+  "ps_lighting_tg_source_aria": "Quelle température le dégradé suit",
+  "ps_lighting_tsrc_nozzle": "Buse",
+  "ps_lighting_tsrc_bed": "Plateau",
+  "ps_lighting_tsrc_chamber": "Enceinte",
+  "ps_lighting_tg_lo": "Froid à",
+  "ps_lighting_tg_lo_aria": "Température à l'extrémité froide, degrés Celsius",
+  "ps_lighting_tg_hi": "Chaud à",
+  "ps_lighting_tg_hi_aria": "Température à l'extrémité chaude, degrés Celsius",
+  "ps_lighting_tg_help": "Pour les états qui affichent le dégradé de température. Sous l'extrémité froide, la barre montre la couleur éteinte ; au-dessus de l'extrémité chaude, la couleur allumée."
 }

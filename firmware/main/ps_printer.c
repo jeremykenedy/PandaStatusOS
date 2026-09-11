@@ -65,6 +65,15 @@ static void apply_report(const char *json, size_t len)
         ps_lock(); bool moved = g_ps.print_percent != v; g_ps.print_percent = (int16_t)v; ps_unlock();
         if (moved) ps_effect_notify();
     }
+    /* INFERENCE: the three temperatures, as the vent reads them from the same report; whole degrees */
+    static const char *const TEMP_KEYS[PS_TEMP_COUNT] = { "nozzle_temper", "bed_temper", "chamber_temper" };
+    for (int i = 0; print && i < PS_TEMP_COUNT; i++) {
+        cJSON *tv = cJSON_GetObjectItemCaseSensitive(print, TEMP_KEYS[i]);
+        if (!cJSON_IsNumber(tv)) continue;
+        int v = (int)(tv->valuedouble + 0.5); if (v < 0) v = 0; if (v > PS_TEMP_MAX) v = PS_TEMP_MAX;
+        ps_lock(); bool moved = g_ps.temp_c[i] != v; g_ps.temp_c[i] = (int16_t)v; ps_unlock();
+        if (moved) ps_effect_notify();
+    }
     cJSON_Delete(doc);
 }
 

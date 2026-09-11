@@ -1,12 +1,12 @@
 # Configuration
 
 Everything the device remembers across a power cycle lives in one NVS blob, namespace
-`ps`, key `cfg`, laid out by `ps_cfg_t` in `firmware/main/ps.h`. The layout is version 3,
-magic `0x50533033` ("PS03"), 572 bytes, pinned by `_Static_assert` to that size and to
+`ps`, key `cfg`, laid out by `ps_cfg_t` in `firmware/main/ps.h`. The layout is version 4,
+magic `0x50533034` ("PS04"), 592 bytes, pinned by `_Static_assert` to that size and to
 the offsets of its arrays so the host tests and the target agree byte for byte. Versions 1
-("PS01", 492 bytes) and 2 ("PS02", 500 bytes) are frozen inside `ps_cfg.c`; a v1 or v2 blob
-is migrated on its first load, field by field, and written back as v3, and the host test
-proves every field survives both paths.
+("PS01", 492 bytes), 2 ("PS02", 500 bytes) and 3 ("PS03", 572 bytes) are frozen inside
+`ps_cfg.c`; an older blob is migrated on its first load, field by field, and written back
+as v4, and the host test proves every field survives each path.
 
 Defaults are **PROVISIONAL**: they are the values the factory page expects after a
 lighting reset and the mock's factory fixture, not values read off a device. Phase 2
@@ -44,6 +44,10 @@ this table with it.
 | `fx[3].bright_end` | u8 | 0 to 100 | 0 | v3 | `config.state_effects[]`; read while bits 4 and 5 are set and `opt` bit 0x04 is set (A5) |
 | `fx[3].opt`, `.aux` | u8 | option bits (0x01, 0x02 unlit colours set; 0x04 ramp; 0x08 aux set; 0x10 reverse), one number for the effect that reads it | 0 | v3 | `config.state_effects[]`; A3 to A5 |
 | `fx[3].colour[4]` | RGBA | any | the H2D state colour for the two lit entries, black for the two unlit ones | v3 | `config.state_effects[].colours`, `#RRGGBBAA`; read while bit 3 is set (A3): `[0]` lit and `[2]` unlit while a job is on, `[1]` and `[3]` otherwise; an unlit entry counts only while its `opt` bit (1 or 2) is set |
+| `temp_lo`, `temp_hi` | i16 | 0 to 500, degrees C | 25, 250 | v4 | `config.temp_gradient.lo`, `.hi`; the gradient's ends, read while bit 10 is set (A10) |
+| `temp_src` | u8 | 0 nozzle, 1 bed, 2 chamber | 0 | v4 | `config.temp_gradient.source`; which reading the gradient follows (A10) |
+| `hot_src`, `hot_c`, `hot_colour` | u8, i16, RGBA | a source, 0 to 500, any | 0, 50, red | v4 | reserved for A11: the hot warning's source, threshold and colour; not on the route yet |
+| `err_colour`, `err_brightness`, `err_speed` | RGBA, u8, u8 | any, 0 to 100, 0 to 100 | red, 50, 50 | v4 | reserved for A12: the error flash's colour, brightness and rate; not on the route yet |
 
 The colour indices are 0 idle, 1 printing, 2 error. The mode indices are 0 Music,
 1 H2D. Colours are stored as four bytes and written to the wire in the format the
@@ -55,24 +59,26 @@ factory uses for each mode: bare `RRGGBB` for Music, `#RRGGBBAA` for H2D.
    and touches no global, so it can be called on a scratch struct to read a default.
 2. The stored blob is read into a buffer the size of the NVS budget.
 3. The chain, newest layout first: if the size matches the layout and the magic matches,
-   the layout is copied whole (v3, the current one) or overlaid field by field (v1 and v2:
-   every stored field by name onto the defaults, the newer fields at their defaults, the
-   effects' active colours taken from the migrated H2D colours, then saved back as v3).
+   the layout is copied whole (v4, the current one) or overlaid field by field (v1, v2 and
+   v3: every stored field by name onto the defaults, the newer fields at their defaults,
+   the effects' active colours taken from the migrated H2D colours where the blob had no
+   effects, then saved back as v4).
 4. `ps_cfg_clamp()` bounds every value that is used as an index or a range: the mode,
-   the block count, brightness, speed, `ap_on`, and terminates every string. A blob
-   written by a corrupt or newer image cannot become an array subscript.
+   the block count, brightness, speed, `ap_on`, the effect ids, the temperature sources
+   and degrees, and terminates every string. A blob written by a corrupt or newer image
+   cannot become an array subscript.
 5. Anything unrecognised leaves the defaults in place and logs the magic and size it saw.
 
 ## Changing the layout
 
 The instructions are in `ps_cfg.c` above the chain, and the host test enforces them:
 
-1. Copy the current `ps_cfg_t` into `ps_cfg.c` as `ps_cfg_v3_t`, `static`, with its own
+1. Copy the current `ps_cfg_t` into `ps_cfg.c` as `ps_cfg_v4_t`, `static`, with its own
    `_Static_assert` on the literal size, referencing no live type and no live count
-   (`ps_cfg_v1_t` and `ps_cfg_v2_t` there are the model).
-2. Define `PS_CFG_MAGIC_V4` and point `PS_CFG_MAGIC` at it.
-3. Add the v3 arm above the v2 arm: defaults, overlay every v3 field, set what v4 added, save.
-4. Extend `firmware/test/host/cfg_test.c` with a v3 blob that must survive.
+   (`ps_cfg_v1_t`, `ps_cfg_v2_t` and `ps_cfg_v3_t` there are the model).
+2. Define `PS_CFG_MAGIC_V5` and point `PS_CFG_MAGIC` at it.
+3. Add the v4 arm above the v3 arm: defaults, overlay every v4 field, set what v5 added, save.
+4. Extend `firmware/test/host/cfg_test.c` with a v4 blob that must survive.
 
 A frozen struct that points at a live type is correct only by luck.
 
@@ -80,7 +86,7 @@ A frozen struct that points at a live type is correct only by luck.
 
 The blob is written twice during a rewrite (NVS keeps the old copy until the new one is
 committed), so the budget is twice the blob plus a page of slack (2,048 bytes for the
-572-byte v3 blob), against a 0x6000-byte partition shared with nothing else the firmware
+592-byte v4 blob), against a 0x6000-byte partition shared with nothing else the firmware
 stores. A blob over budget saves
 silently-failing and a reboot loses everything; the assert makes that a compile error.
 

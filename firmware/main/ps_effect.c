@@ -38,6 +38,8 @@ static uint32_t render(void)
     ps_lock();
     ps_fx_resolve(&g_ps.cfg, g_ps.cfg.current_mode, g_ps.bar_state, g_ps.job_active != 0, &k);
     int percent = g_ps.print_percent;
+    uint8_t src = g_ps.cfg.temp_src < PS_TEMP_COUNT ? g_ps.cfg.temp_src : PS_TEMP_NOZZLE;
+    int temp = g_ps.temp_c[src], temp_lo = g_ps.cfg.temp_lo, temp_hi = g_ps.cfg.temp_hi;
     ps_unlock();
 
     if (k.fx < 0) {
@@ -46,7 +48,7 @@ static uint32_t render(void)
         for (size_t i = 0; i < CONFIG_PS_LED_COUNT; i++) s_frame[i] = px;
         return 33;                                 /* 30 fps */
     }
-    ps_fx_in_t in = { .percent = percent, .temp_c = -1000, .temp_lo = 0, .temp_hi = 0 };
+    ps_fx_in_t in = { .percent = percent, .temp_c = temp, .temp_lo = temp_lo, .temp_hi = temp_hi };
     uint8_t b = ps_fx_ramp(&s_phase, k.brightness, k.bright_end);
     return ps_fx_render(k.fx, k.colour, k.bg, b, k.speed, k.reverse, k.band, &in, &s_phase, s_frame, CONFIG_PS_LED_COUNT);
 }

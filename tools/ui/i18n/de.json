@@ -330,5 +330,19 @@
   "ps_feature_fx_hue_ramp_help": "Der ganze Balken in einer Farbe, die über den Druck hinweg von der unbeleuchteten zur leuchtenden Farbe wandert.",
   "ps_feature_fx_hue_ramp_aria": "Farbverlauf des Fortschritts",
   "ps_lighting_fxb_band": "Bandbreite",
-  "ps_lighting_fxb_band_aria": "Bandbreite der Stange in Pixeln"
+  "ps_lighting_fxb_band_aria": "Bandbreite der Stange in Pixeln",
+  "ps_fx_temp_gradient": "Temperaturverlauf",
+  "ps_feature_fx_temp": "Temperaturverlauf",
+  "ps_feature_fx_temp_help": "Der ganze Balken in einer Farbe zwischen der unbeleuchteten Farbe am kalten und der leuchtenden am heißen Ende, nach einer Temperatur des Druckers.",
+  "ps_feature_fx_temp_aria": "Temperaturverlauf",
+  "ps_lighting_tg_source": "Folgt",
+  "ps_lighting_tg_source_aria": "Welcher Temperatur der Verlauf folgt",
+  "ps_lighting_tsrc_nozzle": "Düse",
+  "ps_lighting_tsrc_bed": "Bett",
+  "ps_lighting_tsrc_chamber": "Kammer",
+  "ps_lighting_tg_lo": "Kalt bei",
+  "ps_lighting_tg_lo_aria": "Temperatur am kalten Ende, Grad Celsius",
+  "ps_lighting_tg_hi": "Heiß bei",
+  "ps_lighting_tg_hi_aria": "Temperatur am heißen Ende, Grad Celsius",
+  "ps_lighting_tg_help": "Für die Zustände, die den Temperaturverlauf zeigen. Unter dem kalten Ende zeigt der Balken die unbeleuchtete Farbe, über dem heißen Ende die leuchtende."
 }

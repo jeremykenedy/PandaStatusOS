@@ -330,5 +330,19 @@
   "ps_feature_fx_hue_ramp_help": "막대 전체가 한 색으로, 인쇄가 진행되는 동안 꺼진 색에서 켜진 색으로 바뀝니다.",
   "ps_feature_fx_hue_ramp_aria": "진행 색상 변화",
   "ps_lighting_fxb_band": "띠 폭",
-  "ps_lighting_fxb_band_aria": "기둥의 띠 폭(픽셀)"
+  "ps_lighting_fxb_band_aria": "기둥의 띠 폭(픽셀)",
+  "ps_fx_temp_gradient": "온도 그라데이션",
+  "ps_feature_fx_temp": "온도 그라데이션",
+  "ps_feature_fx_temp_help": "막대 전체가 한 색으로, 차가운 쪽의 꺼진 색과 뜨거운 쪽의 켜진 색 사이에서 프린터의 온도 하나를 따라 변합니다.",
+  "ps_feature_fx_temp_aria": "온도 그라데이션",
+  "ps_lighting_tg_source": "따르는 온도",
+  "ps_lighting_tg_source_aria": "그라데이션이 따르는 온도",
+  "ps_lighting_tsrc_nozzle": "노즐",
+  "ps_lighting_tsrc_bed": "베드",
+  "ps_lighting_tsrc_chamber": "챔버",
+  "ps_lighting_tg_lo": "차가운 쪽",
+  "ps_lighting_tg_lo_aria": "차가운 쪽 온도(섭씨)",
+  "ps_lighting_tg_hi": "뜨거운 쪽",
+  "ps_lighting_tg_hi_aria": "뜨거운 쪽 온도(섭씨)",
+  "ps_lighting_tg_help": "온도 그라데이션을 보여 주는 상태용입니다. 차가운 쪽보다 낮으면 막대는 꺼진 색, 뜨거운 쪽보다 높으면 켜진 색을 보여 줍니다."
 }

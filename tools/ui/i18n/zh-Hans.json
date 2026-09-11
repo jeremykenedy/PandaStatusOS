@@ -330,5 +330,19 @@
   "ps_feature_fx_hue_ramp_help": "整条灯带一种颜色，随打印进度从熄灭色渐变到点亮色。",
   "ps_feature_fx_hue_ramp_aria": "进度色彩渐变",
   "ps_lighting_fxb_band": "条纹宽度",
-  "ps_lighting_fxb_band_aria": "灯柱条纹宽度（像素）"
+  "ps_lighting_fxb_band_aria": "灯柱条纹宽度（像素）",
+  "ps_fx_temp_gradient": "温度渐变",
+  "ps_feature_fx_temp": "温度渐变",
+  "ps_feature_fx_temp_help": "整条灯带一种颜色，在冷端的熄灭色与热端的点亮色之间，跟随打印机的一个温度变化。",
+  "ps_feature_fx_temp_aria": "温度渐变",
+  "ps_lighting_tg_source": "跟随",
+  "ps_lighting_tg_source_aria": "渐变跟随哪个温度",
+  "ps_lighting_tsrc_nozzle": "喷嘴",
+  "ps_lighting_tsrc_bed": "热床",
+  "ps_lighting_tsrc_chamber": "仓内",
+  "ps_lighting_tg_lo": "冷端",
+  "ps_lighting_tg_lo_aria": "冷端温度（摄氏度）",
+  "ps_lighting_tg_hi": "热端",
+  "ps_lighting_tg_hi_aria": "热端温度（摄氏度）",
+  "ps_lighting_tg_help": "用于显示温度渐变的状态。低于冷端时灯带显示熄灭色，高于热端时显示点亮色。"
 }

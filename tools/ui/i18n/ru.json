@@ -330,5 +330,19 @@
   "ps_feature_fx_hue_ramp_help": "Вся полоса одним цветом, переходящим от погашенного к горящему в течение печати.",
   "ps_feature_fx_hue_ramp_aria": "Цветовой переход прогресса",
   "ps_lighting_fxb_band": "Ширина полосы",
-  "ps_lighting_fxb_band_aria": "Ширина полос столба в пикселях"
+  "ps_lighting_fxb_band_aria": "Ширина полос столба в пикселях",
+  "ps_fx_temp_gradient": "Температурный градиент",
+  "ps_feature_fx_temp": "Температурный градиент",
+  "ps_feature_fx_temp_help": "Вся полоса одним цветом, между погашенным цветом на холодном конце и горящим на горячем, по одной из температур принтера.",
+  "ps_feature_fx_temp_aria": "Температурный градиент",
+  "ps_lighting_tg_source": "Следует за",
+  "ps_lighting_tg_source_aria": "За какой температурой следует градиент",
+  "ps_lighting_tsrc_nozzle": "Сопло",
+  "ps_lighting_tsrc_bed": "Стол",
+  "ps_lighting_tsrc_chamber": "Камера",
+  "ps_lighting_tg_lo": "Холодно при",
+  "ps_lighting_tg_lo_aria": "Температура на холодном конце, градусы Цельсия",
+  "ps_lighting_tg_hi": "Горячо при",
+  "ps_lighting_tg_hi_aria": "Температура на горячем конце, градусы Цельсия",
+  "ps_lighting_tg_help": "Для состояний, показывающих температурный градиент. Ниже холодного конца полоса показывает погашенный цвет, выше горячего — горящий."
 }

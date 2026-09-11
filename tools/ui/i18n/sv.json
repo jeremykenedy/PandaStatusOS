@@ -330,5 +330,19 @@
   "ps_feature_fx_hue_ramp_help": "Hela listen i en färg som går från den släckta till den tända färgen under utskriften.",
   "ps_feature_fx_hue_ramp_aria": "Färgskala för förloppet",
   "ps_lighting_fxb_band": "Bandbredd",
-  "ps_lighting_fxb_band_aria": "Stångens bandbredd i pixlar"
+  "ps_lighting_fxb_band_aria": "Stångens bandbredd i pixlar",
+  "ps_fx_temp_gradient": "Temperaturskala",
+  "ps_feature_fx_temp": "Temperaturskala",
+  "ps_feature_fx_temp_help": "Hela listen i en färg, mellan den släckta färgen vid den kalla änden och den tända vid den heta, efter en av skrivarens temperaturer.",
+  "ps_feature_fx_temp_aria": "Temperaturskala",
+  "ps_lighting_tg_source": "Följer",
+  "ps_lighting_tg_source_aria": "Vilken temperatur skalan följer",
+  "ps_lighting_tsrc_nozzle": "Munstycke",
+  "ps_lighting_tsrc_bed": "Bädd",
+  "ps_lighting_tsrc_chamber": "Kammare",
+  "ps_lighting_tg_lo": "Kallt vid",
+  "ps_lighting_tg_lo_aria": "Temperatur vid den kalla änden, grader Celsius",
+  "ps_lighting_tg_hi": "Hett vid",
+  "ps_lighting_tg_hi_aria": "Temperatur vid den heta änden, grader Celsius",
+  "ps_lighting_tg_help": "För de tillstånd som visar temperaturskalan. Under den kalla änden visar listen den släckta färgen, över den heta den tända."
 }

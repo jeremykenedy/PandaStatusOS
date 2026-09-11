@@ -44,7 +44,7 @@
   }
 
   function render() {
-    renderSb(); renderFx(); renderFxc(); renderFxp(); renderFxr();
+    renderSb(); renderFx(); renderFxc(); renderFxp(); renderFxr(); renderTg();
     var m = mode(), e = entry();
     if (m !== null && document.activeElement !== modeSel) modeSel.value = String(m);
     var isMusic = m === 0;
@@ -123,6 +123,36 @@
       if (focused !== inp) inp.value = w > 0 ? w : 3;
       $('ps-lighting-fxb-value-' + s).textContent = w > 0 ? String(w) : '—';
     }
+  }
+  // A10: which temperature the gradient follows and its ends, one setting for every state that runs it
+  function renderTg() {
+    var box = $('ps-lighting-tg'); if (!box) return;
+    var f = PS.features;
+    var on = !!(f && f.features && f.features.state_effects && f.features.fx_temp && f.config && f.config.temp_gradient);
+    box.hidden = !on;
+    if (!on) return;
+    var g = f.config.temp_gradient, sel = $('ps-lighting-tg-source'), lo = $('ps-lighting-tg-lo'), hi = $('ps-lighting-tg-hi');
+    if (document.activeElement !== sel) sel.value = String(g.source);
+    if (focused !== lo) lo.value = g.lo;
+    if (focused !== hi) hi.value = g.hi;
+    $('ps-lighting-tg-lo-value').textContent = g.lo + ' \u00B0C';
+    $('ps-lighting-tg-hi-value').textContent = g.hi + ' \u00B0C';
+  }
+  function wireTg() {
+    var sel = $('ps-lighting-tg-source'); if (!sel) return;
+    function post(patch) {
+      var f = PS.features; if (!f || !f.config || !f.config.temp_gradient) return;
+      var g = { source: f.config.temp_gradient.source, lo: f.config.temp_gradient.lo, hi: f.config.temp_gradient.hi };
+      Object.keys(patch).forEach(function (k) { g[k] = patch[k]; });
+      PS.api({ config: { temp_gradient: g } });
+    }
+    sel.addEventListener('change', function () { post({ source: Number(sel.value) }); });
+    document.querySelectorAll('[data-ps-tg]').forEach(function (inp) {
+      var k = inp.getAttribute('data-ps-tg');
+      inp.addEventListener('focus', function () { focused = inp; });
+      inp.addEventListener('blur', function () { if (focused === inp) focused = null; });
+      inp.addEventListener('change', function () { var o = {}; o[k] = Number(inp.value); post(o); });
+    });
   }
   function wireFxb() {
     document.querySelectorAll('[data-ps-fxb]').forEach(function (inp) {
@@ -314,7 +344,7 @@
     bright.addEventListener('input', function () { brightVal.textContent = bright.value + '%'; });
     bright.addEventListener('change', function () { PS.send('settings', { rgb_info_brightness: Number(bright.value) }); });
     for (var i = 0; i < 3; i++) { wireSb(i); wireFx(i); }
-    wireFxc(); wireFxp(); wireFxr(); wireFxb();
+    wireFxc(); wireFxp(); wireFxr(); wireFxb(); wireTg();
     speed.addEventListener('input', function () { if (speed.disabled) return; speedTouched = true; speedVal.textContent = speed.value + '%'; });
     speed.addEventListener('change', function () { if (!speed.disabled) PS.send('settings', { rgb_info_speed: Number(speed.value) }); });
 
@@ -339,5 +369,5 @@
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', wire); else wire();
   PS.on('state', function () { render(); });
-  PS.on('features', function () { renderSb(); renderFx(); renderFxc(); renderFxp(); renderFxr(); });
+  PS.on('features', function () { renderSb(); renderFx(); renderFxc(); renderFxp(); renderFxr(); renderTg(); });
 })();

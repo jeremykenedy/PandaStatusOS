@@ -330,5 +330,19 @@
   "ps_feature_fx_hue_ramp_help": "バー全体が1色で、印刷の進行に合わせて消灯色から点灯色へ変わります。",
   "ps_feature_fx_hue_ramp_aria": "進捗の色の変化",
   "ps_lighting_fxb_band": "帯の幅",
-  "ps_lighting_fxb_band_aria": "ポールの帯の幅（ピクセル）"
+  "ps_lighting_fxb_band_aria": "ポールの帯の幅（ピクセル）",
+  "ps_fx_temp_gradient": "温度グラデーション",
+  "ps_feature_fx_temp": "温度グラデーション",
+  "ps_feature_fx_temp_help": "バー全体が1色で、冷たい側の消灯色から熱い側の点灯色までを、プリンターの温度のひとつに合わせて変化します。",
+  "ps_feature_fx_temp_aria": "温度グラデーション",
+  "ps_lighting_tg_source": "追従する温度",
+  "ps_lighting_tg_source_aria": "グラデーションが追従する温度",
+  "ps_lighting_tsrc_nozzle": "ノズル",
+  "ps_lighting_tsrc_bed": "ベッド",
+  "ps_lighting_tsrc_chamber": "チャンバー",
+  "ps_lighting_tg_lo": "低温側",
+  "ps_lighting_tg_lo_aria": "低温側の温度（摂氏）",
+  "ps_lighting_tg_hi": "高温側",
+  "ps_lighting_tg_hi_aria": "高温側の温度（摂氏）",
+  "ps_lighting_tg_help": "温度グラデーションを表示する状態向けです。低温側より低いとバーは消灯色、高温側より高いと点灯色になります。"
 }

@@ -13,8 +13,9 @@ ps_state_t g_ps;
 
 void ps_state_init(void)
 {
-    g_ps.print_percent = -1;
     memset(&g_ps, 0, sizeof g_ps);
+    g_ps.print_percent = -1;                          /* after the memset: no report yet */
+    for (int i = 0; i < PS_TEMP_COUNT; i++) g_ps.temp_c[i] = PS_TEMP_NONE;
     ps_cfg_load(&g_ps.cfg);
     g_ps.sta_state = g_ps.cfg.wifi_ssid[0] ? PS_STA_CONNECTING : PS_STA_NOSSID;
     g_ps.printer_state = g_ps.cfg.printer_sn[0] || g_ps.cfg.printer_ip[0] ? PS_PRN_CONNECTING : PS_PRN_INVALID;

@@ -330,5 +330,19 @@
   "ps_feature_fx_hue_ramp_help": "Tutta la barra di un solo colore, che passa dal colore spento a quello acceso lungo la stampa.",
   "ps_feature_fx_hue_ramp_aria": "Sfumatura di avanzamento",
   "ps_lighting_fxb_band": "Larghezza della banda",
-  "ps_lighting_fxb_band_aria": "Larghezza delle bande in pixel"
+  "ps_lighting_fxb_band_aria": "Larghezza delle bande in pixel",
+  "ps_fx_temp_gradient": "Sfumatura di temperatura",
+  "ps_feature_fx_temp": "Sfumatura di temperatura",
+  "ps_feature_fx_temp_help": "Tutta la barra di un solo colore, tra il colore spento all'estremo freddo e quello acceso all'estremo caldo, seguendo una temperatura della stampante.",
+  "ps_feature_fx_temp_aria": "Sfumatura di temperatura",
+  "ps_lighting_tg_source": "Segue",
+  "ps_lighting_tg_source_aria": "Quale temperatura segue la sfumatura",
+  "ps_lighting_tsrc_nozzle": "Ugello",
+  "ps_lighting_tsrc_bed": "Piatto",
+  "ps_lighting_tsrc_chamber": "Camera",
+  "ps_lighting_tg_lo": "Freddo a",
+  "ps_lighting_tg_lo_aria": "Temperatura all'estremo freddo, gradi Celsius",
+  "ps_lighting_tg_hi": "Caldo a",
+  "ps_lighting_tg_hi_aria": "Temperatura all'estremo caldo, gradi Celsius",
+  "ps_lighting_tg_help": "Per gli stati che mostrano la sfumatura di temperatura. Sotto l'estremo freddo la barra mostra il colore spento; sopra quello caldo, il colore acceso."
 }

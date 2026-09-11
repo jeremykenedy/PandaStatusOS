@@ -330,5 +330,19 @@
   "ps_feature_fx_hue_ramp_help": "Toată bara într-o singură culoare, care trece de la culoarea stinsă la cea aprinsă pe parcursul imprimării.",
   "ps_feature_fx_hue_ramp_aria": "Gradient de progres",
   "ps_lighting_fxb_band": "Lățimea benzii",
-  "ps_lighting_fxb_band_aria": "Lățimea benzilor stâlpului în pixeli"
+  "ps_lighting_fxb_band_aria": "Lățimea benzilor stâlpului în pixeli",
+  "ps_fx_temp_gradient": "Gradient de temperatură",
+  "ps_feature_fx_temp": "Gradient de temperatură",
+  "ps_feature_fx_temp_help": "Toată bara într-o singură culoare, între culoarea stinsă la capătul rece și cea aprinsă la capătul fierbinte, urmărind o temperatură a imprimantei.",
+  "ps_feature_fx_temp_aria": "Gradient de temperatură",
+  "ps_lighting_tg_source": "Urmărește",
+  "ps_lighting_tg_source_aria": "Ce temperatură urmărește gradientul",
+  "ps_lighting_tsrc_nozzle": "Duză",
+  "ps_lighting_tsrc_bed": "Placă",
+  "ps_lighting_tsrc_chamber": "Cameră",
+  "ps_lighting_tg_lo": "Rece la",
+  "ps_lighting_tg_lo_aria": "Temperatura la capătul rece, grade Celsius",
+  "ps_lighting_tg_hi": "Fierbinte la",
+  "ps_lighting_tg_hi_aria": "Temperatura la capătul fierbinte, grade Celsius",
+  "ps_lighting_tg_help": "Pentru stările care arată gradientul de temperatură. Sub capătul rece bara arată culoarea stinsă; peste capătul fierbinte, culoarea aprinsă."
 }

@@ -330,5 +330,19 @@
   "ps_feature_fx_hue_ramp_help": "Tüm çubuk tek renkte, yazdırma boyunca sönük renkten yanan renge geçer.",
   "ps_feature_fx_hue_ramp_aria": "İlerleme renk geçişi",
   "ps_lighting_fxb_band": "Şerit genişliği",
-  "ps_lighting_fxb_band_aria": "Direğin şerit genişliği, piksel"
+  "ps_lighting_fxb_band_aria": "Direğin şerit genişliği, piksel",
+  "ps_fx_temp_gradient": "Sıcaklık geçişi",
+  "ps_feature_fx_temp": "Sıcaklık geçişi",
+  "ps_feature_fx_temp_help": "Tüm çubuk tek renkte, soğuk uçta sönük renk ile sıcak uçta yanan renk arasında, yazıcının bir sıcaklığını izler.",
+  "ps_feature_fx_temp_aria": "Sıcaklık geçişi",
+  "ps_lighting_tg_source": "İzlediği",
+  "ps_lighting_tg_source_aria": "Geçişin izlediği sıcaklık",
+  "ps_lighting_tsrc_nozzle": "Nozul",
+  "ps_lighting_tsrc_bed": "Tabla",
+  "ps_lighting_tsrc_chamber": "Hazne",
+  "ps_lighting_tg_lo": "Soğuk",
+  "ps_lighting_tg_lo_aria": "Soğuk uçtaki sıcaklık, santigrat derece",
+  "ps_lighting_tg_hi": "Sıcak",
+  "ps_lighting_tg_hi_aria": "Sıcak uçtaki sıcaklık, santigrat derece",
+  "ps_lighting_tg_help": "Sıcaklık geçişini gösteren durumlar için. Soğuk ucun altında çubuk sönük rengi, sıcak ucun üstünde yanan rengi gösterir."
 }
