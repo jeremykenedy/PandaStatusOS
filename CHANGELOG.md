@@ -18,6 +18,9 @@ Everything so far. No release has been made and no device has been flashed.
 - The clone's own JSON route, `/api/features`: the page discovers a clone by its 200 where
   the factory answers 302, and shows a Features card on the System page only then. The
   socket document stays the factory's (D-033).
+- A6 to A9, the effects that read the print, each behind its own switch: the progress
+  bar, the animated progress, the barber pole with its band width, and the colour ramp
+  across the print by hue; the print percentage from the report reaches the engine.
 - A5, the brightness ramp: each cycle the brightness sweeps from the effect's own value
   to a second one, behind `effect_ramp`, for the effects that set it.
 - A4, the effect's own brightness, speed and direction as one setting, behind
@@ -84,7 +87,7 @@ Everything so far. No release has been made and no device has been flashed.
 - A mock device with knobs for every lie a device can tell, and a wire harness that
   proves the mock before any page trusts it.
 - Page harnesses that drive every control and assert the exact frame the device
-  receives; a resilience harness with one lie per row; thirty sweep rows in all.
+  receives; a resilience harness with one lie per row; thirty-five sweep rows in all.
 - A pre-commit hook that keeps secrets and the vendor's expression out, with a
   57-case suite; a residue sweep over the tracked tree.
 - Tools to capture the printer's MQTT report stream and redact it, not yet run against

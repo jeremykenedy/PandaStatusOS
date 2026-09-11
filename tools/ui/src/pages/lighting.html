@@ -92,6 +92,10 @@
             <option value="14" data-ps-str="ps_fx_bounce_in">Bounce inward</option>
             <option value="15" data-ps-str="ps_fx_fill_empty_out">Fill and empty outward</option>
             <option value="16" data-ps-str="ps_fx_fill_empty_in">Fill and empty inward</option>
+            <option value="17" data-ps-fx-needs="fx_progress" data-ps-str="ps_fx_progress" hidden>Progress bar</option>
+            <option value="18" data-ps-fx-needs="fx_progress_anim" data-ps-str="ps_fx_progress_anim" hidden>Progress, animated</option>
+            <option value="19" data-ps-fx-needs="fx_barber" data-ps-str="ps_fx_barber" hidden>Barber pole</option>
+            <option value="21" data-ps-fx-needs="fx_hue_ramp" data-ps-str="ps_fx_progress_hue" hidden>Progress colour ramp</option>
             </select>
             <svg class="ps-icon"><use href="#ps-icon-chevron-down"/></svg>
           </div>
@@ -132,6 +136,11 @@
             <div class="ps-row"><span class="ps-tile-label" data-ps-str="ps_lighting_fxr_end">Ramp to</span><span class="max"></span><span class="ps-tile-label" id="ps-lighting-fxr-end-value-0" data-ps-no-i18n>—</span></div>
             <label class="slider" data-ps-no-i18n><input type="range" min="0" max="100" step="5" id="ps-lighting-fxr-end-0" data-ps-fxr-end="0" data-ps-str-aria="ps_lighting_fxr_end_aria" aria-label="End of the ramp"><span></span></label>
           </div>
+          <!-- A8, behind fx_barber, shown while this state's effect is the pole: its band width -->
+          <div class="ps-fxb" data-ps-fxb-state="0" hidden>
+            <div class="ps-row"><span class="ps-tile-label" data-ps-str="ps_lighting_fxb_band">Band width</span><span class="max"></span><span class="ps-tile-label" id="ps-lighting-fxb-value-0" data-ps-no-i18n>—</span></div>
+            <label class="slider" data-ps-no-i18n><input type="range" min="1" max="16" step="1" id="ps-lighting-fxb-0" data-ps-fxb="0" data-ps-str-aria="ps_lighting_fxb_band_aria" aria-label="Band width of the pole in pixels"><span></span></label>
+          </div>
         </div>
         <div>
           <div class="ps-tile-label" data-ps-str="ps_lighting_fx_printing">Printing</div>
@@ -154,6 +163,10 @@
             <option value="14" data-ps-str="ps_fx_bounce_in">Bounce inward</option>
             <option value="15" data-ps-str="ps_fx_fill_empty_out">Fill and empty outward</option>
             <option value="16" data-ps-str="ps_fx_fill_empty_in">Fill and empty inward</option>
+            <option value="17" data-ps-fx-needs="fx_progress" data-ps-str="ps_fx_progress" hidden>Progress bar</option>
+            <option value="18" data-ps-fx-needs="fx_progress_anim" data-ps-str="ps_fx_progress_anim" hidden>Progress, animated</option>
+            <option value="19" data-ps-fx-needs="fx_barber" data-ps-str="ps_fx_barber" hidden>Barber pole</option>
+            <option value="21" data-ps-fx-needs="fx_hue_ramp" data-ps-str="ps_fx_progress_hue" hidden>Progress colour ramp</option>
             </select>
             <svg class="ps-icon"><use href="#ps-icon-chevron-down"/></svg>
           </div>
@@ -194,6 +207,11 @@
             <div class="ps-row"><span class="ps-tile-label" data-ps-str="ps_lighting_fxr_end">Ramp to</span><span class="max"></span><span class="ps-tile-label" id="ps-lighting-fxr-end-value-1" data-ps-no-i18n>—</span></div>
             <label class="slider" data-ps-no-i18n><input type="range" min="0" max="100" step="5" id="ps-lighting-fxr-end-1" data-ps-fxr-end="1" data-ps-str-aria="ps_lighting_fxr_end_aria" aria-label="End of the ramp"><span></span></label>
           </div>
+          <!-- A8, behind fx_barber, shown while this state's effect is the pole: its band width -->
+          <div class="ps-fxb" data-ps-fxb-state="1" hidden>
+            <div class="ps-row"><span class="ps-tile-label" data-ps-str="ps_lighting_fxb_band">Band width</span><span class="max"></span><span class="ps-tile-label" id="ps-lighting-fxb-value-1" data-ps-no-i18n>—</span></div>
+            <label class="slider" data-ps-no-i18n><input type="range" min="1" max="16" step="1" id="ps-lighting-fxb-1" data-ps-fxb="1" data-ps-str-aria="ps_lighting_fxb_band_aria" aria-label="Band width of the pole in pixels"><span></span></label>
+          </div>
         </div>
         <div>
           <div class="ps-tile-label" data-ps-str="ps_lighting_fx_error">Error</div>
@@ -216,6 +234,10 @@
             <option value="14" data-ps-str="ps_fx_bounce_in">Bounce inward</option>
             <option value="15" data-ps-str="ps_fx_fill_empty_out">Fill and empty outward</option>
             <option value="16" data-ps-str="ps_fx_fill_empty_in">Fill and empty inward</option>
+            <option value="17" data-ps-fx-needs="fx_progress" data-ps-str="ps_fx_progress" hidden>Progress bar</option>
+            <option value="18" data-ps-fx-needs="fx_progress_anim" data-ps-str="ps_fx_progress_anim" hidden>Progress, animated</option>
+            <option value="19" data-ps-fx-needs="fx_barber" data-ps-str="ps_fx_barber" hidden>Barber pole</option>
+            <option value="21" data-ps-fx-needs="fx_hue_ramp" data-ps-str="ps_fx_progress_hue" hidden>Progress colour ramp</option>
             </select>
             <svg class="ps-icon"><use href="#ps-icon-chevron-down"/></svg>
           </div>
@@ -255,6 +277,11 @@
             </label>
             <div class="ps-row"><span class="ps-tile-label" data-ps-str="ps_lighting_fxr_end">Ramp to</span><span class="max"></span><span class="ps-tile-label" id="ps-lighting-fxr-end-value-2" data-ps-no-i18n>—</span></div>
             <label class="slider" data-ps-no-i18n><input type="range" min="0" max="100" step="5" id="ps-lighting-fxr-end-2" data-ps-fxr-end="2" data-ps-str-aria="ps_lighting_fxr_end_aria" aria-label="End of the ramp"><span></span></label>
+          </div>
+          <!-- A8, behind fx_barber, shown while this state's effect is the pole: its band width -->
+          <div class="ps-fxb" data-ps-fxb-state="2" hidden>
+            <div class="ps-row"><span class="ps-tile-label" data-ps-str="ps_lighting_fxb_band">Band width</span><span class="max"></span><span class="ps-tile-label" id="ps-lighting-fxb-value-2" data-ps-no-i18n>—</span></div>
+            <label class="slider" data-ps-no-i18n><input type="range" min="1" max="16" step="1" id="ps-lighting-fxb-2" data-ps-fxb="2" data-ps-str-aria="ps_lighting_fxb_band_aria" aria-label="Band width of the pole in pixels"><span></span></label>
           </div>
         </div>
       </div>

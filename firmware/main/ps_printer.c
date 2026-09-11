@@ -58,6 +58,13 @@ static void apply_report(const char *json, size_t len)
         ps_lock(); bool changed = g_ps.bar_state != bar || g_ps.job_active != job; g_ps.bar_state = bar; g_ps.job_active = job; ps_unlock();
         if (changed) { ESP_LOGI(TAG, "bar state %u", bar); ps_effect_notify(); }
     }
+    /* INFERENCE: print.mc_percent is the job's percentage, as the vent reads it from the same report */
+    cJSON *pc = print ? cJSON_GetObjectItemCaseSensitive(print, "mc_percent") : NULL;
+    if (cJSON_IsNumber(pc)) {
+        int v = (int)pc->valuedouble; if (v < 0) v = 0; if (v > 100) v = 100;
+        ps_lock(); bool moved = g_ps.print_percent != v; g_ps.print_percent = (int16_t)v; ps_unlock();
+        if (moved) ps_effect_notify();
+    }
     cJSON_Delete(doc);
 }
 

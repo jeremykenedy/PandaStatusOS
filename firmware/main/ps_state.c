@@ -13,6 +13,7 @@ ps_state_t g_ps;
 
 void ps_state_init(void)
 {
+    g_ps.print_percent = -1;
     memset(&g_ps, 0, sizeof g_ps);
     ps_cfg_load(&g_ps.cfg);
     g_ps.sta_state = g_ps.cfg.wifi_ssid[0] ? PS_STA_CONNECTING : PS_STA_NOSSID;

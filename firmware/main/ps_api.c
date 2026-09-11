@@ -28,6 +28,10 @@ static const struct { const char *name; uint32_t bit; } FEATURES[] = {
     { "effect_colours",   PS_FEAT_EFFECT_COLOURS },
     { "effect_params",    PS_FEAT_EFFECT_PARAMS },
     { "effect_ramp",      PS_FEAT_EFFECT_RAMP },
+    { "fx_progress",      PS_FEAT_FX_PROGRESS },
+    { "fx_progress_anim", PS_FEAT_FX_PROGRESS_ANIM },
+    { "fx_barber",        PS_FEAT_FX_BARBER },
+    { "fx_hue_ramp",      PS_FEAT_FX_HUE_RAMP },
 };
 
 static cJSON *fx_json(const ps_fx_cfg_t *f)
@@ -45,7 +49,7 @@ static cJSON *fx_json(const ps_fx_cfg_t *f)
 }
 
 /* one stored effect from its JSON: every key optional, any unknown key or bad value refuses */
-static bool fx_parse(cJSON *o, ps_fx_cfg_t *f)
+static bool fx_parse(cJSON *o, ps_fx_cfg_t *f, uint32_t feat)
 {
     if (!cJSON_IsObject(o)) return false;
     for (cJSON *it = o->child; it; it = it->next) {
@@ -57,7 +61,7 @@ static bool fx_parse(cJSON *o, ps_fx_cfg_t *f)
         }
         if (!cJSON_IsNumber(it) || it->valuedouble < 0) return false;
         int v = (int)it->valuedouble;
-        if      (!strcmp(k, "effect"))     { if (v >= PS_FX_SELECTABLE) return false; f->effect = (uint8_t)v; }
+        if      (!strcmp(k, "effect"))     { if (v != f->effect && !ps_fx_allowed(feat, v)) return false; f->effect = (uint8_t)v; }   /* echoing the stored id is never a change to refuse */
         else if (!strcmp(k, "brightness")) { if (v > 100) return false; f->brightness = (uint8_t)v; }
         else if (!strcmp(k, "speed"))      { if (v > 100) return false; f->speed = (uint8_t)v; }
         else if (!strcmp(k, "bright_end")) { if (v > 100) return false; f->bright_end = (uint8_t)v; }
@@ -112,12 +116,13 @@ int ps_features_apply(const char *json, size_t len)
     }
     uint8_t sb[2][3]; bool have_sb = false;
     ps_fx_cfg_t fx[3]; bool have_fx = false;
+    ps_lock(); uint32_t after = (g_ps.cfg.features | set) & ~clear; ps_unlock();   /* the bits this document leaves in force */
     if (cfg) {
         for (cJSON *it = cfg->child; it; it = it->next) {
             if (it->string && !strcmp(it->string, "state_effects")) {
                 if (!cJSON_IsArray(it) || cJSON_GetArraySize(it) != 3) { cJSON_Delete(root); return -1; }
                 ps_lock(); memcpy(fx, g_ps.cfg.fx, sizeof fx); ps_unlock();   /* partial objects overlay the stored block */
-                for (int s = 0; s < 3; s++) if (!fx_parse(cJSON_GetArrayItem(it, s), &fx[s])) { cJSON_Delete(root); return -1; }
+                for (int s = 0; s < 3; s++) if (!fx_parse(cJSON_GetArrayItem(it, s), &fx[s], after)) { cJSON_Delete(root); return -1; }
                 have_fx = true;
             } else if (it->string && !strcmp(it->string, "state_brightness")) {
                 if (!cJSON_IsArray(it) || cJSON_GetArraySize(it) != 2) { cJSON_Delete(root); return -1; }
@@ -143,6 +148,12 @@ int ps_features_apply(const char *json, size_t len)
     changed = g_ps.cfg.features != before;
     if (have_sb && memcmp(g_ps.cfg.state_brightness, sb, sizeof sb) != 0) { memcpy(g_ps.cfg.state_brightness, sb, sizeof sb); changed = true; }
     if (have_fx && memcmp(g_ps.cfg.fx, fx, sizeof fx) != 0) { memcpy(g_ps.cfg.fx, fx, sizeof fx); changed = true; }
+    /* a switch going off takes its effects with it: a stored id that needed the bit falls back to
+     * solid, so what is stored is always something the bits in force can render, and the next
+     * whole-table POST from the page is not refused for carrying it. The seventeen that come with
+     * state_effects are left alone when that switch goes off: they wait for it to come back. */
+    for (int s = 0; s < 3; s++)
+        if (g_ps.cfg.fx[s].effect >= PS_FX_SELECTABLE && !ps_fx_allowed(g_ps.cfg.features, g_ps.cfg.fx[s].effect)) { g_ps.cfg.fx[s].effect = PS_FX_STATIC; changed = true; }
     if (changed) ps_cfg_save(&g_ps.cfg);
     ps_unlock();
     if (changed) { ps_effect_notify(); ESP_LOGI(TAG, "features 0x%08x", (unsigned)g_ps.cfg.features); }

@@ -79,7 +79,7 @@ async function drive(browser, combo) {
   t(`${tag} C4 turning it on sends exactly {"features":{"state_brightness":true}}`, got.length === 1 && got[0] === apiFrame({ features: { state_brightness: true } }), got);
   t(`${tag} C5 the device's answer lands: switch on`, await page.waitForFunction(() => PS.features && PS.features.features.state_brightness === true, null, { timeout: 2000 }).then(() => true).catch(() => false)
     && (await page.$eval('#ps-system-feature-state-brightness', (el) => el.checked)));
-  await pw.shot(page, `features-system-on-${combo.theme}-${combo.width}`);
+  await pw.shot(page, `features-system-on-${combo.theme}-${combo.width}`, { full: true });
 
   // ---- the lighting page: the current mode's row ----
   await go(page, '#lighting');
@@ -122,7 +122,7 @@ async function drive(browser, combo) {
   await go(page, '#lighting');
   t(`${tag} E3 the effect tile shows with three selects at Solid`, await waitHidden(page, 'ps-lighting-fx', false)
     && (await val(page, 'ps-lighting-fx-0')) === '0' && (await val(page, 'ps-lighting-fx-1')) === '0' && (await val(page, 'ps-lighting-fx-2')) === '0');
-  t(`${tag} E4 the select offers the seventeen effects`, (await page.$eval('#ps-lighting-fx-1', (el) => el.options.length)) === 17);
+  t(`${tag} E4 the select offers the seventeen effects, the four that read the print hidden until their switches`, (await page.$eval('#ps-lighting-fx-1', (el) => [...el.options].filter((o) => !o.hidden).length)) === 17);
   n = await count();
   await $(page, 'ps-lighting-fx-1').selectOption('1');
   got = await sentAfter(n);
@@ -250,6 +250,80 @@ async function drive(browser, combo) {
   t(`${tag} I7 turning the ramp off sends exactly {"features":{"effect_ramp":false}}`, got.length === 1 && got[0] === apiFrame({ features: { effect_ramp: false } }), got);
   await go(page, '#lighting');
   t(`${tag} I8 the ramp boxes hide again`, await page.waitForFunction(() => [...document.querySelectorAll('[data-ps-fxr-state]')].every((e) => e.hidden), null, { timeout: 2000 }).then(() => true).catch(() => false));
+
+  // ---- A6 to A9: the effects that read the print, each behind its own switch ----
+  const post = (body) => page.evaluate(async (b) => { const r = await fetch('/api/features', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(b) }); return r.status; }, body);
+  cur = await page.evaluate(() => JSON.parse(JSON.stringify(PS.features.config.state_effects)));
+  { const refused = JSON.parse(JSON.stringify(cur)); refused[1].effect = 17;
+    t(`${tag} J1 with its switch off, the device refuses effect 17 (400)`, (await post({ config: { state_effects: refused } })) === 400); }
+  await go(page, '#system');
+  await waitHidden(page, 'ps-system-features', false);
+  for (const [name, id, label] of [['fx_progress', 17, 'progress'], ['fx_progress_anim', 18, 'animated progress'], ['fx_hue_ramp', 21, 'the colour ramp']]) {
+    n = await count();
+    await toggle(page, 'ps-system-feature-' + name.replace(/_/g, '-'));
+    got = await sentAfter(n);
+    t(`${tag} J2 turning ${label} on sends exactly its switch`, got.length === 1 && got[0] === apiFrame({ features: { [name]: true } }), got);
+    await page.waitForFunction((nm) => PS.features.features[nm] === true, name, { timeout: 2000 }).catch(() => {});
+  }
+  await go(page, '#lighting');
+  t(`${tag} J3 the printing select now offers twenty effects, the pole still hidden`, await page.waitForFunction(() => [...document.getElementById('ps-lighting-fx-1').options].filter((o) => !o.hidden).length === 20, null, { timeout: 2000 }).then(() => true).catch(() => false));
+  n = await count();
+  await $(page, 'ps-lighting-fx-1').selectOption('17');
+  got = await sentAfter(n);
+  cur = await page.evaluate(() => JSON.parse(JSON.stringify(PS.features.config.state_effects)));
+  want2 = JSON.parse(JSON.stringify(cur)); want2[1].effect = 17;
+  t(`${tag} J4 choosing the progress bar for printing sends the table with effect 17`, got.length === 1 && got[0] === apiFrame({ config: { state_effects: want2 } }), got);
+  await page.waitForFunction(() => PS.features.config.state_effects[1].effect === 17, null, { timeout: 2000 }).catch(() => {});
+  n = await count();
+  await $(page, 'ps-lighting-fx-0').selectOption('21');
+  got = await sentAfter(n);
+  cur = await page.evaluate(() => JSON.parse(JSON.stringify(PS.features.config.state_effects)));
+  want2 = JSON.parse(JSON.stringify(cur)); want2[0].effect = 21;
+  t(`${tag} J5 choosing the colour ramp for idle sends the table with effect 21`, got.length === 1 && got[0] === apiFrame({ config: { state_effects: want2 } }), got);
+  await page.waitForFunction(() => PS.features.config.state_effects[0].effect === 21, null, { timeout: 2000 }).catch(() => {});
+  t(`${tag} J6 no band width box while the pole's switch is off`, await page.$$eval('[data-ps-fxb-state]', (els) => els.every((e) => e.hidden)));
+  await go(page, '#system');
+  await waitHidden(page, 'ps-system-features', false);
+  n = await count();
+  await toggle(page, 'ps-system-feature-fx-barber');
+  got = await sentAfter(n);
+  t(`${tag} J7 turning the pole on sends exactly {"features":{"fx_barber":true}}`, got.length === 1 && got[0] === apiFrame({ features: { fx_barber: true } }), got);
+  await page.waitForFunction(() => PS.features.features.fx_barber === true, null, { timeout: 2000 }).catch(() => {});
+  await go(page, '#lighting');
+  n = await count();
+  await $(page, 'ps-lighting-fx-2').selectOption('19');
+  got = await sentAfter(n);
+  cur = await page.evaluate(() => JSON.parse(JSON.stringify(PS.features.config.state_effects)));
+  want2 = JSON.parse(JSON.stringify(cur)); want2[2].effect = 19;
+  t(`${tag} J8 choosing the pole for error sends the table with effect 19`, got.length === 1 && got[0] === apiFrame({ config: { state_effects: want2 } }), got);
+  t(`${tag} J9 the band width box shows for that state only`, await page.waitForFunction(() => { const b = [...document.querySelectorAll('[data-ps-fxb-state]')]; return !b[2].hidden && b[0].hidden && b[1].hidden; }, null, { timeout: 2000 }).then(() => true).catch(() => false));
+  n = await count();
+  await nudge(page, 'ps-lighting-fxb-2', 'ArrowRight');
+  got = await sentAfter(n);
+  cur = await page.evaluate(() => JSON.parse(JSON.stringify(PS.features.config.state_effects)));
+  want2 = JSON.parse(JSON.stringify(cur)); want2[2].aux = 4; want2[2].opt = want2[2].opt | 0x08;
+  t(`${tag} J10 nudging the band width sends aux 4 with its bit set`, got.length === 1 && got[0] === apiFrame({ config: { state_effects: want2 } }), got);
+  t(`${tag} J11 the answer lands: the label reads 4`, await page.waitForFunction(() => document.getElementById('ps-lighting-fxb-value-2').textContent === '4', null, { timeout: 2000 }).then(() => true).catch(() => false));
+  await pw.shot(page, `features-lighting-fxprog-${combo.theme}-${combo.width}`, { full: true });
+  await go(page, '#system');
+  await waitHidden(page, 'ps-system-features', false);
+  for (const name of ['fx_progress', 'fx_progress_anim', 'fx_barber', 'fx_hue_ramp']) {
+    n = await count();
+    await toggle(page, 'ps-system-feature-' + name.replace(/_/g, '-'));
+    got = await sentAfter(n);
+    t(`${tag} J12 turning ${name} off sends exactly its switch`, got.length === 1 && got[0] === apiFrame({ features: { [name]: false } }), got);
+    await page.waitForFunction((nm) => PS.features.features[nm] === false, name, { timeout: 2000 }).catch(() => {});
+  }
+  await go(page, '#lighting');
+  t(`${tag} J13 the four options hide again`, await page.waitForFunction(() => [...document.getElementById('ps-lighting-fx-1').options].filter((o) => !o.hidden).length === 17, null, { timeout: 2000 }).then(() => true).catch(() => false));
+  t(`${tag} J14 the switches took their effects with them: all three states read Static`, (await val(page, 'ps-lighting-fx-0')) === '0' && (await val(page, 'ps-lighting-fx-1')) === '0' && (await val(page, 'ps-lighting-fx-2')) === '0');
+  n = await count();
+  await $(page, 'ps-lighting-fx-1').selectOption('1');
+  got = await sentAfter(n);
+  cur = await page.evaluate(() => JSON.parse(JSON.stringify(PS.features.config.state_effects)));
+  want2 = JSON.parse(JSON.stringify(cur)); want2[1].effect = 1;
+  t(`${tag} J15 Breathing for printing again sends the table with effect 1, the fallen-back ids echoed and accepted`, got.length === 1 && got[0] === apiFrame({ config: { state_effects: want2 } }), got);
+  await page.waitForFunction(() => PS.features.config.state_effects[1].effect === 1, null, { timeout: 2000 }).catch(() => {});
   await go(page, '#system');
   await waitHidden(page, 'ps-system-features', false);
   n = await count();

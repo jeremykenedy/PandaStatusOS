@@ -127,9 +127,11 @@ order, not against the list order.
 
 ### More than seven effects
 
-**BUILT (A2, D-034).** Feature bit 2, `state_effects`: the engine from PandaVentOS,
-seventeen effects selectable per bar state in H2D, the rest of the engine waiting on their
-inputs ([FEATURES.md](FEATURES.md)).
+**BUILT (A2, D-034; A6 to A9, D-035).** Feature bit 2, `state_effects`: the engine from
+PandaVentOS, seventeen effects selectable per bar state in H2D. Bits 6 to 9 add the four
+that read the print (the progress bar, its animated form, the barber pole with its band
+width, and the colour ramp across the print), each behind its own switch; the temperature
+gradient waits on the temperatures from the report ([FEATURES.md](FEATURES.md)).
 
 **What it does.** Progress bar driven by real print progress, animated progress,
 barber-pole stripe, temperature gradient, error strobe with configurable colour and rate.
@@ -182,6 +184,10 @@ Bambu LAN behaviour, not something established here. This repo has read the brow
 protocol only. The MQTT half is Phase 1 work and nothing about it is recorded yet.
 
 ### Layer or ETA as a ramp along the bar
+
+**The print's percentage as a ramp: BUILT (A6 to A9).** The progress bar, its animated
+form, the barber pole and the colour ramp across the print are effects behind their own
+switches ([FEATURES.md](FEATURES.md)); layer and ETA still wait for their fields.
 
 **What it does.** Encode progress spatially: the bar fills as the print advances, by layer
 or by time remaining.

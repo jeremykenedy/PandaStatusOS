@@ -67,7 +67,7 @@ int main(void)
 
     /* every effect, many frames, two lengths: bounded, finite, a sane period */
     { int bad = 0; long worst = 0;
-      for (int fx = 0; fx < PS_FX_COUNT; fx++) for (int n = 8; n <= 16; n += 8) for (int rev = 0; rev < 2; rev++) {
+      for (int fx = 0; fx < PS_FX_COUNT; fx++) for (int n = 8; n <= 16; n += 8) for (int rev = 0; rev < 2; rev++) {   /* the hue ramp included */
           ps_fx_phase_init(&p);
           ps_fx_in_t in = { 42, 40, 25, 60 };
           for (int k = 0; k < 300; k++) {
@@ -103,6 +103,31 @@ int main(void)
       t("gradient: cold is the inactive colour exactly, hot the active exactly", px[0].g == 160 && px[0].b == 0 && py[0].g == 255 && py[0].b == 255, py[0].b);
       ps_fx_render(PS_FX_TEMP_GRADIENT, WHITE, AMBER, 100, 50, false, 0, &mid, &p, px, 4);
       t("gradient: midway is between the two", px[0].b > 0 && px[0].b < 255, px[0].b); }
+
+    /* which ids the bits allow */
+    t("nothing is allowed with every bit clear", !ps_fx_allowed(0, PS_FX_STATIC) && !ps_fx_allowed(0, PS_FX_PROGRESS), 0);
+    t("A2 allows the seventeen and none of the input effects", ps_fx_allowed(PS_FEAT_STATE_EFFECTS, 16) && !ps_fx_allowed(PS_FEAT_STATE_EFFECTS, PS_FX_PROGRESS) && !ps_fx_allowed(PS_FEAT_STATE_EFFECTS, PS_FX_PROGRESS_HUE), 0);
+    t("each input effect waits for its own switch", ps_fx_allowed(PS_FEAT_FX_PROGRESS, PS_FX_PROGRESS) && !ps_fx_allowed(PS_FEAT_FX_PROGRESS, PS_FX_PROGRESS_ANIM)
+      && ps_fx_allowed(PS_FEAT_FX_PROGRESS_ANIM, PS_FX_PROGRESS_ANIM) && ps_fx_allowed(PS_FEAT_FX_BARBER, PS_FX_BARBER) && ps_fx_allowed(PS_FEAT_FX_HUE_RAMP, PS_FX_PROGRESS_HUE) && !ps_fx_allowed(PS_FEAT_FX_HUE_RAMP, PS_FX_TEMP_GRADIENT), 0);
+    t("an id past the count is never allowed", !ps_fx_allowed(0xFFFFFFFFu, PS_FX_COUNT) && !ps_fx_allowed(0xFFFFFFFFu, -1), 0);
+    { ps_cfg_t c; memset(&c, 0, sizeof c); c.features = PS_FEAT_STATE_EFFECTS; c.fx[0].effect = PS_FX_PROGRESS; ps_fx_pick_t k;
+      ps_fx_resolve(&c, PS_MODE_H2D, PS_BAR_IDLE, false, &k); t("a stored progress id with its switch off resolves to solid", k.fx == PS_FX_STATIC, k.fx);
+      c.features |= PS_FEAT_FX_PROGRESS; ps_fx_resolve(&c, PS_MODE_H2D, PS_BAR_IDLE, false, &k); t("and to itself once the switch is on", k.fx == PS_FX_PROGRESS, k.fx); }
+
+    /* the colour ramp across the print */
+    { ps_rgba_t green = { 0, 255, 0, 255 }; ps_fx_in_t z = { 0, -1000, 0, 0 }, full = { 100, -1000, 0, 0 }, half = { 50, -1000, 0, 0 };
+      ps_fx_phase_init(&p);
+      ps_fx_render(PS_FX_PROGRESS_HUE, green, BLACK, 100, 50, false, 0, &z, &p, px, 4);
+      t("hue ramp at 0% with no unlit colour starts a third of the wheel back: red for green", px[0].r == 255 && px[0].g == 0 && px[0].b == 0, px[0].r);
+      ps_fx_render(PS_FX_PROGRESS_HUE, green, BLACK, 100, 50, false, 0, &full, &p, px, 4);
+      t("hue ramp at 100% is the lit colour exactly", px[0].r == 0 && px[0].g == 255 && px[0].b == 0, px[0].g);
+      ps_fx_render(PS_FX_PROGRESS_HUE, green, BLACK, 100, 50, false, 0, &half, &p, px, 4);
+      t("hue ramp at 50% passes through the wheel, yellow, not through grey", px[0].r == 255 && px[0].g == 255 && px[0].b == 0, px[0].r);
+      ps_rgba_t blue = { 0, 0, 255, 255 };
+      ps_fx_render(PS_FX_PROGRESS_HUE, green, blue, 100, 50, false, 0, &z, &p, px, 4);
+      t("hue ramp with an unlit colour starts there", px[0].b == 255 && px[0].g == 0, px[0].b);
+      ps_fx_render(PS_FX_PROGRESS_HUE, green, blue, 100, 50, false, 0, &half, &p, px, 4);
+      t("halfway from blue to green is cyan", px[0].g == 255 && px[0].b == 255 && px[0].r == 0, px[0].g); }
 
     /* an unknown id renders as the rainbow rather than nothing */
     ps_fx_phase_init(&p);

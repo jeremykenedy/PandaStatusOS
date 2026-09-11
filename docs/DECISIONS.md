@@ -812,4 +812,50 @@ placeholder's replacement, not an effect, and stays outside the engine.
 
 ---
 
+## D-035 An effect that reads the print waits for its own switch; a switch going off takes its effects with it
+
+**Date** 2026-09-10 · **Reversal** cheap (one predicate in the engine, mirrored in the mock; one loop in the apply path)
+
+**Decided.** The seventeen effects that need no live input come with `state_effects`
+(A2). Each effect that reads the print has its own bit (6 progress bar, 7 animated
+progress, 8 barber pole, 9 colour ramp; 10 reserved for the temperature gradient), and
+`ps_fx_allowed(features, id)` is the one place that says which ids the bits in force
+allow. Three rules follow from it, in the firmware and in the mock alike:
+
+1. `POST /api/features` refuses an effect id that **changes** to one the document's own
+   bits do not allow (400, the whole document). Echoing a stored id back is never a
+   change, so a client can always return what it read.
+2. A switch going off writes every stored id that needed it back to solid (0), so what is
+   stored is always something the bits in force can render, and the page's next
+   whole-table POST is not refused for carrying an id that was legal a moment ago. The
+   seventeen are left alone when `state_effects` goes off: they wait for it to come back.
+3. The renderer falls back to solid for any stored id its bits do not allow, which after
+   rule 2 only happens to a blob written by another build.
+
+The colour ramp (A9, id 21, this project's own effect, not in the vent's engine) runs
+the whole strip as one colour from the unlit colour at 0% to the lit colour at 100%,
+interpolated by hue the short way round so the ramp passes through the wheel rather
+than through grey. With no unlit colour set it starts a third of the wheel behind the
+lit colour, so green is reached through red and yellow, and blue through green and
+cyan. With no reading it holds the start, because a print that has not reported is not
+done.
+
+**Alternatives.** One switch for all four (the queue lists them as four items with four
+flags, and a flag per item is Rule 5); validating ids against the bits before the
+document (a document that turns a switch on and picks its effect in one POST would be
+refused); leaving stored ids in place when a switch goes off (the first whole-table POST
+after that is refused, and the page cannot recover from it, which the harness found:
+the reload check after the J block failed on a stored 17); refusing an unchanged id
+(a client that echoes the document it read would be refused under a switch it did not
+touch); the ramp through RGB (passes through grey between complementary colours).
+
+**Why.** The page posts the whole three-state table on every change, so the stored table
+has to stay acceptable under the bits in force or the page wedges. Rule 2 keeps the
+invariant and rule 1 keeps the refusal precise.
+
+**What would change it.** The capture showing `print.mc_percent` is not the field, or
+not the scale, the progress effects read (INFERENCE today; they would follow the field).
+
+---
+
 *Entries continue below as the run proceeds.*

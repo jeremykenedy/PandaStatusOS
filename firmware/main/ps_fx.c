@@ -55,6 +55,42 @@ static ps_rgba_t hsv_full(uint16_t h)
     }
 }
 
+/* general HSV both ways, for the effects that interpolate colours by hue */
+static void rgb_to_hsv(ps_rgba_t c, float *h, float *s, float *v)
+{
+    float r = c.r / 255.0f, g = c.g / 255.0f, b = c.b / 255.0f;
+    float mx = r > g ? (r > b ? r : b) : (g > b ? g : b), mn = r < g ? (r < b ? r : b) : (g < b ? g : b), d = mx - mn;
+    *v = mx; *s = mx > 0.0f ? d / mx : 0.0f;
+    if (d <= 0.0f) { *h = 0.0f; return; }
+    float hh = (mx == r) ? (g - b) / d + (g < b ? 6.0f : 0.0f) : (mx == g) ? (b - r) / d + 2.0f : (r - g) / d + 4.0f;
+    *h = hh * 60.0f;
+}
+static ps_rgba_t hsv_to_rgb(float h, float s, float v)
+{
+    while (h < 0.0f) h += 360.0f;
+    while (h >= 360.0f) h -= 360.0f;
+    float c = v * s, x = c * (1.0f - fabsf(fmodf(h / 60.0f, 2.0f) - 1.0f)), m = v - c, r, g, b;
+    if (h < 60) { r = c; g = x; b = 0; } else if (h < 120) { r = x; g = c; b = 0; } else if (h < 180) { r = 0; g = c; b = x; }
+    else if (h < 240) { r = 0; g = x; b = c; } else if (h < 300) { r = x; g = 0; b = c; } else { r = c; g = 0; b = x; }
+    return (ps_rgba_t){ (uint8_t)((r + m) * 255.0f + 0.5f), (uint8_t)((g + m) * 255.0f + 0.5f), (uint8_t)((b + m) * 255.0f + 0.5f), 0xFF };
+}
+
+/* Which effects the bits allow. The first seventeen need no live input and come with A2;
+ * the ones that read the print or the printer each wait for their own switch. */
+bool ps_fx_allowed(uint32_t features, int fx)
+{
+    if (fx < 0 || fx >= PS_FX_COUNT) return false;
+    if (fx < PS_FX_SELECTABLE) return (features & PS_FEAT_STATE_EFFECTS) != 0;
+    switch (fx) {
+    case PS_FX_PROGRESS:      return (features & PS_FEAT_FX_PROGRESS) != 0;
+    case PS_FX_PROGRESS_ANIM: return (features & PS_FEAT_FX_PROGRESS_ANIM) != 0;
+    case PS_FX_BARBER:        return (features & PS_FEAT_FX_BARBER) != 0;
+    case PS_FX_PROGRESS_HUE:  return (features & PS_FEAT_FX_HUE_RAMP) != 0;
+    case PS_FX_TEMP_GRADIENT: return (features & PS_FEAT_FX_TEMP) != 0;
+    default: return false;
+    }
+}
+
 /* speed 0..100 -> frame interval, geometric: each equal step in speed multiplies the frame
  * RATE by a constant, because liveliness reads as a ratio. 16 ms at 100 so the fast end
  * stays smooth, 500 ms at 0 so it is a slow pulse rather than a stall. */
@@ -108,7 +144,7 @@ void ps_fx_resolve(const ps_cfg_t *c, uint8_t mode, uint8_t st, bool job_active,
     o->speed = m->speed;
     o->reverse = false; o->bright_end = -1; o->band = 0;
     if (mode != PS_MODE_H2D || !(feat & PS_FEAT_STATE_EFFECTS)) return;
-    o->fx = f->effect < PS_FX_SELECTABLE ? f->effect : PS_FX_STATIC;
+    o->fx = ps_fx_allowed(feat, f->effect) ? f->effect : PS_FX_STATIC;   /* a stored id whose switch is off falls back to solid */
     if (feat & PS_FEAT_EFFECT_COLOURS) {
         o->colour = f->colour[job_active ? 0 : 1];
         uint8_t bit = job_active ? PS_FX_OPT_BG_PRINTING : PS_FX_OPT_BG_IDLE;
@@ -349,6 +385,26 @@ uint32_t ps_fx_render(int fx, ps_rgba_t colour, ps_rgba_t bg, uint8_t bright100,
         int tC = in ? in->temp_c : -1000;
         float f = (tC < lo) ? 0.0f : (tC >= hi) ? 1.0f : (float)(tC - lo) / (float)(hi - lo);
         for (int i = 0; i < n; i++) px[i] = mix3(colour, bg, bright100, f);
+        return ps_fx_period(speed);
+    }
+
+    /* the print as a colour: the whole strip one colour, from the unlit colour at 0% to the
+     * lit colour at 100%, interpolated by hue the short way round so the ramp passes through
+     * the wheel rather than through grey. With no unlit colour set the ramp starts a third
+     * of the wheel behind the lit colour, which puts red before green and blue before red.
+     * With no reading it holds the start, because a print that has not reported is not done. */
+    case PS_FX_PROGRESS_HUE: {
+        float h1, s1, v1, h0, s0, v0;
+        rgb_to_hsv(colour, &h1, &s1, &v1);
+        if (bg.r || bg.g || bg.b) rgb_to_hsv(bg, &h0, &s0, &v0); else { h0 = h1 - 120.0f; s0 = s1; v0 = v1; }
+        int pc = in && in->percent >= 0 ? (in->percent > 100 ? 100 : in->percent) : 0;
+        float f = pc / 100.0f;
+        float dh = h1 - h0;
+        while (dh > 180.0f) dh -= 360.0f;
+        while (dh < -180.0f) dh += 360.0f;
+        ps_rgba_t c = hsv_to_rgb(h0 + dh * f, s0 + (s1 - s0) * f, v0 + (v1 - v0) * f);
+        ps_rgba_t o = { chan(c.r, bright100), chan(c.g, bright100), chan(c.b, bright100), 0xFF };
+        for (int i = 0; i < n; i++) px[i] = o;
         return ps_fx_period(speed);
     }
 

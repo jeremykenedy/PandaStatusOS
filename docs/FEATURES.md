@@ -17,6 +17,11 @@ exists so the rule has a home before any feature does. Its value is zero.
 | 3 | `effect_colours` | the effect's own four colours: lit and unlit, each for printing and for otherwise, instead of the state colour (A3) | off | A2; "printing" is a job running, preparing or paused, INFERENCE until the capture |
 | 4 | `effect_params` | the effect's own brightness, speed and direction as one setting, over the factory's sliders and over A1's per-state brightness (A4) | off | A2 |
 | 5 | `effect_ramp` | the brightness sweeps each cycle from the effect's own value to a second one, then starts over, for effects that set it (A5) | off | A4 |
+| 6 | `fx_progress` | the progress bar effect may be chosen: the bar fills with `print.mc_percent` (INFERENCE from the report) (A6) | off | A2; a printer bound |
+| 7 | `fx_progress_anim` | the animated progress effect: the fill with a chase and a breathing tip (A7) | off | A2; a printer bound |
+| 8 | `fx_barber` | the barber pole through the fill, with its band width in the effect's `aux` (A8) | off | A2; a printer bound |
+| 9 | `fx_hue_ramp` | the colour ramp across the print: one colour from the unlit colour to the lit colour, by hue (A9) | off | A2; a printer bound |
+| 10 | `fx_temp` | reserved for A10: the temperature gradient | off | A2; the temperatures from the report |
 
 ## How a feature reaches the page
 
@@ -32,8 +37,14 @@ POST /api/features   {"features":{…}} and/or {"config":{…}}: taken whole or 
 `config.state_effects` is three objects, one per bar state, each `{effect, brightness,
 speed, bright_end, opt, aux, colours[4]}` in the engine's model; a POST may carry any
 subset of an object's keys, and the whole three-object array is required. Which keys the
-renderer reads depends on which bits are on (A2 reads `effect`; A3 to A5 will read the
-rest), so a setting can be made before its switch exists and takes effect when it does.
+renderer reads depends on which bits are on (A2 reads `effect`; A3 to A5 read the rest),
+so a setting can be made before its switch exists and takes effect when it does. An
+effect id that changes must be allowed under the bits the same document leaves in force:
+the seventeen that need no live input come with `state_effects`, and each effect that reads
+the print waits for its own switch. Echoing a stored id back is never refused. A switch
+going off takes its effects with it: a stored id that needed the bit falls back to solid
+in the config, so the page's next whole-table POST is not refused for carrying it; the
+seventeen wait for `state_effects` to come back.
 
 The factory answers 302 to that path like any unknown one, so the page knows which device
 it is talking to by the 200: against the factory it shows nothing the factory page would

@@ -99,7 +99,43 @@
     var on = !!(f && f.features && f.features.state_effects && f.config && f.config.state_effects && f.config.state_effects.length === 3);
     tile.hidden = !on;
     if (!on) return;
-    for (var i = 0; i < 3; i++) if (document.activeElement !== fxSel[i]) fxSel[i].value = String(f.config.state_effects[i].effect);
+    for (var i = 0; i < 3; i++) {
+      // the effects that read the print each wait for their own switch: hidden until it is on
+      Array.prototype.forEach.call(fxSel[i].options, function (opt) {
+        var needs = opt.getAttribute('data-ps-fx-needs');
+        if (needs) { var ok = !!f.features[needs]; opt.hidden = !ok; opt.disabled = !ok; }
+      });
+      if (document.activeElement !== fxSel[i]) fxSel[i].value = String(f.config.state_effects[i].effect);
+    }
+    renderFxb();
+  }
+  // A8: the pole's band width, only while the pole is this state's effect and its switch is on
+  var AUX_BIT = 0x08;
+  function renderFxb() {
+    var f = PS.features;
+    for (var s = 0; s < 3; s++) {
+      var box = document.querySelector('[data-ps-fxb-state="' + s + '"]'); if (!box) continue;
+      var e = f && f.config && f.config.state_effects && f.config.state_effects[s];
+      var on = !!(e && f.features.state_effects && f.features.fx_barber && e.effect === 19);
+      box.hidden = !on;
+      if (!on) continue;
+      var inp = $('ps-lighting-fxb-' + s), w = (e.opt & AUX_BIT) ? e.aux : 0;
+      if (focused !== inp) inp.value = w > 0 ? w : 3;
+      $('ps-lighting-fxb-value-' + s).textContent = w > 0 ? String(w) : '—';
+    }
+  }
+  function wireFxb() {
+    document.querySelectorAll('[data-ps-fxb]').forEach(function (inp) {
+      var s = Number(inp.getAttribute('data-ps-fxb'));
+      inp.addEventListener('focus', function () { focused = inp; });
+      inp.addEventListener('blur', function () { if (focused === inp) focused = null; });
+      inp.addEventListener('change', function () {
+        var f = PS.features; if (!f || !f.config || !f.config.state_effects) return;
+        var cfg = JSON.parse(JSON.stringify(f.config.state_effects));
+        cfg[s].aux = Number(inp.value); cfg[s].opt = cfg[s].opt | AUX_BIT;
+        PS.api({ config: { state_effects: cfg } });
+      });
+    });
   }
   function wireFx(i) {
     fxSel[i] = $('ps-lighting-fx-' + i);
@@ -278,7 +314,7 @@
     bright.addEventListener('input', function () { brightVal.textContent = bright.value + '%'; });
     bright.addEventListener('change', function () { PS.send('settings', { rgb_info_brightness: Number(bright.value) }); });
     for (var i = 0; i < 3; i++) { wireSb(i); wireFx(i); }
-    wireFxc(); wireFxp(); wireFxr();
+    wireFxc(); wireFxp(); wireFxr(); wireFxb();
     speed.addEventListener('input', function () { if (speed.disabled) return; speedTouched = true; speedVal.textContent = speed.value + '%'; });
     speed.addEventListener('change', function () { if (!speed.disabled) PS.send('settings', { rgb_info_speed: Number(speed.value) }); });
 

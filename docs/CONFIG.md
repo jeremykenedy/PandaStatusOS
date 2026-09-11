@@ -39,7 +39,7 @@ this table with it.
 | `block[15].id` | u8 | 0 to 255 | segment 0 | v1 | `block.blockID` |
 | `block[15].colour` | RGBA | any | white | v1 | `block.blockrgba` |
 | `state_brightness[2][3]` | u8 | 0 to 100 | 50 everywhere, the same as the global default | v2 | `POST /api/features` `config.state_brightness`; read by the renderer only while feature bit 1 is set (A1) |
-| `fx[3].effect` | u8 | an `enum ps_fx` id below 17 | 0, solid | v3 | `POST /api/features` `config.state_effects[].effect`; read in H2D while bit 2 is set (A2) |
+| `fx[3].effect` | u8 | an `enum ps_fx` id the bits allow: below 17 with bit 2; 17, 18, 19 and 21 with bits 6 to 9 (A6 to A9) | 0, solid | v3 | `POST /api/features` `config.state_effects[].effect`; read in H2D while bit 2 is set (A2); an id whose own bit goes off is written back to 0 |
 | `fx[3].brightness`, `.speed` | u8 | 0 to 100 | 50, 100 | v3 | `config.state_effects[]`; read while bit 4 is set (A4), with `opt` bit 0x10 as the direction and `aux` as the band width when `opt` bit 0x08 is set |
 | `fx[3].bright_end` | u8 | 0 to 100 | 0 | v3 | `config.state_effects[]`; read while bits 4 and 5 are set and `opt` bit 0x04 is set (A5) |
 | `fx[3].opt`, `.aux` | u8 | option bits (0x01, 0x02 unlit colours set; 0x04 ramp; 0x08 aux set; 0x10 reverse), one number for the effect that reads it | 0 | v3 | `config.state_effects[]`; A3 to A5 |

@@ -46,7 +46,12 @@ extern const char *const ps_gif_slot_names[PS_GIF_SLOTS];
 #define PS_FEAT_STATE_EFFECTS     (1u << 2)   /* A2: an effect per bar state in H2D, in the state's colour */
 #define PS_FEAT_EFFECT_COLOURS    (1u << 3)   /* A3, reserved: the effect's own four colours */
 #define PS_FEAT_EFFECT_PARAMS     (1u << 4)   /* A4, reserved: the effect's own brightness, speed, direction */
-#define PS_FEAT_EFFECT_RAMP       (1u << 5)   /* A5, reserved: the brightness ramp */
+#define PS_FEAT_EFFECT_RAMP       (1u << 5)   /* A5: the brightness ramp */
+#define PS_FEAT_FX_PROGRESS       (1u << 6)   /* A6: the progress bar effect may be chosen */
+#define PS_FEAT_FX_PROGRESS_ANIM  (1u << 7)   /* A7: the animated progress effect */
+#define PS_FEAT_FX_BARBER         (1u << 8)   /* A8: the barber pole, with its band width */
+#define PS_FEAT_FX_HUE_RAMP       (1u << 9)   /* A9: the colour ramp across the print */
+#define PS_FEAT_FX_TEMP           (1u << 10)  /* A10, reserved: the temperature gradient */
 
 typedef struct { uint8_t r, g, b, a; } ps_rgba_t;
 
@@ -56,9 +61,11 @@ enum ps_fx {
     PS_FX_CYLON, PS_FX_BOUNCE, PS_FX_MARQUEE_OUT, PS_FX_MARQUEE_IN, PS_FX_FILL_OUT, PS_FX_FILL_IN,
     PS_FX_BOUNCE_OUT, PS_FX_BOUNCE_IN, PS_FX_BOUNCE_FILL_OUT, PS_FX_BOUNCE_FILL_IN,
     PS_FX_PROGRESS, PS_FX_PROGRESS_ANIM, PS_FX_BARBER, PS_FX_TEMP_GRADIENT,
+    PS_FX_PROGRESS_HUE,
     PS_FX_COUNT
 };
 #define PS_FX_SELECTABLE 17    /* A2 offers ids 0..16, the ones that need no live input; the rest arrive with their features */
+bool ps_fx_allowed(uint32_t features, int fx);   /* may this effect be chosen under these bits? */
 #define PS_FX_RAMP_STEPS 100
 
 /* one effect's stored parameters; the vent's model. Which fields are read depends on the
@@ -175,6 +182,7 @@ typedef struct {
     ps_printer_hit_t printer_list[8];
     uint8_t  bar_state;                /* enum ps_bar_state, driven by the printer */
     uint8_t  job_active;               /* INFERENCE: a job is running, preparing or paused; the printing/not-printing crossing for A3's colours */
+    int16_t  print_percent;            /* INFERENCE: print.mc_percent from the report, -1 until one arrives; the progress effects' input */
     /* images */
     char     img_version[16];          /* empty until an image pack says otherwise */
 } ps_state_t;
