@@ -294,5 +294,15 @@
   "ps_lighting_fxc_active_idle": "Горящий иначе",
   "ps_lighting_fxc_bg_printing": "Погашенный при печати",
   "ps_lighting_fxc_bg_idle": "Погашенный иначе",
-  "ps_lighting_fxc_clear_aria": "Очистить погашенный цвет"
+  "ps_lighting_fxc_clear_aria": "Очистить погашенный цвет",
+  "ps_feature_effect_params": "Яркость, скорость и направление для каждого эффекта",
+  "ps_feature_effect_params_help": "Каждый эффект несёт свои яркость, скорость и направление как одну настройку вместо ползунков выше.",
+  "ps_feature_effect_params_aria": "Яркость, скорость и направление для каждого эффекта",
+  "ps_lighting_fxp_help": "Пока это включено, ползунки выше к эффектам не относятся; у каждого эффекта свои значения здесь.",
+  "ps_lighting_fxp_brightness": "Яркость",
+  "ps_lighting_fxp_speed": "Скорость",
+  "ps_lighting_fxp_reverse": "В обратную сторону",
+  "ps_lighting_fxp_brightness_aria": "Яркость эффекта",
+  "ps_lighting_fxp_speed_aria": "Скорость эффекта",
+  "ps_lighting_fxp_reverse_aria": "Запустить эффект в обратную сторону"
 }

@@ -294,5 +294,15 @@
   "ps_lighting_fxc_active_idle": "Allumé sinon",
   "ps_lighting_fxc_bg_printing": "Éteint en impression",
   "ps_lighting_fxc_bg_idle": "Éteint sinon",
-  "ps_lighting_fxc_clear_aria": "Effacer la couleur éteinte"
+  "ps_lighting_fxc_clear_aria": "Effacer la couleur éteinte",
+  "ps_feature_effect_params": "Luminosité, vitesse et sens par effet",
+  "ps_feature_effect_params_help": "Chaque effet porte sa propre luminosité, sa vitesse et son sens, en un seul réglage, au lieu des curseurs ci-dessus.",
+  "ps_feature_effect_params_aria": "Luminosité, vitesse et sens par effet",
+  "ps_lighting_fxp_help": "Tant que ceci est activé, les curseurs ci-dessus ne s'appliquent pas aux effets ; chaque effet a les siens ici.",
+  "ps_lighting_fxp_brightness": "Luminosité",
+  "ps_lighting_fxp_speed": "Vitesse",
+  "ps_lighting_fxp_reverse": "Dans l'autre sens",
+  "ps_lighting_fxp_brightness_aria": "Luminosité de l'effet",
+  "ps_lighting_fxp_speed_aria": "Vitesse de l'effet",
+  "ps_lighting_fxp_reverse_aria": "Faire tourner l'effet dans l'autre sens"
 }

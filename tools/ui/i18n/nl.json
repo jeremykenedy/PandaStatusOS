@@ -294,5 +294,15 @@
   "ps_lighting_fxc_active_idle": "Brandend anders",
   "ps_lighting_fxc_bg_printing": "Gedoofd bij afdrukken",
   "ps_lighting_fxc_bg_idle": "Gedoofd anders",
-  "ps_lighting_fxc_clear_aria": "Gedoofde kleur wissen"
+  "ps_lighting_fxc_clear_aria": "Gedoofde kleur wissen",
+  "ps_feature_effect_params": "Helderheid, snelheid en richting per effect",
+  "ps_feature_effect_params_help": "Elk effect heeft zijn eigen helderheid, snelheid en richting als één instelling, in plaats van de schuifregelaars hierboven.",
+  "ps_feature_effect_params_aria": "Helderheid, snelheid en richting per effect",
+  "ps_lighting_fxp_help": "Zolang dit aan staat, gelden de regelaars hierboven niet voor effecten; elk effect heeft hier zijn eigen waarden.",
+  "ps_lighting_fxp_brightness": "Helderheid",
+  "ps_lighting_fxp_speed": "Snelheid",
+  "ps_lighting_fxp_reverse": "Andersom laten lopen",
+  "ps_lighting_fxp_brightness_aria": "Helderheid van het effect",
+  "ps_lighting_fxp_speed_aria": "Snelheid van het effect",
+  "ps_lighting_fxp_reverse_aria": "Het effect andersom laten lopen"
 }

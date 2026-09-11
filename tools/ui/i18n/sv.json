@@ -294,5 +294,15 @@
   "ps_lighting_fxc_active_idle": "Tänd annars",
   "ps_lighting_fxc_bg_printing": "Släckt vid utskrift",
   "ps_lighting_fxc_bg_idle": "Släckt annars",
-  "ps_lighting_fxc_clear_aria": "Rensa den släckta färgen"
+  "ps_lighting_fxc_clear_aria": "Rensa den släckta färgen",
+  "ps_feature_effect_params": "Ljusstyrka, hastighet och riktning per effekt",
+  "ps_feature_effect_params_help": "Varje effekt bär sin egen ljusstyrka, hastighet och riktning som en inställning, i stället för reglagen ovan.",
+  "ps_feature_effect_params_aria": "Ljusstyrka, hastighet och riktning per effekt",
+  "ps_lighting_fxp_help": "Så länge detta är på gäller inte reglagen ovan för effekter; varje effekt har sina egna här.",
+  "ps_lighting_fxp_brightness": "Ljusstyrka",
+  "ps_lighting_fxp_speed": "Hastighet",
+  "ps_lighting_fxp_reverse": "Kör åt andra hållet",
+  "ps_lighting_fxp_brightness_aria": "Effektens ljusstyrka",
+  "ps_lighting_fxp_speed_aria": "Effektens hastighet",
+  "ps_lighting_fxp_reverse_aria": "Kör effekten åt andra hållet"
 }

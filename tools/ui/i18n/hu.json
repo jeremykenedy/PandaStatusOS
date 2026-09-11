@@ -294,5 +294,15 @@
   "ps_lighting_fxc_active_idle": "Világító egyébkor",
   "ps_lighting_fxc_bg_printing": "Sötét nyomtatáskor",
   "ps_lighting_fxc_bg_idle": "Sötét egyébkor",
-  "ps_lighting_fxc_clear_aria": "A sötét szín törlése"
+  "ps_lighting_fxc_clear_aria": "A sötét szín törlése",
+  "ps_feature_effect_params": "Fényerő, sebesség és irány effektenként",
+  "ps_feature_effect_params_help": "Minden effekt saját fényerőt, sebességet és irányt hordoz egyetlen beállításként, a fenti csúszkák helyett.",
+  "ps_feature_effect_params_aria": "Fényerő, sebesség és irány effektenként",
+  "ps_lighting_fxp_help": "Amíg ez be van kapcsolva, a fenti csúszkák nem vonatkoznak az effektekre; mindegyiknek itt van a sajátja.",
+  "ps_lighting_fxp_brightness": "Fényerő",
+  "ps_lighting_fxp_speed": "Sebesség",
+  "ps_lighting_fxp_reverse": "Fordítva fusson",
+  "ps_lighting_fxp_brightness_aria": "Az effekt fényereje",
+  "ps_lighting_fxp_speed_aria": "Az effekt sebessége",
+  "ps_lighting_fxp_reverse_aria": "Az effekt fordított futtatása"
 }

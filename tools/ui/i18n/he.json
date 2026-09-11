@@ -294,5 +294,15 @@
   "ps_lighting_fxc_active_idle": "דולק אחרת",
   "ps_lighting_fxc_bg_printing": "כבוי בהדפסה",
   "ps_lighting_fxc_bg_idle": "כבוי אחרת",
-  "ps_lighting_fxc_clear_aria": "נקה את הצבע הכבוי"
+  "ps_lighting_fxc_clear_aria": "נקה את הצבע הכבוי",
+  "ps_feature_effect_params": "בהירות, מהירות וכיוון לכל אפקט",
+  "ps_feature_effect_params_help": "כל אפקט נושא בהירות, מהירות וכיוון משלו כהגדרה אחת, במקום המחוונים שלמעלה.",
+  "ps_feature_effect_params_aria": "בהירות, מהירות וכיוון לכל אפקט",
+  "ps_lighting_fxp_help": "כל עוד זה פעיל, המחוונים שלמעלה אינם חלים על אפקטים; לכל אפקט הערכים שלו כאן.",
+  "ps_lighting_fxp_brightness": "בהירות",
+  "ps_lighting_fxp_speed": "מהירות",
+  "ps_lighting_fxp_reverse": "להריץ בכיוון ההפוך",
+  "ps_lighting_fxp_brightness_aria": "בהירות האפקט",
+  "ps_lighting_fxp_speed_aria": "מהירות האפקט",
+  "ps_lighting_fxp_reverse_aria": "להריץ את האפקט בכיוון ההפוך"
 }

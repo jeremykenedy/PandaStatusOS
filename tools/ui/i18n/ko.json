@@ -294,5 +294,15 @@
   "ps_lighting_fxc_active_idle": "그 외 켜진 색",
   "ps_lighting_fxc_bg_printing": "인쇄 중 꺼진 색",
   "ps_lighting_fxc_bg_idle": "그 외 꺼진 색",
-  "ps_lighting_fxc_clear_aria": "꺼진 색 지우기"
+  "ps_lighting_fxc_clear_aria": "꺼진 색 지우기",
+  "ps_feature_effect_params": "효과별 밝기, 속도, 방향",
+  "ps_feature_effect_params_help": "각 효과는 위의 슬라이더 대신 자체 밝기, 속도, 방향을 하나의 설정으로 가집니다.",
+  "ps_feature_effect_params_aria": "효과별 밝기, 속도, 방향",
+  "ps_lighting_fxp_help": "이 기능이 켜져 있는 동안 위의 슬라이더는 효과에 쓰이지 않으며, 각 효과는 여기의 값을 씁니다.",
+  "ps_lighting_fxp_brightness": "밝기",
+  "ps_lighting_fxp_speed": "속도",
+  "ps_lighting_fxp_reverse": "반대 방향으로",
+  "ps_lighting_fxp_brightness_aria": "효과 밝기",
+  "ps_lighting_fxp_speed_aria": "효과 속도",
+  "ps_lighting_fxp_reverse_aria": "효과를 반대 방향으로 실행"
 }

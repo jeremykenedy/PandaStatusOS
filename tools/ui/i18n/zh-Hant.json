@@ -294,5 +294,15 @@
   "ps_lighting_fxc_active_idle": "其他時候點亮色",
   "ps_lighting_fxc_bg_printing": "列印中熄滅色",
   "ps_lighting_fxc_bg_idle": "其他時候熄滅色",
-  "ps_lighting_fxc_clear_aria": "清除熄滅色"
+  "ps_lighting_fxc_clear_aria": "清除熄滅色",
+  "ps_feature_effect_params": "依效果設定亮度、速度與方向",
+  "ps_feature_effect_params_help": "每個效果擁有自己的亮度、速度與方向，作為一項設定，而不使用上方的滑桿。",
+  "ps_feature_effect_params_aria": "依效果設定亮度、速度與方向",
+  "ps_lighting_fxp_help": "開啟後，上方的滑桿不再用於效果；每個效果使用此處自己的數值。",
+  "ps_lighting_fxp_brightness": "亮度",
+  "ps_lighting_fxp_speed": "速度",
+  "ps_lighting_fxp_reverse": "反向執行",
+  "ps_lighting_fxp_brightness_aria": "效果亮度",
+  "ps_lighting_fxp_speed_aria": "效果速度",
+  "ps_lighting_fxp_reverse_aria": "反向執行該效果"
 }

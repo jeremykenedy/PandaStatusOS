@@ -294,5 +294,15 @@
   "ps_lighting_fxc_active_idle": "其他时候点亮色",
   "ps_lighting_fxc_bg_printing": "打印中熄灭色",
   "ps_lighting_fxc_bg_idle": "其他时候熄灭色",
-  "ps_lighting_fxc_clear_aria": "清除熄灭色"
+  "ps_lighting_fxc_clear_aria": "清除熄灭色",
+  "ps_feature_effect_params": "按效果设置亮度、速度和方向",
+  "ps_feature_effect_params_help": "每个效果拥有自己的亮度、速度和方向，作为一项设置，而不使用上方的滑块。",
+  "ps_feature_effect_params_aria": "按效果设置亮度、速度和方向",
+  "ps_lighting_fxp_help": "开启后，上方的滑块不再用于效果；每个效果使用此处自己的数值。",
+  "ps_lighting_fxp_brightness": "亮度",
+  "ps_lighting_fxp_speed": "速度",
+  "ps_lighting_fxp_reverse": "反向运行",
+  "ps_lighting_fxp_brightness_aria": "效果亮度",
+  "ps_lighting_fxp_speed_aria": "效果速度",
+  "ps_lighting_fxp_reverse_aria": "反向运行该效果"
 }

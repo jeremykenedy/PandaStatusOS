@@ -294,5 +294,15 @@
   "ps_lighting_fxc_active_idle": "Diğer zamanlarda yanan",
   "ps_lighting_fxc_bg_printing": "Yazdırırken sönük",
   "ps_lighting_fxc_bg_idle": "Diğer zamanlarda sönük",
-  "ps_lighting_fxc_clear_aria": "Sönük rengi temizle"
+  "ps_lighting_fxc_clear_aria": "Sönük rengi temizle",
+  "ps_feature_effect_params": "Efekt başına parlaklık, hız ve yön",
+  "ps_feature_effect_params_help": "Her efekt yukarıdaki kaydırıcılar yerine kendi parlaklığını, hızını ve yönünü tek bir ayar olarak taşır.",
+  "ps_feature_effect_params_aria": "Efekt başına parlaklık, hız ve yön",
+  "ps_lighting_fxp_help": "Bu açıkken yukarıdaki kaydırıcılar efektler için kullanılmaz; her efektin kendi değerleri buradadır.",
+  "ps_lighting_fxp_brightness": "Parlaklık",
+  "ps_lighting_fxp_speed": "Hız",
+  "ps_lighting_fxp_reverse": "Ters yönde çalıştır",
+  "ps_lighting_fxp_brightness_aria": "Efekt parlaklığı",
+  "ps_lighting_fxp_speed_aria": "Efekt hızı",
+  "ps_lighting_fxp_reverse_aria": "Efekti ters yönde çalıştır"
 }

@@ -294,5 +294,15 @@
   "ps_lighting_fxc_active_idle": "Leuchtend sonst",
   "ps_lighting_fxc_bg_printing": "Unbeleuchtet beim Drucken",
   "ps_lighting_fxc_bg_idle": "Unbeleuchtet sonst",
-  "ps_lighting_fxc_clear_aria": "Unbeleuchtete Farbe löschen"
+  "ps_lighting_fxc_clear_aria": "Unbeleuchtete Farbe löschen",
+  "ps_feature_effect_params": "Helligkeit, Tempo und Richtung je Effekt",
+  "ps_feature_effect_params_help": "Jeder Effekt trägt seine eigene Helligkeit, sein eigenes Tempo und seine Richtung als eine Einstellung, statt der Regler oben.",
+  "ps_feature_effect_params_aria": "Helligkeit, Tempo und Richtung je Effekt",
+  "ps_lighting_fxp_help": "Solange dies an ist, gelten für Effekte nicht die Regler oben, sondern die Werte jedes Effekts hier.",
+  "ps_lighting_fxp_brightness": "Helligkeit",
+  "ps_lighting_fxp_speed": "Tempo",
+  "ps_lighting_fxp_reverse": "Andersherum laufen",
+  "ps_lighting_fxp_brightness_aria": "Helligkeit des Effekts",
+  "ps_lighting_fxp_speed_aria": "Tempo des Effekts",
+  "ps_lighting_fxp_reverse_aria": "Den Effekt andersherum laufen lassen"
 }

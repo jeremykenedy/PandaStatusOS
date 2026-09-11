@@ -294,5 +294,15 @@
   "ps_lighting_fxc_active_idle": "Αναμμένο αλλιώς",
   "ps_lighting_fxc_bg_printing": "Σβηστό κατά την εκτύπωση",
   "ps_lighting_fxc_bg_idle": "Σβηστό αλλιώς",
-  "ps_lighting_fxc_clear_aria": "Καθαρισμός του σβηστού χρώματος"
+  "ps_lighting_fxc_clear_aria": "Καθαρισμός του σβηστού χρώματος",
+  "ps_feature_effect_params": "Φωτεινότητα, ταχύτητα και φορά ανά εφέ",
+  "ps_feature_effect_params_help": "Κάθε εφέ έχει τη δική του φωτεινότητα, ταχύτητα και φορά ως μία ρύθμιση, αντί για τα ρυθμιστικά παραπάνω.",
+  "ps_feature_effect_params_aria": "Φωτεινότητα, ταχύτητα και φορά ανά εφέ",
+  "ps_lighting_fxp_help": "Όσο είναι ενεργό, τα ρυθμιστικά παραπάνω δεν ισχύουν για τα εφέ· κάθε εφέ έχει τα δικά του εδώ.",
+  "ps_lighting_fxp_brightness": "Φωτεινότητα",
+  "ps_lighting_fxp_speed": "Ταχύτητα",
+  "ps_lighting_fxp_reverse": "Αντίστροφη φορά",
+  "ps_lighting_fxp_brightness_aria": "Φωτεινότητα του εφέ",
+  "ps_lighting_fxp_speed_aria": "Ταχύτητα του εφέ",
+  "ps_lighting_fxp_reverse_aria": "Εκτέλεση του εφέ με αντίστροφη φορά"
 }

@@ -294,5 +294,15 @@
   "ps_lighting_fxc_active_idle": "مضاء في غير ذلك",
   "ps_lighting_fxc_bg_printing": "مطفأ أثناء الطباعة",
   "ps_lighting_fxc_bg_idle": "مطفأ في غير ذلك",
-  "ps_lighting_fxc_clear_aria": "مسح اللون المطفأ"
+  "ps_lighting_fxc_clear_aria": "مسح اللون المطفأ",
+  "ps_feature_effect_params": "السطوع والسرعة والاتجاه لكل تأثير",
+  "ps_feature_effect_params_help": "يحمل كل تأثير سطوعه وسرعته واتجاهه الخاصة كإعداد واحد، بدلًا من الأشرطة أعلاه.",
+  "ps_feature_effect_params_aria": "السطوع والسرعة والاتجاه لكل تأثير",
+  "ps_lighting_fxp_help": "ما دام هذا مُفعَّلًا، لا تُستخدم الأشرطة أعلاه للتأثيرات؛ لكل تأثير قيمه الخاصة هنا.",
+  "ps_lighting_fxp_brightness": "السطوع",
+  "ps_lighting_fxp_speed": "السرعة",
+  "ps_lighting_fxp_reverse": "تشغيل بالاتجاه المعاكس",
+  "ps_lighting_fxp_brightness_aria": "سطوع التأثير",
+  "ps_lighting_fxp_speed_aria": "سرعة التأثير",
+  "ps_lighting_fxp_reverse_aria": "تشغيل التأثير بالاتجاه المعاكس"
 }

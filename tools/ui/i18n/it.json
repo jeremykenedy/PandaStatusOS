@@ -294,5 +294,15 @@
   "ps_lighting_fxc_active_idle": "Acceso altrimenti",
   "ps_lighting_fxc_bg_printing": "Spento in stampa",
   "ps_lighting_fxc_bg_idle": "Spento altrimenti",
-  "ps_lighting_fxc_clear_aria": "Cancella il colore spento"
+  "ps_lighting_fxc_clear_aria": "Cancella il colore spento",
+  "ps_feature_effect_params": "Luminosità, velocità e verso per effetto",
+  "ps_feature_effect_params_help": "Ogni effetto porta con sé luminosità, velocità e verso come un'unica impostazione, invece dei cursori qui sopra.",
+  "ps_feature_effect_params_aria": "Luminosità, velocità e verso per effetto",
+  "ps_lighting_fxp_help": "Finché è attivo, i cursori qui sopra non valgono per gli effetti; ogni effetto ha i propri qui.",
+  "ps_lighting_fxp_brightness": "Luminosità",
+  "ps_lighting_fxp_speed": "Velocità",
+  "ps_lighting_fxp_reverse": "Nell'altro verso",
+  "ps_lighting_fxp_brightness_aria": "Luminosità dell'effetto",
+  "ps_lighting_fxp_speed_aria": "Velocità dell'effetto",
+  "ps_lighting_fxp_reverse_aria": "Eseguire l'effetto nell'altro verso"
 }

@@ -294,5 +294,15 @@
   "ps_lighting_fxc_active_idle": "Świecący w innym razie",
   "ps_lighting_fxc_bg_printing": "Zgaszony podczas drukowania",
   "ps_lighting_fxc_bg_idle": "Zgaszony w innym razie",
-  "ps_lighting_fxc_clear_aria": "Wyczyść zgaszony kolor"
+  "ps_lighting_fxc_clear_aria": "Wyczyść zgaszony kolor",
+  "ps_feature_effect_params": "Jasność, szybkość i kierunek dla każdego efektu",
+  "ps_feature_effect_params_help": "Każdy efekt ma własną jasność, szybkość i kierunek jako jedno ustawienie, zamiast suwaków powyżej.",
+  "ps_feature_effect_params_aria": "Jasność, szybkość i kierunek dla każdego efektu",
+  "ps_lighting_fxp_help": "Gdy to jest włączone, suwaki powyżej nie dotyczą efektów; każdy efekt ma tutaj własne wartości.",
+  "ps_lighting_fxp_brightness": "Jasność",
+  "ps_lighting_fxp_speed": "Szybkość",
+  "ps_lighting_fxp_reverse": "W drugą stronę",
+  "ps_lighting_fxp_brightness_aria": "Jasność efektu",
+  "ps_lighting_fxp_speed_aria": "Szybkość efektu",
+  "ps_lighting_fxp_reverse_aria": "Uruchom efekt w drugą stronę"
 }

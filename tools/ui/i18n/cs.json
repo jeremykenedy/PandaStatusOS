@@ -294,5 +294,15 @@
   "ps_lighting_fxc_active_idle": "Svítící jinak",
   "ps_lighting_fxc_bg_printing": "Zhasnutá při tisku",
   "ps_lighting_fxc_bg_idle": "Zhasnutá jinak",
-  "ps_lighting_fxc_clear_aria": "Vymazat zhasnutou barvu"
+  "ps_lighting_fxc_clear_aria": "Vymazat zhasnutou barvu",
+  "ps_feature_effect_params": "Jas, rychlost a směr pro každý efekt",
+  "ps_feature_effect_params_help": "Každý efekt má vlastní jas, rychlost a směr jako jedno nastavení místo posuvníků výše.",
+  "ps_feature_effect_params_aria": "Jas, rychlost a směr pro každý efekt",
+  "ps_lighting_fxp_help": "Dokud je toto zapnuté, posuvníky výše pro efekty neplatí; každý efekt má vlastní hodnoty zde.",
+  "ps_lighting_fxp_brightness": "Jas",
+  "ps_lighting_fxp_speed": "Rychlost",
+  "ps_lighting_fxp_reverse": "Opačným směrem",
+  "ps_lighting_fxp_brightness_aria": "Jas efektu",
+  "ps_lighting_fxp_speed_aria": "Rychlost efektu",
+  "ps_lighting_fxp_reverse_aria": "Spustit efekt opačným směrem"
 }

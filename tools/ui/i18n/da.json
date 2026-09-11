@@ -294,5 +294,15 @@
   "ps_lighting_fxc_active_idle": "Tændt ellers",
   "ps_lighting_fxc_bg_printing": "Slukket under udskrivning",
   "ps_lighting_fxc_bg_idle": "Slukket ellers",
-  "ps_lighting_fxc_clear_aria": "Ryd den slukkede farve"
+  "ps_lighting_fxc_clear_aria": "Ryd den slukkede farve",
+  "ps_feature_effect_params": "Lysstyrke, tempo og retning pr. effekt",
+  "ps_feature_effect_params_help": "Hver effekt bærer sin egen lysstyrke, sit tempo og sin retning som én indstilling i stedet for skyderne ovenfor.",
+  "ps_feature_effect_params_aria": "Lysstyrke, tempo og retning pr. effekt",
+  "ps_lighting_fxp_help": "Så længe dette er slået til, gælder skyderne ovenfor ikke for effekter; hver effekt har sine egne her.",
+  "ps_lighting_fxp_brightness": "Lysstyrke",
+  "ps_lighting_fxp_speed": "Tempo",
+  "ps_lighting_fxp_reverse": "Kør den anden vej",
+  "ps_lighting_fxp_brightness_aria": "Effektens lysstyrke",
+  "ps_lighting_fxp_speed_aria": "Effektens tempo",
+  "ps_lighting_fxp_reverse_aria": "Kør effekten den anden vej"
 }

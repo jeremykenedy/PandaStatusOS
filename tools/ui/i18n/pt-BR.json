@@ -294,5 +294,15 @@
   "ps_lighting_fxc_active_idle": "Acesa em outros casos",
   "ps_lighting_fxc_bg_printing": "Apagada ao imprimir",
   "ps_lighting_fxc_bg_idle": "Apagada em outros casos",
-  "ps_lighting_fxc_clear_aria": "Limpar a cor apagada"
+  "ps_lighting_fxc_clear_aria": "Limpar a cor apagada",
+  "ps_feature_effect_params": "Brilho, velocidade e sentido por efeito",
+  "ps_feature_effect_params_help": "Cada efeito carrega seu próprio brilho, velocidade e sentido como um único ajuste, em vez dos controles acima.",
+  "ps_feature_effect_params_aria": "Brilho, velocidade e sentido por efeito",
+  "ps_lighting_fxp_help": "Enquanto isto estiver ligado, os controles acima não valem para os efeitos; cada efeito tem os seus aqui.",
+  "ps_lighting_fxp_brightness": "Brilho",
+  "ps_lighting_fxp_speed": "Velocidade",
+  "ps_lighting_fxp_reverse": "No sentido contrário",
+  "ps_lighting_fxp_brightness_aria": "Brilho do efeito",
+  "ps_lighting_fxp_speed_aria": "Velocidade do efeito",
+  "ps_lighting_fxp_reverse_aria": "Executar o efeito no sentido contrário"
 }

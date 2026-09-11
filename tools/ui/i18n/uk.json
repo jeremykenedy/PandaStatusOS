@@ -294,5 +294,15 @@
   "ps_lighting_fxc_active_idle": "Увімкнений інакше",
   "ps_lighting_fxc_bg_printing": "Вимкнений під час друку",
   "ps_lighting_fxc_bg_idle": "Вимкнений інакше",
-  "ps_lighting_fxc_clear_aria": "Очистити вимкнений колір"
+  "ps_lighting_fxc_clear_aria": "Очистити вимкнений колір",
+  "ps_feature_effect_params": "Яскравість, швидкість і напрямок для кожного ефекту",
+  "ps_feature_effect_params_help": "Кожен ефект має власні яскравість, швидкість і напрямок як одне налаштування замість повзунків вище.",
+  "ps_feature_effect_params_aria": "Яскравість, швидкість і напрямок для кожного ефекту",
+  "ps_lighting_fxp_help": "Поки це ввімкнено, повзунки вище не стосуються ефектів; кожен ефект має свої значення тут.",
+  "ps_lighting_fxp_brightness": "Яскравість",
+  "ps_lighting_fxp_speed": "Швидкість",
+  "ps_lighting_fxp_reverse": "У зворотний бік",
+  "ps_lighting_fxp_brightness_aria": "Яскравість ефекту",
+  "ps_lighting_fxp_speed_aria": "Швидкість ефекту",
+  "ps_lighting_fxp_reverse_aria": "Запустити ефект у зворотний бік"
 }

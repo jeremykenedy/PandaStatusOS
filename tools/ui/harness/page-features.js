@@ -57,6 +57,7 @@ async function drive(browser, combo) {
     t(`${tag} F4 factory: the per-state tile stays hidden`, await hidden(page, 'ps-lighting-sb'));
     t(`${tag} F4b factory: the effect tile stays hidden`, await hidden(page, 'ps-lighting-fx'));
     t(`${tag} F4c factory: no colour field box is shown`, await page.$$eval('[data-ps-fxc-state]', (els) => els.every((e) => e.hidden)));
+    t(`${tag} F4d factory: no params box is shown`, await page.$$eval('[data-ps-fxp-state]', (els) => els.every((e) => e.hidden)));
     await pw.shot(page, `features-factory-lighting-${combo.theme}-${combo.width}`);
     t(`${tag} F5 no page errors`, errors.length === 0, errors);
     await ctx.close();
@@ -175,6 +176,51 @@ async function drive(browser, combo) {
   t(`${tag} G9 turning effect colours off sends exactly {"features":{"effect_colours":false}}`, got.length === 1 && got[0] === apiFrame({ features: { effect_colours: false } }), got);
   await go(page, '#lighting');
   t(`${tag} G10 the colour boxes hide again`, await page.waitForFunction(() => [...document.querySelectorAll('[data-ps-fxc-state]')].every((e) => e.hidden), null, { timeout: 2000 }).then(() => true).catch(() => false));
+
+  // ---- A4: the effect's own brightness, speed and direction ----
+  t(`${tag} H1 with the params switch off, the boxes stay hidden`, await page.$$eval('[data-ps-fxp-state]', (els) => els.every((e) => e.hidden)));
+  await go(page, '#system');
+  await waitHidden(page, 'ps-system-features', false);
+  n = await count();
+  await toggle(page, 'ps-system-feature-effect-params');
+  got = await sentAfter(n);
+  t(`${tag} H2 turning params on sends exactly {"features":{"effect_params":true}}`, got.length === 1 && got[0] === apiFrame({ features: { effect_params: true } }), got);
+  await go(page, '#lighting');
+  t(`${tag} H3 the three boxes show with the defaults 50%, 100% and no reverse`,
+    await page.waitForFunction(() => [...document.querySelectorAll('[data-ps-fxp-state]')].every((e) => !e.hidden), null, { timeout: 2000 }).then(() => true).catch(() => false)
+    && (await val(page, 'ps-lighting-fxp-brightness-1')) === '50' && (await val(page, 'ps-lighting-fxp-speed-1')) === '100' && (await text(page, 'ps-lighting-fxp-speed-value-1')) === '100%'
+    && !(await page.$eval('#ps-lighting-fxp-reverse-1', (el) => el.checked)));
+  n = await count();
+  await nudge(page, 'ps-lighting-fxp-speed-1', 'ArrowLeft');
+  got = await sentAfter(n);
+  cur = await page.evaluate(() => JSON.parse(JSON.stringify(PS.features.config.state_effects)));
+  want2 = JSON.parse(JSON.stringify(cur)); want2[1].speed = 95;
+  t(`${tag} H4 nudging the printing speed sends the whole table with speed 95`, got.length === 1 && got[0] === apiFrame({ config: { state_effects: want2 } }), got);
+  await page.waitForFunction(() => PS.features.config.state_effects[1].speed === 95, null, { timeout: 2000 }).catch(() => {});
+  n = await count();
+  await nudge(page, 'ps-lighting-fxp-brightness-2', 'ArrowRight');
+  got = await sentAfter(n);
+  cur = await page.evaluate(() => JSON.parse(JSON.stringify(PS.features.config.state_effects)));
+  want2 = JSON.parse(JSON.stringify(cur)); want2[2].brightness = 55;
+  t(`${tag} H5 nudging the error brightness sends the whole table with brightness 55`, got.length === 1 && got[0] === apiFrame({ config: { state_effects: want2 } }), got);
+  await page.waitForFunction(() => PS.features.config.state_effects[2].brightness === 55, null, { timeout: 2000 }).catch(() => {});
+  n = await count();
+  await page.locator('label.checkbox:has(#ps-lighting-fxp-reverse-1)').click();
+  got = await sentAfter(n);
+  cur = await page.evaluate(() => JSON.parse(JSON.stringify(PS.features.config.state_effects)));
+  want2 = JSON.parse(JSON.stringify(cur)); want2[1].opt = want2[1].opt | 0x10;
+  t(`${tag} H6 the reverse box sets bit 0x10 in opt`, got.length === 1 && got[0] === apiFrame({ config: { state_effects: want2 } }), got);
+  t(`${tag} H7 the answer lands: the box is checked`, await page.waitForFunction(() => document.getElementById('ps-lighting-fxp-reverse-1').checked, null, { timeout: 2000 }).then(() => true).catch(() => false));
+  t(`${tag} H8 the factory brightness slider still sends the factory frame`, await (async () => { const b = Number(await val(page, 'ps-lighting-brightness')); const m = await count(); await nudge(page, 'ps-lighting-brightness', 'ArrowLeft'); const g = await sentAfter(m); return g.length === 1 && g[0] === frame('settings', { rgb_info_brightness: b - 5 }); })());
+  await pw.shot(page, `features-lighting-fxp-${combo.theme}-${combo.width}`, { full: true });
+  await go(page, '#system');
+  await waitHidden(page, 'ps-system-features', false);
+  n = await count();
+  await toggle(page, 'ps-system-feature-effect-params');
+  got = await sentAfter(n);
+  t(`${tag} H9 turning params off sends exactly {"features":{"effect_params":false}}`, got.length === 1 && got[0] === apiFrame({ features: { effect_params: false } }), got);
+  await go(page, '#lighting');
+  t(`${tag} H10 the boxes hide again`, await page.waitForFunction(() => [...document.querySelectorAll('[data-ps-fxp-state]')].every((e) => e.hidden), null, { timeout: 2000 }).then(() => true).catch(() => false));
   await page.reload(); await pw.sleep(900);
   t(`${tag} E7 after a reload printing is still Breathing`, await waitHidden(page, 'ps-lighting-fx', false) && (await val(page, 'ps-lighting-fx-1')) === '1');
   await go(page, '#system');

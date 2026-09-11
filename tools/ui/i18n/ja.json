@@ -294,5 +294,15 @@
   "ps_lighting_fxc_active_idle": "その他の点灯色",
   "ps_lighting_fxc_bg_printing": "印刷中の消灯色",
   "ps_lighting_fxc_bg_idle": "その他の消灯色",
-  "ps_lighting_fxc_clear_aria": "消灯色をクリア"
+  "ps_lighting_fxc_clear_aria": "消灯色をクリア",
+  "ps_feature_effect_params": "効果ごとの明るさ・速さ・方向",
+  "ps_feature_effect_params_help": "各効果は上のスライダーの代わりに、独自の明るさ・速さ・方向をひとつの設定として持ちます。",
+  "ps_feature_effect_params_aria": "効果ごとの明るさ・速さ・方向",
+  "ps_lighting_fxp_help": "これがオンの間、上のスライダーは効果には使われず、各効果はここの値を使います。",
+  "ps_lighting_fxp_brightness": "明るさ",
+  "ps_lighting_fxp_speed": "速さ",
+  "ps_lighting_fxp_reverse": "逆方向に動かす",
+  "ps_lighting_fxp_brightness_aria": "効果の明るさ",
+  "ps_lighting_fxp_speed_aria": "効果の速さ",
+  "ps_lighting_fxp_reverse_aria": "効果を逆方向に動かす"
 }

@@ -151,11 +151,11 @@ let STATE = null;
 let booting = false;                    // true while a "restart" is in progress
 let LANDED = null;                      // {build, page, until}: the image an ota_fw upload installed (PS_OTA_LANDS)
 let FEAT = null;                        // the clone's feature document (PS_CLONE); null until first asked
-const FEATURE_NAMES = ['state_brightness', 'state_effects', 'effect_colours'];
+const FEATURE_NAMES = ['state_brightness', 'state_effects', 'effect_colours', 'effect_params'];
 const FX_SELECTABLE = 17;
 const fxDefault = (colour) => ({ effect: 0, brightness: 50, speed: 100, bright_end: 0, opt: 0, aux: 0, colours: [colour, colour, '#000000FF', '#000000FF'] });
 function featDefaults() {
-  return { features: { state_brightness: false, state_effects: false, effect_colours: false },
+  return { features: { state_brightness: false, state_effects: false, effect_colours: false, effect_params: false },
            config: { state_brightness: [[50, 50, 50], [50, 50, 50]],
                      state_effects: [fxDefault('#FFFFFFFF'), fxDefault('#FFFFFFFF'), fxDefault('#FF0000FF')] } };
 }

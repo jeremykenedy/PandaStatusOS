@@ -44,7 +44,7 @@
   }
 
   function render() {
-    renderSb(); renderFx(); renderFxc();
+    renderSb(); renderFx(); renderFxc(); renderFxp();
     var m = mode(), e = entry();
     if (m !== null && document.activeElement !== modeSel) modeSel.value = String(m);
     var isMusic = m === 0;
@@ -151,6 +151,47 @@
       });
     });
   }
+  // A4: the effect's own brightness, speed and direction, only while both the effect and the params bits are on
+  var REVERSE_BIT = 0x10;
+  function renderFxp() {
+    var f = PS.features;
+    var on = !!(f && f.features && f.features.state_effects && f.features.effect_params && f.config && f.config.state_effects && f.config.state_effects.length === 3);
+    document.querySelectorAll('[data-ps-fxp-state]').forEach(function (box) { box.hidden = !on; });
+    var help = $('ps-lighting-fxp-help'); if (help) help.hidden = !on;
+    if (!on) return;
+    for (var s = 0; s < 3; s++) {
+      var e = f.config.state_effects[s];
+      ['brightness', 'speed'].forEach(function (k) {
+        var inp = $('ps-lighting-fxp-' + k + '-' + s);
+        if (focused !== inp) inp.value = e[k];
+        $('ps-lighting-fxp-' + k + '-value-' + s).textContent = e[k] + '%';
+      });
+      var rev = $('ps-lighting-fxp-reverse-' + s);
+      if (document.activeElement !== rev) rev.checked = !!(e.opt & REVERSE_BIT);
+    }
+  }
+  function wireFxp() {
+    document.querySelectorAll('[data-ps-fxp]').forEach(function (inp) {
+      var s = Number(inp.getAttribute('data-ps-fxp')), k = inp.getAttribute('data-ps-fxp-key');
+      inp.addEventListener('focus', function () { focused = inp; });
+      inp.addEventListener('blur', function () { if (focused === inp) focused = null; });
+      inp.addEventListener('change', function () {
+        var f = PS.features; if (!f || !f.config || !f.config.state_effects) return;
+        var cfg = JSON.parse(JSON.stringify(f.config.state_effects));
+        cfg[s][k] = Number(inp.value);
+        PS.api({ config: { state_effects: cfg } });
+      });
+    });
+    document.querySelectorAll('[data-ps-fxp-reverse]').forEach(function (cb) {
+      var s = Number(cb.getAttribute('data-ps-fxp-reverse'));
+      cb.addEventListener('change', function () {
+        var f = PS.features; if (!f || !f.config || !f.config.state_effects) return;
+        var cfg = JSON.parse(JSON.stringify(f.config.state_effects));
+        cfg[s].opt = cb.checked ? (cfg[s].opt | REVERSE_BIT) : (cfg[s].opt & ~REVERSE_BIT);
+        PS.api({ config: { state_effects: cfg } });
+      });
+    });
+  }
   function renderBlocks() {
     var list = (PS.state.block && PS.state.block.blocklist) || [];
     var want = list.map(function (b) { return b.blockID; }).join(',');
@@ -199,7 +240,7 @@
     bright.addEventListener('input', function () { brightVal.textContent = bright.value + '%'; });
     bright.addEventListener('change', function () { PS.send('settings', { rgb_info_brightness: Number(bright.value) }); });
     for (var i = 0; i < 3; i++) { wireSb(i); wireFx(i); }
-    wireFxc();
+    wireFxc(); wireFxp();
     speed.addEventListener('input', function () { if (speed.disabled) return; speedTouched = true; speedVal.textContent = speed.value + '%'; });
     speed.addEventListener('change', function () { if (!speed.disabled) PS.send('settings', { rgb_info_speed: Number(speed.value) }); });
 
@@ -224,5 +265,5 @@
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', wire); else wire();
   PS.on('state', function () { render(); });
-  PS.on('features', function () { renderSb(); renderFx(); renderFxc(); });
+  PS.on('features', function () { renderSb(); renderFx(); renderFxc(); renderFxp(); });
 })();

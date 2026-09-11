@@ -294,5 +294,15 @@
   "ps_lighting_fxc_active_idle": "Aprins altfel",
   "ps_lighting_fxc_bg_printing": "Stins la imprimare",
   "ps_lighting_fxc_bg_idle": "Stins altfel",
-  "ps_lighting_fxc_clear_aria": "Șterge culoarea stinsă"
+  "ps_lighting_fxc_clear_aria": "Șterge culoarea stinsă",
+  "ps_feature_effect_params": "Luminozitate, viteză și sens pe efect",
+  "ps_feature_effect_params_help": "Fiecare efect își poartă propria luminozitate, viteză și sens ca o singură setare, în locul glisoarelor de mai sus.",
+  "ps_feature_effect_params_aria": "Luminozitate, viteză și sens pe efect",
+  "ps_lighting_fxp_help": "Cât timp este pornit, glisoarele de mai sus nu se aplică efectelor; fiecare efect le are pe ale sale aici.",
+  "ps_lighting_fxp_brightness": "Luminozitate",
+  "ps_lighting_fxp_speed": "Viteză",
+  "ps_lighting_fxp_reverse": "În sens invers",
+  "ps_lighting_fxp_brightness_aria": "Luminozitatea efectului",
+  "ps_lighting_fxp_speed_aria": "Viteza efectului",
+  "ps_lighting_fxp_reverse_aria": "Rulează efectul în sens invers"
 }

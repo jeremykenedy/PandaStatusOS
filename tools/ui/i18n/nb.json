@@ -294,5 +294,15 @@
   "ps_lighting_fxc_active_idle": "Tent ellers",
   "ps_lighting_fxc_bg_printing": "Slukket ved utskrift",
   "ps_lighting_fxc_bg_idle": "Slukket ellers",
-  "ps_lighting_fxc_clear_aria": "Fjern den slukkede fargen"
+  "ps_lighting_fxc_clear_aria": "Fjern den slukkede fargen",
+  "ps_feature_effect_params": "Lysstyrke, tempo og retning per effekt",
+  "ps_feature_effect_params_help": "Hver effekt bærer sin egen lysstyrke, sitt tempo og sin retning som én innstilling, i stedet for glidebryterne over.",
+  "ps_feature_effect_params_aria": "Lysstyrke, tempo og retning per effekt",
+  "ps_lighting_fxp_help": "Så lenge dette er på, gjelder ikke glidebryterne over for effekter; hver effekt har sine egne her.",
+  "ps_lighting_fxp_brightness": "Lysstyrke",
+  "ps_lighting_fxp_speed": "Tempo",
+  "ps_lighting_fxp_reverse": "Kjør motsatt vei",
+  "ps_lighting_fxp_brightness_aria": "Effektens lysstyrke",
+  "ps_lighting_fxp_speed_aria": "Effektens tempo",
+  "ps_lighting_fxp_reverse_aria": "Kjør effekten motsatt vei"
 }
