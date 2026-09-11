@@ -254,6 +254,14 @@ them mislabelled, one of them invisible. Naming them honestly costs nothing.
 
 ### NVS hostname, live printer unbind, DHCP-move auto-rebind by serial
 
+**MET, the first two (C5, C6).** The hostname has lived in the config blob since layout
+v1 (`hostname`, [CONFIG.md](CONFIG.md)) and `ps_wifi.c` applies it when the station
+starts and again, live, on `set_hostname`; the restart the page requests afterwards is
+the factory's own behaviour, kept. Unbinding is the wire's `printer.disconnect`, which
+`ps_printer_unbind()` handles live: the MQTT client is stopped and destroyed, the state
+goes to unbound, no restart; the Printer page's Unbind button sends it after a confirm
+and the page harness asserts the frame. Neither needed a switch: both are parity.
+
 **What it does.** Persist the hostname; unbind a printer without a restart; when a bound
 printer changes address, find it again by serial.
 
