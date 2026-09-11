@@ -425,5 +425,8 @@
   "ps_system_restart_now_text": "Com a chave ligada, o botão reinicia o dispositivo agora. Nada é apagado.",
   "ps_system_restart_title": "Reiniciar o dispositivo?",
   "ps_system_restart_dialog": "A barra apaga por alguns segundos e esta página reconecta. Nada é apagado.",
-  "ps_system_restart_confirm": "Reiniciar"
+  "ps_system_restart_confirm": "Reiniciar",
+  "ps_feature_auto_rebind": "Reencontrar a impressora",
+  "ps_feature_auto_rebind_help": "Se a impressora vinculada receber um novo endereço e parar de responder, o dispositivo a procura pelo número de série e se vincula de novo. A busca em si ainda não encontra nada: falta um mecanismo documentado.",
+  "ps_feature_auto_rebind_aria": "Reencontrar a impressora"
 }

@@ -18,6 +18,10 @@ Everything so far. No release has been made and no device has been flashed.
 - The clone's own JSON route, `/api/features`: the page discovers a clone by its 200 where
   the factory answers 302, and shows a Features card on the System page only then. The
   socket document stays the factory's (D-033).
+- C7, find the printer again after it moves, behind `auto_rebind`: three consecutive
+  transport failures start a scan, and a hit carrying the bound serial at a new address is
+  saved and bound, reported through the wire's own scan states. The decision is pure and
+  host-tested; discovery itself is still the one open hole and says so everywhere (D-044).
 - C5 and C6 recorded as met by parity: the hostname is stored and applied without a
   switch, and `printer.disconnect` unbinds live without a restart.
 - C4, a plain restart behind `restart`: `POST /api/restart` and a Restart button on the
@@ -122,7 +126,7 @@ Everything so far. No release has been made and no device has been flashed.
 - A mock device with knobs for every lie a device can tell, and a wire harness that
   proves the mock before any page trusts it.
 - Page harnesses that drive every control and assert the exact frame the device
-  receives; a resilience harness with one lie per row; thirty-seven sweep rows in all.
+  receives; a resilience harness with one lie per row; thirty-eight sweep rows in all.
 - A pre-commit hook that keeps secrets and the vendor's expression out, with a
   57-case suite; a residue sweep over the tracked tree.
 - Tools to capture the printer's MQTT report stream and redact it, not yet run against

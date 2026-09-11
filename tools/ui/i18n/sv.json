@@ -425,5 +425,8 @@
   "ps_system_restart_now_text": "Med brytaren på startar knappen om enheten nu. Inget raderas.",
   "ps_system_restart_title": "Starta om enheten?",
   "ps_system_restart_dialog": "Listen slocknar några sekunder och den här sidan återansluter. Inget raderas.",
-  "ps_system_restart_confirm": "Starta om"
+  "ps_system_restart_confirm": "Starta om",
+  "ps_feature_auto_rebind": "Hitta skrivaren igen",
+  "ps_feature_auto_rebind_help": "Om den bundna skrivaren får en ny adress och slutar svara söker enheten efter den på serienumret och binder om. Själva sökningen hittar ännu inget: en dokumenterad mekanism saknas.",
+  "ps_feature_auto_rebind_aria": "Hitta skrivaren igen"
 }

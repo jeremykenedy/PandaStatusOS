@@ -425,5 +425,8 @@
   "ps_system_restart_now_text": "Cu comutatorul pornit, butonul repornește dispozitivul acum. Nimic nu se șterge.",
   "ps_system_restart_title": "Repornești dispozitivul?",
   "ps_system_restart_dialog": "Bara se stinge câteva secunde și această pagină se reconectează. Nimic nu se șterge.",
-  "ps_system_restart_confirm": "Repornește"
+  "ps_system_restart_confirm": "Repornește",
+  "ps_feature_auto_rebind": "Regăsirea imprimantei",
+  "ps_feature_auto_rebind_help": "Dacă imprimanta asociată primește o adresă nouă și nu mai răspunde, dispozitivul o caută după numărul de serie și se asociază din nou. Căutarea în sine încă nu găsește nimic: lipsește un mecanism documentat.",
+  "ps_feature_auto_rebind_aria": "Regăsirea imprimantei"
 }

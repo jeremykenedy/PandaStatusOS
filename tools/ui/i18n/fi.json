@@ -425,5 +425,8 @@
   "ps_system_restart_now_text": "Kytkimen ollessa päällä painike käynnistää laitteen uudelleen heti. Mitään ei poisteta.",
   "ps_system_restart_title": "Käynnistetäänkö laite uudelleen?",
   "ps_system_restart_dialog": "Palkki sammuu muutamaksi sekunniksi ja tämä sivu yhdistää uudelleen. Mitään ei poisteta.",
-  "ps_system_restart_confirm": "Käynnistä uudelleen"
+  "ps_system_restart_confirm": "Käynnistä uudelleen",
+  "ps_feature_auto_rebind": "Tulostimen löytäminen uudelleen",
+  "ps_feature_auto_rebind_help": "Jos sidottu tulostin saa uuden osoitteen eikä enää vastaa, laite etsii sen sarjanumerolla ja sitoo uudelleen. Itse haku ei vielä löydä mitään: dokumentoitu menetelmä puuttuu.",
+  "ps_feature_auto_rebind_aria": "Tulostimen löytäminen uudelleen"
 }

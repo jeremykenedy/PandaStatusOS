@@ -425,5 +425,8 @@
   "ps_system_restart_now_text": "Bekapcsolt kapcsolóval a gomb azonnal újraindítja az eszközt. Semmi nem törlődik.",
   "ps_system_restart_title": "Újraindítja az eszközt?",
   "ps_system_restart_dialog": "A sáv néhány másodpercre elsötétül, és ez az oldal újracsatlakozik. Semmi nem törlődik.",
-  "ps_system_restart_confirm": "Újraindítás"
+  "ps_system_restart_confirm": "Újraindítás",
+  "ps_feature_auto_rebind": "A nyomtató megtalálása újra",
+  "ps_feature_auto_rebind_help": "Ha a párosított nyomtató új címet kap és nem válaszol, az eszköz a sorozatszáma alapján megkeresi és újra párosítja. Maga a keresés még semmit nem talál: hiányzik hozzá egy dokumentált eljárás.",
+  "ps_feature_auto_rebind_aria": "A nyomtató megtalálása újra"
 }

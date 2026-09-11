@@ -151,7 +151,7 @@ let STATE = null;
 let booting = false;                    // true while a "restart" is in progress
 let LANDED = null;                      // {build, page, until}: the image an ota_fw upload installed (PS_OTA_LANDS)
 let FEAT = null;                        // the clone's feature document (PS_CLONE); null until first asked
-const FEATURE_NAMES = ['state_brightness', 'state_effects', 'effect_colours', 'effect_params', 'effect_ramp', 'fx_progress', 'fx_progress_anim', 'fx_barber', 'fx_hue_ramp', 'fx_temp', 'hot_warning', 'error_flash', 'preview', 'presets', 'stage_effects', 'config_io', 'restart'];
+const FEATURE_NAMES = ['state_brightness', 'state_effects', 'effect_colours', 'effect_params', 'effect_ramp', 'fx_progress', 'fx_progress_anim', 'fx_barber', 'fx_hue_ramp', 'fx_temp', 'hot_warning', 'error_flash', 'preview', 'presets', 'stage_effects', 'config_io', 'restart', 'auto_rebind'];
 const FX_SELECTABLE = 17;
 // which effect ids the bits allow, as the firmware's ps_fx_allowed(): the seventeen need only the
 // effect switch; the ones that read the print each wait for their own
@@ -163,7 +163,7 @@ function fxAllowed(id, features) {
 }
 const fxDefault = (colour) => ({ effect: 0, brightness: 50, speed: 100, bright_end: 0, opt: 0, aux: 0, colours: [colour, colour, '#000000FF', '#000000FF'] });
 function featDefaults() {
-  return { features: { state_brightness: false, state_effects: false, effect_colours: false, effect_params: false, effect_ramp: false, fx_progress: false, fx_progress_anim: false, fx_barber: false, fx_hue_ramp: false, fx_temp: false, hot_warning: false, error_flash: false, preview: false, presets: false, stage_effects: false, config_io: false, restart: false },
+  return { features: { state_brightness: false, state_effects: false, effect_colours: false, effect_params: false, effect_ramp: false, fx_progress: false, fx_progress_anim: false, fx_barber: false, fx_hue_ramp: false, fx_temp: false, hot_warning: false, error_flash: false, preview: false, presets: false, stage_effects: false, config_io: false, restart: false, auto_rebind: false },
            config: { state_brightness: [[50, 50, 50], [50, 50, 50]],
                      state_effects: [fxDefault('#FFFFFFFF'), fxDefault('#FFFFFFFF'), fxDefault('#FF0000FF')],
                      temp_gradient: { source: 0, lo: 25, hi: 250 },
@@ -605,6 +605,36 @@ async function handleHttp(req, res) {
   const p = u.pathname;
 
   // --- debug, not protocol ---
+  if (p === '/__printer_move' && req.method === 'POST') {
+    // C7, debug only: the bound printer takes a new address and stops answering. With the
+    // switch off the device is left in the error state; with it on the mock runs the same
+    // three-outcome decision the firmware's ps_rebind_decide() makes, through the wire's own
+    // printer.scan states. `sn` names the serial the search finds, defaulting to the bound one.
+    const { body } = await readBody(req, 1 << 12);
+    let j = {}; try { j = JSON.parse(body.toString('utf8') || '{}'); } catch (_) { j = {}; }
+    const newIp = typeof j.ip === 'string' ? j.ip : '';
+    const foundSn = typeof j.sn === 'string' ? j.sn : STATE.printer.sn;
+    STATE.printer.state = 4;                                    // ip err: nothing answers there
+    log({ ev: 'printer_move', detail: `${STATE.printer.ip} -> ${newIp}` });
+    const armed = knobFlag('PS_CLONE') && FEAT && FEAT.features.auto_rebind && !!STATE.printer.sn;
+    if (!armed) { for (const ws of sockets) push(ws, { printer: rootBody('printer') }, 'printer_move'); res.writeHead(200); return res.end('ok'); }
+    STATE.printer.scan = 3;                                     // ip_change_scanning
+    for (const ws of sockets) push(ws, { printer: rootBody('printer') }, 'rebind_scan');
+    later(knobNum('PS_REBIND_MS', 250), () => {
+      // the decision, as ps_rebind_decide() makes it
+      const octets = (s) => { const m = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/.exec(s || ''); return m && m.slice(1).every((n) => Number(n) <= 255) ? m.slice(1).join('.') : null; };
+      const found = octets(newIp);
+      let outcome;
+      if (foundSn !== STATE.printer.sn || !found) outcome = 4;  // sn not matched, or nothing bindable
+      else if (found === STATE.printer.ip) outcome = 5;         // ip not changed
+      else outcome = 6;                                          // new ip applied
+      STATE.printer.scan = outcome;
+      if (outcome === 6) { STATE.printer.ip = found; STATE.printer.state = 3; }
+      log({ ev: 'rebind', detail: `scan ${outcome}` });
+      for (const ws of sockets) push(ws, { printer: rootBody('printer') }, 'rebind');
+    });
+    res.writeHead(200); return res.end('ok');
+  }
   if (p === '/__sent') { res.writeHead(200, { 'Content-Type': 'application/json' }); return res.end(JSON.stringify(SENT)); }
   if (p === '/__pushed') { res.writeHead(200, { 'Content-Type': 'application/json' }); return res.end(JSON.stringify(PUSHED)); }
   if (p === '/__state') { res.writeHead(200, { 'Content-Type': 'application/json' }); return res.end(JSON.stringify(STATE)); }

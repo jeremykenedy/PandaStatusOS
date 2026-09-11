@@ -425,5 +425,8 @@
   "ps_system_restart_now_text": "Met de schakelaar aan herstart de knop het apparaat nu. Er wordt niets gewist.",
   "ps_system_restart_title": "Apparaat herstarten?",
   "ps_system_restart_dialog": "De balk gaat een paar seconden uit en deze pagina maakt opnieuw verbinding. Er wordt niets gewist.",
-  "ps_system_restart_confirm": "Herstarten"
+  "ps_system_restart_confirm": "Herstarten",
+  "ps_feature_auto_rebind": "Printer terugvinden",
+  "ps_feature_auto_rebind_help": "Krijgt de gekoppelde printer een nieuw adres en antwoordt hij niet meer, dan zoekt het apparaat hem op serienummer en koppelt opnieuw. Het zoeken zelf vindt nog niets: daarvoor ontbreekt een gedocumenteerd mechanisme.",
+  "ps_feature_auto_rebind_aria": "Printer terugvinden"
 }

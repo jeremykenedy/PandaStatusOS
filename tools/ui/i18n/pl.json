@@ -425,5 +425,8 @@
   "ps_system_restart_now_text": "Przy włączonym przełączniku przycisk od razu restartuje urządzenie. Nic nie jest kasowane.",
   "ps_system_restart_title": "Uruchomić urządzenie ponownie?",
   "ps_system_restart_dialog": "Pasek gaśnie na kilka sekund, a ta strona łączy się ponownie. Nic nie jest kasowane.",
-  "ps_system_restart_confirm": "Uruchom ponownie"
+  "ps_system_restart_confirm": "Uruchom ponownie",
+  "ps_feature_auto_rebind": "Odnajdywanie drukarki",
+  "ps_feature_auto_rebind_help": "Gdy powiązana drukarka dostanie nowy adres i przestanie odpowiadać, urządzenie szuka jej po numerze seryjnym i wiąże ponownie. Samo wyszukiwanie jeszcze nic nie znajduje: brakuje udokumentowanego mechanizmu.",
+  "ps_feature_auto_rebind_aria": "Odnajdywanie drukarki"
 }

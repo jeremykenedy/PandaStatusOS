@@ -425,5 +425,8 @@
   "ps_system_restart_now_text": "Con el interruptor, el botón reinicia el dispositivo ahora. No se borra nada.",
   "ps_system_restart_title": "¿Reiniciar el dispositivo?",
   "ps_system_restart_dialog": "La barra se apaga unos segundos y esta página se vuelve a conectar. No se borra nada.",
-  "ps_system_restart_confirm": "Reiniciar"
+  "ps_system_restart_confirm": "Reiniciar",
+  "ps_feature_auto_rebind": "Volver a encontrar la impresora",
+  "ps_feature_auto_rebind_help": "Si la impresora vinculada recibe una dirección nueva y deja de responder, el dispositivo la busca por su número de serie y se vincula de nuevo. La búsqueda en sí aún no encuentra nada: falta un mecanismo documentado.",
+  "ps_feature_auto_rebind_aria": "Volver a encontrar la impresora"
 }

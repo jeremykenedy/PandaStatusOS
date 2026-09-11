@@ -425,5 +425,8 @@
   "ps_system_restart_now_text": "スイッチをオンにすると、このボタンで本体をすぐに再起動できます。何も消去されません。",
   "ps_system_restart_title": "本体を再起動しますか？",
   "ps_system_restart_dialog": "バーが数秒間消灯し、このページは再接続します。何も消去されません。",
-  "ps_system_restart_confirm": "再起動"
+  "ps_system_restart_confirm": "再起動",
+  "ps_feature_auto_rebind": "プリンターの再検出",
+  "ps_feature_auto_rebind_help": "接続中のプリンターが新しいアドレスになり応答しなくなったとき、シリアル番号で探し直して接続し直します。探索そのものはまだ何も見つけません。手順が判明していないためです。",
+  "ps_feature_auto_rebind_aria": "プリンターの再検出"
 }

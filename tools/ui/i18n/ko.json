@@ -425,5 +425,8 @@
   "ps_system_restart_now_text": "스위치를 켜면 이 버튼이 장치를 바로 다시 시작합니다. 아무것도 지워지지 않습니다.",
   "ps_system_restart_title": "장치를 다시 시작할까요?",
   "ps_system_restart_dialog": "막대가 몇 초간 꺼지고 이 페이지는 다시 연결됩니다. 아무것도 지워지지 않습니다.",
-  "ps_system_restart_confirm": "다시 시작"
+  "ps_system_restart_confirm": "다시 시작",
+  "ps_feature_auto_rebind": "프린터 다시 찾기",
+  "ps_feature_auto_rebind_help": "연결된 프린터가 새 주소를 받아 응답하지 않으면, 장치가 일련번호로 찾아 다시 연결합니다. 탐색 자체는 아직 아무것도 찾지 못합니다. 문서화된 방식이 없기 때문입니다.",
+  "ps_feature_auto_rebind_aria": "프린터 다시 찾기"
 }

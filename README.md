@@ -127,7 +127,9 @@ and placeholders. A language ships when all 248 strings are in it.
 - **Know the flash size or the LED count.** Both are read off a real unit. The partition
   table is generated from one number so the real one is a single command away.
 - **Discover printers on the network.** A scan finishes empty until a documented
-  mechanism exists; binding by serial number and address works.
+  mechanism exists; binding by serial number and address works. What happens with a scan's
+  results is built and tested: a printer that moves is recognised by its serial and bound
+  again ([docs/FEATURES.md](docs/FEATURES.md), bit 18), so only the finding is missing.
 - **Publish Home Assistant entities.** The factory page exposes no broker setting, so
   there is nothing to mirror yet.
 - **Verify the printer's certificate.** The printer presents a self-signed one; the link

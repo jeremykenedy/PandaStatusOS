@@ -425,5 +425,8 @@
   "ps_system_restart_now_text": "כשהמתג דולק, הכפתור מפעיל מחדש את המכשיר עכשיו. שום דבר לא נמחק.",
   "ps_system_restart_title": "להפעיל מחדש את המכשיר?",
   "ps_system_restart_dialog": "הפס כבה לכמה שניות והדף הזה מתחבר מחדש. שום דבר לא נמחק.",
-  "ps_system_restart_confirm": "הפעל מחדש"
+  "ps_system_restart_confirm": "הפעל מחדש",
+  "ps_feature_auto_rebind": "מציאת המדפסת מחדש",
+  "ps_feature_auto_rebind_help": "אם המדפסת המקושרת מקבלת כתובת חדשה ומפסיקה להשיב, המכשיר מחפש אותה לפי המספר הסידורי ומתקשר אליה מחדש. החיפוש עצמו עדיין לא מוצא דבר: חסר מנגנון מתועד.",
+  "ps_feature_auto_rebind_aria": "מציאת המדפסת מחדש"
 }

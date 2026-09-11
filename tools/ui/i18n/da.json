@@ -425,5 +425,8 @@
   "ps_system_restart_now_text": "Med kontakten tændt genstarter knappen enheden nu. Intet slettes.",
   "ps_system_restart_title": "Genstart enheden?",
   "ps_system_restart_dialog": "Linjen slukker i nogle sekunder, og denne side forbinder igen. Intet slettes.",
-  "ps_system_restart_confirm": "Genstart"
+  "ps_system_restart_confirm": "Genstart",
+  "ps_feature_auto_rebind": "Find printeren igen",
+  "ps_feature_auto_rebind_help": "Får den bundne printer en ny adresse og holder op med at svare, leder enheden efter den på serienummeret og binder igen. Selve søgningen finder endnu ingenting: en dokumenteret mekanisme mangler.",
+  "ps_feature_auto_rebind_aria": "Find printeren igen"
 }

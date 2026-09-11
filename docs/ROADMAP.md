@@ -254,6 +254,13 @@ them mislabelled, one of them invisible. Naming them honestly costs nothing.
 
 ### NVS hostname, live printer unbind, DHCP-move auto-rebind by serial
 
+**BUILT, the third (C7, D-044), and MET, the first two (C5, C6).** Bit 18,
+`auto_rebind`: three consecutive transport failures on a bound printer start a scan, and
+a hit carrying the bound serial at a new address is saved and bound, reported through the
+wire's own scan states 4, 5 and 6. The decision is a pure host-tested function; the scan
+that feeds it still finds nothing, which is the remaining half of this item and the
+paragraph below is still the reason.
+
 **MET, the first two (C5, C6).** The hostname has lived in the config blob since layout
 v1 (`hostname`, [CONFIG.md](CONFIG.md)) and `ps_wifi.c` applies it when the station
 starts and again, live, on `set_hostname`; the restart the page requests afterwards is

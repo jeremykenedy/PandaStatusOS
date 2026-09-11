@@ -10,6 +10,9 @@ gcc -std=c11 -Wall -Wextra -Werror -I "$HERE/stub" -I "$HERE/../../main" -o "$OU
 echo
 gcc -std=c11 -Wall -Wextra -Werror -I "$HERE/stub" -I "$HERE/../../main" -o "$OUT-fx" "$HERE/fx_test.c" "$HERE/../../main/ps_fx.c" -lm
 "$OUT-fx"
+echo
+gcc -std=c11 -Wall -Wextra -Werror -I "$HERE/stub" -I "$HERE/../../main" -o "$OUT-rebind" "$HERE/rebind_test.c" "$HERE/../../main/ps_rebind.c"
+"$OUT-rebind"
 IDF="${IDF_PATH:-$HOME/esp/esp-idf}"
 if [ -f "$IDF/components/json/cJSON/cJSON.c" ]; then
     echo

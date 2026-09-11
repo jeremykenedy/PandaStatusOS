@@ -425,5 +425,8 @@
   "ps_system_restart_now_text": "开关打开后，此按钮会立即重启设备。不会清除任何内容。",
   "ps_system_restart_title": "重启设备？",
   "ps_system_restart_dialog": "灯带会熄灭几秒钟，本页随后重新连接。不会清除任何内容。",
-  "ps_system_restart_confirm": "重启"
+  "ps_system_restart_confirm": "重启",
+  "ps_feature_auto_rebind": "重新找到打印机",
+  "ps_feature_auto_rebind_help": "已绑定的打印机换了地址、不再响应时，设备会按序列号把它找回来并重新绑定。搜索本身目前还找不到任何设备：尚无已记录的机制。",
+  "ps_feature_auto_rebind_aria": "重新找到打印机"
 }

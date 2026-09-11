@@ -425,5 +425,8 @@
   "ps_system_restart_now_text": "Avec l'interrupteur, le bouton redémarre l'appareil tout de suite. Rien n'est effacé.",
   "ps_system_restart_title": "Redémarrer l'appareil ?",
   "ps_system_restart_dialog": "La barre s'éteint quelques secondes et cette page se reconnecte. Rien n'est effacé.",
-  "ps_system_restart_confirm": "Redémarrer"
+  "ps_system_restart_confirm": "Redémarrer",
+  "ps_feature_auto_rebind": "Retrouver l'imprimante",
+  "ps_feature_auto_rebind_help": "Si l'imprimante liée reçoit une nouvelle adresse et ne répond plus, l'appareil la cherche par son numéro de série et s'y relie. La recherche elle-même ne trouve encore rien : il manque un mécanisme documenté.",
+  "ps_feature_auto_rebind_aria": "Retrouver l'imprimante"
 }

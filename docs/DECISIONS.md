@@ -1119,4 +1119,46 @@ resets", and the settings import (C3) needs one for network names to take effect
 
 ---
 
+## D-044 The rebind policy is built and proven; the discovery it needs stays the one open hole, and says so
+
+**Date** 2026-09-11 · **Reversal** cheap (one predicate, one counter, one seam)
+
+**Decided.** C7, "find the printer again after it moves", is built as two separable parts.
+The **decision** is a pure function, `ps_rebind_decide()` in its own file with no framework
+in it, host-tested as it ships: given the bound serial, the bound address and whatever a
+scan found, it returns one of three answers, and those three answers are the wire's own
+`printer.scan` states 4 (sn not matched), 5 (ip not changed) and 6 (new ip applied). The
+factory firmware already enumerates exactly those three, which is the evidence that this
+is the shape the machinery takes. The **policy** counts consecutive transport failures on
+a bound printer, and at three, with bit 18 on, runs a scan and applies the decision,
+saving and rebinding on a move. The page needs nothing new: it already renders those scan
+states.
+
+What is **not** built is discovery. No mechanism for finding a printer on this network is
+documented in this repository, so `ps_printer_discover()` completes finding nothing, the
+page's own scan finishes empty exactly as it does today, and on real hardware this feature
+concludes "sn not matched" every time, correctly. That hole is named in the feature's own
+help text on the System page, in FEATURES.md, in the roadmap and here. The mock's scan
+does return what it is told to find, so the policy and all three conclusions are proven
+end to end (`tools/ui/harness/rebind.js`).
+
+The scan hit grows a `sn` field the wire never carries: `printer.list` stays `name` and
+`ip`, as the factory sends it (gate 2), and the serial is the device's own business.
+
+**Alternatives.** Waiting for the capture before building any of it (the decision is the
+part that needs no facts, and it is the part that is easy to get wrong); guessing a
+discovery protocol from what other people's printers do (a guess that reaches the network
+is not an INFERENCE in a document, it is traffic; and it would be the one part of this
+feature nobody could check); matching on name rather than serial (names repeat, serials
+do not).
+
+**Why.** The queue asks for auto-rebind by serial; the half that can be made certain is
+worth making certain now, and the half that cannot should be obvious rather than plausible.
+
+**What would change it.** Phase 1 or the capture documenting how the printers announce
+themselves: `ps_printer_discover()` fills the list, and nothing else in this feature
+changes.
+
+---
+
 *Entries continue below as the run proceeds.*

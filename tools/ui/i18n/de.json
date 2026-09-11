@@ -425,5 +425,8 @@
   "ps_system_restart_now_text": "Mit dem Schalter startet die Taste das Gerät sofort neu. Nichts wird gelöscht.",
   "ps_system_restart_title": "Gerät neu starten?",
   "ps_system_restart_dialog": "Der Balken wird für ein paar Sekunden dunkel und diese Seite verbindet sich neu. Nichts wird gelöscht.",
-  "ps_system_restart_confirm": "Neu starten"
+  "ps_system_restart_confirm": "Neu starten",
+  "ps_feature_auto_rebind": "Drucker wiederfinden",
+  "ps_feature_auto_rebind_help": "Wenn der gebundene Drucker eine neue Adresse bekommt und nicht mehr antwortet, sucht das Gerät ihn anhand der Seriennummer und bindet ihn erneut. Die Suche selbst findet noch nichts: dafür fehlt ein dokumentiertes Verfahren.",
+  "ps_feature_auto_rebind_aria": "Drucker wiederfinden"
 }

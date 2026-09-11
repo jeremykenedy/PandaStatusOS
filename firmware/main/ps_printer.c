@@ -34,6 +34,8 @@ static esp_timer_handle_t s_scan_timer;
 static char s_topic_report[80], s_topic_request[80], s_uri[48], s_client_id[32];
 static char *s_assembly;                        /* a report that arrives in pieces */
 static size_t s_assembled;
+static int  s_transport_fails;                  /* C7: consecutive "no route" failures since the last connect */
+static bool s_rebinding;                        /* C7: this scan was started by the rebind policy, not by the page */
 
 static void set_state(uint8_t st)
 {
@@ -111,6 +113,7 @@ static void on_mqtt(void *arg, esp_event_base_t base, int32_t id, void *data)
         esp_mqtt_client_subscribe(s_client, s_topic_report, 0);
         esp_mqtt_client_publish(s_client, s_topic_request, "{\"pushing\":{\"sequence_id\":\"0\",\"command\":\"pushall\",\"version\":1,\"push_target\":1}}", 0, 0, 0);
         ESP_LOGI(TAG, "connected, subscribed, pushall sent");
+        s_transport_fails = 0;                   /* C7: the address is good again */
         set_state(PS_PRN_CONNECTED);
         break;
     case MQTT_EVENT_DISCONNECTED:
@@ -120,7 +123,10 @@ static void on_mqtt(void *arg, esp_event_base_t base, int32_t id, void *data)
     case MQTT_EVENT_ERROR:
         if (ev->error_handle) {
             if (ev->error_handle->error_type == MQTT_ERROR_TYPE_CONNECTION_REFUSED) set_state(PS_PRN_ACCESS_CODE);   /* INFERENCE: refused = bad credentials */
-            else if (ev->error_handle->error_type == MQTT_ERROR_TYPE_TCP_TRANSPORT) set_state(PS_PRN_IP_ERR);       /* INFERENCE: no route, no TLS = wrong address */
+            else if (ev->error_handle->error_type == MQTT_ERROR_TYPE_TCP_TRANSPORT) {
+                set_state(PS_PRN_IP_ERR);                                                                          /* INFERENCE: no route, no TLS = wrong address */
+                ps_printer_moved_maybe();                                                                          /* C7: enough of these and the printer has probably moved */
+            }
             else set_state(PS_PRN_UNKNOWN_ERR);                                                                    /* INFERENCE: the rest */
         }
         break;
@@ -139,8 +145,26 @@ int ps_printer_start(void)
     return 0;
 }
 
+/* C7: a transport failure is normal once; a run of them, with the switch on and a printer
+ * bound, is the case this feature exists for. The scan that follows reports through the
+ * wire's own printer.scan states, so the page shows it without knowing about the feature. */
+void ps_printer_moved_maybe(void)
+{
+    ps_lock();
+    bool arm = (g_ps.cfg.features & PS_FEAT_AUTO_REBIND) && g_ps.cfg.printer_sn[0] && !s_rebinding
+               && ++s_transport_fails >= PS_REBIND_AFTER_FAILS;
+    ps_unlock();
+    if (!arm) return;
+    ESP_LOGI(TAG, "%d transport failures: looking for the printer by serial", s_transport_fails);
+    s_rebinding = true;
+    ps_lock(); g_ps.printer_scan = PS_PSCAN_IP_CHANGE; ps_unlock();
+    ps_ws_push(PS_ROOT_PRINTER, -1);
+    ps_printer_discover();
+}
+
 void ps_printer_bind(void)
 {
+    s_transport_fails = 0;
     ps_printer_unbind();
     ps_lock();
     snprintf(s_uri, sizeof s_uri, "mqtts://%u.%u.%u.%u:8883", g_ps.cfg.printer_ip[0], g_ps.cfg.printer_ip[1], g_ps.cfg.printer_ip[2], g_ps.cfg.printer_ip[3]);
@@ -178,15 +202,45 @@ void ps_printer_unbind(void)
 
 /* INFERENCE: no documented discovery mechanism, so a scan finishes empty after a moment,
  * which is what the page can render honestly */
+/* Discovery itself is the open question: no mechanism for finding a printer on the network
+ * is documented in this repository, so this finds nothing and the scan completes empty. When
+ * the mechanism is known it fills g_ps.printer_list and g_ps.printer_hits here, and both the
+ * page's scan and the rebind policy start working without another change. */
+static void scan_done(void *arg);
+
+void ps_printer_discover(void)
+{
+    if (!s_scan_timer) { const esp_timer_create_args_t ta = { .callback = scan_done, .name = "ps_pscan" }; esp_timer_create(&ta, &s_scan_timer); }
+    if (s_scan_timer) esp_timer_start_once(s_scan_timer, 800 * 1000);
+}
+
 static void scan_done(void *arg)
 {
     (void)arg;
-    ps_lock(); g_ps.printer_scan = PS_PSCAN_DONE; g_ps.printer_hits = 0; ps_unlock();
+    if (!s_rebinding) {
+        ps_lock(); g_ps.printer_scan = PS_PSCAN_DONE; g_ps.printer_hits = 0; ps_unlock();
+        ps_ws_push(PS_ROOT_PRINTER, -1);
+        return;
+    }
+    /* C7: the scan the rebind policy started. Decide, report through the wire's own states,
+     * and bind to the new address if there is one. */
+    uint8_t ip[4] = { 0, 0, 0, 0 };
+    ps_lock();
+    int outcome = ps_rebind_decide(g_ps.cfg.printer_sn, g_ps.cfg.printer_ip, g_ps.printer_list, g_ps.printer_hits, ip);
+    g_ps.printer_scan = (uint8_t)outcome;
+    g_ps.printer_hits = 0;
+    bool move = outcome == PS_REBIND_MOVED;
+    if (move) { memcpy(g_ps.cfg.printer_ip, ip, 4); ps_cfg_save(&g_ps.cfg); }
+    ps_unlock();
+    s_rebinding = false;
+    ESP_LOGI(TAG, "rebind scan: state %d", outcome);
     ps_ws_push(PS_ROOT_PRINTER, -1);
+    if (move) ps_printer_bind();
 }
+
 void ps_printer_scan(void)
 {
-    if (!s_scan_timer) { const esp_timer_create_args_t ta = { .callback = scan_done, .name = "ps_pscan" }; esp_timer_create(&ta, &s_scan_timer); }
+    s_rebinding = false;                         /* the page's own scan, whatever the policy was doing */
     ps_lock(); g_ps.printer_scan = PS_PSCAN_SCANNING; ps_unlock();
-    if (s_scan_timer) esp_timer_start_once(s_scan_timer, 800 * 1000);
+    ps_printer_discover();
 }

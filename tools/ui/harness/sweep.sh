@@ -52,6 +52,8 @@ ROWS=(
   # read-only routes answer and the gated ones answer only while their switch is on ---
   "p2-idle.json      | api.js | "
   "p2-idle.json      | api.js | PS_CLONE=1"
+  # --- the bound printer moves (C7): all three conclusions, on the wire's own scan states ---
+  "p2-idle.json      | rebind.js | PS_CLONE=1"
   "p2-idle.json      | page-features.js | "
   "p2-idle.json      | page-features.js | PS_CLONE=1"
   # --- the push policy is INFERENCE (D-014). The pages must hold under either reading:

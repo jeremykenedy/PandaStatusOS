@@ -425,5 +425,8 @@
   "ps_system_restart_now_text": "Med bryteren på starter knappen enheten på nytt nå. Ingenting slettes.",
   "ps_system_restart_title": "Starte enheten på nytt?",
   "ps_system_restart_dialog": "Linjen slukker i noen sekunder og denne siden kobler til igjen. Ingenting slettes.",
-  "ps_system_restart_confirm": "Start på nytt"
+  "ps_system_restart_confirm": "Start på nytt",
+  "ps_feature_auto_rebind": "Finne skriveren igjen",
+  "ps_feature_auto_rebind_help": "Får den bundne skriveren en ny adresse og slutter å svare, leter enheten etter den på serienummeret og binder på nytt. Selve søket finner ennå ingenting: en dokumentert mekanisme mangler.",
+  "ps_feature_auto_rebind_aria": "Finne skriveren igjen"
 }

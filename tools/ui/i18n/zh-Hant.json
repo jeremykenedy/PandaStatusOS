@@ -425,5 +425,8 @@
   "ps_system_restart_now_text": "開關打開後，此按鈕會立即重新啟動裝置。不會清除任何內容。",
   "ps_system_restart_title": "重新啟動裝置？",
   "ps_system_restart_dialog": "燈帶會熄滅幾秒鐘，本頁隨後重新連線。不會清除任何內容。",
-  "ps_system_restart_confirm": "重新啟動"
+  "ps_system_restart_confirm": "重新啟動",
+  "ps_feature_auto_rebind": "重新找到印表機",
+  "ps_feature_auto_rebind_help": "已綁定的印表機換了位址、不再回應時，裝置會按序號把它找回來並重新綁定。搜尋本身目前還找不到任何裝置：尚無已記錄的機制。",
+  "ps_feature_auto_rebind_aria": "重新找到印表機"
 }

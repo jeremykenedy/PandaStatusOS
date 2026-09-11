@@ -425,5 +425,8 @@
   "ps_system_restart_now_text": "Con l'interruttore acceso, il pulsante riavvia subito il dispositivo. Nulla viene cancellato.",
   "ps_system_restart_title": "Riavviare il dispositivo?",
   "ps_system_restart_dialog": "La barra si spegne per qualche secondo e questa pagina si riconnette. Nulla viene cancellato.",
-  "ps_system_restart_confirm": "Riavvia"
+  "ps_system_restart_confirm": "Riavvia",
+  "ps_feature_auto_rebind": "Ritrovare la stampante",
+  "ps_feature_auto_rebind_help": "Se la stampante collegata riceve un nuovo indirizzo e smette di rispondere, il dispositivo la cerca per numero di serie e si ricollega. La ricerca in sé non trova ancora nulla: manca un meccanismo documentato.",
+  "ps_feature_auto_rebind_aria": "Ritrovare la stampante"
 }

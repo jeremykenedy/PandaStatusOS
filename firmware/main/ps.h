@@ -60,7 +60,8 @@ extern const char *const ps_gif_slot_names[PS_GIF_SLOTS];
 #define PS_FEAT_STAGE_EFFECTS     (1u << 15)  /* B1, B2: an effect per print stage, inheriting the bar state's */
 #define PS_FEAT_CONFIG_IO         (1u << 16)  /* C3: settings export and import as one JSON document */
 #define PS_FEAT_RESTART           (1u << 17)  /* C4: a plain restart, named what it is, on its own route */
-#define PS_FEAT_KNOWN             0x3FFFEu    /* every switch bit defined above, bit 0 (the bridge) excluded */
+#define PS_FEAT_AUTO_REBIND       (1u << 18)  /* C7: after the bound printer moves, find it again by serial */
+#define PS_FEAT_KNOWN             0x7FFFEu    /* every switch bit defined above, bit 0 (the bridge) excluded */
 
 /* which of the printer's temperatures a feature follows (INFERENCE: the report's
  * nozzle_temper, bed_temper and chamber_temper, the fields the vent reads) */
@@ -234,7 +235,16 @@ uint8_t ps_stage_from_report(const char *gcode_state, int stg_cur);
 
 /* ---------------------------------------------------------- the live state ---- */
 typedef struct { char ssid[33]; int8_t rssi; } ps_wifi_hit_t;          /* INFERENCE shape */
-typedef struct { char name[33]; char ip[16]; } ps_printer_hit_t;       /* INFERENCE shape */
+/* INFERENCE shape. `sn` is the clone's own: the wire's printer.list carries name and ip only
+ * (parity), and the serial is used inside the device to match a moved printer (C7). */
+typedef struct { char name[33]; char ip[16]; char sn[33]; } ps_printer_hit_t;
+
+/* C7: what a rebind scan concluded. The numbers are the wire's own printer.scan states
+ * (4 sn not matched, 5 ip not changed, 6 new ip applied), so the page needs nothing new. */
+enum ps_rebind { PS_REBIND_NO_MATCH = PS_PSCAN_SN_MISMATCH, PS_REBIND_UNCHANGED = PS_PSCAN_IP_UNCHANGED, PS_REBIND_MOVED = PS_PSCAN_NEW_IP };
+/* pure, in ps_rebind.c, host-tested: which of the three a scan's hits amount to, and where to */
+int ps_rebind_decide(const char *bound_sn, const uint8_t bound_ip[4], const ps_printer_hit_t *hits, int n, uint8_t out_ip[4]);
+#define PS_REBIND_AFTER_FAILS 3        /* consecutive transport failures before a rebind scan is worth running */
 
 typedef struct {
     ps_cfg_t cfg;                      /* the stored part */
@@ -326,6 +336,8 @@ int  ps_printer_start(void);
 void ps_printer_bind(void);                           /* from g_ps.cfg.printer_* */
 void ps_printer_unbind(void);
 void ps_printer_scan(void);
+void ps_printer_discover(void);       /* start a scan; finds nothing until a mechanism is documented */
+void ps_printer_moved_maybe(void);    /* C7: count a transport failure and start a rebind scan at the threshold */
 
 /* ---------------------------------------------------------------- ps_ota.c ---- */
 /* type is the OTA-Type header value: "ota_fw", "ota_img" or a slot name; returns 0 ok */
