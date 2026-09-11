@@ -66,15 +66,19 @@ The hook scans what is staged. The flip scans everything:
 ```
 # every tracked file, the hook's patterns, plus the gzip the device serves
 git ls-files | grep -v -x -e .githooks/pre-commit -e tools/test-hook.sh -e tools/residue-sweep.sh \
-  | xargs grep -nE '([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}|Bearer[[:space:]]+[A-Za-z0-9._~+/-]{16,}|BEGIN [A-Z ]*PRIVATE KEY|AKIA[0-9A-Z]{16}|gh[pousr]_[A-Za-z0-9]{16,}|\b0[0-9A-Z]{2}[A-Z]{2}[0-9A-Z]{10,}\b' \
-  ; echo "exit $? (1 means no match, which is the answer wanted)"
+  | xargs grep -cHE '([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}|Bearer[[:space:]]+[A-Za-z0-9._~+/-]{16,}|BEGIN [A-Z ]*PRIVATE KEY|AKIA[0-9A-Z]{16}|gh[pousr]_[A-Za-z0-9]{16,}|\b0[0-9A-Z]{2}[A-Z]{2}[0-9A-Z]{10,}\b' \
+  | grep -v ':0$' ; echo "exit $? (1 wanted: no file with a count above zero; xargs's own exit code is not a verdict)"
 gzip -9 -n -c firmware/main/ui.html | gzip -cd | grep -cE 'password|access_code' | xargs echo "credential words in the page (field names only, expected):"
 gzip -9 -n -c firmware/main/ui.html | gzip -cd | grep -oE '[A-Za-z_.-]*(password|access_code)[A-Za-z_.-]*' | sort | uniq -c
 # the built binary: its strings (idf.py comes from the IDF shell; a failed build fails the step)
 ( . ~/esp/esp-idf/export.sh >/dev/null && cd firmware && idf.py build >/dev/null ) || echo "BUILD FAILED: this step fails"
 test -f firmware/build/pandastatusos.bin || echo "MISSING BINARY: this step fails"
 strings -n 8 firmware/build/pandastatusos.bin \
-  | grep -nE '([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}|Bearer |PRIVATE KEY|AKIA[0-9A-Z]{16}|gh[pousr]_' ; echo "exit $? (1 wanted)"
+  | grep -nE '([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}|Bearer |AKIA[0-9A-Z]{16}|gh[pousr]_' ; echo "exit $? (1 wanted)"
+# a private key is a PEM marker followed by a base64 body. mbedtls carries the bare marker
+# strings as parser constants, so the marker alone is not a finding; a body after one is.
+strings -n 8 firmware/build/pandastatusos.bin | grep -A1 -E 'BEGIN [A-Z ]*PRIVATE KEY' \
+  | grep -cE '^[A-Za-z0-9+/=]{40,}$' ; echo "(0 wanted: no key body follows any marker)"
 ```
 
 The second gzip line lists every word matched by the first: each must be a field name
