@@ -428,5 +428,8 @@
   "ps_system_restart_confirm": "重新啟動",
   "ps_feature_auto_rebind": "重新找到印表機",
   "ps_feature_auto_rebind_help": "已綁定的印表機換了位址、不再回應時，裝置會按序號把它找回來並重新綁定。搜尋本身目前還找不到任何裝置：尚無已記錄的機制。",
-  "ps_feature_auto_rebind_aria": "重新找到印表機"
+  "ps_feature_auto_rebind_aria": "重新找到印表機",
+  "ps_feature_diagnostics": "燈帶上的錯誤碼",
+  "ps_feature_diagnostics_help": "當裝置連不上網路或印表機時，燈帶不再顯示平常的畫面，而是用顏色表示範圍、用閃爍次數表示原因。對照表在疑難排解說明裡。",
+  "ps_feature_diagnostics_aria": "燈帶上的錯誤碼"
 }

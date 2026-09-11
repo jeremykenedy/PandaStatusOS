@@ -1161,4 +1161,36 @@ changes.
 
 ---
 
+## D-045 A diagnostic replaces the frame rather than layering over it, and says the subsystem in colour and the reason in blinks
+
+**Date** 2026-09-11 · **Reversal** cheap (one file, one branch in the renderer)
+
+**Decided.** Bit 19, `diagnostics`: while the station is not connected, or the printer is
+not connected, the bar blinks amber for the network or blue for the printer, a count of
+blinks for the reason, with a pause between groups, and shows nothing else. It replaces
+the frame rather than sitting over it like the hot warning and the error flash (D-037),
+because nothing the bar would otherwise show means anything while the device cannot reach
+the thing it reports on: the idle colour with no printer bound and the idle colour with
+everything fine are the same picture, which is the problem this solves. The network
+outranks the printer, since a printer cannot be reached without it, and "everything is
+fine" is not a pattern.
+
+The brightness is the diagnostic's own (60%), not the mode's: a bar set dark or to zero
+would otherwise have no way to tell anyone why it is dark. Both halves are pure and
+host-tested, the picker and the blink group, including that one whole cycle contains
+exactly the number of blinks the code means.
+
+**Alternatives.** A layer over the base (two things blinking at once, and a fault visible
+only while the base happens to be lit); a solid colour per fault (four blues nobody can
+tell apart across a room); the page alone (the first thing that breaks is often the thing
+that makes the page hard to reach).
+
+**Why.** The queue: "the factory swallows the real MQTT failure reason entirely. Being
+able to diagnose from across the room is worth more than it sounds."
+
+**What would change it.** The capture giving finer failure reasons than the four the
+client reports: they become more blink counts in the same table.
+
+---
+
 *Entries continue below as the run proceeds.*

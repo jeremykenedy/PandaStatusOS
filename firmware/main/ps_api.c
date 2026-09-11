@@ -44,6 +44,7 @@ static const struct { const char *name; uint32_t bit; } FEATURES[] = {
     { "config_io",        PS_FEAT_CONFIG_IO },
     { "restart",          PS_FEAT_RESTART },
     { "auto_rebind",      PS_FEAT_AUTO_REBIND },
+    { "diagnostics",      PS_FEAT_DIAGNOSTICS },
 };
 
 static cJSON *fx_json(const ps_fx_cfg_t *f)

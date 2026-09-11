@@ -428,5 +428,8 @@
   "ps_system_restart_confirm": "Uruchom ponownie",
   "ps_feature_auto_rebind": "Odnajdywanie drukarki",
   "ps_feature_auto_rebind_help": "Gdy powiązana drukarka dostanie nowy adres i przestanie odpowiadać, urządzenie szuka jej po numerze seryjnym i wiąże ponownie. Samo wyszukiwanie jeszcze nic nie znajduje: brakuje udokumentowanego mechanizmu.",
-  "ps_feature_auto_rebind_aria": "Odnajdywanie drukarki"
+  "ps_feature_auto_rebind_aria": "Odnajdywanie drukarki",
+  "ps_feature_diagnostics": "Kody błędów na pasku",
+  "ps_feature_diagnostics_help": "Gdy urządzenie nie może połączyć się z siecią ani z drukarką, pasek miga kolorem obszaru i liczbą oznaczającą powód, zamiast zwykłego widoku. Tabela jest w pomocy dotyczącej problemów.",
+  "ps_feature_diagnostics_aria": "Kody błędów na pasku"
 }

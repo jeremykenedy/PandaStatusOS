@@ -428,5 +428,8 @@
   "ps_system_restart_confirm": "Genstart",
   "ps_feature_auto_rebind": "Find printeren igen",
   "ps_feature_auto_rebind_help": "Får den bundne printer en ny adresse og holder op med at svare, leder enheden efter den på serienummeret og binder igen. Selve søgningen finder endnu ingenting: en dokumenteret mekanisme mangler.",
-  "ps_feature_auto_rebind_aria": "Find printeren igen"
+  "ps_feature_auto_rebind_aria": "Find printeren igen",
+  "ps_feature_diagnostics": "Fejlkoder på linjen",
+  "ps_feature_diagnostics_help": "Når enheden ikke kan nå netværket eller printeren, blinker linjen en farve for området og et antal for årsagen i stedet for det sædvanlige. Tabellen står i fejlfindingshjælpen.",
+  "ps_feature_diagnostics_aria": "Fejlkoder på linjen"
 }

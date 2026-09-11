@@ -428,5 +428,8 @@
   "ps_system_restart_confirm": "重启",
   "ps_feature_auto_rebind": "重新找到打印机",
   "ps_feature_auto_rebind_help": "已绑定的打印机换了地址、不再响应时，设备会按序列号把它找回来并重新绑定。搜索本身目前还找不到任何设备：尚无已记录的机制。",
-  "ps_feature_auto_rebind_aria": "重新找到打印机"
+  "ps_feature_auto_rebind_aria": "重新找到打印机",
+  "ps_feature_diagnostics": "灯带上的错误码",
+  "ps_feature_diagnostics_help": "当设备连不上网络或打印机时，灯带不再显示平常的画面，而是用颜色表示范围、用闪烁次数表示原因。对照表在故障排查说明里。",
+  "ps_feature_diagnostics_aria": "灯带上的错误码"
 }

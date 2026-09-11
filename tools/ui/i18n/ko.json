@@ -428,5 +428,8 @@
   "ps_system_restart_confirm": "다시 시작",
   "ps_feature_auto_rebind": "프린터 다시 찾기",
   "ps_feature_auto_rebind_help": "연결된 프린터가 새 주소를 받아 응답하지 않으면, 장치가 일련번호로 찾아 다시 연결합니다. 탐색 자체는 아직 아무것도 찾지 못합니다. 문서화된 방식이 없기 때문입니다.",
-  "ps_feature_auto_rebind_aria": "프린터 다시 찾기"
+  "ps_feature_auto_rebind_aria": "프린터 다시 찾기",
+  "ps_feature_diagnostics": "막대에 표시되는 오류 코드",
+  "ps_feature_diagnostics_help": "장치가 네트워크나 프린터에 닿지 못하면, 막대가 평소 표시 대신 영역을 뜻하는 색과 이유를 뜻하는 횟수로 깜빡입니다. 표는 문제 해결 도움말에 있습니다.",
+  "ps_feature_diagnostics_aria": "막대에 표시되는 오류 코드"
 }

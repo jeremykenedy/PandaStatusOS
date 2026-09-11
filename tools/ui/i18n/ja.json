@@ -428,5 +428,8 @@
   "ps_system_restart_confirm": "再起動",
   "ps_feature_auto_rebind": "プリンターの再検出",
   "ps_feature_auto_rebind_help": "接続中のプリンターが新しいアドレスになり応答しなくなったとき、シリアル番号で探し直して接続し直します。探索そのものはまだ何も見つけません。手順が判明していないためです。",
-  "ps_feature_auto_rebind_aria": "プリンターの再検出"
+  "ps_feature_auto_rebind_aria": "プリンターの再検出",
+  "ps_feature_diagnostics": "バーに出るエラーコード",
+  "ps_feature_diagnostics_help": "ネットワークやプリンターに届かないとき、バーはいつもの表示の代わりに、分野を表す色と理由を表す回数で点滅します。対応表はトラブル対応の項目にあります。",
+  "ps_feature_diagnostics_aria": "バーに出るエラーコード"
 }

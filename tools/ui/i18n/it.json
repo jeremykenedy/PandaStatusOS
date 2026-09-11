@@ -428,5 +428,8 @@
   "ps_system_restart_confirm": "Riavvia",
   "ps_feature_auto_rebind": "Ritrovare la stampante",
   "ps_feature_auto_rebind_help": "Se la stampante collegata riceve un nuovo indirizzo e smette di rispondere, il dispositivo la cerca per numero di serie e si ricollega. La ricerca in sé non trova ancora nulla: manca un meccanismo documentato.",
-  "ps_feature_auto_rebind_aria": "Ritrovare la stampante"
+  "ps_feature_auto_rebind_aria": "Ritrovare la stampante",
+  "ps_feature_diagnostics": "Codici di errore sulla barra",
+  "ps_feature_diagnostics_help": "Quando il dispositivo non raggiunge la rete o la stampante, la barra lampeggia un colore per l'ambito e un numero per il motivo, al posto di ciò che mostra di solito. La tabella è nella guida ai problemi.",
+  "ps_feature_diagnostics_aria": "Codici di errore sulla barra"
 }

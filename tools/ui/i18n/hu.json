@@ -428,5 +428,8 @@
   "ps_system_restart_confirm": "Újraindítás",
   "ps_feature_auto_rebind": "A nyomtató megtalálása újra",
   "ps_feature_auto_rebind_help": "Ha a párosított nyomtató új címet kap és nem válaszol, az eszköz a sorozatszáma alapján megkeresi és újra párosítja. Maga a keresés még semmit nem talál: hiányzik hozzá egy dokumentált eljárás.",
-  "ps_feature_auto_rebind_aria": "A nyomtató megtalálása újra"
+  "ps_feature_auto_rebind_aria": "A nyomtató megtalálása újra",
+  "ps_feature_diagnostics": "Hibakódok a sávon",
+  "ps_feature_diagnostics_help": "Ha az eszköz nem éri el a hálózatot vagy a nyomtatót, a sáv a terület színével és a hiba okát jelző villanásszámmal villog a megszokott kép helyett. A táblázat a hibaelhárítási súgóban van.",
+  "ps_feature_diagnostics_aria": "Hibakódok a sávon"
 }

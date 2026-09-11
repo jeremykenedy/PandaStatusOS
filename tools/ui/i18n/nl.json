@@ -428,5 +428,8 @@
   "ps_system_restart_confirm": "Herstarten",
   "ps_feature_auto_rebind": "Printer terugvinden",
   "ps_feature_auto_rebind_help": "Krijgt de gekoppelde printer een nieuw adres en antwoordt hij niet meer, dan zoekt het apparaat hem op serienummer en koppelt opnieuw. Het zoeken zelf vindt nog niets: daarvoor ontbreekt een gedocumenteerd mechanisme.",
-  "ps_feature_auto_rebind_aria": "Printer terugvinden"
+  "ps_feature_auto_rebind_aria": "Printer terugvinden",
+  "ps_feature_diagnostics": "Foutcodes op de balk",
+  "ps_feature_diagnostics_help": "Bereikt het apparaat het netwerk of de printer niet, dan knippert de balk een kleur voor het onderdeel en een aantal voor de reden, in plaats van het gewone beeld. De tabel staat in de probleemhulp.",
+  "ps_feature_diagnostics_aria": "Foutcodes op de balk"
 }

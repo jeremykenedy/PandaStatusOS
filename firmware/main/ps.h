@@ -61,7 +61,8 @@ extern const char *const ps_gif_slot_names[PS_GIF_SLOTS];
 #define PS_FEAT_CONFIG_IO         (1u << 16)  /* C3: settings export and import as one JSON document */
 #define PS_FEAT_RESTART           (1u << 17)  /* C4: a plain restart, named what it is, on its own route */
 #define PS_FEAT_AUTO_REBIND       (1u << 18)  /* C7: after the bound printer moves, find it again by serial */
-#define PS_FEAT_KNOWN             0x7FFFEu    /* every switch bit defined above, bit 0 (the bridge) excluded */
+#define PS_FEAT_DIAGNOSTICS       (1u << 19)  /* C8: why it is not working, blinked on the bar */
+#define PS_FEAT_KNOWN             0xFFFFEu    /* every switch bit defined above, bit 0 (the bridge) excluded */
 
 /* which of the printer's temperatures a feature follows (INFERENCE: the report's
  * nozzle_temper, bed_temper and chamber_temper, the fields the vent reads) */
@@ -338,6 +339,17 @@ void ps_printer_unbind(void);
 void ps_printer_scan(void);
 void ps_printer_discover(void);       /* start a scan; finds nothing until a mechanism is documented */
 void ps_printer_moved_maybe(void);    /* C7: count a transport failure and start a rebind scan at the threshold */
+
+/* ---- C8: why it is not working, blinked on the bar. Both pure, in ps_diag.c, host-tested. ---- */
+typedef struct { bool active; ps_rgba_t colour; uint8_t blinks; } ps_diag_t;
+#define PS_DIAG_BRIGHT   60            /* a diagnostic is for reading across a room, not for matching the mode */
+#define PS_DIAG_ON_MS    180
+#define PS_DIAG_OFF_MS   180
+#define PS_DIAG_PAUSE_MS 1200
+/* which fault the bar should be saying, if any; the network outranks the printer */
+bool ps_diag_pick(uint8_t sta_state, uint8_t printer_state, ps_diag_t *out);
+/* the blink group for this instant; returns the milliseconds until the frame changes */
+uint32_t ps_diag_render(const ps_diag_t *d, uint32_t now_ms, ps_rgba_t *px, int n);
 
 /* ---------------------------------------------------------------- ps_ota.c ---- */
 /* type is the OTA-Type header value: "ota_fw", "ota_img" or a slot name; returns 0 ok */

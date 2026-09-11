@@ -428,5 +428,8 @@
   "ps_system_restart_confirm": "Käynnistä uudelleen",
   "ps_feature_auto_rebind": "Tulostimen löytäminen uudelleen",
   "ps_feature_auto_rebind_help": "Jos sidottu tulostin saa uuden osoitteen eikä enää vastaa, laite etsii sen sarjanumerolla ja sitoo uudelleen. Itse haku ei vielä löydä mitään: dokumentoitu menetelmä puuttuu.",
-  "ps_feature_auto_rebind_aria": "Tulostimen löytäminen uudelleen"
+  "ps_feature_auto_rebind_aria": "Tulostimen löytäminen uudelleen",
+  "ps_feature_diagnostics": "Virhekoodit palkissa",
+  "ps_feature_diagnostics_help": "Kun laite ei tavoita verkkoa tai tulostinta, palkki vilkuttaa värin osa-alueesta ja määrän syystä tavallisen näkymän sijaan. Taulukko on vianetsintäohjeessa.",
+  "ps_feature_diagnostics_aria": "Virhekoodit palkissa"
 }

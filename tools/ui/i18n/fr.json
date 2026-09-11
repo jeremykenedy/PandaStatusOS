@@ -428,5 +428,8 @@
   "ps_system_restart_confirm": "Redémarrer",
   "ps_feature_auto_rebind": "Retrouver l'imprimante",
   "ps_feature_auto_rebind_help": "Si l'imprimante liée reçoit une nouvelle adresse et ne répond plus, l'appareil la cherche par son numéro de série et s'y relie. La recherche elle-même ne trouve encore rien : il manque un mécanisme documenté.",
-  "ps_feature_auto_rebind_aria": "Retrouver l'imprimante"
+  "ps_feature_auto_rebind_aria": "Retrouver l'imprimante",
+  "ps_feature_diagnostics": "Codes d'erreur sur la barre",
+  "ps_feature_diagnostics_help": "Quand l'appareil n'atteint ni le réseau ni l'imprimante, la barre clignote une couleur pour le domaine et un nombre pour la raison, au lieu de l'affichage habituel. Le tableau est dans l'aide de dépannage.",
+  "ps_feature_diagnostics_aria": "Codes d'erreur sur la barre"
 }

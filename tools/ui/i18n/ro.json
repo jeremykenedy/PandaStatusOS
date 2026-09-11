@@ -428,5 +428,8 @@
   "ps_system_restart_confirm": "Repornește",
   "ps_feature_auto_rebind": "Regăsirea imprimantei",
   "ps_feature_auto_rebind_help": "Dacă imprimanta asociată primește o adresă nouă și nu mai răspunde, dispozitivul o caută după numărul de serie și se asociază din nou. Căutarea în sine încă nu găsește nimic: lipsește un mecanism documentat.",
-  "ps_feature_auto_rebind_aria": "Regăsirea imprimantei"
+  "ps_feature_auto_rebind_aria": "Regăsirea imprimantei",
+  "ps_feature_diagnostics": "Coduri de eroare pe bară",
+  "ps_feature_diagnostics_help": "Când dispozitivul nu ajunge la rețea sau la imprimantă, bara clipește o culoare pentru domeniu și un număr pentru motiv, în locul afișajului obișnuit. Tabelul este în ajutorul pentru probleme.",
+  "ps_feature_diagnostics_aria": "Coduri de eroare pe bară"
 }

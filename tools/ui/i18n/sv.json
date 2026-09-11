@@ -428,5 +428,8 @@
   "ps_system_restart_confirm": "Starta om",
   "ps_feature_auto_rebind": "Hitta skrivaren igen",
   "ps_feature_auto_rebind_help": "Om den bundna skrivaren får en ny adress och slutar svara söker enheten efter den på serienumret och binder om. Själva sökningen hittar ännu inget: en dokumenterad mekanism saknas.",
-  "ps_feature_auto_rebind_aria": "Hitta skrivaren igen"
+  "ps_feature_auto_rebind_aria": "Hitta skrivaren igen",
+  "ps_feature_diagnostics": "Felkoder på listen",
+  "ps_feature_diagnostics_help": "När enheten inte når nätverket eller skrivaren blinkar listen en färg för området och ett antal för orsaken, i stället för det vanliga. Tabellen finns i felsökningshjälpen.",
+  "ps_feature_diagnostics_aria": "Felkoder på listen"
 }

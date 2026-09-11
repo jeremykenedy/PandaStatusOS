@@ -18,6 +18,9 @@ Everything so far. No release has been made and no device has been flashed.
 - The clone's own JSON route, `/api/features`: the page discovers a clone by its 200 where
   the factory answers 302, and shows a Features card on the System page only then. The
   socket document stays the factory's (D-033).
+- C8, fault codes on the bar behind `diagnostics`: amber for the network, blue for the
+  printer, a count of blinks for the reason, replacing what the bar would otherwise show
+  while the fault holds; the codes are in the troubleshooting document (D-045).
 - C7, find the printer again after it moves, behind `auto_rebind`: three consecutive
   transport failures start a scan, and a hit carrying the bound serial at a new address is
   saved and bound, reported through the wire's own scan states. The decision is pure and

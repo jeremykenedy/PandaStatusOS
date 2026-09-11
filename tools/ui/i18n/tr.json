@@ -428,5 +428,8 @@
   "ps_system_restart_confirm": "Yeniden başlat",
   "ps_feature_auto_rebind": "Yazıcıyı yeniden bulma",
   "ps_feature_auto_rebind_help": "Bağlı yazıcı yeni bir adres alır ve yanıt vermeyi bırakırsa, cihaz onu seri numarasından arar ve yeniden bağlanır. Aramanın kendisi henüz bir şey bulmuyor: belgelenmiş bir yöntem yok.",
-  "ps_feature_auto_rebind_aria": "Yazıcıyı yeniden bulma"
+  "ps_feature_auto_rebind_aria": "Yazıcıyı yeniden bulma",
+  "ps_feature_diagnostics": "Çubukta hata kodları",
+  "ps_feature_diagnostics_help": "Cihaz ağa ya da yazıcıya ulaşamadığında çubuk, her zamanki görüntü yerine alan için bir renk ve neden için bir sayı yanıp söner. Tablo sorun giderme yardımındadır.",
+  "ps_feature_diagnostics_aria": "Çubukta hata kodları"
 }

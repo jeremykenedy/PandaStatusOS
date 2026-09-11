@@ -3,6 +3,31 @@
 The page tells you most of this itself; the Logs page tells you the rest. Every symptom
 below names the page and the field that shows it.
 
+
+## Fault codes on the bar
+
+Off by default. Turn on **Fault codes on the bar** on the System page (feature bit 19,
+[FEATURES.md](FEATURES.md)) and the bar stops showing the printer's state while it cannot
+reach something, and blinks a code instead: a colour for the area, a count of blinks for
+the reason, then a pause, repeating. The network outranks the printer, because a printer
+cannot be reached without it. Nothing blinking means nothing is wrong with either.
+
+| Colour | Blinks | What it means | What to do |
+|---|---:|---|---|
+| amber | 1 | no network configured | open the device's hotspot and set the Wi-Fi on the setup page |
+| amber | 2 | joining the network | wait; if it stays here, the network is not answering |
+| amber | 3 | rejoining after losing the network | wait; if it stays here, the signal is marginal |
+| amber | 4 | the Wi-Fi password was refused | retype it on the Network page |
+| blue | 1 | no printer bound | bind one on the Printer page |
+| blue | 2 | connecting to the printer | wait |
+| blue | 3 | nothing answers at the printer's address | check the address; a printer that moved is found again by serial with bit 18 on |
+| blue | 4 | the printer refused the access code | retype it from the printer's own screen |
+| blue | 5 | the printer refused the serial number | check it against the printer's own screen |
+| blue | 6 | the printer failed in a way this build does not name | the device log has the raw reason |
+
+The brightness of a code is its own, not the bar's: a bar turned down or off still shows
+its codes, which is the point.
+
 ## The page says "Waiting for the device to send its state" and never moves
 
 The socket opened but no document arrived. The device pushes all six roots the moment a

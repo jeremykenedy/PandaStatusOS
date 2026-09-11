@@ -428,5 +428,8 @@
   "ps_system_restart_confirm": "Restartovat",
   "ps_feature_auto_rebind": "Znovunalezení tiskárny",
   "ps_feature_auto_rebind_help": "Když připojená tiskárna dostane novou adresu a přestane odpovídat, zařízení ji vyhledá podle sériového čísla a připojí znovu. Samo hledání zatím nic nenajde: chybí zdokumentovaný mechanismus.",
-  "ps_feature_auto_rebind_aria": "Znovunalezení tiskárny"
+  "ps_feature_auto_rebind_aria": "Znovunalezení tiskárny",
+  "ps_feature_diagnostics": "Chybové kódy na liště",
+  "ps_feature_diagnostics_help": "Když zařízení nedosáhne na síť nebo na tiskárnu, lišta bliká barvou podle oblasti a počtem podle důvodu místo obvyklého zobrazení. Tabulka je v nápovědě k potížím.",
+  "ps_feature_diagnostics_aria": "Chybové kódy na liště"
 }

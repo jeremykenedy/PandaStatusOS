@@ -38,6 +38,15 @@ static ps_rgba_t scaled(ps_rgba_t c, uint8_t brightness)
 /* one frame from the state; returns the milliseconds to wait before the next */
 static uint32_t render(void)
 {
+    /* C8: a diagnostic replaces the frame entirely while it holds. Nothing the bar would
+     * otherwise show means anything when the device cannot reach the network or the printer,
+     * and the point of it is to be read from across the room. */
+    ps_diag_t diag;
+    ps_lock();
+    bool diagnose = (g_ps.cfg.features & PS_FEAT_DIAGNOSTICS) && ps_diag_pick(g_ps.sta_state, g_ps.printer_state, &diag);
+    ps_unlock();
+    if (diagnose) return ps_diag_render(&diag, (uint32_t)(esp_timer_get_time() / 1000), s_frame, CONFIG_PS_LED_COUNT);
+
     ps_fx_pick_t k;
     ps_lock();
     /* the printer's state as rendered: live, or the pin while one is live (A13) */

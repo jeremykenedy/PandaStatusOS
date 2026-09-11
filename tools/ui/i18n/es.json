@@ -428,5 +428,8 @@
   "ps_system_restart_confirm": "Reiniciar",
   "ps_feature_auto_rebind": "Volver a encontrar la impresora",
   "ps_feature_auto_rebind_help": "Si la impresora vinculada recibe una dirección nueva y deja de responder, el dispositivo la busca por su número de serie y se vincula de nuevo. La búsqueda en sí aún no encuentra nada: falta un mecanismo documentado.",
-  "ps_feature_auto_rebind_aria": "Volver a encontrar la impresora"
+  "ps_feature_auto_rebind_aria": "Volver a encontrar la impresora",
+  "ps_feature_diagnostics": "Códigos de error en la barra",
+  "ps_feature_diagnostics_help": "Cuando el dispositivo no alcanza la red o la impresora, la barra parpadea un color para el área y un número para el motivo, en lugar de lo habitual. La tabla está en la ayuda de resolución de problemas.",
+  "ps_feature_diagnostics_aria": "Códigos de error en la barra"
 }

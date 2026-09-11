@@ -682,6 +682,21 @@ async function drive(browser, combo) {
   t(`${tag} S8 turning it off sends exactly {"features":{"restart":false}}`, got.length === 1 && got[0] === apiFrame({ features: { restart: false } }), got);
   await page.waitForFunction(() => PS.features.features.restart === false, null, { timeout: 2000 }).catch(() => {});
   t(`${tag} S9 the row hides again and the route is gone`, await waitHidden(page, 'ps-system-restart-row', true) && (await rsPost()) === 302);
+
+  // ---- C7 and C8: two switches whose work is on the bar and on the wire, not on the page ----
+  for (const [el, name] of [['ps-system-feature-auto-rebind', 'auto_rebind'], ['ps-system-feature-diagnostics', 'diagnostics']]) {
+    n = await count();
+    await toggle(page, el);
+    got = await sentAfter(n);
+    t(`${tag} T1 turning ${name} on sends exactly its switch`, got.length === 1 && got[0] === apiFrame({ features: { [name]: true } }), got);
+    await page.waitForFunction((nm) => PS.features.features[nm] === true, name, { timeout: 2000 }).catch(() => {});
+    n = await count();
+    await toggle(page, el);
+    got = await sentAfter(n);
+    t(`${tag} T2 turning ${name} off sends exactly its switch`, got.length === 1 && got[0] === apiFrame({ features: { [name]: false } }), got);
+    await page.waitForFunction((nm) => PS.features.features[nm] === false, name, { timeout: 2000 }).catch(() => {});
+  }
+  t(`${tag} T3 both switches are back off and the features document says so`, (await page.evaluate(() => !PS.features.features.auto_rebind && !PS.features.features.diagnostics)));
   await go(page, '#system');
   await waitHidden(page, 'ps-system-features', false);
   n = await count();
