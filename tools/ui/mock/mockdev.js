@@ -51,6 +51,15 @@
  *   PS_SLOW=ms             every push is delayed by N ms
  *   PS_STRICT_WAKEUP=1     drop any inbound frame missing device_wakeup: 1
  *   PS_OTA_REFUSE=1        POST /ota returns 500 and a response with ok:0
+ *   PS_BUILD=<16 hex>      the clone's X-Build header on GET /; unset = the factory, which has none
+ *   PS_BACKUP=<file>       serve that file at GET /backup with X-Flash-Size, as the clone does;
+ *                          unset = the factory's 302. Lets tools/fw/golden.sh be proven here
+ *   PS_BACKUP_TRUNCATE=N   with PS_BACKUP: send only N bytes while X-Flash-Size promises them all
+ *   PS_OTA_LANDS=1         an accepted ota_fw upload takes effect: after PS_OTA_RESTART_MS
+ *                          (default 2000) of 503, GET / serves the page inside the uploaded
+ *                          image with its own X-Build. Unset = the factory's behaviour, which
+ *                          answers 200 whether or not anything landed. tools/fw/ota-install.sh
+ *                          must tell the two apart, so both are here
  *   PS_WIFI_FAIL=1         a wifi connect ends in sta.state 5 (password error)
  *   PS_PRINTER_FAIL=n      a printer bind ends in printer.state n (4..7)
  *   PS_REBOOT_DOWN_MS=ms   after a restart, refuse upgrades for N ms
@@ -84,6 +93,7 @@
 const http = require('http');
 const fs = require('fs');
 const crypto = require('crypto');
+const zlib = require('zlib');
 const path = require('path');
 
 let WebSocketServer = null;
@@ -135,11 +145,33 @@ const ENUM = {
 
 let STATE = null;
 let booting = false;                    // true while a "restart" is in progress
+let LANDED = null;                      // {build, page, until}: the image an ota_fw upload installed (PS_OTA_LANDS)
 const timers = new Set();               // every pending timer, outside STATE
 const sockets = new Set();
 const SENT = [];                        // frames the device received (the harness reads these)
 const PUSHED = [];                      // frames the device sent
 const t0 = Date.now();
+
+// An app image's identity: esp_app_desc_t at 0x20 (magic 0xABCD5432, ELF sha256 at +144) and the
+// page it carries, the largest gzip member with a <title>. Mirrors tools/fw/flashimage.py.
+function appImageInfo(buf) {
+  if (buf.length < 0x20 + 176 || buf[0] !== 0xE9 || buf.readUInt32LE(0x20) !== 0xABCD5432) return null;
+  const build = buf.subarray(0x20 + 144, 0x20 + 152).toString('hex');
+  let page = null;
+  const magic = Buffer.from([0x1f, 0x8b, 0x08]);
+  for (let i = buf.indexOf(magic); i >= 0; i = buf.indexOf(magic, i + 1)) {
+    try {
+      let p = i + 10; const flg = buf[i + 3];
+      if (flg & 4) p += 2 + buf.readUInt16LE(p);
+      if (flg & 8) p = buf.indexOf(0, p) + 1;
+      if (flg & 16) p = buf.indexOf(0, p) + 1;
+      if (flg & 2) p += 2;
+      const out = zlib.inflateRawSync(buf.subarray(p), { finishFlush: zlib.constants.Z_SYNC_FLUSH });
+      if (out.includes('<title>') && (!page || out.length > page.length)) page = out;
+    } catch (_) { /* not a member */ }
+  }
+  return { build, page };
+}
 
 function loadFixture(file) {
   const raw = fs.readFileSync(file, 'utf8');
@@ -434,7 +466,7 @@ async function handleHttp(req, res) {
   if (p === '/__sent') { res.writeHead(200, { 'Content-Type': 'application/json' }); return res.end(JSON.stringify(SENT)); }
   if (p === '/__pushed') { res.writeHead(200, { 'Content-Type': 'application/json' }); return res.end(JSON.stringify(PUSHED)); }
   if (p === '/__state') { res.writeHead(200, { 'Content-Type': 'application/json' }); return res.end(JSON.stringify(STATE)); }
-  if (p === '/__reset' && req.method === 'POST') { await readBody(req, 1 << 16); STATE = loadFixture(FIXTURE); SENT.length = 0; PUSHED.length = 0; clearTimers(); log({ ev: 'debug_reset' }); res.writeHead(200); return res.end('ok'); }
+  if (p === '/__reset' && req.method === 'POST') { await readBody(req, 1 << 16); STATE = loadFixture(FIXTURE); SENT.length = 0; PUSHED.length = 0; LANDED = null; clearTimers(); log({ ev: 'debug_reset' }); res.writeHead(200); return res.end('ok'); }
   if (p === '/__knob' && req.method === 'POST') {
     const { body } = await readBody(req, 1 << 16);
     try { const k = JSON.parse(body.toString('utf8')); KNOBS[k.name] = k.value; log({ ev: 'knob', detail: `${k.name}=${k.value}` }); res.writeHead(200); return res.end('ok'); }
@@ -445,10 +477,26 @@ async function handleHttp(req, res) {
   if (p === '/') {
     if (req.method === 'HEAD') { res.writeHead(405); return res.end(); }
     if (req.method !== 'GET') { res.writeHead(405); return res.end(); }
+    if (LANDED && Date.now() < LANDED.until) { res.writeHead(503); return res.end('restarting'); }
+    const hdr = { 'Content-Type': 'text/html; charset=utf-8' };
+    if (LANDED) { hdr['X-Build'] = LANDED.build; hdr['Content-Length'] = LANDED.page.length; res.writeHead(200, hdr); return res.end(LANDED.page); }
     let page = PLACEHOLDER;
     try { page = fs.readFileSync(PAGE, 'utf8'); } catch (_) { /* placeholder */ }
-    res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Content-Length': Buffer.byteLength(page) });
+    if (knob('PS_BUILD', '')) hdr['X-Build'] = String(knob('PS_BUILD', ''));
+    hdr['Content-Length'] = Buffer.byteLength(page);
+    res.writeHead(200, hdr);
     return res.end(page);
+  }
+  if (p === '/backup' && req.method === 'GET' && knob('PS_BACKUP', '')) {
+    // the clone's GET /backup: the whole flash, X-Flash-Size before the body, chunked
+    let img;
+    try { img = fs.readFileSync(String(knob('PS_BACKUP', ''))); } catch (_) { res.writeHead(500); return res.end('no image file'); }
+    const cut = knobNum('PS_BACKUP_TRUNCATE', 0);          // a short read: fewer bytes than the header promises
+    const body = cut > 0 ? img.subarray(0, cut) : img;
+    log({ ev: 'backup', detail: `${body.length}B of ${img.length}B` });
+    res.writeHead(200, { 'Content-Type': 'application/octet-stream', 'X-Flash-Size': String(img.length), 'X-Build': String(LANDED ? LANDED.build : knob('PS_BUILD', 'mock')) });
+    for (let i = 0; i < body.length; i += 4096) res.write(body.subarray(i, i + 4096));
+    return res.end();
   }
   if (p === '/ota') {
     if (req.method !== 'POST') { res.writeHead(405); return res.end(); }
@@ -464,6 +512,11 @@ async function handleHttp(req, res) {
       res.writeHead(over ? 413 : 500); return res.end('refused');
     }
     log({ ev: 'ota_accepted', detail: `${type} ${bytes}B` });
+    if (type === 'ota_fw' && knobFlag('PS_OTA_LANDS')) {
+      const info = appImageInfo(body);
+      if (info && info.page) { LANDED = { build: info.build, page: info.page, until: Date.now() + knobNum('PS_OTA_RESTART_MS', 2000) }; log({ ev: 'ota_landed', detail: `build ${info.build}` }); }
+      else log({ ev: 'ota_not_an_image', detail: 'PS_OTA_LANDS set but the upload has no esp_app_desc or page; nothing changes' });
+    }
     if (isGif) { STATE.__mock.gif_uploads[type] = bytes; (STATE.__mock.gif_sha256 = STATE.__mock.gif_sha256 || {})[type] = crypto.createHash('sha256').update(body).digest('hex'); }
     if (type === 'ota_img') STATE.settings.img_version = STATE.__mock.next_img_version;
     response('all', rtype, true, isGif ? { gif: type } : undefined);

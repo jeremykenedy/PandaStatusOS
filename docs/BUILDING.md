@@ -51,17 +51,28 @@ pick up a changed default. `firmware/main/ui.html.gz` is derived and not committ
 
 ### The partition table
 
-`firmware/partitions.csv` is generated, not edited:
+`firmware/partitions.csv` is never edited by hand, and it has two lives:
 
-```
-python3 tools/fw/gen_partitions.py --flash 4MB      # the committed table; PROVISIONAL
-python3 tools/fw/gen_partitions.py --flash 16MB     # once the dump says so
-python3 tools/fw/gen_partitions.py --check          # exit 1 on drift
-make partitions FLASH=8MB
-```
+- **Today, PROVISIONAL**, generated for host builds and the mock:
+  ```
+  python3 tools/fw/gen_partitions.py --flash 4MB      # the committed table
+  python3 tools/fw/gen_partitions.py --check          # exit 1 on drift
+  ```
+  Nothing built against it is installed on a device: `tools/fw/preflight.sh` check 7
+  refuses while the file says PROVISIONAL.
+- **From the dump onward, the stock table itself.** The first install is an OTA into one of
+  the factory's app slots, so the clone runs inside the factory's layout and must be built
+  against it (its own partition lookups, the images partition above all, must name what is
+  actually there):
+  ```
+  python3 tools/fw/partitions_from_dump.py /Users/jeremykenedy/backups/PandaStatus/stock/GOLDEN-<ts>-full-<size>.bin
+  python3 tools/fw/partitions_from_dump.py <the same image> --check     # exit 1 on drift
+  ```
+  The file's header records which image it came from. `gen_partitions.py` is retired at
+  that point.
 
-The flash size is unknown until a unit's flash has been read. Change it here and in
-`sdkconfig.defaults` (`CONFIG_ESPTOOLPY_FLASHSIZE_*`) together.
+The flash size is unknown until a unit's flash has been read. `sdkconfig.defaults`
+(`CONFIG_ESPTOOLPY_FLASHSIZE_*`) changes with the table, from the same dump.
 
 ### Host tests
 

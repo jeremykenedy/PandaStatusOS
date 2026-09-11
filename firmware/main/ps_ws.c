@@ -3,6 +3,11 @@
  * the upload with an OTA-Type header; every other path is a 302; the socket is /ws and the
  * connect-time push carries all six roots in one frame.
  *
+ * Two things the factory does not have, both maintenance surfaces that the page and the
+ * wire never see: an X-Build header on GET / (the build identifier) and GET /backup, the
+ * whole flash as bytes (ps_backup.c). Neither changes what the device does; both exist so
+ * that a flash can be proven to have landed and so that a revert path can be taken.
+ *
  * INFERENCE, carried from the mock (D-014): after an inbound frame changes something, the
  * whole six-root document goes back to the sender only. Responses go where the module that
  * raised them says: the sender for a command, every client for an upload.
@@ -16,6 +21,7 @@
 #include <unistd.h>
 #include "esp_log.h"
 #include "esp_http_server.h"
+#include "esp_app_desc.h"
 #include "cJSON.h"
 #include "ps.h"
 
@@ -89,12 +95,29 @@ void ps_ws_response(const char *type, bool ok, const char *gif, int client)
     ESP_LOGI(TAG, "response %s ok=%d", type, ok ? 1 : 0);
 }
 
+/* ---- the build identifier ---- */
+/* The first eight bytes of the ELF's sha256 that ESP-IDF stamps into esp_app_desc, as hex.
+ * It is unique per build, readable off the binary before it is sent and off the device
+ * after (X-Build on GET / and on GET /backup), which is how tools/fw/ota-install.sh tells a
+ * flash that landed from a 200 that meant nothing. The page and the wire carry nothing
+ * new: a header is invisible to both. */
+const char *ps_build_id(void)
+{
+    static char id[17];
+    if (!id[0]) {
+        const esp_app_desc_t *d = esp_app_get_description();
+        for (int i = 0; i < 8; i++) snprintf(id + 2 * i, 3, "%02x", d->app_elf_sha256[i]);
+    }
+    return id;
+}
+
 /* ---- HTTP ---- */
 static esp_err_t page_get(httpd_req_t *req)
 {
     httpd_resp_set_type(req, "text/html; charset=utf-8");
     httpd_resp_set_hdr(req, "Content-Encoding", "gzip");
     httpd_resp_set_hdr(req, "Cache-Control", "no-cache");
+    httpd_resp_set_hdr(req, "X-Build", ps_build_id());
     return httpd_resp_send(req, (const char *)ui_html_gz_start, ui_html_gz_end - ui_html_gz_start);
 }
 static esp_err_t not_allowed(httpd_req_t *req)
@@ -190,6 +213,7 @@ int ps_ws_start(void)
     httpd_uri_t otaget = { .uri = "/ota", .method = HTTP_GET,  .handler = not_allowed };
     httpd_uri_t ota    = { .uri = "/ota", .method = HTTP_POST, .handler = ota_post };
     httpd_uri_t ws     = { .uri = "/ws",  .method = HTTP_GET,  .handler = ws_handler, .is_websocket = true };
+    httpd_uri_t backup = { .uri = "/backup", .method = HTTP_GET, .handler = ps_backup_get };   /* the clone's own; the factory has none */
     httpd_uri_t any_g  = { .uri = "/*",   .method = HTTP_GET,  .handler = redirect_portal };
     httpd_uri_t any_p  = { .uri = "/*",   .method = HTTP_POST, .handler = redirect_portal };
     httpd_uri_t any_h  = { .uri = "/*",   .method = HTTP_HEAD, .handler = redirect_portal };
@@ -198,6 +222,7 @@ int ps_ws_start(void)
     httpd_register_uri_handler(s_hd, &otaget);
     httpd_register_uri_handler(s_hd, &ota);
     httpd_register_uri_handler(s_hd, &ws);
+    httpd_register_uri_handler(s_hd, &backup);
     httpd_register_uri_handler(s_hd, &any_g);
     httpd_register_uri_handler(s_hd, &any_p);
     httpd_register_uri_handler(s_hd, &any_h);

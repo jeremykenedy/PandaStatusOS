@@ -76,6 +76,11 @@ CHECKS = [
  # color_cycle, with the underscore, is THEIR spelling of it. The concept is universal;
  # that exact token is how their markup writes it, so it stays a standalone trigger.
  ("their color_cycle spelling",  r'\bcolor_cycle\b'),
+ # The esptool subcommand that erases the whole chip. Nothing in this repository runs it, ever:
+ # on the Panda Vent the factory firmware was lost to one write that touched the bootloader and
+ # partition table, and the P2 has no published image at all (firmware/SAFETY.md). The token is
+ # forbidden outright, in scripts, docs and Makefile alike, so it cannot be reached by habit.
+ ("whole-chip erase command",   r'\berase[_-]flash\b'),
  ("AI attribution",
   r'\b(anthropic|co-authored|copilot|codex)\b|Generated with|Co-Authored-By'),
 ]

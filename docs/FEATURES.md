@@ -36,6 +36,18 @@ controls the factory page handles inbound but never sends (`settings.on`,
 `settings.follow`, `settings.printing_ui_type`) are recorded there as dead and left dead;
 if they are ever wired, it is behind a flag.
 
+## Required, and therefore not behind a flag
+
+Two things the factory does not have and every build of the clone carries. They are not
+features in the sense above: neither changes what the device does, both exist so that a
+flash can be proven and a revert path can be taken, and a revert path that is off by
+default is not a revert path. Both are invisible to the page and to the wire (D-029).
+
+| What | Where | Why it is always on |
+|---|---|---|
+| `GET /backup`, the whole flash as bytes, `X-Flash-Size` before the body, station interface only | `firmware/main/ps_backup.c` | the only revert path this hardware has is a full flash image, and the factory offers no way to take one |
+| `X-Build` on `GET /` and `GET /backup`, the build identifier | `firmware/main/ps_ws.c` | the factory's `/ota` answers 200 whether or not an upload landed; `tools/fw/ota-install.sh` proves a flash by this header and the served page |
+
 ## Reserved
 
 | Bit | Reserved for |

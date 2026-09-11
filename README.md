@@ -145,19 +145,28 @@ and placeholders. A language ships when all 248 strings are in it.
 
 ## Install
 
-1. Read [firmware/SAFETY.md](firmware/SAFETY.md).
-2. Back up the unit and verify the backup: [backups/RESTORE.md](backups/RESTORE.md), Part B.
-3. Build: [docs/BUILDING.md](docs/BUILDING.md).
-4. Flash: [docs/FLASHING.md](docs/FLASHING.md). The first install writes the bootloader
-   and partition table and must be done over the cable; updates after that go through
-   the System page.
+1. Read [firmware/SAFETY.md](firmware/SAFETY.md). It explains why the order below is fixed:
+   a sibling project lost its factory firmware for good to one flash that wrote the
+   bootloader and partition table without a full backup.
+2. Back up the unit: three reads of the whole flash over the cable, two must agree, one
+   copy off the machine (`tools/fw/golden.sh usb --stock`; [backups/RESTORE.md](backups/RESTORE.md), Part B).
+3. Build against the unit's own partition table, read from that backup
+   (`tools/fw/partitions_from_dump.py`): [docs/BUILDING.md](docs/BUILDING.md).
+4. Install over the network: `tools/fw/ota-install.sh`, [docs/FLASHING.md](docs/FLASHING.md).
+   The first install is an OTA into one of the stock firmware's own app slots; the
+   bootloader, the partition table, the settings and the animations are never written.
+   `tools/fw/preflight.sh` refuses every install until step 2 is complete and verified,
+   and it has no override. Updates after that go through the System page or the same
+   script, which proves that a flash landed rather than trusting the device's 200.
 
 ## Going back
 
-Write the dump you took in step 2 back over the whole flash. The exact command, every
-offset, and the verification step are in [backups/RESTORE.md](backups/RESTORE.md). The
-factory image is the vendor's and is not redistributed here; the copy you took is the
-only one there is.
+Three ways, in order of how much they write, all in [backups/RESTORE.md](backups/RESTORE.md):
+the factory app back over the network (no cable), the factory app into one slot over the
+cable, and the whole image back over the cable, which is the only one that touches the
+bootloader. The clone also serves `GET /backup`, the whole flash over Wi-Fi in seconds, so
+every later restore point costs nothing. The factory image is the vendor's and is not
+redistributed here; the copy you took is the only one there is.
 
 ## Project layout
 

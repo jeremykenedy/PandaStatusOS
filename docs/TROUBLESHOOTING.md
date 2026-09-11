@@ -88,3 +88,28 @@ Newest first. "device sent state:" lines list the roots of a push; "page sent:" 
 show the exact frame the page sent, with passwords and access codes replaced by their
 length; "device answered:" lines are the device's verdicts. Copy puts the list on the
 clipboard for a bug report; nothing on it is a secret.
+
+## Installing and backing up
+
+**The upload said 200 and nothing changed.** That is the factory's `/ota`: it answers 200
+whether the image landed or not. `tools/fw/ota-install.sh` is the only install path that
+reports a verdict, and NOT LANDED is the honest one. Rebuild (the build id changes with
+every build) and run it again; if it stays NOT LANDED, the device refused the image silently
+and the Logs page of the running firmware, if it is the clone, says why.
+
+**After the first install the device never came back at its address.** Expected. The clone
+has no Wi-Fi credentials yet, so it is on its own hotspot (placeholder name `PandaStatus`,
+open, 192.168.4.1) showing the setup card. Join it, set up Wi-Fi, and from the network run
+`tools/fw/ota-install.sh verify <new address>` for the verdict.
+
+**`GET /backup` answers 403.** The request arrived over the hotspot. The backup carries the
+Wi-Fi password inside NVS, and the hotspot is open by default, so the endpoint serves the
+station interface only. Take the backup from the network the device is on.
+
+**`golden.sh` says SHORT READ.** The device promised more bytes in `X-Flash-Size` than it
+sent; the connection dropped mid-transfer. Nothing was kept. Run it again; a golden is
+whole or it is not a golden.
+
+**`preflight.sh` refuses.** Read the line that says FAIL. There is no override; the check
+that failed is the thing to fix, and `firmware/SAFETY.md` explains why each one exists.
+

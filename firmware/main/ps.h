@@ -168,6 +168,14 @@ int  ps_ota_write(void *ctx, const void *data, size_t len);
 int  ps_ota_end(void *ctx, bool ok);
 void ps_ota_confirm_boot(void);                       /* once the server is up: cancel rollback */
 
+/* ------------------------------------------------------------- ps_backup.c ---- */
+/* GET /backup: the whole flash as bytes, X-Flash-Size before the body, station interface
+ * only. The handler signature is esp_http_server's; declared here as a pointer-free name
+ * so ps.h stays free of that header. */
+struct httpd_req; typedef struct httpd_req httpd_req_t;
+int ps_backup_get(httpd_req_t *req);   /* esp_err_t */
+
 /* ------------------------------------------------------------------ utility ---- */
 void ps_restart(const char *why);
+const char *ps_build_id(void);         /* 16 hex chars: the first 8 bytes of the app ELF sha256 */
 #endif

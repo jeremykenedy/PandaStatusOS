@@ -1,166 +1,173 @@
 # SAFETY
 
-Read before any operation that touches the device.
+Read before any operation that touches the device. This document describes a gate, not
+a procedure. The procedures are in [docs/FLASHING.md](../docs/FLASHING.md) and
+[backups/RESTORE.md](../backups/RESTORE.md); every one of them passes through the gate
+below, and the gate is a script that refuses.
 
-## THE ONE RULE THAT MATTERS
+## Why this exists, in plain language
 
-**A first install over stock cannot self-revert.**
+On 2026-08-30 the Panda Vent's factory firmware was made permanently unrecoverable. The
+first flash of that project wrote the stock bootloader and partition table along with the
+app. Only the app had been backed up. BIQU publishes app images only, so there was nothing
+to restore the bootloader or the table from, and the factory firmware was gone from that
+unit for good. The cause is written down in that project's own records
+(`~/vent-control/goldens/README.md`), and it is the reason for every rule here.
 
-The stock unit ships with the factory application and a factory bootloader and
-partition table. Once anything is written over that flash, the factory image is gone
-from the device. There is no recovery partition, no factory-reset-to-stock, no OTA
-rollback to a slot that still holds the original. The device cannot put itself back.
+The Panda Status P2 is worse positioned than the vent was. BIQU publishes **no P2 image at
+all**, not even an app (checked 2026-08-27: the GitHub firmware directory holds v1.0.0,
+v1.0.1, v1.0.2 and v2.0.0, all V1/V2 images titled "Panda Status V1" where they carry a
+page; the wiki's P2 release page lists one entry with no download link). The full flash
+dump taken from this unit will be the only copy of its firmware in existence. Lose it, or
+write over the wrong region before it exists, and the factory firmware is gone from the
+world, not just from the device.
 
-**The full flash dump is the only revert path.** If the dump is missing, unverified,
-or was taken from a different unit, the stock firmware is unrecoverable.
+## THE RULE
 
-### For this unit that is literal, not rhetorical
+**The first install of PandaStatusOS never writes the bootloader or the partition table.**
+There is no version of this task where it needs to.
 
-This is a **Panda Status P2**, confirmed 2026-08-27 from the device's own served UI
-(`<title>Panda Status P2</title>`) and from `settings.fw_version` = `V1.0.0`.
+An OTA writes one app slot. It does not touch 0x0, it does not touch 0x8000, it does not
+touch NVS, and it does not touch the images partition holding the fifteen animations. The
+stock firmware already serves `POST /ota`. So the first install goes through the factory's
+own OTA endpoint, over the network, with no cable connected. The stock app stays in the
+other slot, and the bootloader falls back to it if the clone fails to boot.
 
-**No P2 firmware image is published anywhere.** Checked 2026-08-27:
+Consequences, each of them enforced by a script rather than by memory:
 
-- `github.com/bigtreetech/Panda_Status/Firmware` contains v1.0.0, v1.0.1, v1.0.2 and
-  v2.0.0. All are V1/V2 images. Their embedded UI, where present, is titled
-  "Panda Status V1". None is a P2 image.
-- The BTT wiki P2 firmware release notes page lists exactly one entry, `v1.0.0-release`,
-  "Initial factory firmware release", and offers **no download link of any kind**.
+- **The clone is built against the stock partition table, read out of the dump.** Not a
+  table this repository generates. `firmware/partitions.csv` is PROVISIONAL today and the
+  gate refuses while it is; `tools/fw/partitions_from_dump.py` replaces it from the dump.
+- **Nothing in this repository writes 0x0 or 0x8000** except the whole-image restore in
+  `backups/RESTORE.md`, which exists to put a verified dump back and for nothing else.
+- **Nothing in this repository erases the chip.** The esptool subcommand that does is a
+  forbidden token in every tracked file (`make residue` fails on it).
+- **There is no `make` target that flashes**, and there never will be one. The IDF target
+  that writes bootloader, table and app together is exactly the operation that lost the
+  vent's firmware, and it must not be reachable by muscle memory at two in the morning.
 
-So there is no vendor fallback, no community image, and no published binary to fall back
-on. For the V1/V2 units a botched flash is an inconvenience. For this unit it is
-permanent. The dump is not the best revert path, it is the **only one in existence**.
+## THE GATE: tools/fw/preflight.sh
 
-### Consequence: three reads, not two
+Every flash path calls it first: `tools/fw/ota-install.sh` (the network install),
+`tools/fw/usb-app-write.sh` (the cable fallback), and the whole-image restore by hand.
+It refuses unless all of these pass, and it prints which one did not:
 
-1. Take **three** independent full-flash reads.
-2. **Two must agree byte for byte** before the third is even considered redundant.
-3. If any two disagree, keep reading until two consecutive reads match, then take one
-   more.
-4. **One copy goes off this machine.** A dump that exists only on the Mac is one disk
-   failure away from being no dump at all.
+```
+ 1. A full dump of the STOCK firmware exists outside the repository, under
+    /Users/jeremykenedy/backups/PandaStatus/stock/, and every file verifies against its
+    own .sha256 now, not remembered from earlier.
+ 2. At least two independent reads of it exist and their sha256 match byte for byte.
+ 3. The agreed image parses: partition table at 0x8000 with its MD5, every partition
+    enumerated, every app slot starting with the 0xE9 image magic and carrying
+    esp_app_desc at +0x20 (project, version, IDF version, build).
+ 4. A copy exists off this machine, recorded by path and sha256 in stock/OFFMACHINE.tsv,
+    and re-hashed now when the path is reachable. A dump on one disk is not a backup.
+ 5. The fifteen animation slots each have their own recorded sha256, by name, in
+    stock/ANIMATIONS.sha256. They exist nowhere else in the world.
+ 6. backups/RESTORE.md Part B carries no PENDING DUMP placeholder. Every offset is real.
+ 7. firmware/partitions.csv is the stock table read from that dump, not a generated one.
+ 8. The unit the dump came from is recorded by MAC in stock/RESTORE-THIS-UNIT.txt, so a
+    flash can refuse a different unit.
+```
 
-### The img partition gets the same rule
+**There is no override flag and no `--force`.** A check that can be waived is not a gate.
+`make preflight` runs it read-only at any time; today it refuses on all eight, because no
+dump exists yet, and that is the correct answer.
 
-The device carries 15 GIF assets, one per print stage. **None is reachable over
-HTTP** (every path but `/` and `/ota` returns a captive-portal redirect) and **none is
-published anywhere**. They are as irreplaceable as the firmware.
-
-- The img partition gets the **same three-read, two-must-agree** treatment as the app.
-- Each of the 15 slots gets **its own sha256** and **its own line in `RESTORE.md`**.
-- `settings.img_version` is recorded **before** the dump, off the live device, or the
-  extracted images cannot be tied to a version afterwards.
-- Uploading a GIF via `POST /ota` with `OTA-Type: <slot>` **overwrites a slot that
-  cannot be recovered**. Never upload before the dump exists and verifies.
-
-The firmware plus these 15 images are the entire irreplaceable surface of this unit.
+On top of the gate, the network install refuses a unit whose MAC (from the ARP table)
+differs from the recorded one, and the cable fallback refuses a chip that is not an
+ESP32-C3, a flash size other than the recorded one, or a MAC other than the recorded one.
 
 ## RULE 0. Flashing requires explicit per-message authorization.
 
-Nothing is flashed unless Jeremy says so in that message, with the cable connected.
+Nothing is flashed unless Jeremy says so in that message.
 
-- Authorization does not carry over from a previous message.
-- Authorization does not carry over from a previous session.
-- "Go ahead with Phase 2" is not flash authorization.
-- "Yes" to a different question is not flash authorization.
+- Authorization does not carry over from a previous message or a previous session.
+- "Go ahead with Phase 2" is not flash authorization. "Yes" to a different question is not.
 - No flashing to test. No flashing to check. No flashing because it seemed implied.
+- The first install is an OTA over the network. It is still a flash, and Rule 0 still
+  governs it: the script is run only when that message says to run it.
 
-Read operations (chip_id, flash_id, read_flash, read_mac) are not flashing and are not
-covered by this rule, but they still wait for the phase gate that precedes them.
+Read operations (chip-id, flash-id, read-flash, read-mac, GET /backup) are not flashing,
+but they wait for the phase gate that precedes them, and under Rule 9 they never run
+unsupervised.
 
-## PRE-FLASH GATE
+## THE ORDER
 
-This is a gate, not a checklist. It is walked in full, in order, **before every first
-flash over factory**, by a person, out loud or in writing. Every line is a yes or the gate
-is closed. There is no partial pass, no "mostly", and no authority that waives a line.
+1. Video and WebSocket reference capture of the stock unit
+   (`backups/stock-capture-runsheet.md`). Once the clone is installed the stock behaviour
+   is no longer running; the stock app in the other slot is a file, not a demonstration.
+2. Hardware identification, read-only: `chip-id`, `flash-id`, `read-mac`. An ESP32-C3 with
+   the flash size the dump will be taken at, or everything this repository assumes is wrong.
+3. **The stock golden, three reads:** `tools/fw/golden.sh usb --stock --reads 3`. Each read
+   to its own file, each chmod 444, each hashed and parsed; the script says whether two
+   agree. `settings.img_version` is read off the page before this and recorded.
+4. **The copy off this machine:** `tools/fw/golden.sh copy <agreed read> <somewhere else>`.
+5. **The animations:** `tools/fw/flashimage.py gifs <agreed read>` lists every whole GIF in
+   the image with its hash; the mapping to the fifteen slot names is a Phase 1 fact and is
+   written into `stock/ANIMATIONS.sha256` by hand, one line per slot.
+6. **The partition table:** `python3 tools/fw/partitions_from_dump.py <agreed read>`, then
+   rebuild. `backups/RESTORE.md` Part B is completed from the same table.
+7. `make preflight` passes. Only now is a write discussable.
+8. **The first install, over the network:** `tools/fw/ota-install.sh <host> <app.bin>`,
+   when Rule 0 says so. The script proves the flash landed or says NOT LANDED.
+9. **A golden of the new state**, over the network: `tools/fw/golden.sh http <host>`. This
+   one holds the stock app in the other slot and is worth keeping for that reason.
+10. The same image once more, so both slots hold it, then another golden: that is the
+    restore point for the clone.
 
-A line that cannot be answered yes is answered "closed", and the session moves to
-something else. Nothing here is ever skipped because the cable is already plugged in.
+## GOLDENS
 
-```
- 1. AUTHORIZATION.   Jeremy authorized THIS flash, in THIS message, naming it.      [ ]
- 2. CABLE.           Connected, and he confirmed it in the same message.             [ ]
- 3. THREE READS.     Three independent full-flash reads exist on disk,
-                     taken at offset 0 through the full flash size flash-id
-                     reported, each under its own filename.                        [ ]
- 4. TWO MUST AGREE.  At least two of the three are byte-identical, proven by
-                     sha256 just now, not remembered from earlier.                  [ ]
- 5. OFF-MACHINE.     One verified copy of the whole backup set exists on a
-                     device that is not this Mac, and its SHA256SUMS verified
-                     there. A dump on one disk is not a backup.                     [ ]
- 6. IMG PARTITION.   The image partition had the same three-read, two-agree
-                     treatment as the app, and settings.img_version was read
-                     off the live device and recorded BEFORE the dump.              [ ]
- 7. FIFTEEN GIFs.    All fifteen stage images are extracted, each hashed, each
-                     with its own line in SHA256SUMS and RESTORE.md. They exist
-                     nowhere else in the world. None has been uploaded over.        [ ]
- 8. THIS UNIT.       The MAC read off the device now matches the MAC recorded
-                     with the dump. The dump is from this unit, proven, not
-                     assumed.                                                       [ ]
- 9. RESTORE.md.      backups/RESTORE.md Part B carries no <PENDING DUMP> marker.
-                     Every offset is real, every command is complete, and it was
-                     read through end to end today.                                 [ ]
-10. CHIP.            chip-id reported an ESP32-C3 and flash-id reported the flash
-                     size the dump was taken at. If either differs, everything
-                     this repo assumes about the target is wrong. Gate closed.      [ ]
-11. READABLE NOW.    The dump files at /Users/jeremykenedy/backups/PandaStatus/
-                     are readable at this moment, not "were there last week".       [ ]
-12. NO PUBLISHED FALLBACK, ACKNOWLEDGED.
-                     No P2 image exists anywhere. If this flash goes wrong and the
-                     dump is bad, the factory firmware is gone from the world. The
-                     person flashing has read this line and says so.                [ ]
-```
+A golden is the entire flash: bootloader, partition table, otadata, both app slots, the
+images partition and NVS. Restoring one puts the device back exactly as it was.
 
-**Twelve yes, or the gate is closed.** Write the twelve answers down with the date before
-the write command is typed. That record is what gets read if something goes wrong.
+- Taken **before** any flash, never after. A backup taken after the damage is not a backup.
+- chmod 444 on capture. New captures get new filenames. Nothing is ever overwritten.
+- Both app slots are read and recorded on every capture (`MANIFEST.tsv`). An OTA writes
+  only the inactive slot, so a golden taken after one flash still holds whatever was there
+  before in the other half. On the vent a test build sat one rollback away from live for
+  exactly that reason. Flash the same image twice before a golden meant as a restore point.
+- Never committed. NVS inside them carries the Wi-Fi password, the printer serial and its
+  access code in plaintext. They live under `/Users/jeremykenedy/backups/PandaStatus/`, and
+  nowhere inside any repository.
 
-## READ-BEFORE-WRITE ORDER
+`GET /backup` in the clone is what makes goldens cheap after the first install: the whole
+flash over Wi-Fi in seconds instead of minutes over the cable, byte-identical to an esptool
+read (proven on the vent for the bootloader and table; to be proven on the P2 by comparing
+the first network golden against the USB stock golden's unchanged regions). It is served on
+the station interface only, because the hotspot is open by default and NVS is in the image.
 
-The order is not negotiable.
+## THE THREE RESTORES
 
-1. Video and WebSocket reference capture of the stock unit. Once flashed, the stock
-   behaviour is gone and cannot be recaptured. See
-   `backups/stock-capture-runsheet.md`.
-2. Hardware identification. **Already established as P2 from the UI**, and to be
-   confirmed against esptool at step b. V1/V2 and P2 are different boards. Flashing a
-   V1/V2 image to a P2 or the reverse is a hardware-level mistake, not a software one,
-   and there is no published P2 image to flash in any case.
-3. Full dump.
-4. Second full dump. sha256 both. They must match. A single read is not a backup. A
-   flash read can be corrupt and still complete without error.
-5. **Third full dump**, per the no-published-fallback rule above.
-6. **One copy moved off this machine.**
-7. Partition table parsed, every partition dumped and hashed. The GIF assets live in
-   flash and are not retrievable over HTTP, so they get their own sha256 entries and
-   their own line in `RESTORE.md`.
-8. Restore command written down and reviewed.
+`backups/RESTORE.md` Part B separates them. None of the three is safe to run without a
+verified dump; the first two are safe to run without the cable.
 
-Only after all eight is a write even discussable.
+| Restore | Writes | Needs | When |
+|---|---|---|---|
+| App only, over OTA | one app slot | the stock app image extracted from the dump, the network | the clone runs but you want the factory app back |
+| App only, over USB | one app slot at the offset from the dump's table | the cable, `tools/fw/usb-app-write.sh` | the device will not boot, so it cannot serve `/ota` |
+| The whole image | every region, 0x0 to the end | the cable, the agreed golden, its hash verified now | the bootloader, the table, NVS or the images are damaged |
 
-## NVS
+## IF SOMETHING GOES WRONG MID-WRITE
 
-The NVS partition contains live Wi-Fi credentials and likely the printer access code
-and serial.
+Do not power cycle and hope. Do not re-run the same command blind.
 
-- It never enters the repo. Not committed, not gitignored, not in `.claude/work/`.
-- It lives only at /Users/jeremykenedy/backups/PandaStatus/.
-- It is never pasted into chat, docs, commit messages, or issue text.
-- Values recovered from it are referenced by name in `docs/` (`<WIFI_SSID>`,
-  `<PRINTER_ACCESS_CODE>`, `<DEVICE_MAC>`, `<DEVICE_SERIAL>`), never by value.
-- Restoring NVS is part of the restore path. Restoring an app image without NVS leaves
-  the device unable to rejoin the network.
+1. Stop. Leave the device powered and connected.
+2. Report exactly what command was run and its full output. `flash-log.txt` under the
+   backup root has every run of the install scripts.
+3. Wait for Jeremy.
+
+An interrupted OTA leaves a half-written inactive slot and a bootloader that still boots
+the other one; the device usually comes back on its own. An interrupted USB write is the
+case the whole-image restore exists for, and it requires the device to still enumerate in
+download mode. Adding writes on top of a failed write makes that harder.
 
 ## THE PUBLISHED BINARIES ARE NOT A RESTORE PATH
 
-https://github.com/bigtreetech/Panda_Status/tree/master/Firmware ships application
-images only. No bootloader. No partition table. No NVS.
-
-Writing one of those to a wiped device does not restore it. They are useful for one
-thing: comparing against the dumped app image to confirm which published version this
-unit shipped with. Treat them as reference, never as recovery.
-
-Published reference images, all four verified by download on 2026-08-27. **All are
-V1/V2. None is a P2 restore path. None is any kind of restore path.**
+https://github.com/bigtreetech/Panda_Status/tree/master/Firmware ships application images
+only, all of them V1/V2. No bootloader. No partition table. No NVS. No P2. Writing one of
+those to this unit restores nothing and, being a different board's image, may not boot.
+They are reference material for comparing against the dumped app, and nothing else.
 
 | Version | File | bytes | sha256 |
 |---|---|---|---|
@@ -169,23 +176,28 @@ V1/V2. None is a P2 restore path. None is any kind of restore path.**
 | v1.0.2 | panda_status_v1.0.2.bin | 1452224 | eede7abf5e824f31d071bcd962c428cce112706086fa642989c33f95dc9d5358 |
 | v2.0.0 | panda_status_v1.0.3.bin | 1246784 | e77549a31714cfa14e3632713e10232c93604eb4a84d0ce37434c7fab08e6c9a |
 
-The v2.0.0 directory contains a file named v1.0.3. That is upstream's real naming,
-verified against the repo listing, not a transcription error.
+The v2.0.0 directory contains a file named v1.0.3. That is upstream's real naming. Only the
+v2.0.0 image carries an embedded page, a gzip member titled "Panda Status V1" at file offset
+109996; the unit on hand serves a different, uncompressed page titled "Panda Status P2".
 
-Only the v2.0.0 image carries an embedded web UI: a gzip member at file offset 109996
-whose FNAME field is `xindex.html`, raw deflate payload starting at 110018, inflating
-to 313,255 bytes titled "Panda Status V1". That resolves where the `xindex.html` string
-comes from. The device on hand serves a different, uncompressed, 278,771 byte file
-titled "Panda Status P2".
+## NVS
 
-## IF SOMETHING GOES WRONG MID-WRITE
+The NVS partition holds the live Wi-Fi credentials, the printer serial and the access code.
 
-Do not power cycle and hope. Do not re-run the same command blind.
+- It never enters the repository. Not committed, not gitignored, not in `.claude/work/`.
+- It lives only inside the goldens under `/Users/jeremykenedy/backups/PandaStatus/`.
+- Values recovered from it are referenced in `docs/` by name only (`<WIFI_SSID>`,
+  `<PRINTER_ACCESS_CODE>`, `<DEVICE_MAC>`, `<DEVICE_SERIAL>`), never by value.
+- Restoring NVS is part of the whole-image restore only. An app-only restore leaves NVS as
+  it is, which is what keeps the device on the network afterwards.
 
-1. Stop. Leave the device powered and connected.
-2. Report exactly what command was run and its full output.
-3. Wait for Jeremy.
+## WHAT IS STILL INFERENCE
 
-An interrupted write leaves partial flash. The recovery is a full restore from the
-verified dump per `backups/RESTORE.md`, which requires the device to still enumerate in
-download mode. Adding more writes on top of a failed write can make that harder.
+- Whether the stock bootloader honours OTA rollback (an image that boots and then fails to
+  confirm itself) or only image validation (an image that fails its checksum). Read from the
+  dump's bootloader at Phase 1. Until then, "the bootloader rolls back" means the second
+  kind for certain and the first kind if the stock build enabled it.
+- Whether an app built with ESP-IDF v5.3.1 boots under the stock bootloader. The dump's
+  esp_app_desc says which IDF built the stock app; `tools/fw/preflight.sh` prints it.
+- That GET /backup reads back byte-identical on the P2. Proven on the vent; compared on the
+  P2 the first time a network golden exists beside the USB one.

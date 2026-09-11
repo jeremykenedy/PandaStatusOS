@@ -646,6 +646,56 @@ decision dressed as a rename. The same holds for the default hostname, whose pla
 was renamed with the project because it had to be something. Both are on JEREMY-QUEUE
 item 3.
 
+## D-028 The first install is an OTA into a stock app slot; nothing ever writes the bootloader or the partition table
+
+**Date** 2026-09-10 · **Reversal** expensive, and not offered · **Authorized by** Jeremy, PM direction
+
+**Decided.** The first install of the clone goes through the factory firmware's own
+`POST /ota`, over the network, into one of its app slots. No cable. The bootloader at 0x0,
+the partition table at 0x8000, NVS and the images partition are never written by anything
+in this repository except the whole-image restore of a verified golden. The clone is
+therefore built against the stock partition table, read out of the dump by
+`tools/fw/partitions_from_dump.py`; the generated table is PROVISIONAL and for host builds
+only. `tools/fw/preflight.sh` gates every flash path on eight checks with no override, the
+whole-chip erase token is forbidden by the residue sweep, and there is no `make` target
+that flashes.
+
+**Alternatives.** The cable-first install this project documented until today (bootloader,
+table and app written together from `flash_args`). Rejected because it is the exact
+operation that lost the Panda Vent's factory firmware on 2026-08-30, and the P2 has no
+published image of any kind to fall back on.
+
+**Why.** An OTA writes one slot and leaves the stock app in the other as the bootloader's
+fallback. Everything irreplaceable stays untouched by construction, not by care.
+
+**What would change it.** Nothing about the rule. The mechanics change when the dump shows
+the stock table: the slot names, the images partition's real label and type, and whether
+the stock bootloader honours rollback (recorded as INFERENCE in `firmware/SAFETY.md`).
+
+## D-029 GET /backup answers on the station interface only, and the build identifier is a header
+
+**Date** 2026-09-10 · **Reversal** cheap (one function in `ps_backup.c`; one header line in `ps_ws.c`)
+
+**Decided.** `GET /backup` streams the whole flash but refuses requests that arrive on the
+hotspot's address (403). `GET /` and `GET /backup` carry `X-Build`, the first eight bytes of
+the app ELF's sha256 from `esp_app_desc`, as a response header.
+
+**Alternatives.** Serve the backup on every interface, as the vent does; put the build
+identifier in the WebSocket `settings` root; a token or password on `/backup`.
+
+**Why.** The image carries NVS, and NVS carries the Wi-Fi password and the printer's access
+code in plaintext. The factory keeps its hotspot up by default and open (`ap_on` 1, no
+password), so on every interface the endpoint would hand the home network's password to
+anyone in radio range without their ever joining the network. The vent's LAN exposure was
+accepted knowingly; this one is wider and was not asked for, so the hotspot is excluded and
+the owner backs up from the network the device is on. A header is chosen over a wire field
+because gate 2 requires the state document to equal the device's exactly; a header is
+invisible to the page, the wire and the harnesses. A token was not chosen because the
+device has no authentication anywhere and one secret on one route would be theatre.
+
+**What would change it.** Jeremy deciding the hotspot exposure is acceptable (delete
+`via_hotspot()`), or the device growing authentication (then `/backup` uses it).
+
 ---
 
 *Entries continue below as the run proceeds.*

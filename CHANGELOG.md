@@ -24,6 +24,22 @@ Everything so far. No release has been made and no device has been flashed.
 - An event log in the page with credentials replaced by their length before storage.
 - Vendored Beer CSS 5.0.3, Coloris 0.25.0 and ten Heroicons 2.2.0, each gated by sha256.
 
+### The flash safety protocol
+
+- The first install is an OTA into a stock app slot over the network; nothing in the
+  repository writes the bootloader or the partition table, or erases the chip (D-028).
+- `tools/fw/preflight.sh`, the gate every flash path calls first: eight checks on the
+  stock dump, no override. `tools/fw/ota-install.sh` proves a flash landed by build id
+  and served page instead of trusting a 200. `tools/fw/golden.sh` takes, verifies and
+  records full flash images, read-only files, never overwritten. `tools/fw/usb-app-write.sh`
+  for a device that will not boot: one slot, the offset read from the dump.
+  `tools/fw/partitions_from_dump.py` builds the clone against the stock table.
+- `GET /backup` in the firmware: the whole flash over Wi-Fi, `X-Flash-Size` ahead of the
+  body, station interface only (D-029). `X-Build` on `GET /`.
+- A test suite for all of it against a synthetic image and the mock (`make test-flash-tools`).
+- `firmware/SAFETY.md` rewritten as a gate, leading with the Panda Vent outcome that is the
+  reason for it; `backups/RESTORE.md` Part B separates the three restores.
+
 ### The firmware
 
 - ESP-IDF v5.3.1 project for the ESP32-C3: config blob with a pinned layout and host

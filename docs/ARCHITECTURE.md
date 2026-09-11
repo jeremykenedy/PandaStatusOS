@@ -56,6 +56,23 @@ may call them.
 
 [PROTOCOL.md](PROTOCOL.md) has the whole surface.
 
+### The two things the factory does not serve
+
+Both are invisible to the page and to the wire, and neither changes what the device does:
+
+- `GET /` and `GET /backup` carry an `X-Build` header: the first eight bytes of the app
+  ELF's sha256 from `esp_app_desc`, unique per build. `tools/fw/ota-install.sh` proves that
+  a flash landed by reading it before and after, because the factory's `/ota` answers 200
+  either way.
+- `GET /backup` streams the whole flash (`ps_backup.c`), read through `esp_flash_read()` so
+  it bypasses the cache, with `X-Flash-Size` before the chunked body so a short read is
+  detectable. It refuses requests that arrive on the hotspot (D-029): the image carries NVS,
+  NVS carries the Wi-Fi password, and the hotspot is open by default.
+
+The first install of the firmware is an OTA into one of the factory's app slots; nothing
+in the repository writes the bootloader or the partition table, and every flash path goes
+through `tools/fw/preflight.sh` first (D-028, [FLASHING.md](FLASHING.md)).
+
 ### Storage
 
 One NVS blob, 492 bytes, pinned by `_Static_assert` to its size and its array offsets so
@@ -120,7 +137,14 @@ fetch path is one build flag and no call site changes (D-016, D-025).
 | `tools/ui/harness/resilience.js` | one mock lie per sweep row |
 | `tools/ui/harness/sweep.sh` | the one table of harness, fixture and environment |
 | `firmware/test/host/` | the config and state modules compiled on the host against a fake NVS and the IDF's cJSON |
-| `tools/fw/gen_partitions.py` | the partition table from one number |
+| `tools/fw/preflight.sh` | the flash gate: eight checks on the stock dump, no override; every flash path calls it first |
+| `tools/fw/ota-install.sh` | the install over the network, with proof by build id and served page; `verify` re-reads the device from wherever it is now |
+| `tools/fw/golden.sh` | full flash images: over the network from `GET /backup`, over the cable with esptool; verified, read-only, recorded, never overwritten |
+| `tools/fw/usb-app-write.sh` | one app slot over the cable, for a device that will not boot; the offset from the dump's table |
+| `tools/fw/flashimage.py` | the library under all of them: partition tables, app identity, animations, otadata |
+| `tools/fw/partitions_from_dump.py` | `firmware/partitions.csv` from the stock table inside a dump |
+| `tools/fw/test-flash-tools.sh` | all of the above against a synthetic image and the mock |
+| `tools/fw/gen_partitions.py` | the PROVISIONAL partition table from one number, for host builds until the dump |
 | `tools/art/gen_marks.py` | the marks from primitives, with `--check` |
 | `tools/residue-sweep.sh`, `tools/test-hook.sh` | the clean-room sweep and the hook's suite |
 | `tools/capture-mqtt.py`, `tools/redact_mqtt.py` | capture the printer's report stream to disk, then redact it for the tree |

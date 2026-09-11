@@ -3,7 +3,7 @@
 
 .DEFAULT_GOAL := help
 
-.PHONY: help hooks check-hooks test-hook residue test-fw partitions
+.PHONY: help hooks check-hooks test-hook residue test-fw test-flash-tools preflight partitions
 
 help: ## Show this help
 	@grep -hE '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) \
@@ -30,5 +30,14 @@ residue: ## Sweep the tracked tree for BIQU residue (element IDs, class names, t
 test-fw: ## Host tests for the firmware config module (gcc, no device)
 	@bash firmware/test/host/run.sh
 
-partitions: ## Regenerate firmware/partitions.csv (PROVISIONAL; FLASH=4MB by default)
+test-flash-tools: ## Prove the flash tools against a synthetic image and the mock (no device)
+	@bash tools/fw/test-flash-tools.sh
+
+preflight: ## The flash gate, read-only: is a verified stock dump in place? (tools/fw/preflight.sh)
+	@bash tools/fw/preflight.sh
+
+# There is no flash target and there never will be one. The IDF target that writes the
+# bootloader, the partition table and the app together is exactly what firmware/SAFETY.md
+# forbids; the install path is tools/fw/ota-install.sh, over the network.
+partitions: ## Regenerate the PROVISIONAL firmware/partitions.csv for host builds only (the real one comes from the dump)
 	@python3 tools/fw/gen_partitions.py --flash $${FLASH:-4MB}

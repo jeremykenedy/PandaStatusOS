@@ -94,6 +94,17 @@ feature. Resolves with the Music renderer, which is Tier 3.
 Everything here is buildable from what the protocol already establishes. None of it needs
 the dump, with the two exceptions flagged inline.
 
+### Device backup over Wi-Fi, and the flash gate
+
+**BUILT (D-028, D-029).** `GET /backup` streams the whole flash with `X-Flash-Size` ahead of
+the body, station interface only; `X-Build` on `GET /` identifies the build. The install
+path is an OTA into a stock app slot gated by `tools/fw/preflight.sh`, and
+`tools/fw/golden.sh` turns the endpoint into verified, read-only restore points. Required
+for the first release, not a flag: a revert path that is off by default is not a revert
+path ([FEATURES.md](FEATURES.md)). Still open: reading the factory's Wi-Fi credentials out
+of its NVS on the clone's first boot, so the first install stays on the network; that needs
+the dump to learn the layout.
+
 ### Per-stage colour
 
 **What it does.** Give each of the 15 print stages its own bar colour, instead of
