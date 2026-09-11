@@ -354,5 +354,15 @@
   "ps_lighting_hot_c_aria": "Próg, stopnie Celsjusza",
   "ps_lighting_hot_colour": "Kolor",
   "ps_lighting_hot_colour_aria": "Kolor ostrzeżenia",
-  "ps_lighting_hot_help": "Puls nakłada się na efekt lub jednolity kolor, nie zastępując ich; próg jest porównywany z pełnym stopniem, który zgłasza drukarka."
+  "ps_lighting_hot_help": "Puls nakłada się na efekt lub jednolity kolor, nie zastępując ich; próg jest porównywany z pełnym stopniem, który zgłasza drukarka.",
+  "ps_feature_error_flash": "Błysk błędu",
+  "ps_feature_error_flash_help": "Dopóki drukarka zgłasza błąd, pasek błyska jednym kolorem nad tym, co pokazuje, w obu trybach; kolor, jasność i tempo są regulowane.",
+  "ps_feature_error_flash_aria": "Błysk błędu",
+  "ps_lighting_ef_colour": "Kolor",
+  "ps_lighting_ef_colour_aria": "Kolor błysku błędu",
+  "ps_lighting_ef_brightness": "Jasność",
+  "ps_lighting_ef_brightness_aria": "Jasność błysku błędu",
+  "ps_lighting_ef_speed": "Tempo",
+  "ps_lighting_ef_speed_aria": "Tempo błysku błędu",
+  "ps_lighting_ef_help": "Błysk nakłada się na efekt lub jednolity kolor, nie zastępując ich; ma pierwszeństwo przed ostrzeżeniem o gorącu."
 }

@@ -354,5 +354,15 @@
   "ps_lighting_hot_c_aria": "Kynnys, celsiusastetta",
   "ps_lighting_hot_colour": "Väri",
   "ps_lighting_hot_colour_aria": "Varoituksen väri",
-  "ps_lighting_hot_help": "Syke on tehosteen tai yksivärisen palkin päällä eikä korvaa niitä; kynnystä verrataan tulostimen ilmoittamaan kokonaiseen asteeseen."
+  "ps_lighting_hot_help": "Syke on tehosteen tai yksivärisen palkin päällä eikä korvaa niitä; kynnystä verrataan tulostimen ilmoittamaan kokonaiseen asteeseen.",
+  "ps_feature_error_flash": "Virhevilkku",
+  "ps_feature_error_flash_help": "Kun tulostin ilmoittaa virheestä, palkki vilkkuu yhtä väriä sen päällä, mitä se näyttää, kummassakin tilassa; väri, kirkkaus ja tahti ovat säädettävissä.",
+  "ps_feature_error_flash_aria": "Virhevilkku",
+  "ps_lighting_ef_colour": "Väri",
+  "ps_lighting_ef_colour_aria": "Virhevilkun väri",
+  "ps_lighting_ef_brightness": "Kirkkaus",
+  "ps_lighting_ef_brightness_aria": "Virhevilkun kirkkaus",
+  "ps_lighting_ef_speed": "Tahti",
+  "ps_lighting_ef_speed_aria": "Virhevilkun tahti",
+  "ps_lighting_ef_help": "Vilkku on tehosteen tai yksivärisen palkin päällä eikä korvaa niitä; se ohittaa kuumuusvaroituksen."
 }

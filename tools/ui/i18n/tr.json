@@ -354,5 +354,15 @@
   "ps_lighting_hot_c_aria": "Eşik, santigrat derece",
   "ps_lighting_hot_colour": "Renk",
   "ps_lighting_hot_colour_aria": "Uyarı rengi",
-  "ps_lighting_hot_help": "Atış, efektin ya da düz rengin üzerine biner, onların yerini almaz; eşik, yazıcının bildirdiği tam dereceyle karşılaştırılır."
+  "ps_lighting_hot_help": "Atış, efektin ya da düz rengin üzerine biner, onların yerini almaz; eşik, yazıcının bildirdiği tam dereceyle karşılaştırılır.",
+  "ps_feature_error_flash": "Hata flaşı",
+  "ps_feature_error_flash_help": "Yazıcı bir hata bildirdiği sürece çubuk, gösterdiği şeyin üzerinde tek renkte yanıp söner, her iki kipte de; renk, parlaklık ve tempo ayarlanabilir.",
+  "ps_feature_error_flash_aria": "Hata flaşı",
+  "ps_lighting_ef_colour": "Renk",
+  "ps_lighting_ef_colour_aria": "Hata flaşının rengi",
+  "ps_lighting_ef_brightness": "Parlaklık",
+  "ps_lighting_ef_brightness_aria": "Hata flaşının parlaklığı",
+  "ps_lighting_ef_speed": "Tempo",
+  "ps_lighting_ef_speed_aria": "Hata flaşının temposu",
+  "ps_lighting_ef_help": "Flaş, efektin ya da düz rengin üzerine biner, onların yerini almaz; sıcaklık uyarısından önce gelir."
 }

@@ -354,5 +354,15 @@
   "ps_lighting_hot_c_aria": "임계값(섭씨)",
   "ps_lighting_hot_colour": "색",
   "ps_lighting_hot_colour_aria": "경고 색",
-  "ps_lighting_hot_help": "맥동은 효과나 단색 위에 겹쳐지며 대체하지 않습니다. 임계값은 프린터가 보고하는 정수 온도와 비교됩니다."
+  "ps_lighting_hot_help": "맥동은 효과나 단색 위에 겹쳐지며 대체하지 않습니다. 임계값은 프린터가 보고하는 정수 온도와 비교됩니다.",
+  "ps_feature_error_flash": "오류 점멸",
+  "ps_feature_error_flash_help": "프린터가 오류를 보고하는 동안, 막대는 표시 중인 것 위에 한 색을 점멸시킵니다. 두 모드 모두에서 동작하며 색, 밝기, 속도를 조절할 수 있습니다.",
+  "ps_feature_error_flash_aria": "오류 점멸",
+  "ps_lighting_ef_colour": "색",
+  "ps_lighting_ef_colour_aria": "오류 점멸 색",
+  "ps_lighting_ef_brightness": "밝기",
+  "ps_lighting_ef_brightness_aria": "오류 점멸 밝기",
+  "ps_lighting_ef_speed": "속도",
+  "ps_lighting_ef_speed_aria": "오류 점멸 속도",
+  "ps_lighting_ef_help": "점멸은 효과나 단색 위에 겹쳐지며 대체하지 않습니다. 고온 경고보다 우선합니다."
 }

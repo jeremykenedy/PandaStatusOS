@@ -347,6 +347,27 @@
       <div class="ps-tile-label" data-ps-str="ps_lighting_hot_help">The pulse sits over the effect or the solid colour rather than replacing it; the threshold is compared with the whole degree the printer reports.</div>
     </div>
 
+    <!-- A12, behind error_flash: a strobe of one colour over whatever the bar shows, while the printer reports an error -->
+    <div class="ps-tile" id="ps-lighting-ef" hidden>
+      <div class="ps-tile-label" data-ps-str="ps_feature_error_flash">Error flash</div>
+      <div class="ps-grid ps-grid-3">
+        <label class="field prefix border small ps-colour-field" data-ps-no-i18n>
+          <span class="ps-dot" id="ps-lighting-ef-colour-dot"></span>
+          <input type="text" id="ps-lighting-ef-colour" data-ps-layerc="err" data-ps-str-aria="ps_lighting_ef_colour_aria" aria-label="Colour of the error flash">
+          <span class="helper" data-ps-str="ps_lighting_ef_colour">Colour</span>
+        </label>
+        <div>
+          <div class="ps-row"><span class="ps-tile-label" data-ps-str="ps_lighting_ef_brightness">Brightness</span><span class="max"></span><span class="ps-tile-label" id="ps-lighting-ef-brightness-value" data-ps-no-i18n>—</span></div>
+          <label class="slider" data-ps-no-i18n><input type="range" min="0" max="100" step="5" id="ps-lighting-ef-brightness" data-ps-ef="brightness" data-ps-str-aria="ps_lighting_ef_brightness_aria" aria-label="Brightness of the error flash"><span></span></label>
+        </div>
+        <div>
+          <div class="ps-row"><span class="ps-tile-label" data-ps-str="ps_lighting_ef_speed">Rate</span><span class="max"></span><span class="ps-tile-label" id="ps-lighting-ef-speed-value" data-ps-no-i18n>—</span></div>
+          <label class="slider" data-ps-no-i18n><input type="range" min="0" max="100" step="5" id="ps-lighting-ef-speed" data-ps-ef="speed" data-ps-str-aria="ps_lighting_ef_speed_aria" aria-label="Rate of the error flash"><span></span></label>
+        </div>
+      </div>
+      <div class="ps-tile-label" data-ps-str="ps_lighting_ef_help">The flash sits over the effect or the solid colour rather than replacing it; it takes precedence over the hot warning.</div>
+    </div>
+
     <div class="ps-tile" id="ps-lighting-colours">
       <div class="ps-tile-label" data-ps-str="ps_lighting_colours">State colours</div>
       <div class="ps-grid ps-grid-2" data-ps-no-i18n>

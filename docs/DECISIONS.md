@@ -911,8 +911,12 @@ at that colour's own value, not scaled by the mode brightness or the per-state
 brightness: the owner chooses a darker colour for a quieter warning. The threshold is
 compared with the whole degree the report carries, at or past it.
 
-Layers stack in order of urgency: the error flash (A12) will draw after the hot warning
-so an error outranks a warning.
+Layers stack in order of urgency: the error flash (A12) draws after the hot warning so
+an error outranks a warning. The flash is hard on for one half period and hard off for
+the next, the base showing through the off half; its rate is the engine's speed scale
+(`ps_fx_period`, 500 ms at 0 to 16 ms at 100, the half period), so one number means the
+same thing here as on an effect. While it is active the renderer's wait is capped at that
+half period as well, so a slow flash is not sampled at a rate that misses its edges.
 
 **Alternatives.** The warning as an effect id (replaces the base, which the queue rules
 out); scaled by the mode brightness (a warning at brightness 0 would not show); a phase

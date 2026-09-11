@@ -354,5 +354,15 @@
   "ps_lighting_hot_c_aria": "Drempel, graden Celsius",
   "ps_lighting_hot_colour": "Kleur",
   "ps_lighting_hot_colour_aria": "Waarschuwingskleur",
-  "ps_lighting_hot_help": "De puls ligt over het effect of de effen kleur en vervangt ze niet; de drempel wordt vergeleken met de hele graad die de printer meldt."
+  "ps_lighting_hot_help": "De puls ligt over het effect of de effen kleur en vervangt ze niet; de drempel wordt vergeleken met de hele graad die de printer meldt.",
+  "ps_feature_error_flash": "Foutflits",
+  "ps_feature_error_flash_help": "Zolang de printer een fout meldt, flitst de balk in een kleur over wat hij toont, in beide standen; kleur, helderheid en tempo zijn instelbaar.",
+  "ps_feature_error_flash_aria": "Foutflits",
+  "ps_lighting_ef_colour": "Kleur",
+  "ps_lighting_ef_colour_aria": "Kleur van de foutflits",
+  "ps_lighting_ef_brightness": "Helderheid",
+  "ps_lighting_ef_brightness_aria": "Helderheid van de foutflits",
+  "ps_lighting_ef_speed": "Tempo",
+  "ps_lighting_ef_speed_aria": "Tempo van de foutflits",
+  "ps_lighting_ef_help": "De flits ligt over het effect of de effen kleur en vervangt ze niet; hij gaat vóór de hittewaarschuwing."
 }

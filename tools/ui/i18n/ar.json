@@ -354,5 +354,15 @@
   "ps_lighting_hot_c_aria": "الحد، بالدرجات المئوية",
   "ps_lighting_hot_colour": "اللون",
   "ps_lighting_hot_colour_aria": "لون التحذير",
-  "ps_lighting_hot_help": "يقع النبض فوق التأثير أو اللون الصريح دون أن يحل محلهما؛ ويُقارَن الحد بالدرجة الصحيحة التي تبلّغ عنها الطابعة."
+  "ps_lighting_hot_help": "يقع النبض فوق التأثير أو اللون الصريح دون أن يحل محلهما؛ ويُقارَن الحد بالدرجة الصحيحة التي تبلّغ عنها الطابعة.",
+  "ps_feature_error_flash": "وميض الخطأ",
+  "ps_feature_error_flash_help": "ما دامت الطابعة تبلّغ عن خطأ، يومض الشريط بلون واحد فوق ما يعرضه، في الوضعين معًا؛ ويمكن ضبط اللون والسطوع والإيقاع.",
+  "ps_feature_error_flash_aria": "وميض الخطأ",
+  "ps_lighting_ef_colour": "اللون",
+  "ps_lighting_ef_colour_aria": "لون وميض الخطأ",
+  "ps_lighting_ef_brightness": "السطوع",
+  "ps_lighting_ef_brightness_aria": "سطوع وميض الخطأ",
+  "ps_lighting_ef_speed": "الإيقاع",
+  "ps_lighting_ef_speed_aria": "إيقاع وميض الخطأ",
+  "ps_lighting_ef_help": "يقع الوميض فوق التأثير أو اللون الصريح دون أن يحل محلهما؛ وله الأولوية على تحذير الحرارة."
 }

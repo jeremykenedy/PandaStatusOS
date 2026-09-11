@@ -354,5 +354,15 @@
   "ps_lighting_hot_c_aria": "しきい値（摂氏）",
   "ps_lighting_hot_colour": "色",
   "ps_lighting_hot_colour_aria": "警告色",
-  "ps_lighting_hot_help": "脈動は効果や単色の上に重なり、置き換えはしません。しきい値はプリンターが報告する整数の温度と比較されます。"
+  "ps_lighting_hot_help": "脈動は効果や単色の上に重なり、置き換えはしません。しきい値はプリンターが報告する整数の温度と比較されます。",
+  "ps_feature_error_flash": "エラー点滅",
+  "ps_feature_error_flash_help": "プリンターがエラーを報告しているあいだ、バーは表示中のものの上に1色を点滅させます。両方のモードで動作し、色・明るさ・テンポを設定できます。",
+  "ps_feature_error_flash_aria": "エラー点滅",
+  "ps_lighting_ef_colour": "色",
+  "ps_lighting_ef_colour_aria": "エラー点滅の色",
+  "ps_lighting_ef_brightness": "明るさ",
+  "ps_lighting_ef_brightness_aria": "エラー点滅の明るさ",
+  "ps_lighting_ef_speed": "テンポ",
+  "ps_lighting_ef_speed_aria": "エラー点滅のテンポ",
+  "ps_lighting_ef_help": "点滅は効果や単色の上に重なり、置き換えはしません。高温警告より優先されます。"
 }

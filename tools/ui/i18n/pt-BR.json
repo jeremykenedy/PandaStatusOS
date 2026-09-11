@@ -354,5 +354,15 @@
   "ps_lighting_hot_c_aria": "Limite, graus Celsius",
   "ps_lighting_hot_colour": "Cor",
   "ps_lighting_hot_colour_aria": "Cor do aviso",
-  "ps_lighting_hot_help": "O pulso fica por cima do efeito ou da cor sólida sem substituí-los; o limite é comparado com o grau inteiro que a impressora informa."
+  "ps_lighting_hot_help": "O pulso fica por cima do efeito ou da cor sólida sem substituí-los; o limite é comparado com o grau inteiro que a impressora informa.",
+  "ps_feature_error_flash": "Flash de erro",
+  "ps_feature_error_flash_help": "Enquanto a impressora informar um erro, a barra pisca uma cor por cima do que estiver mostrando, nos dois modos; cor, brilho e ritmo são ajustáveis.",
+  "ps_feature_error_flash_aria": "Flash de erro",
+  "ps_lighting_ef_colour": "Cor",
+  "ps_lighting_ef_colour_aria": "Cor do flash de erro",
+  "ps_lighting_ef_brightness": "Brilho",
+  "ps_lighting_ef_brightness_aria": "Brilho do flash de erro",
+  "ps_lighting_ef_speed": "Ritmo",
+  "ps_lighting_ef_speed_aria": "Ritmo do flash de erro",
+  "ps_lighting_ef_help": "O flash fica por cima do efeito ou da cor sólida sem substituí-los; ele tem prioridade sobre o aviso de calor."
 }

@@ -89,6 +89,16 @@ void ps_fx_layer_pulse(ps_rgba_t *px, int n, ps_rgba_t colour, uint8_t bright100
     }
 }
 
+bool ps_fx_layer_strobe(ps_rgba_t *px, int n, ps_rgba_t colour, uint8_t bright100, uint32_t now_ms, uint32_t half_ms)
+{
+    if (half_ms == 0) half_ms = 1;
+    bool on = ((now_ms / half_ms) & 1u) == 0;
+    if (!on) return false;
+    ps_rgba_t top = { chan(colour.r, bright100), chan(colour.g, bright100), chan(colour.b, bright100), 0xFF };
+    for (int i = 0; i < n; i++) px[i] = top;
+    return true;
+}
+
 /* Which effects the bits allow. The first seventeen need no live input and come with A2;
  * the ones that read the print or the printer each wait for their own switch. */
 bool ps_fx_allowed(uint32_t features, int fx)

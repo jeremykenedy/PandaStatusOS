@@ -354,5 +354,15 @@
   "ps_lighting_hot_c_aria": "Prag, grade Celsius",
   "ps_lighting_hot_colour": "Culoare",
   "ps_lighting_hot_colour_aria": "Culoarea avertizării",
-  "ps_lighting_hot_help": "Pulsul stă peste efect sau peste culoarea plină fără a le înlocui; pragul se compară cu gradul întreg raportat de imprimantă."
+  "ps_lighting_hot_help": "Pulsul stă peste efect sau peste culoarea plină fără a le înlocui; pragul se compară cu gradul întreg raportat de imprimantă.",
+  "ps_feature_error_flash": "Clipire de eroare",
+  "ps_feature_error_flash_help": "Cât timp imprimanta raportează o eroare, bara clipește într-o culoare peste ceea ce arată, în ambele moduri; culoarea, luminozitatea și ritmul se pot regla.",
+  "ps_feature_error_flash_aria": "Clipire de eroare",
+  "ps_lighting_ef_colour": "Culoare",
+  "ps_lighting_ef_colour_aria": "Culoarea clipirii de eroare",
+  "ps_lighting_ef_brightness": "Luminozitate",
+  "ps_lighting_ef_brightness_aria": "Luminozitatea clipirii de eroare",
+  "ps_lighting_ef_speed": "Ritm",
+  "ps_lighting_ef_speed_aria": "Ritmul clipirii de eroare",
+  "ps_lighting_ef_help": "Clipirea stă peste efect sau peste culoarea plină fără a le înlocui; are prioritate față de avertizarea de căldură."
 }

@@ -354,5 +354,15 @@
   "ps_lighting_hot_c_aria": "Umbral, grados Celsius",
   "ps_lighting_hot_colour": "Color",
   "ps_lighting_hot_colour_aria": "Color del aviso",
-  "ps_lighting_hot_help": "El pulso se superpone al efecto o al color liso sin sustituirlos; el umbral se compara con el grado entero que informa la impresora."
+  "ps_lighting_hot_help": "El pulso se superpone al efecto o al color liso sin sustituirlos; el umbral se compara con el grado entero que informa la impresora.",
+  "ps_feature_error_flash": "Destello de error",
+  "ps_feature_error_flash_help": "Mientras la impresora informe un error, la barra destella un color sobre lo que esté mostrando, en ambos modos; color, brillo y ritmo son ajustables.",
+  "ps_feature_error_flash_aria": "Destello de error",
+  "ps_lighting_ef_colour": "Color",
+  "ps_lighting_ef_colour_aria": "Color del destello de error",
+  "ps_lighting_ef_brightness": "Brillo",
+  "ps_lighting_ef_brightness_aria": "Brillo del destello de error",
+  "ps_lighting_ef_speed": "Ritmo",
+  "ps_lighting_ef_speed_aria": "Ritmo del destello de error",
+  "ps_lighting_ef_help": "El destello se superpone al efecto o al color liso sin sustituirlos; tiene prioridad sobre el aviso de calor."
 }

@@ -354,5 +354,15 @@
   "ps_lighting_hot_c_aria": "Seuil, degrés Celsius",
   "ps_lighting_hot_colour": "Couleur",
   "ps_lighting_hot_colour_aria": "Couleur de l'alerte",
-  "ps_lighting_hot_help": "La pulsation se superpose à l'effet ou à la couleur unie sans les remplacer ; le seuil est comparé au degré entier que l'imprimante rapporte."
+  "ps_lighting_hot_help": "La pulsation se superpose à l'effet ou à la couleur unie sans les remplacer ; le seuil est comparé au degré entier que l'imprimante rapporte.",
+  "ps_feature_error_flash": "Flash d'erreur",
+  "ps_feature_error_flash_help": "Tant que l'imprimante signale une erreur, la barre clignote d'une couleur par-dessus ce qu'elle affiche, dans les deux modes ; couleur, luminosité et cadence se règlent.",
+  "ps_feature_error_flash_aria": "Flash d'erreur",
+  "ps_lighting_ef_colour": "Couleur",
+  "ps_lighting_ef_colour_aria": "Couleur du flash d'erreur",
+  "ps_lighting_ef_brightness": "Luminosité",
+  "ps_lighting_ef_brightness_aria": "Luminosité du flash d'erreur",
+  "ps_lighting_ef_speed": "Cadence",
+  "ps_lighting_ef_speed_aria": "Cadence du flash d'erreur",
+  "ps_lighting_ef_help": "Le flash se superpose à l'effet ou à la couleur unie sans les remplacer ; il passe avant l'alerte de chaleur."
 }

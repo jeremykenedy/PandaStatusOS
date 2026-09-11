@@ -127,11 +127,13 @@ order, not against the list order.
 
 ### More than seven effects
 
-**BUILT (A2, D-034; A6 to A10, D-035, D-036).** Feature bit 2, `state_effects`: the
+**BUILT (A2, D-034; A6 to A12, D-035 to D-037).** Feature bit 2, `state_effects`: the
 engine from PandaVentOS, seventeen effects selectable per bar state in H2D. Bits 6 to 10
 add the five that read the printer (the progress bar, its animated form, the barber pole
 with its band width, the colour ramp across the print, and the temperature gradient with
-its source and ends), each behind its own switch ([FEATURES.md](FEATURES.md)).
+its source and ends), each behind its own switch. Bits 11 and 12 are the two layers over
+the base, in both modes: the hot warning and the error flash with its colour, brightness
+and rate ([FEATURES.md](FEATURES.md)).
 
 **What it does.** Progress bar driven by real print progress, animated progress,
 barber-pole stripe, temperature gradient, error strobe with configurable colour and rate.

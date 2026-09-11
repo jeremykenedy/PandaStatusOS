@@ -354,5 +354,15 @@
   "ps_lighting_hot_c_aria": "Práh, stupně Celsia",
   "ps_lighting_hot_colour": "Barva",
   "ps_lighting_hot_colour_aria": "Barva varování",
-  "ps_lighting_hot_help": "Pulz leží přes efekt nebo plnou barvu a nenahrazuje je; práh se porovnává s celým stupněm, který tiskárna hlásí."
+  "ps_lighting_hot_help": "Pulz leží přes efekt nebo plnou barvu a nenahrazuje je; práh se porovnává s celým stupněm, který tiskárna hlásí.",
+  "ps_feature_error_flash": "Chybové blikání",
+  "ps_feature_error_flash_help": "Dokud tiskárna hlásí chybu, lišta bliká jednou barvou přes to, co právě ukazuje, v obou režimech; barva, jas a tempo jsou nastavitelné.",
+  "ps_feature_error_flash_aria": "Chybové blikání",
+  "ps_lighting_ef_colour": "Barva",
+  "ps_lighting_ef_colour_aria": "Barva chybového blikání",
+  "ps_lighting_ef_brightness": "Jas",
+  "ps_lighting_ef_brightness_aria": "Jas chybového blikání",
+  "ps_lighting_ef_speed": "Tempo",
+  "ps_lighting_ef_speed_aria": "Tempo chybového blikání",
+  "ps_lighting_ef_help": "Blikání leží přes efekt nebo plnou barvu a nenahrazuje je; má přednost před varováním před horkem."
 }

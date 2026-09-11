@@ -354,5 +354,15 @@
   "ps_lighting_hot_c_aria": "門檻（攝氏度）",
   "ps_lighting_hot_colour": "顏色",
   "ps_lighting_hot_colour_aria": "警告顏色",
-  "ps_lighting_hot_help": "脈動疊加在效果或純色之上而不是取代它們；門檻與印表機回報的整數溫度比較。"
+  "ps_lighting_hot_help": "脈動疊加在效果或純色之上而不是取代它們；門檻與印表機回報的整數溫度比較。",
+  "ps_feature_error_flash": "錯誤閃爍",
+  "ps_feature_error_flash_help": "只要印表機回報錯誤，燈帶就會在目前顯示之上以一種顏色閃爍，兩種模式下都有效；顏色、亮度和節奏可調。",
+  "ps_feature_error_flash_aria": "錯誤閃爍",
+  "ps_lighting_ef_colour": "顏色",
+  "ps_lighting_ef_colour_aria": "錯誤閃爍的顏色",
+  "ps_lighting_ef_brightness": "亮度",
+  "ps_lighting_ef_brightness_aria": "錯誤閃爍的亮度",
+  "ps_lighting_ef_speed": "節奏",
+  "ps_lighting_ef_speed_aria": "錯誤閃爍的節奏",
+  "ps_lighting_ef_help": "閃爍疊加在效果或純色之上而不是取代它們；它優先於高溫警告。"
 }

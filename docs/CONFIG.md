@@ -47,7 +47,7 @@ this table with it.
 | `temp_lo`, `temp_hi` | i16 | 0 to 500, degrees C | 25, 250 | v4 | `config.temp_gradient.lo`, `.hi`; the gradient's ends, read while bit 10 is set (A10) |
 | `temp_src` | u8 | 0 nozzle, 1 bed, 2 chamber | 0 | v4 | `config.temp_gradient.source`; which reading the gradient follows (A10) |
 | `hot_src`, `hot_c`, `hot_colour` | u8, i16, RGBA | a source, 0 to 500, any | 0, 50, red | v4 | `config.hot_warning.source`, `.threshold`, `.colour`; the layer's source, threshold and colour, read while bit 11 is set (A11) |
-| `err_colour`, `err_brightness`, `err_speed` | RGBA, u8, u8 | any, 0 to 100, 0 to 100 | red, 50, 50 | v4 | reserved for A12: the error flash's colour, brightness and rate; not on the route yet |
+| `err_colour`, `err_brightness`, `err_speed` | RGBA, u8, u8 | any, 0 to 100, 0 to 100 | red, 50, 50 | v4 | `config.error_flash.colour`, `.brightness`, `.speed`; the layer's colour, brightness and rate, read while bit 12 is set (A12) |
 
 The colour indices are 0 idle, 1 printing, 2 error. The mode indices are 0 Music,
 1 H2D. Colours are stored as four bytes and written to the wire in the format the

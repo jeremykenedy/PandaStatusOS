@@ -34,6 +34,7 @@ static const struct { const char *name; uint32_t bit; } FEATURES[] = {
     { "fx_hue_ramp",      PS_FEAT_FX_HUE_RAMP },
     { "fx_temp",          PS_FEAT_FX_TEMP },
     { "hot_warning",      PS_FEAT_HOT_WARNING },
+    { "error_flash",      PS_FEAT_ERROR_FLASH },
 };
 
 static cJSON *fx_json(const ps_fx_cfg_t *f)
@@ -100,6 +101,10 @@ char *ps_features_json(void)
     cJSON_AddNumberToObject(hw, "source", g_ps.cfg.hot_src);
     cJSON_AddNumberToObject(hw, "threshold", g_ps.cfg.hot_c);
     { char w[10]; ps_rgba_to_wire(g_ps.cfg.hot_colour, PS_MODE_H2D, w); cJSON_AddStringToObject(hw, "colour", w); }
+    cJSON *ef = cJSON_AddObjectToObject(cfg, "error_flash");             /* A12: the layer's colour, brightness and rate */
+    { char w[10]; ps_rgba_to_wire(g_ps.cfg.err_colour, PS_MODE_H2D, w); cJSON_AddStringToObject(ef, "colour", w); }
+    cJSON_AddNumberToObject(ef, "brightness", g_ps.cfg.err_brightness);
+    cJSON_AddNumberToObject(ef, "speed", g_ps.cfg.err_speed);
     ps_unlock();
     char *s = cJSON_PrintUnformatted(doc);
     cJSON_Delete(doc);
@@ -128,10 +133,12 @@ int ps_features_apply(const char *json, size_t len)
     ps_fx_cfg_t fx[3]; bool have_fx = false;
     int tg_src, tg_lo, tg_hi; bool have_tg = false;
     int hw_src, hw_c; ps_rgba_t hw_colour; bool have_hw = false;
+    int ef_brightness, ef_speed; ps_rgba_t ef_colour; bool have_ef = false;
     ps_lock();
     uint32_t after = (g_ps.cfg.features | set) & ~clear;               /* the bits this document leaves in force */
     tg_src = g_ps.cfg.temp_src; tg_lo = g_ps.cfg.temp_lo; tg_hi = g_ps.cfg.temp_hi;   /* partial objects overlay the stored values */
     hw_src = g_ps.cfg.hot_src; hw_c = g_ps.cfg.hot_c; hw_colour = g_ps.cfg.hot_colour;
+    ef_brightness = g_ps.cfg.err_brightness; ef_speed = g_ps.cfg.err_speed; ef_colour = g_ps.cfg.err_colour;
     ps_unlock();
     if (cfg) {
         for (cJSON *it = cfg->child; it; it = it->next) {
@@ -175,6 +182,18 @@ int ps_features_apply(const char *json, size_t len)
                     else { cJSON_Delete(root); return -1; }
                 }
                 have_hw = true;
+            } else if (it->string && !strcmp(it->string, "error_flash")) {
+                if (!cJSON_IsObject(it)) { cJSON_Delete(root); return -1; }
+                for (cJSON *k = it->child; k; k = k->next) {
+                    if (!k->string) { cJSON_Delete(root); return -1; }
+                    if (!strcmp(k->string, "colour")) { if (!cJSON_IsString(k) || !ps_rgba_from_wire(k->valuestring, &ef_colour)) { cJSON_Delete(root); return -1; } continue; }
+                    if (!cJSON_IsNumber(k) || k->valuedouble < 0 || k->valuedouble > 100) { cJSON_Delete(root); return -1; }
+                    int v = (int)k->valuedouble;
+                    if      (!strcmp(k->string, "brightness")) ef_brightness = v;
+                    else if (!strcmp(k->string, "speed"))      ef_speed = v;
+                    else { cJSON_Delete(root); return -1; }
+                }
+                have_ef = true;
             } else { cJSON_Delete(root); return -1; }         /* an unknown setting is refused, not ignored */
         }
     }
@@ -192,6 +211,9 @@ int ps_features_apply(const char *json, size_t len)
     }
     if (have_hw && (g_ps.cfg.hot_src != hw_src || g_ps.cfg.hot_c != hw_c || memcmp(&g_ps.cfg.hot_colour, &hw_colour, sizeof hw_colour) != 0)) {
         g_ps.cfg.hot_src = (uint8_t)hw_src; g_ps.cfg.hot_c = (int16_t)hw_c; g_ps.cfg.hot_colour = hw_colour; changed = true;
+    }
+    if (have_ef && (g_ps.cfg.err_brightness != ef_brightness || g_ps.cfg.err_speed != ef_speed || memcmp(&g_ps.cfg.err_colour, &ef_colour, sizeof ef_colour) != 0)) {
+        g_ps.cfg.err_brightness = (uint8_t)ef_brightness; g_ps.cfg.err_speed = (uint8_t)ef_speed; g_ps.cfg.err_colour = ef_colour; changed = true;
     }
     /* a switch going off takes its effects with it: a stored id that needed the bit falls back to
      * solid, so what is stored is always something the bits in force can render, and the next

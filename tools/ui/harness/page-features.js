@@ -414,6 +414,47 @@ async function drive(browser, combo) {
   await page.waitForFunction(() => PS.features.features.hot_warning === false, null, { timeout: 2000 }).catch(() => {});
   await go(page, '#lighting');
   t(`${tag} L10 the tile hides again`, await waitHidden(page, 'ps-lighting-hot', true));
+
+  // ---- A12: the error flash layer ----
+  t(`${tag} M1 with error_flash off the tile is hidden`, await hidden(page, 'ps-lighting-ef'));
+  await go(page, '#system');
+  await waitHidden(page, 'ps-system-features', false);
+  n = await count();
+  await toggle(page, 'ps-system-feature-error-flash');
+  got = await sentAfter(n);
+  t(`${tag} M2 turning the flash on sends exactly {"features":{"error_flash":true}}`, got.length === 1 && got[0] === apiFrame({ features: { error_flash: true } }), got);
+  await page.waitForFunction(() => PS.features.features.error_flash === true, null, { timeout: 2000 }).catch(() => {});
+  await go(page, '#lighting');
+  t(`${tag} M3 the tile shows: red, 50%, 50%`, await waitHidden(page, 'ps-lighting-ef', false)
+    && (await val(page, 'ps-lighting-ef-colour')) === '#FF0000FF' && (await val(page, 'ps-lighting-ef-brightness')) === '50' && (await val(page, 'ps-lighting-ef-speed')) === '50'
+    && (await text(page, 'ps-lighting-ef-speed-value')) === '50%');
+  n = await count();
+  await nudge(page, 'ps-lighting-ef-brightness', 'ArrowRight');
+  got = await sentAfter(n);
+  t(`${tag} M4 nudging the brightness sends the whole setting with 55`, got.length === 1 && got[0] === apiFrame({ config: { error_flash: { colour: '#FF0000FF', brightness: 55, speed: 50 } } }), got);
+  await page.waitForFunction(() => PS.features.config.error_flash.brightness === 55, null, { timeout: 2000 }).catch(() => {});
+  n = await count();
+  await nudge(page, 'ps-lighting-ef-speed', 'ArrowLeft');
+  got = await sentAfter(n);
+  t(`${tag} M5 nudging the rate sends the whole setting with 45`, got.length === 1 && got[0] === apiFrame({ config: { error_flash: { colour: '#FF0000FF', brightness: 55, speed: 45 } } }), got);
+  await page.waitForFunction(() => PS.features.config.error_flash.speed === 45, null, { timeout: 2000 }).catch(() => {});
+  n = await count();
+  await $(page, 'ps-lighting-ef-colour').fill('#FF00FF'); await page.keyboard.press('Tab');
+  got = await sentAfter(n);
+  t(`${tag} M6 a colour change sends the whole setting with the colour as #RRGGBBAA`, got.length === 1 && got[0] === apiFrame({ config: { error_flash: { colour: '#FF00FFFF', brightness: 55, speed: 45 } } }), got);
+  t(`${tag} M7 the answer lands: the field and the labels read back`, await page.waitForFunction(() => document.getElementById('ps-lighting-ef-colour').value === '#FF00FFFF' && document.getElementById('ps-lighting-ef-brightness-value').textContent === '55%' && document.getElementById('ps-lighting-ef-speed-value').textContent === '45%', null, { timeout: 2000 }).then(() => true).catch(() => false));
+  { const st = await page.evaluate(async () => { const r = await fetch('/api/features', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ config: { error_flash: { speed: 101 } } }) }); return r.status; });
+    t(`${tag} M8 a rate past 100 is refused (400)`, st === 400, st); }
+  await pw.shot(page, `features-lighting-ef-${combo.theme}-${combo.width}`, { full: true });
+  await go(page, '#system');
+  await waitHidden(page, 'ps-system-features', false);
+  n = await count();
+  await toggle(page, 'ps-system-feature-error-flash');
+  got = await sentAfter(n);
+  t(`${tag} M9 turning the flash off sends exactly {"features":{"error_flash":false}}`, got.length === 1 && got[0] === apiFrame({ features: { error_flash: false } }), got);
+  await page.waitForFunction(() => PS.features.features.error_flash === false, null, { timeout: 2000 }).catch(() => {});
+  await go(page, '#lighting');
+  t(`${tag} M10 the tile hides again`, await waitHidden(page, 'ps-lighting-ef', true));
   await go(page, '#system');
   await waitHidden(page, 'ps-system-features', false);
   n = await count();

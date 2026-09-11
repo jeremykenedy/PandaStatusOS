@@ -134,6 +134,18 @@ int main(void)
       for (int i = 0; i < 4; i++) f4[i] = base; ps_fx_layer_pulse(f4, 4, red, 100, 4000, 2000);
       t("the pulse repeats every period", f4[0].g == 100 && f4[0].r == 0, f4[0].g); }
 
+    /* A12: the strobe layer, pure in time */
+    { ps_rgba_t red = { 200, 0, 0, 255 }, base = { 0, 100, 0, 255 }; ps_rgba_t f4[4];
+      for (int i = 0; i < 4; i++) f4[i] = base; bool on = ps_fx_layer_strobe(f4, 4, red, 100, 0, 100);
+      t("the strobe is on for the first half period: the strip is the colour", on && f4[0].r == 200 && f4[0].g == 0 && f4[3].r == 200, f4[0].r);
+      for (int i = 0; i < 4; i++) f4[i] = base; on = ps_fx_layer_strobe(f4, 4, red, 100, 150, 100);
+      t("and off for the second: the base untouched", !on && f4[0].g == 100 && f4[0].r == 0, f4[0].g);
+      for (int i = 0; i < 4; i++) f4[i] = base; on = ps_fx_layer_strobe(f4, 4, red, 100, 200, 100);
+      t("on again after a whole period", on && f4[0].r == 200, f4[0].r);
+      for (int i = 0; i < 4; i++) f4[i] = base; on = ps_fx_layer_strobe(f4, 4, red, 25, 0, 100);
+      t("the strobe's brightness scales its colour", on && f4[0].r == 50 && f4[0].g == 0, f4[0].r);
+      t("the rate is the engine's period: faster at 100 than at 0", ps_fx_period(100) < ps_fx_period(0), (long)ps_fx_period(100)); }
+
     /* the colour ramp across the print */
     { ps_rgba_t green = { 0, 255, 0, 255 }; ps_fx_in_t z = { 0, -1000, 0, 0 }, full = { 100, -1000, 0, 0 }, half = { 50, -1000, 0, 0 };
       ps_fx_phase_init(&p);

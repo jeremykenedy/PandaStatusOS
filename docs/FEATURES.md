@@ -23,7 +23,7 @@ exists so the rule has a home before any feature does. Its value is zero.
 | 9 | `fx_hue_ramp` | the colour ramp across the print: one colour from the unlit colour to the lit colour, by hue (A9) | off | A2; a printer bound |
 | 10 | `fx_temp` | the temperature gradient may be chosen: one colour between the unlit colour at the cold end and the lit colour at the hot end, following one of the printer's temperatures (`nozzle_temper`, `bed_temper`, `chamber_temper`, INFERENCE from the report), with the ends in `config.temp_gradient` (A10) | off | A2; a printer bound |
 | 11 | `hot_warning` | a layer, not an effect: while the watched temperature (nozzle, bed or chamber) is at or past a threshold, one colour pulses over whatever the bar shows, in both modes, on a two-second period (A11) | off | a printer bound; nothing else, it sits over the placeholder as readily as over an effect |
-| 12 | `error_flash` | reserved for A12: the error flash layer; its fields are in the blob already (v4) | off | the bar state |
+| 12 | `error_flash` | a layer: while the bar state is error, one colour strobes over whatever the bar shows, in both modes, at its own brightness and rate; drawn after the hot warning so an error outranks it (A12) | off | the bar state the printer already drives |
 
 ## How a feature reaches the page
 
@@ -43,7 +43,10 @@ subset of an object's keys, and the whole three-object array is required.
 1 bed, 2 chamber) and its two ends in degrees Celsius, 0 to 500; any subset of its keys
 overlays the stored setting, and it is one setting for every state that runs the gradient.
 `config.hot_warning` is `{source, threshold, colour}`: the reading the layer watches, the
-threshold in degrees Celsius (0 to 500) and the colour as `#RRGGBBAA`; any subset overlays. Which keys the
+threshold in degrees Celsius (0 to 500) and the colour as `#RRGGBBAA`; any subset overlays.
+`config.error_flash` is `{colour, brightness, speed}`: the colour as `#RRGGBBAA`, the
+brightness 0 to 100, and the rate 0 to 100 on the engine's speed scale (the half period
+runs from 500 ms at 0 to 16 ms at 100); any subset overlays. Which keys the
 renderer reads depends on which bits are on (A2 reads `effect`; A3 to A5 read the rest),
 so a setting can be made before its switch exists and takes effect when it does. An
 effect id that changes must be allowed under the bits the same document leaves in force:

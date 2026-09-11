@@ -354,5 +354,15 @@
   "ps_lighting_hot_c_aria": "Tröskelvärde, grader Celsius",
   "ps_lighting_hot_colour": "Färg",
   "ps_lighting_hot_colour_aria": "Varningsfärg",
-  "ps_lighting_hot_help": "Pulsen ligger över effekten eller den enfärgade listen utan att ersätta dem; tröskelvärdet jämförs med den hela grad skrivaren rapporterar."
+  "ps_lighting_hot_help": "Pulsen ligger över effekten eller den enfärgade listen utan att ersätta dem; tröskelvärdet jämförs med den hela grad skrivaren rapporterar.",
+  "ps_feature_error_flash": "Felblink",
+  "ps_feature_error_flash_help": "Så länge skrivaren rapporterar ett fel blinkar listen i en färg över det den visar, i båda lägena; färg, ljusstyrka och takt kan ställas in.",
+  "ps_feature_error_flash_aria": "Felblink",
+  "ps_lighting_ef_colour": "Färg",
+  "ps_lighting_ef_colour_aria": "Felblinkets färg",
+  "ps_lighting_ef_brightness": "Ljusstyrka",
+  "ps_lighting_ef_brightness_aria": "Felblinkets ljusstyrka",
+  "ps_lighting_ef_speed": "Takt",
+  "ps_lighting_ef_speed_aria": "Felblinkets takt",
+  "ps_lighting_ef_help": "Blinket ligger över effekten eller den enfärgade listen utan att ersätta dem; det går före värmevarningen."
 }

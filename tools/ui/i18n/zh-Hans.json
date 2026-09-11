@@ -354,5 +354,15 @@
   "ps_lighting_hot_c_aria": "阈值（摄氏度）",
   "ps_lighting_hot_colour": "颜色",
   "ps_lighting_hot_colour_aria": "警告颜色",
-  "ps_lighting_hot_help": "脉动叠加在效果或纯色之上而不是取代它们；阈值与打印机报告的整数温度比较。"
+  "ps_lighting_hot_help": "脉动叠加在效果或纯色之上而不是取代它们；阈值与打印机报告的整数温度比较。",
+  "ps_feature_error_flash": "错误闪烁",
+  "ps_feature_error_flash_help": "只要打印机报告错误，灯带就会在当前显示之上以一种颜色闪烁，两种模式下都有效；颜色、亮度和节奏可调。",
+  "ps_feature_error_flash_aria": "错误闪烁",
+  "ps_lighting_ef_colour": "颜色",
+  "ps_lighting_ef_colour_aria": "错误闪烁的颜色",
+  "ps_lighting_ef_brightness": "亮度",
+  "ps_lighting_ef_brightness_aria": "错误闪烁的亮度",
+  "ps_lighting_ef_speed": "节奏",
+  "ps_lighting_ef_speed_aria": "错误闪烁的节奏",
+  "ps_lighting_ef_help": "闪烁叠加在效果或纯色之上而不是取代它们；它优先于高温警告。"
 }

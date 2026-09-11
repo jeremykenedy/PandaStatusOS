@@ -18,6 +18,9 @@ Everything so far. No release has been made and no device has been flashed.
 - The clone's own JSON route, `/api/features`: the page discovers a clone by its 200 where
   the factory answers 302, and shows a Features card on the System page only then. The
   socket document stays the factory's (D-033).
+- A12, the error flash, behind `error_flash`: a strobe of one colour at its own brightness
+  and rate over whatever the bar shows while the printer reports an error, in both modes,
+  drawn above the hot warning.
 - A11, the hot warning, behind `hot_warning`: the first layer, a pulse of one colour over
   whatever the bar shows while the nozzle, bed or chamber is at or past a threshold, in
   both modes (D-037).

@@ -354,5 +354,15 @@
   "ps_lighting_hot_c_aria": "סף, מעלות צלזיוס",
   "ps_lighting_hot_colour": "צבע",
   "ps_lighting_hot_colour_aria": "צבע האזהרה",
-  "ps_lighting_hot_help": "הפעימה יושבת מעל האפקט או הצבע האחיד ואינה מחליפה אותם; הסף מושווה למעלה השלמה שהמדפסת מדווחת."
+  "ps_lighting_hot_help": "הפעימה יושבת מעל האפקט או הצבע האחיד ואינה מחליפה אותם; הסף מושווה למעלה השלמה שהמדפסת מדווחת.",
+  "ps_feature_error_flash": "הבהוב שגיאה",
+  "ps_feature_error_flash_help": "כל עוד המדפסת מדווחת על שגיאה, הפס מהבהב בצבע אחד מעל מה שהוא מציג, בשני המצבים; הצבע, הבהירות והקצב ניתנים לכוונון.",
+  "ps_feature_error_flash_aria": "הבהוב שגיאה",
+  "ps_lighting_ef_colour": "צבע",
+  "ps_lighting_ef_colour_aria": "צבע הבהוב השגיאה",
+  "ps_lighting_ef_brightness": "בהירות",
+  "ps_lighting_ef_brightness_aria": "בהירות הבהוב השגיאה",
+  "ps_lighting_ef_speed": "קצב",
+  "ps_lighting_ef_speed_aria": "קצב הבהוב השגיאה",
+  "ps_lighting_ef_help": "ההבהוב יושב מעל האפקט או הצבע האחיד ואינו מחליף אותם; הוא קודם לאזהרת החום."
 }

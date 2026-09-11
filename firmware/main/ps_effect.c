@@ -49,6 +49,9 @@ static uint32_t render(void)
     uint8_t hsrc = g_ps.cfg.hot_src < PS_TEMP_COUNT ? g_ps.cfg.hot_src : PS_TEMP_NOZZLE;
     bool hot = (g_ps.cfg.features & PS_FEAT_HOT_WARNING) && g_ps.temp_c[hsrc] != PS_TEMP_NONE && g_ps.temp_c[hsrc] >= g_ps.cfg.hot_c;
     ps_rgba_t hot_colour = g_ps.cfg.hot_colour;
+    /* A12: the error flash, over everything else while the bar state is error */
+    bool err = (g_ps.cfg.features & PS_FEAT_ERROR_FLASH) && g_ps.bar_state == PS_BAR_ERROR;
+    ps_rgba_t err_colour = g_ps.cfg.err_colour; uint8_t err_brightness = g_ps.cfg.err_brightness, err_speed = g_ps.cfg.err_speed;
     ps_unlock();
 
     uint32_t wait;
@@ -63,11 +66,14 @@ static uint32_t render(void)
         wait = ps_fx_render(k.fx, k.colour, k.bg, b, k.speed, k.reverse, k.band, &in, &s_phase, s_frame, CONFIG_PS_LED_COUNT);
     }
 
-    /* the layers, over the base, in time rather than in frames so a static base still pulses */
-    if (hot) {
+    /* the layers, over the base, in time rather than in frames so a static base still pulses;
+     * the more urgent one draws last, so an error outranks a warning (D-037) */
+    if (hot || err) {
         uint32_t now = (uint32_t)(esp_timer_get_time() / 1000);
-        ps_fx_layer_pulse(s_frame, CONFIG_PS_LED_COUNT, hot_colour, 100, now, PS_HOT_PERIOD_MS);
+        if (hot) ps_fx_layer_pulse(s_frame, CONFIG_PS_LED_COUNT, hot_colour, 100, now, PS_HOT_PERIOD_MS);
+        if (err) ps_fx_layer_strobe(s_frame, CONFIG_PS_LED_COUNT, err_colour, err_brightness, now, ps_fx_period(err_speed));
         if (wait > PS_LAYER_FRAME_MS) wait = PS_LAYER_FRAME_MS;
+        if (err) { uint32_t half = ps_fx_period(err_speed); if (wait > half) wait = half; }
     }
     return wait;
 }

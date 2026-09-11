@@ -44,7 +44,7 @@
   }
 
   function render() {
-    renderSb(); renderFx(); renderFxc(); renderFxp(); renderFxr(); renderTg(); renderHot();
+    renderSb(); renderFx(); renderFxc(); renderFxp(); renderFxr(); renderTg(); renderHot(); renderEf();
     var m = mode(), e = entry();
     if (m !== null && document.activeElement !== modeSel) modeSel.value = String(m);
     var isMusic = m === 0;
@@ -186,6 +186,40 @@
     inp.addEventListener('focus', function () { focused = inp; });
     inp.addEventListener('blur', function () { if (focused === inp) focused = null; });
     inp.addEventListener('change', function () { var dev = toDevice(inp.value, 1); if (!dev) return; post({ colour: dev }); });
+  }
+  // A12: the error flash's colour, brightness and rate; a layer over whatever the bar shows
+  function renderEf() {
+    var tile = $('ps-lighting-ef'); if (!tile) return;
+    var f = PS.features;
+    var on = !!(f && f.features && f.features.error_flash && f.config && f.config.error_flash);
+    tile.hidden = !on;
+    if (!on) return;
+    var e = f.config.error_flash, b = $('ps-lighting-ef-brightness'), s = $('ps-lighting-ef-speed'), inp = $('ps-lighting-ef-colour'), dot = $('ps-lighting-ef-colour-dot');
+    if (focused !== b) b.value = e.brightness;
+    if (focused !== s) s.value = e.speed;
+    $('ps-lighting-ef-brightness-value').textContent = e.brightness + '%';
+    $('ps-lighting-ef-speed-value').textContent = e.speed + '%';
+    var css = toCss(e.colour);
+    if (focused !== inp) { inp.value = css; inp.dispatchEvent(new Event('input', { bubbles: false })); }
+    dot.style.background = css || '';
+  }
+  function wireEf() {
+    var inp = $('ps-lighting-ef-colour'); if (!inp) return;
+    function post(patch) {
+      var f = PS.features; if (!f || !f.config || !f.config.error_flash) return;
+      var e = { colour: f.config.error_flash.colour, brightness: f.config.error_flash.brightness, speed: f.config.error_flash.speed };
+      Object.keys(patch).forEach(function (k) { e[k] = patch[k]; });
+      PS.api({ config: { error_flash: e } });
+    }
+    inp.addEventListener('focus', function () { focused = inp; });
+    inp.addEventListener('blur', function () { if (focused === inp) focused = null; });
+    inp.addEventListener('change', function () { var dev = toDevice(inp.value, 1); if (!dev) return; post({ colour: dev }); });
+    document.querySelectorAll('[data-ps-ef]').forEach(function (r) {
+      var k = r.getAttribute('data-ps-ef');
+      r.addEventListener('focus', function () { focused = r; });
+      r.addEventListener('blur', function () { if (focused === r) focused = null; });
+      r.addEventListener('change', function () { var o = {}; o[k] = Number(r.value); post(o); });
+    });
   }
   function wireFxb() {
     document.querySelectorAll('[data-ps-fxb]').forEach(function (inp) {
@@ -377,7 +411,7 @@
     bright.addEventListener('input', function () { brightVal.textContent = bright.value + '%'; });
     bright.addEventListener('change', function () { PS.send('settings', { rgb_info_brightness: Number(bright.value) }); });
     for (var i = 0; i < 3; i++) { wireSb(i); wireFx(i); }
-    wireFxc(); wireFxp(); wireFxr(); wireFxb(); wireTg(); wireHot();
+    wireFxc(); wireFxp(); wireFxr(); wireFxb(); wireTg(); wireHot(); wireEf();
     speed.addEventListener('input', function () { if (speed.disabled) return; speedTouched = true; speedVal.textContent = speed.value + '%'; });
     speed.addEventListener('change', function () { if (!speed.disabled) PS.send('settings', { rgb_info_speed: Number(speed.value) }); });
 
@@ -402,5 +436,5 @@
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', wire); else wire();
   PS.on('state', function () { render(); });
-  PS.on('features', function () { renderSb(); renderFx(); renderFxc(); renderFxp(); renderFxr(); renderTg(); renderHot(); });
+  PS.on('features', function () { renderSb(); renderFx(); renderFxc(); renderFxp(); renderFxr(); renderTg(); renderHot(); renderEf(); });
 })();

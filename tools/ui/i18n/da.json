@@ -354,5 +354,15 @@
   "ps_lighting_hot_c_aria": "Tærskel, grader Celsius",
   "ps_lighting_hot_colour": "Farve",
   "ps_lighting_hot_colour_aria": "Advarselsfarve",
-  "ps_lighting_hot_help": "Pulsen ligger oven på effekten eller den ensfarvede linje uden at erstatte dem; tærsklen sammenlignes med den hele grad, printeren rapporterer."
+  "ps_lighting_hot_help": "Pulsen ligger oven på effekten eller den ensfarvede linje uden at erstatte dem; tærsklen sammenlignes med den hele grad, printeren rapporterer.",
+  "ps_feature_error_flash": "Fejlblink",
+  "ps_feature_error_flash_help": "Så længe printeren melder en fejl, blinker linjen i én farve oven på det, den viser, i begge tilstande; farve, lysstyrke og takt kan indstilles.",
+  "ps_feature_error_flash_aria": "Fejlblink",
+  "ps_lighting_ef_colour": "Farve",
+  "ps_lighting_ef_colour_aria": "Fejlblinkets farve",
+  "ps_lighting_ef_brightness": "Lysstyrke",
+  "ps_lighting_ef_brightness_aria": "Fejlblinkets lysstyrke",
+  "ps_lighting_ef_speed": "Takt",
+  "ps_lighting_ef_speed_aria": "Fejlblinkets takt",
+  "ps_lighting_ef_help": "Blinket ligger oven på effekten eller den ensfarvede linje uden at erstatte dem; det går forud for varmeadvarslen."
 }

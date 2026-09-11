@@ -354,5 +354,15 @@
   "ps_lighting_hot_c_aria": "Soglia, gradi Celsius",
   "ps_lighting_hot_colour": "Colore",
   "ps_lighting_hot_colour_aria": "Colore dell'avviso",
-  "ps_lighting_hot_help": "La pulsazione si sovrappone all'effetto o al colore pieno senza sostituirli; la soglia è confrontata con il grado intero riportato dalla stampante."
+  "ps_lighting_hot_help": "La pulsazione si sovrappone all'effetto o al colore pieno senza sostituirli; la soglia è confrontata con il grado intero riportato dalla stampante.",
+  "ps_feature_error_flash": "Lampeggio di errore",
+  "ps_feature_error_flash_help": "Finché la stampante segnala un errore, la barra lampeggia di un colore sopra ciò che sta mostrando, in entrambe le modalità; colore, luminosità e ritmo sono regolabili.",
+  "ps_feature_error_flash_aria": "Lampeggio di errore",
+  "ps_lighting_ef_colour": "Colore",
+  "ps_lighting_ef_colour_aria": "Colore del lampeggio di errore",
+  "ps_lighting_ef_brightness": "Luminosità",
+  "ps_lighting_ef_brightness_aria": "Luminosità del lampeggio di errore",
+  "ps_lighting_ef_speed": "Ritmo",
+  "ps_lighting_ef_speed_aria": "Ritmo del lampeggio di errore",
+  "ps_lighting_ef_help": "Il lampeggio si sovrappone all'effetto o al colore pieno senza sostituirli; ha la precedenza sull'avviso di calore."
 }

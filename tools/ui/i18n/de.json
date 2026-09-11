@@ -354,5 +354,15 @@
   "ps_lighting_hot_c_aria": "Schwelle, Grad Celsius",
   "ps_lighting_hot_colour": "Farbe",
   "ps_lighting_hot_colour_aria": "Warnfarbe",
-  "ps_lighting_hot_help": "Der Puls liegt über dem Effekt oder der Vollfarbe und ersetzt sie nicht; die Schwelle wird mit dem ganzen Grad verglichen, das der Drucker meldet."
+  "ps_lighting_hot_help": "Der Puls liegt über dem Effekt oder der Vollfarbe und ersetzt sie nicht; die Schwelle wird mit dem ganzen Grad verglichen, das der Drucker meldet.",
+  "ps_feature_error_flash": "Fehlerblitz",
+  "ps_feature_error_flash_help": "Solange der Drucker einen Fehler meldet, blitzt der Balken in einer Farbe über dem, was er gerade zeigt, in beiden Modi; Farbe, Helligkeit und Takt sind einstellbar.",
+  "ps_feature_error_flash_aria": "Fehlerblitz",
+  "ps_lighting_ef_colour": "Farbe",
+  "ps_lighting_ef_colour_aria": "Farbe des Fehlerblitzes",
+  "ps_lighting_ef_brightness": "Helligkeit",
+  "ps_lighting_ef_brightness_aria": "Helligkeit des Fehlerblitzes",
+  "ps_lighting_ef_speed": "Takt",
+  "ps_lighting_ef_speed_aria": "Takt des Fehlerblitzes",
+  "ps_lighting_ef_help": "Der Blitz liegt über dem Effekt oder der Vollfarbe und ersetzt sie nicht; er hat Vorrang vor der Hitzewarnung."
 }

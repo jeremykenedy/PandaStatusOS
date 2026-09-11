@@ -354,5 +354,15 @@
   "ps_lighting_hot_c_aria": "Terskel, grader Celsius",
   "ps_lighting_hot_colour": "Farge",
   "ps_lighting_hot_colour_aria": "Varselfarge",
-  "ps_lighting_hot_help": "Pulsen ligger over effekten eller den ensfargede linjen uten å erstatte dem; terskelen sammenlignes med den hele graden skriveren rapporterer."
+  "ps_lighting_hot_help": "Pulsen ligger over effekten eller den ensfargede linjen uten å erstatte dem; terskelen sammenlignes med den hele graden skriveren rapporterer.",
+  "ps_feature_error_flash": "Feilblink",
+  "ps_feature_error_flash_help": "Så lenge skriveren melder en feil, blinker linjen i én farge over det den viser, i begge modusene; farge, lysstyrke og takt kan stilles inn.",
+  "ps_feature_error_flash_aria": "Feilblink",
+  "ps_lighting_ef_colour": "Farge",
+  "ps_lighting_ef_colour_aria": "Feilblinkets farge",
+  "ps_lighting_ef_brightness": "Lysstyrke",
+  "ps_lighting_ef_brightness_aria": "Feilblinkets lysstyrke",
+  "ps_lighting_ef_speed": "Takt",
+  "ps_lighting_ef_speed_aria": "Feilblinkets takt",
+  "ps_lighting_ef_help": "Blinket ligger over effekten eller den ensfargede linjen uten å erstatte dem; det går foran varmevarselet."
 }

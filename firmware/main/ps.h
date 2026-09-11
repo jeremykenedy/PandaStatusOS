@@ -79,6 +79,9 @@ bool ps_fx_allowed(uint32_t features, int fx);   /* may this effect be chosen un
  * on a fixed period, at its own brightness. At the trough the base shows untouched; at the
  * peak the strip is the colour. */
 void ps_fx_layer_pulse(ps_rgba_t *px, int n, ps_rgba_t colour, uint8_t bright100, uint32_t now_ms, uint32_t period_ms);
+/* A12: a strobe over the base, pure in time: hard on (the strip is the colour at its brightness)
+ * for one half period, hard off (the base untouched) for the next. Returns whether it is on. */
+bool ps_fx_layer_strobe(ps_rgba_t *px, int n, ps_rgba_t colour, uint8_t bright100, uint32_t now_ms, uint32_t half_ms);
 #define PS_FX_RAMP_STEPS 100
 
 /* one effect's stored parameters; the vent's model. Which fields are read depends on the

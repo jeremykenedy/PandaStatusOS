@@ -354,5 +354,15 @@
   "ps_lighting_hot_c_aria": "Küszöb, Celsius-fok",
   "ps_lighting_hot_colour": "Szín",
   "ps_lighting_hot_colour_aria": "A figyelmeztetés színe",
-  "ps_lighting_hot_help": "A lüktetés az effekt vagy az egyszínű sáv fölé kerül, nem váltja fel őket; a küszöböt a nyomtató által jelentett egész fokkal veti össze."
+  "ps_lighting_hot_help": "A lüktetés az effekt vagy az egyszínű sáv fölé kerül, nem váltja fel őket; a küszöböt a nyomtató által jelentett egész fokkal veti össze.",
+  "ps_feature_error_flash": "Hibavillogás",
+  "ps_feature_error_flash_help": "Amíg a nyomtató hibát jelez, a sáv egy színnel villog afölött, amit épp mutat, mindkét módban; a szín, a fényerő és az ütem állítható.",
+  "ps_feature_error_flash_aria": "Hibavillogás",
+  "ps_lighting_ef_colour": "Szín",
+  "ps_lighting_ef_colour_aria": "A hibavillogás színe",
+  "ps_lighting_ef_brightness": "Fényerő",
+  "ps_lighting_ef_brightness_aria": "A hibavillogás fényereje",
+  "ps_lighting_ef_speed": "Ütem",
+  "ps_lighting_ef_speed_aria": "A hibavillogás üteme",
+  "ps_lighting_ef_help": "A villogás az effekt vagy az egyszínű sáv fölé kerül, nem váltja fel őket; elsőbbsége van a forróság-figyelmeztetéssel szemben."
 }
