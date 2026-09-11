@@ -55,6 +55,10 @@
  *   PS_BACKUP=<file>       serve that file at GET /backup with X-Flash-Size, as the clone does;
  *                          unset = the factory's 302. Lets tools/fw/golden.sh be proven here
  *   PS_BACKUP_TRUNCATE=N   with PS_BACKUP: send only N bytes while X-Flash-Size promises them all
+ *   PS_CLONE=1             the clone's GET/POST /api/features (D-033): feature switches and their
+ *                          settings, defaults off, taken whole or refused whole (400); every accepted
+ *                          POST body is recorded in /__sent as {"api":"/api/features","body":...}.
+ *                          Unset = the factory, which answers 302 like any unknown path
  *   PS_OTA_LANDS=1         an accepted ota_fw upload takes effect: after PS_OTA_RESTART_MS
  *                          (default 2000) of 503, GET / serves the page inside the uploaded
  *                          image with its own X-Build. Unset = the factory's behaviour, which
@@ -146,6 +150,28 @@ const ENUM = {
 let STATE = null;
 let booting = false;                    // true while a "restart" is in progress
 let LANDED = null;                      // {build, page, until}: the image an ota_fw upload installed (PS_OTA_LANDS)
+let FEAT = null;                        // the clone's feature document (PS_CLONE); null until first asked
+const FEATURE_NAMES = ['state_brightness'];
+function featDefaults() { return { features: { state_brightness: false }, config: { state_brightness: [[50, 50, 50], [50, 50, 50]] } }; }
+// whole or nothing, as the firmware does: unknown names, non-booleans, bad shapes and out-of-range numbers refuse the document
+function featApply(j) {
+  if (!j || typeof j !== 'object' || Array.isArray(j)) return false;
+  const f = j.features, c = j.config;
+  if (f === undefined && c === undefined) return false;
+  if (f !== undefined && (typeof f !== 'object' || f === null || Array.isArray(f))) return false;
+  if (c !== undefined && (typeof c !== 'object' || c === null || Array.isArray(c))) return false;
+  if (f) for (const k of Object.keys(f)) if (!FEATURE_NAMES.includes(k) || typeof f[k] !== 'boolean') return false;
+  let sb = null;
+  if (c) for (const k of Object.keys(c)) {
+    if (k !== 'state_brightness') return false;
+    const v = c[k];
+    if (!Array.isArray(v) || v.length !== 2 || !v.every((r) => Array.isArray(r) && r.length === 3 && r.every((n) => Number.isInteger(n) && n >= 0 && n <= 100))) return false;
+    sb = v.map((r) => r.slice());
+  }
+  if (f) for (const k of Object.keys(f)) FEAT.features[k] = f[k];
+  if (sb) FEAT.config.state_brightness = sb;
+  return true;
+}
 const timers = new Set();               // every pending timer, outside STATE
 const sockets = new Set();
 const SENT = [];                        // frames the device received (the harness reads these)
@@ -466,7 +492,7 @@ async function handleHttp(req, res) {
   if (p === '/__sent') { res.writeHead(200, { 'Content-Type': 'application/json' }); return res.end(JSON.stringify(SENT)); }
   if (p === '/__pushed') { res.writeHead(200, { 'Content-Type': 'application/json' }); return res.end(JSON.stringify(PUSHED)); }
   if (p === '/__state') { res.writeHead(200, { 'Content-Type': 'application/json' }); return res.end(JSON.stringify(STATE)); }
-  if (p === '/__reset' && req.method === 'POST') { await readBody(req, 1 << 16); STATE = loadFixture(FIXTURE); SENT.length = 0; PUSHED.length = 0; LANDED = null; clearTimers(); log({ ev: 'debug_reset' }); res.writeHead(200); return res.end('ok'); }
+  if (p === '/__reset' && req.method === 'POST') { await readBody(req, 1 << 16); STATE = loadFixture(FIXTURE); SENT.length = 0; PUSHED.length = 0; LANDED = null; FEAT = null; clearTimers(); log({ ev: 'debug_reset' }); res.writeHead(200); return res.end('ok'); }
   if (p === '/__knob' && req.method === 'POST') {
     const { body } = await readBody(req, 1 << 16);
     try { const k = JSON.parse(body.toString('utf8')); KNOBS[k.name] = k.value; log({ ev: 'knob', detail: `${k.name}=${k.value}` }); res.writeHead(200); return res.end('ok'); }
@@ -486,6 +512,21 @@ async function handleHttp(req, res) {
     hdr['Content-Length'] = Buffer.byteLength(page);
     res.writeHead(200, hdr);
     return res.end(page);
+  }
+  if (p === '/api/features' && knobFlag('PS_CLONE')) {
+    if (!FEAT) FEAT = featDefaults();
+    const doc = () => JSON.stringify(Object.assign({ build: LANDED ? LANDED.build : String(knob('PS_BUILD', 'mock')) }, FEAT));
+    if (req.method === 'GET') { res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }); return res.end(doc()); }
+    if (req.method !== 'POST') { res.writeHead(405); return res.end(); }
+    const { body } = await readBody(req, 1 << 12);
+    const rec = { t: Date.now(), rel_ms: Date.now() - t0, api: '/api/features', text: '' };
+    let j;
+    try { j = JSON.parse(body.toString('utf8')); } catch (_) { rec.error = 'not json'; SENT.push(rec); log({ ev: 'api_refused', detail: 'not json' }); res.writeHead(400); return res.end('refused'); }
+    rec.text = JSON.stringify({ api: '/api/features', body: j }); rec.frame = j; rec.roots = ['api'];
+    if (!featApply(j)) { rec.error = 'refused'; SENT.push(rec); log({ ev: 'api_refused', detail: rec.text }); res.writeHead(400); return res.end('refused'); }
+    SENT.push(rec);
+    log({ ev: 'api_features', detail: rec.text });
+    res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }); return res.end(doc());
   }
   if (p === '/backup' && req.method === 'GET' && knob('PS_BACKUP', '')) {
     // the clone's GET /backup: the whole flash, X-Flash-Size before the body, chunked

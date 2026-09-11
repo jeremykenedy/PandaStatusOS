@@ -246,5 +246,17 @@
   "ps_system_theme_auto": "Seguir o sistema",
   "ps_system_theme_dark": "Escuro",
   "ps_system_theme_light": "Claro",
-  "ps_system_title": "Sistema"
+  "ps_system_title": "Sistema",
+  "ps_system_features": "Recursos",
+  "ps_system_features_help": "Tudo aqui vem desligado, e o dispositivo se comporta como o de fábrica até que uma chave seja ligada. Cada chave fica salva no dispositivo.",
+  "ps_feature_state_brightness": "Brilho por estado",
+  "ps_feature_state_brightness_help": "Um brilho para ocioso, um para impressão e um para erro, em vez de um só para os três.",
+  "ps_feature_state_brightness_aria": "Brilho por estado",
+  "ps_lighting_sb_help": "Para o modo atual. Enquanto isto estiver ligado, o controle de brilho acima não é usado.",
+  "ps_lighting_sb_idle_aria": "Brilho em ocioso",
+  "ps_lighting_sb_printing_aria": "Brilho ao imprimir",
+  "ps_lighting_sb_error_aria": "Brilho em erro",
+  "ps_lighting_sb_idle": "Ocioso",
+  "ps_lighting_sb_printing": "Imprimindo",
+  "ps_lighting_sb_error": "Erro"
 }

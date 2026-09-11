@@ -246,5 +246,17 @@
   "ps_system_theme_auto": "Як у системі",
   "ps_system_theme_dark": "Темна",
   "ps_system_theme_light": "Світла",
-  "ps_system_title": "Система"
+  "ps_system_title": "Система",
+  "ps_system_features": "Функції",
+  "ps_system_features_help": "Усе тут типово вимкнено, і пристрій поводиться як заводський, доки не ввімкнено жоден перемикач. Кожен перемикач зберігається на пристрої.",
+  "ps_feature_state_brightness": "Яскравість для кожного стану",
+  "ps_feature_state_brightness_help": "Одна яскравість для простою, одна для друку й одна для помилки замість однієї на всі три.",
+  "ps_feature_state_brightness_aria": "Яскравість для кожного стану",
+  "ps_lighting_sb_help": "Для поточного режиму. Поки це ввімкнено, повзунок яскравості вище не використовується.",
+  "ps_lighting_sb_idle_aria": "Яскравість у простої",
+  "ps_lighting_sb_printing_aria": "Яскравість під час друку",
+  "ps_lighting_sb_error_aria": "Яскравість при помилці",
+  "ps_lighting_sb_idle": "Простій",
+  "ps_lighting_sb_printing": "Друк",
+  "ps_lighting_sb_error": "Помилка"
 }

@@ -246,5 +246,17 @@
   "ps_system_theme_auto": "Sistemi izle",
   "ps_system_theme_dark": "Koyu",
   "ps_system_theme_light": "Açık",
-  "ps_system_title": "Sistem"
+  "ps_system_title": "Sistem",
+  "ps_system_features": "Özellikler",
+  "ps_system_features_help": "Buradaki her şey başlangıçta kapalıdır ve bir anahtar açılana kadar cihaz fabrika cihazı gibi davranır. Her anahtar cihazda saklanır.",
+  "ps_feature_state_brightness": "Duruma göre parlaklık",
+  "ps_feature_state_brightness_help": "Üçü için tek bir parlaklık yerine boşta için bir, yazdırma için bir ve hata için bir parlaklık.",
+  "ps_feature_state_brightness_aria": "Duruma göre parlaklık",
+  "ps_lighting_sb_help": "Geçerli mod için. Bu açıkken yukarıdaki parlaklık kaydırıcısı kullanılmaz.",
+  "ps_lighting_sb_idle_aria": "Boşta parlaklığı",
+  "ps_lighting_sb_printing_aria": "Yazdırma parlaklığı",
+  "ps_lighting_sb_error_aria": "Hata parlaklığı",
+  "ps_lighting_sb_idle": "Boşta",
+  "ps_lighting_sb_printing": "Baskıda",
+  "ps_lighting_sb_error": "Hata"
 }

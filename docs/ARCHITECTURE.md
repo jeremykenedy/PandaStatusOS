@@ -56,9 +56,15 @@ may call them.
 
 [PROTOCOL.md](PROTOCOL.md) has the whole surface.
 
-### The two things the factory does not serve
+### What the factory does not serve
 
-Both are invisible to the page and to the wire, and neither changes what the device does:
+Three things, all invisible to the wire; the first two change nothing about what the
+device does, and the third changes nothing until a switch is on:
+
+- `GET` and `POST /api/features` (`ps_api.c`, D-033): the feature switches and their
+  settings as one JSON document, taken whole or refused whole. The factory answers 302 to
+  the path, so the page tells a clone from the factory by the 200 and shows the Features
+  card only then ([FEATURES.md](FEATURES.md)). The socket document is never extended.
 
 - `GET /` and `GET /backup` carry an `X-Build` header: the first eight bytes of the app
   ELF's sha256 from `esp_app_desc`, unique per build. `tools/fw/ota-install.sh` proves that

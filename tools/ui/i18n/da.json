@@ -246,5 +246,17 @@
   "ps_system_theme_auto": "Følg systemet",
   "ps_system_theme_dark": "Mørkt",
   "ps_system_theme_light": "Lyst",
-  "ps_system_title": "System"
+  "ps_system_title": "System",
+  "ps_system_features": "Funktioner",
+  "ps_system_features_help": "Alt her er slået fra fra start, og enheden opfører sig som fabriksenheden, indtil en kontakt slås til. Hver kontakt gemmes på enheden.",
+  "ps_feature_state_brightness": "Lysstyrke pr. tilstand",
+  "ps_feature_state_brightness_help": "Én lysstyrke for hvile, én for udskrivning og én for fejl i stedet for én til alle tre.",
+  "ps_feature_state_brightness_aria": "Lysstyrke pr. tilstand",
+  "ps_lighting_sb_help": "For den aktuelle tilstand. Så længe dette er slået til, bruges lysstyrkeskyderen ovenfor ikke.",
+  "ps_lighting_sb_idle_aria": "Lysstyrke i hvile",
+  "ps_lighting_sb_printing_aria": "Lysstyrke under udskrivning",
+  "ps_lighting_sb_error_aria": "Lysstyrke ved fejl",
+  "ps_lighting_sb_idle": "Hvile",
+  "ps_lighting_sb_printing": "Printer",
+  "ps_lighting_sb_error": "Fejl"
 }

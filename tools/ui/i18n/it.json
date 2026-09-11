@@ -246,5 +246,17 @@
   "ps_system_theme_auto": "Segui il sistema",
   "ps_system_theme_dark": "Scuro",
   "ps_system_theme_light": "Chiaro",
-  "ps_system_title": "Sistema"
+  "ps_system_title": "Sistema",
+  "ps_system_features": "Funzioni",
+  "ps_system_features_help": "Qui è tutto disattivato di fabbrica, e il dispositivo si comporta come quello originale finché un interruttore non è acceso. Ogni interruttore è salvato sul dispositivo.",
+  "ps_feature_state_brightness": "Luminosità per stato",
+  "ps_feature_state_brightness_help": "Una luminosità per l'attesa, una per la stampa e una per l'errore, invece di una sola per tutte e tre.",
+  "ps_feature_state_brightness_aria": "Luminosità per stato",
+  "ps_lighting_sb_help": "Per la modalità attuale. Finché è attivo, il cursore della luminosità qui sopra non viene usato.",
+  "ps_lighting_sb_idle_aria": "Luminosità in attesa",
+  "ps_lighting_sb_printing_aria": "Luminosità in stampa",
+  "ps_lighting_sb_error_aria": "Luminosità in errore",
+  "ps_lighting_sb_idle": "Inattivo",
+  "ps_lighting_sb_printing": "In stampa",
+  "ps_lighting_sb_error": "Errore"
 }

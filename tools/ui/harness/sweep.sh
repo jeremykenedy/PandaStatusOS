@@ -46,6 +46,10 @@ ROWS=(
   "p2-idle.json      | page-logs.js | "
   "factory-defaults.json | page-setup.js | "
   "p2-idle.json      | page-setup.js | "
+  # --- features (D-033): against the factory (no route, 302) nothing appears and nothing is
+  #     sent; against the clone (PS_CLONE=1) the switches and their settings, exact bodies ---
+  "p2-idle.json      | page-features.js | "
+  "p2-idle.json      | page-features.js | PS_CLONE=1"
   # --- the push policy is INFERENCE (D-014). The pages must hold under either reading:
   #     only the changed root comes back, or every client hears every change. ---
   "p2-idle.json      | page-lighting.js | PS_PUSH_CHANGED_ONLY=1"

@@ -246,5 +246,17 @@
   "ps_system_theme_auto": "システムに合わせる",
   "ps_system_theme_dark": "ダーク",
   "ps_system_theme_light": "ライト",
-  "ps_system_title": "システム"
+  "ps_system_title": "システム",
+  "ps_system_features": "機能",
+  "ps_system_features_help": "ここにあるものはすべて初期状態ではオフで、スイッチをオンにするまで本機は純正品と同じように動作します。各スイッチは本機に保存されます。",
+  "ps_feature_state_brightness": "状態ごとの明るさ",
+  "ps_feature_state_brightness_help": "3つ共通の明るさではなく、待機・印刷中・エラーそれぞれに明るさを設定します。",
+  "ps_feature_state_brightness_aria": "状態ごとの明るさ",
+  "ps_lighting_sb_help": "現在のモードに適用されます。これがオンの間、上の明るさスライダーは使われません。",
+  "ps_lighting_sb_idle_aria": "待機時の明るさ",
+  "ps_lighting_sb_printing_aria": "印刷中の明るさ",
+  "ps_lighting_sb_error_aria": "エラー時の明るさ",
+  "ps_lighting_sb_idle": "待機",
+  "ps_lighting_sb_printing": "印刷中",
+  "ps_lighting_sb_error": "エラー"
 }

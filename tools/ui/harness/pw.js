@@ -57,6 +57,8 @@ function frame(root, members) {
   const body = Object.assign({}, members); body.device_wakeup = 1;
   return JSON.stringify({ [root]: body });
 }
+// what the mock records for an accepted POST /api/features (the clone's route, PS_CLONE=1)
+function apiFrame(body) { return JSON.stringify({ api: '/api/features', body }); }
 
 // ---- the browser ----
 async function launch() {
@@ -119,4 +121,4 @@ async function shot(page, name, opts) {
   return file;
 }
 
-module.exports = { BASE, t, verdict, sleep, sent, pushed, mockState, resetMock, knob, sentAfter, frame, launch, open, waitState, tap, waitCard, shot };
+module.exports = { BASE, t, verdict, sleep, sent, pushed, mockState, resetMock, knob, sentAfter, frame, apiFrame, launch, open, waitState, tap, waitCard, shot };

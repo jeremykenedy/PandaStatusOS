@@ -246,5 +246,17 @@
   "ps_system_theme_auto": "حسب النظام",
   "ps_system_theme_dark": "داكن",
   "ps_system_theme_light": "فاتح",
-  "ps_system_title": "النظام"
+  "ps_system_title": "النظام",
+  "ps_system_features": "الميزات",
+  "ps_system_features_help": "كل ما هنا مُعطَّل افتراضيًا، ويتصرف الجهاز مثل جهاز المصنع حتى يُفعَّل أحد المفاتيح. يُحفظ كل مفتاح على الجهاز.",
+  "ps_feature_state_brightness": "سطوع لكل حالة",
+  "ps_feature_state_brightness_help": "سطوع للخمول وسطوع للطباعة وسطوع للخطأ، بدلًا من سطوع واحد للحالات الثلاث.",
+  "ps_feature_state_brightness_aria": "سطوع لكل حالة",
+  "ps_lighting_sb_help": "للوضع الحالي. ما دام هذا مُفعَّلًا، لا يُستخدم شريط السطوع أعلاه.",
+  "ps_lighting_sb_idle_aria": "سطوع الخمول",
+  "ps_lighting_sb_printing_aria": "سطوع الطباعة",
+  "ps_lighting_sb_error_aria": "سطوع الخطأ",
+  "ps_lighting_sb_idle": "الخمول",
+  "ps_lighting_sb_printing": "الطباعة",
+  "ps_lighting_sb_error": "خطأ"
 }

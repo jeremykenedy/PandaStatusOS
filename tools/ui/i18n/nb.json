@@ -246,5 +246,17 @@
   "ps_system_theme_auto": "Følg systemet",
   "ps_system_theme_dark": "Mørkt",
   "ps_system_theme_light": "Lyst",
-  "ps_system_title": "System"
+  "ps_system_title": "System",
+  "ps_system_features": "Funksjoner",
+  "ps_system_features_help": "Alt her er av fra start, og enheten oppfører seg som fabrikkenheten til en bryter slås på. Hver bryter lagres på enheten.",
+  "ps_feature_state_brightness": "Lysstyrke per tilstand",
+  "ps_feature_state_brightness_help": "Én lysstyrke for hvile, én for utskrift og én for feil, i stedet for én for alle tre.",
+  "ps_feature_state_brightness_aria": "Lysstyrke per tilstand",
+  "ps_lighting_sb_help": "For gjeldende modus. Så lenge dette er på, brukes ikke lysstyrkeglideren over.",
+  "ps_lighting_sb_idle_aria": "Lysstyrke i hvile",
+  "ps_lighting_sb_printing_aria": "Lysstyrke ved utskrift",
+  "ps_lighting_sb_error_aria": "Lysstyrke ved feil",
+  "ps_lighting_sb_idle": "Inaktiv",
+  "ps_lighting_sb_printing": "Skriver ut",
+  "ps_lighting_sb_error": "Feil"
 }

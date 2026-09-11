@@ -45,6 +45,11 @@ body.dark  .ps-mark-light { display: none; }
 .ps-icon { width: 24px; height: 24px; display: inline-block; vertical-align: middle; flex: none; color: currentColor; }
 .ps-icon-sm { width: 18px; height: 18px; }
 .ps-tile-head { gap: 6px; align-items: center; }
+.ps-feature { display: flex; gap: 12px; align-items: flex-start; padding-top: 8px; }
+.ps-feature .switch { flex: none; margin-top: 2px; }
+.ps-feature-name { font-weight: 600; }
+.ps-grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 991px) { .ps-grid-3 { grid-template-columns: minmax(0, 1fr); } }
 .ps-tile-head .ps-tile-label { margin: 0; }
 
 /* --- navigation. Rail on wide screens, bottom bar on phones. Same destinations, same

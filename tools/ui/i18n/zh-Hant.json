@@ -246,5 +246,17 @@
   "ps_system_theme_auto": "跟隨系統",
   "ps_system_theme_dark": "深色",
   "ps_system_theme_light": "淺色",
-  "ps_system_title": "系統"
+  "ps_system_title": "系統",
+  "ps_system_features": "功能",
+  "ps_system_features_help": "這裡的所有項目出廠時均為關閉，在開啟任一開關之前，裝置的行為與原廠裝置相同。每個開關都儲存在裝置上。",
+  "ps_feature_state_brightness": "依狀態設定亮度",
+  "ps_feature_state_brightness_help": "待機、列印與錯誤各用一個亮度，而不是三種狀態共用一個。",
+  "ps_feature_state_brightness_aria": "依狀態設定亮度",
+  "ps_lighting_sb_help": "適用於目前模式。開啟後，上方的亮度滑桿不再使用。",
+  "ps_lighting_sb_idle_aria": "待機亮度",
+  "ps_lighting_sb_printing_aria": "列印亮度",
+  "ps_lighting_sb_error_aria": "錯誤亮度",
+  "ps_lighting_sb_idle": "閒置",
+  "ps_lighting_sb_printing": "列印中",
+  "ps_lighting_sb_error": "錯誤"
 }

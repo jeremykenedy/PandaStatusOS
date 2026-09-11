@@ -246,5 +246,17 @@
   "ps_system_theme_auto": "跟随系统",
   "ps_system_theme_dark": "深色",
   "ps_system_theme_light": "浅色",
-  "ps_system_title": "系统"
+  "ps_system_title": "系统",
+  "ps_system_features": "功能",
+  "ps_system_features_help": "这里的所有项目出厂时均为关闭，在打开任一开关之前，设备的行为与原厂设备相同。每个开关都保存在设备上。",
+  "ps_feature_state_brightness": "按状态设置亮度",
+  "ps_feature_state_brightness_help": "待机、打印和错误各用一个亮度，而不是三种状态共用一个。",
+  "ps_feature_state_brightness_aria": "按状态设置亮度",
+  "ps_lighting_sb_help": "适用于当前模式。开启后，上方的亮度滑块不再使用。",
+  "ps_lighting_sb_idle_aria": "待机亮度",
+  "ps_lighting_sb_printing_aria": "打印亮度",
+  "ps_lighting_sb_error_aria": "错误亮度",
+  "ps_lighting_sb_idle": "空闲",
+  "ps_lighting_sb_printing": "打印中",
+  "ps_lighting_sb_error": "错误"
 }

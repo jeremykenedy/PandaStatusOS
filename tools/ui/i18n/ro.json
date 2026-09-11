@@ -246,5 +246,17 @@
   "ps_system_theme_auto": "Ca sistemul",
   "ps_system_theme_dark": "Întunecată",
   "ps_system_theme_light": "Luminoasă",
-  "ps_system_title": "Sistem"
+  "ps_system_title": "Sistem",
+  "ps_system_features": "Funcții",
+  "ps_system_features_help": "Totul de aici este oprit din fabrică, iar dispozitivul se comportă ca cel original până când un comutator este pornit. Fiecare comutator este salvat pe dispozitiv.",
+  "ps_feature_state_brightness": "Luminozitate pe stare",
+  "ps_feature_state_brightness_help": "O luminozitate pentru repaus, una pentru imprimare și una pentru eroare, în loc de una pentru toate trei.",
+  "ps_feature_state_brightness_aria": "Luminozitate pe stare",
+  "ps_lighting_sb_help": "Pentru modul curent. Cât timp este pornit, glisorul de luminozitate de mai sus nu este folosit.",
+  "ps_lighting_sb_idle_aria": "Luminozitate în repaus",
+  "ps_lighting_sb_printing_aria": "Luminozitate la imprimare",
+  "ps_lighting_sb_error_aria": "Luminozitate la eroare",
+  "ps_lighting_sb_idle": "Repaus",
+  "ps_lighting_sb_printing": "Imprimare",
+  "ps_lighting_sb_error": "Eroare"
 }

@@ -13,6 +13,15 @@ Everything so far. No release has been made and no device has been flashed.
 - The hotspot's default name is a placeholder pending the bench session; the factory's
   own name is a parity fact, not a branding choice.
 
+### Features, each behind a switch that defaults off
+
+- The clone's own JSON route, `/api/features`: the page discovers a clone by its 200 where
+  the factory answers 302, and shows a Features card on the System page only then. The
+  socket document stays the factory's (D-033).
+- A1, per-state brightness: one brightness for idle, one for printing, one for error, in
+  each mode, on the Lighting page while the switch is on. The config blob moves to layout
+  v2 with a v1 migration proven by the host test.
+
 ### The artwork
 
 - Jeremy's drawn icon set lands as project source (`tools/ui/src/icons/`), normalised on

@@ -246,5 +246,17 @@
   "ps_system_theme_auto": "Järjestelmän mukaan",
   "ps_system_theme_dark": "Tumma",
   "ps_system_theme_light": "Vaalea",
-  "ps_system_title": "Järjestelmä"
+  "ps_system_title": "Järjestelmä",
+  "ps_system_features": "Ominaisuudet",
+  "ps_system_features_help": "Kaikki tässä on oletuksena pois päältä, ja laite toimii kuten tehdaslaite, kunnes jokin kytkin on päällä. Jokainen kytkin tallennetaan laitteeseen.",
+  "ps_feature_state_brightness": "Kirkkaus tilan mukaan",
+  "ps_feature_state_brightness_help": "Yksi kirkkaus lepotilalle, yksi tulostukselle ja yksi virheelle yhden yhteisen sijaan.",
+  "ps_feature_state_brightness_aria": "Kirkkaus tilan mukaan",
+  "ps_lighting_sb_help": "Nykyiselle tilalle. Kun tämä on päällä, yllä olevaa kirkkaussäädintä ei käytetä.",
+  "ps_lighting_sb_idle_aria": "Kirkkaus lepotilassa",
+  "ps_lighting_sb_printing_aria": "Kirkkaus tulostettaessa",
+  "ps_lighting_sb_error_aria": "Kirkkaus virhetilassa",
+  "ps_lighting_sb_idle": "Lepotila",
+  "ps_lighting_sb_printing": "Tulostus",
+  "ps_lighting_sb_error": "Virhe"
 }

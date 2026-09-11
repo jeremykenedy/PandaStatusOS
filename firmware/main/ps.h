@@ -34,8 +34,14 @@ extern const char *const ps_gif_slot_names[PS_GIF_SLOTS];
  * offset. When the layout changes: freeze THIS struct as ps_cfg_v1_t inside ps_cfg.c,
  * bump the magic, add an arm to the chain, extend the host test. Never let a frozen
  * struct reference a live type or a live count. */
-#define PS_CFG_MAGIC_V1  0x50533031u   /* 'P' 'S' '0' '1' */
-#define PS_CFG_MAGIC     PS_CFG_MAGIC_V1
+#define PS_CFG_MAGIC_V1  0x50533031u   /* 'P' 'S' '0' '1': the first layout, 492 bytes, frozen in ps_cfg.c */
+#define PS_CFG_MAGIC_V2  0x50533032u   /* 'P' 'S' '0' '2': v1 plus the Phase A fields below */
+#define PS_CFG_MAGIC     PS_CFG_MAGIC_V2
+
+/* feature bits in ps_cfg_t.features. Every one defaults to 0 and leaves the device at
+ * factory parity; docs/FEATURES.md is the table. Bit 0 is reserved for the vent bridge. */
+#define PS_FEAT_BRIDGE            (1u << 0)
+#define PS_FEAT_STATE_BRIGHTNESS  (1u << 1)   /* A1: one brightness per bar state instead of one per mode */
 #define PS_CFG_NVS_NS    "ps"
 #define PS_CFG_NVS_KEY   "cfg"
 #define PS_BLOCKS_MAX    15            /* PROVISIONAL: the block list's true bound is a bench fact */
@@ -75,10 +81,14 @@ typedef struct {
     uint8_t   _pad0;
     ps_mode_cfg_t   mode[2];
     ps_block_cfg_t  block[PS_BLOCKS_MAX];
+    /* ---- v2, PS02: the Phase A fields. Each is read only while its feature bit is set,
+     * so a default blob and a migrated blob both leave the device at parity. ---- */
+    uint8_t   state_brightness[2][3];  /* A1: [mode][bar state], 0..100 */
+    uint8_t   _pad1[2];
 } ps_cfg_t;
 
 /* the whole blob and its NVS budget; both pinned in ps_cfg.c and in the host test */
-#define PS_CFG_SIZE      492
+#define PS_CFG_SIZE      500
 #define PS_CFG_NVS_BUDGET 1600
 
 /* ---------------------------------------------------------- the live state ---- */
@@ -168,12 +178,20 @@ int  ps_ota_write(void *ctx, const void *data, size_t len);
 int  ps_ota_end(void *ctx, bool ok);
 void ps_ota_confirm_boot(void);                       /* once the server is up: cancel rollback */
 
+/* ---------------------------------------------------------------- ps_api.c ---- */
+/* /api/features: the clone's own JSON route, the one place a feature is switched on and its
+ * settings are read or written. The socket document stays the factory's (docs/ARCHITECTURE.md). */
+char *ps_features_json(void);                          /* caller frees with cJSON_free */
+int   ps_features_apply(const char *json, size_t len); /* 0 ok, -1 refused; saves and notifies */
+
 /* ------------------------------------------------------------- ps_backup.c ---- */
 /* GET /backup: the whole flash as bytes, X-Flash-Size before the body, station interface
  * only. The handler signature is esp_http_server's; declared here as a pointer-free name
  * so ps.h stays free of that header. */
 struct httpd_req; typedef struct httpd_req httpd_req_t;
 int ps_backup_get(httpd_req_t *req);   /* esp_err_t */
+int ps_api_features_get(httpd_req_t *req);
+int ps_api_features_post(httpd_req_t *req);
 
 /* ------------------------------------------------------------------ utility ---- */
 void ps_restart(const char *why);

@@ -246,5 +246,17 @@
   "ps_system_theme_auto": "Как в системе",
   "ps_system_theme_dark": "Тёмная",
   "ps_system_theme_light": "Светлая",
-  "ps_system_title": "Система"
+  "ps_system_title": "Система",
+  "ps_system_features": "Функции",
+  "ps_system_features_help": "Всё здесь по умолчанию выключено, и устройство ведёт себя как заводское, пока не включён ни один переключатель. Каждый переключатель хранится на устройстве.",
+  "ps_feature_state_brightness": "Яркость для каждого состояния",
+  "ps_feature_state_brightness_help": "Одна яркость для простоя, одна для печати и одна для ошибки вместо одной на все три.",
+  "ps_feature_state_brightness_aria": "Яркость для каждого состояния",
+  "ps_lighting_sb_help": "Для текущего режима. Пока это включено, ползунок яркости выше не используется.",
+  "ps_lighting_sb_idle_aria": "Яркость в простое",
+  "ps_lighting_sb_printing_aria": "Яркость при печати",
+  "ps_lighting_sb_error_aria": "Яркость при ошибке",
+  "ps_lighting_sb_idle": "Ожидание",
+  "ps_lighting_sb_printing": "Печать",
+  "ps_lighting_sb_error": "Ошибка"
 }

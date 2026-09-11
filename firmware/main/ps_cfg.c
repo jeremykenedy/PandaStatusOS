@@ -2,12 +2,13 @@
  * by size. Defaults are written first, then the stored layout is overlaid field by field,
  * never by a prefix copy: a struct that grows in the middle moves every byte after it.
  *
- * The chain below has one arm today. The day a second layout exists:
- *   1. copy the current ps_cfg_t into this file as ps_cfg_v1_t, static, with its own
+ * The chain below has two arms: v2 (current) and v1 (frozen below). The day a third
+ * layout exists:
+ *   1. copy the current ps_cfg_t into this file as ps_cfg_v2_t, static, with its own
  *      _Static_assert on the literal size, referencing NO live type and NO live count;
- *   2. define PS_CFG_MAGIC_V2, point PS_CFG_MAGIC at it;
- *   3. add the v1 arm: defaults, overlay every v1 field, set what v2 added, save;
- *   4. extend firmware/test/host/cfg_test.c with a v1 blob that must survive.
+ *   2. define PS_CFG_MAGIC_V3, point PS_CFG_MAGIC at it;
+ *   3. add the v2 arm: defaults, overlay every v2 field, set what v3 added, save;
+ *   4. extend firmware/test/host/cfg_test.c with a v2 blob that must survive.
  * A frozen struct that points at a live type is correct only by luck. Grep this file for
  * the live names before every commit that touches a legacy block. */
 #include <string.h>
@@ -20,6 +21,21 @@
 
 static const char *TAG = "ps_cfg";
 
+/* ---- v1, 'PS01', 492 bytes: frozen. Literal counts, private types, no live name. ---- */
+typedef struct { uint8_t r, g, b, a; } v1_rgba_t;
+typedef struct { uint8_t brightness, speed, _pad[2]; v1_rgba_t colour[3]; } v1_mode_t;
+typedef struct { uint8_t id, _pad[3]; v1_rgba_t colour; } v1_block_t;
+typedef struct {
+    uint32_t magic, features;
+    char wifi_ssid[33], wifi_password[65], ap_ssid[33], ap_password[65], hostname[33];
+    char printer_name[33], printer_sn[33], printer_access_code[17], language[8];
+    uint8_t ap_ip[4], printer_ip[4], ap_on, current_mode, block_count, _pad0;
+    v1_mode_t mode[2];
+    v1_block_t block[15];
+} ps_cfg_v1_t;
+_Static_assert(sizeof(ps_cfg_v1_t) == 492, "the v1 layout is frozen at 492 bytes");
+_Static_assert(offsetof(ps_cfg_v1_t, mode) == 340 && offsetof(ps_cfg_v1_t, block) == 372, "the v1 layout moved");
+
 /* The layout is pinned to a literal. If this fails, the layout changed: freeze, bump,
  * migrate; do not edit the number. */
 _Static_assert(sizeof(ps_cfg_t) == PS_CFG_SIZE, "ps_cfg_t changed size: freeze v1, bump the magic, add a migration arm");
@@ -27,6 +43,7 @@ _Static_assert(offsetof(ps_cfg_t, magic) == 0, "magic must be the first field of
 _Static_assert(offsetof(ps_cfg_t, features) == 4, "features moved");
 _Static_assert(offsetof(ps_cfg_t, mode) == 340, "mode[] moved");
 _Static_assert(offsetof(ps_cfg_t, block) == 372, "block[] moved");
+_Static_assert(offsetof(ps_cfg_t, state_brightness) == 492, "the v2 fields must follow the v1 layout exactly");
 _Static_assert(sizeof(ps_mode_cfg_t) == 16 && sizeof(ps_block_cfg_t) == 8 && sizeof(ps_rgba_t) == 4, "sub-struct size changed");
 /* NVS keeps the old and the new copy resident during a rewrite; the budget is the blob
  * twice plus a page of slack against a 0x6000 partition shared with Wi-Fi credentials.
@@ -70,6 +87,9 @@ void ps_cfg_factory_defaults(ps_cfg_t *c)
     c->block_count = 1;
     c->block[0].id = 0;
     c->block[0].colour = (ps_rgba_t){ 0xFF, 0xFF, 0xFF, 0xFF };
+    /* v2: read only while PS_FEAT_STATE_BRIGHTNESS is set; equal to the global default so
+     * turning the feature on changes nothing until a slider moves */
+    for (int m = 0; m < 2; m++) for (int i = 0; i < 3; i++) c->state_brightness[m][i] = 50;
 }
 
 /* Every value read from flash that is used as an index or a range is bounded here, with
@@ -83,6 +103,7 @@ void ps_cfg_clamp(ps_cfg_t *c)
     for (int m = 0; m < 2; m++) {
         if (c->mode[m].brightness > 100) c->mode[m].brightness = 100;      /* 0..100 by the wire */
         if (c->mode[m].speed > 100) c->mode[m].speed = 100;
+        for (int i = 0; i < 3; i++) if (c->state_brightness[m][i] > 100) c->state_brightness[m][i] = 100;
     }
     /* strings must terminate: a blob from a different build could carry a full array */
     c->wifi_ssid[sizeof c->wifi_ssid - 1] = 0;         c->wifi_password[sizeof c->wifi_password - 1] = 0;
@@ -98,19 +119,47 @@ int ps_cfg_load(ps_cfg_t *c)
     nvs_handle_t h;
     esp_err_t err = nvs_open(PS_CFG_NVS_NS, NVS_READONLY, &h);
     if (err != ESP_OK) { ESP_LOGI(TAG, "no config namespace yet, defaults"); return 0; }
-    union { ps_cfg_t v1; uint8_t raw[PS_CFG_NVS_BUDGET]; } stored;
+    union { ps_cfg_t cur; ps_cfg_v1_t v1; uint32_t magic; uint8_t raw[PS_CFG_NVS_BUDGET]; } stored;
     size_t size = sizeof(stored);
     err = nvs_get_blob(h, PS_CFG_NVS_KEY, &stored, &size);
     nvs_close(h);
     if (err != ESP_OK) { ESP_LOGI(TAG, "no config blob, defaults"); return 0; }
 
-    /* newest first; a future v2 arm goes ABOVE this one */
-    if (size == sizeof(ps_cfg_t) && stored.v1.magic == PS_CFG_MAGIC_V1) {
-        memcpy(c, &stored.v1, sizeof(*c));             /* the current layout: whole, then clamped */
+    /* newest first; a future v3 arm goes ABOVE this one */
+    if (size == sizeof(ps_cfg_t) && stored.cur.magic == PS_CFG_MAGIC_V2) {
+        memcpy(c, &stored.cur, sizeof(*c));            /* the current layout: whole, then clamped */
         ps_cfg_clamp(c);
         return 0;
     }
-    ESP_LOGW(TAG, "config blob not recognised (magic %08x, %u bytes), defaults", (unsigned)stored.v1.magic, (unsigned)size);
+    if (size == sizeof(ps_cfg_v1_t) && stored.v1.magic == PS_CFG_MAGIC_V1) {
+        /* v1 -> v2: defaults (which set every v2 field), then every v1 field overlaid by
+         * name, never by a prefix copy, then saved back as v2 so the migration runs once */
+        const ps_cfg_v1_t *o = &stored.v1;
+        ps_cfg_factory_defaults(c);
+        c->features = o->features;
+        memcpy(c->wifi_ssid, o->wifi_ssid, sizeof c->wifi_ssid);
+        memcpy(c->wifi_password, o->wifi_password, sizeof c->wifi_password);
+        memcpy(c->ap_ssid, o->ap_ssid, sizeof c->ap_ssid);
+        memcpy(c->ap_password, o->ap_password, sizeof c->ap_password);
+        memcpy(c->hostname, o->hostname, sizeof c->hostname);
+        memcpy(c->printer_name, o->printer_name, sizeof c->printer_name);
+        memcpy(c->printer_sn, o->printer_sn, sizeof c->printer_sn);
+        memcpy(c->printer_access_code, o->printer_access_code, sizeof c->printer_access_code);
+        memcpy(c->language, o->language, sizeof c->language);
+        memcpy(c->ap_ip, o->ap_ip, 4);
+        memcpy(c->printer_ip, o->printer_ip, 4);
+        c->ap_on = o->ap_on; c->current_mode = o->current_mode; c->block_count = o->block_count;
+        for (int m = 0; m < 2; m++) {
+            c->mode[m].brightness = o->mode[m].brightness; c->mode[m].speed = o->mode[m].speed;
+            for (int i = 0; i < 3; i++) c->mode[m].colour[i] = (ps_rgba_t){ o->mode[m].colour[i].r, o->mode[m].colour[i].g, o->mode[m].colour[i].b, o->mode[m].colour[i].a };
+        }
+        for (int b = 0; b < 15; b++) { c->block[b].id = o->block[b].id; c->block[b].colour = (ps_rgba_t){ o->block[b].colour.r, o->block[b].colour.g, o->block[b].colour.b, o->block[b].colour.a }; }
+        ps_cfg_clamp(c);
+        ESP_LOGI(TAG, "config migrated v1 -> v2");
+        ps_cfg_save(c);
+        return 0;
+    }
+    ESP_LOGW(TAG, "config blob not recognised (magic %08x, %u bytes), defaults", (unsigned)stored.magic, (unsigned)size);
     return 0;
 }
 

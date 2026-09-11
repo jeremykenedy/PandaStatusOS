@@ -116,6 +116,34 @@ int main(void)
     t("rejects the wrong length", !ps_rgba_from_wire("#12345", &y) && !ps_rgba_from_wire("", &y) && !ps_rgba_from_wire(NULL, &y), 0);
     t("rejects non-hex", !ps_rgba_from_wire("GG0000", &y), 0);
 
+    /* 9. the v1 layout migrates: a 492-byte PS01 blob loads, every field survives, the v2
+     *    field takes its default, and the blob is written back as v2 so it runs once */
+    {
+        ps_cfg_v1_t o; memset(&o, 0, sizeof o);
+        fill_distinct(&d);
+        memcpy(&o, &d, sizeof o);                      /* the v1 layout is the first 492 bytes of v2 */
+        o.magic = PS_CFG_MAGIC_V1;
+        wipe(); put(&o, sizeof o);
+        t("v1 blob is 492 bytes", sizeof o == 492, (long)sizeof o);
+        memset(&c, 0xAA, sizeof c);
+        t("load of a v1 blob returns 0", ps_cfg_load(&c) == 0, 0);
+        t("v1 -> v2: every v1 field survives", !strcmp(c.hostname, "t-host") && c.features == 0x5 && c.current_mode == PS_MODE_MUSIC && c.block_count == 3
+          && c.mode[1].speed == 65 && c.mode[1].colour[2].a == 0x81 && c.block[2].colour.b == 4 && !strcmp(c.printer_access_code, "<T_CODE>") && c.printer_ip[3] == 20, c.mode[1].speed);
+        t("v1 -> v2: the new field takes its default", c.state_brightness[0][0] == 50 && c.state_brightness[1][2] == 50, c.state_brightness[1][2]);
+        t("v1 -> v2: the magic is now v2", c.magic == PS_CFG_MAGIC_V2, (long)c.magic);
+        size_t n = 0; nvs_get_blob(1, "cfg", NULL, &n);
+        t("v1 -> v2: saved back as a v2 blob", n == sizeof(ps_cfg_t), (long)n);
+        memset(&e, 0, sizeof e); ps_cfg_load(&e);
+        t("the migrated blob loads again as v2 with the same values", !strcmp(e.hostname, "t-host") && e.magic == PS_CFG_MAGIC_V2 && e.state_brightness[0][0] == 50 && e.mode[1].speed == 65, e.mode[1].speed);
+    }
+
+    /* 10. the v2 field: round trip and clamp */
+    fill_distinct(&d); d.state_brightness[1][1] = 80; d.state_brightness[0][2] = 5; wipe(); put(&d, sizeof d); ps_cfg_load(&c);
+    t("state_brightness round-trips", c.state_brightness[1][1] == 80 && c.state_brightness[0][2] == 5, c.state_brightness[1][1]);
+    fill_distinct(&d); d.state_brightness[0][1] = 250; wipe(); put(&d, sizeof d); ps_cfg_load(&c);
+    t("state_brightness clamped to 100", c.state_brightness[0][1] == 100, c.state_brightness[0][1]);
+    t("a fresh default leaves the feature bits at zero and the per-state values at the global default", (ps_cfg_factory_defaults(&d), d.features == 0 && d.state_brightness[1][1] == 50), d.features);
+
     printf("\n%d passed, %d failed\n", pass, fail);
     return fail ? 1 : 0;
 }

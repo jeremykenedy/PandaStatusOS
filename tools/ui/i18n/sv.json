@@ -246,5 +246,17 @@
   "ps_system_theme_auto": "Följ systemet",
   "ps_system_theme_dark": "Mörkt",
   "ps_system_theme_light": "Ljust",
-  "ps_system_title": "System"
+  "ps_system_title": "System",
+  "ps_system_features": "Funktioner",
+  "ps_system_features_help": "Allt här är av från början, och enheten beter sig som fabriksenheten tills en brytare slås på. Varje brytare sparas på enheten.",
+  "ps_feature_state_brightness": "Ljusstyrka per tillstånd",
+  "ps_feature_state_brightness_help": "En ljusstyrka för vila, en för utskrift och en för fel, i stället för en för alla tre.",
+  "ps_feature_state_brightness_aria": "Ljusstyrka per tillstånd",
+  "ps_lighting_sb_help": "För det aktuella läget. Så länge detta är på används inte ljusstyrkereglaget ovan.",
+  "ps_lighting_sb_idle_aria": "Ljusstyrka i vila",
+  "ps_lighting_sb_printing_aria": "Ljusstyrka vid utskrift",
+  "ps_lighting_sb_error_aria": "Ljusstyrka vid fel",
+  "ps_lighting_sb_idle": "Vila",
+  "ps_lighting_sb_printing": "Utskrift",
+  "ps_lighting_sb_error": "Fel"
 }

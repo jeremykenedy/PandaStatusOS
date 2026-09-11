@@ -246,5 +246,17 @@
   "ps_system_theme_auto": "Όπως το σύστημα",
   "ps_system_theme_dark": "Σκούρο",
   "ps_system_theme_light": "Ανοιχτό",
-  "ps_system_title": "Σύστημα"
+  "ps_system_title": "Σύστημα",
+  "ps_system_features": "Λειτουργίες",
+  "ps_system_features_help": "Όλα εδώ είναι απενεργοποιημένα από προεπιλογή, και η συσκευή συμπεριφέρεται όπως η εργοστασιακή μέχρι να ενεργοποιηθεί κάποιος διακόπτης. Κάθε διακόπτης αποθηκεύεται στη συσκευή.",
+  "ps_feature_state_brightness": "Φωτεινότητα ανά κατάσταση",
+  "ps_feature_state_brightness_help": "Μία φωτεινότητα για την αδράνεια, μία για την εκτύπωση και μία για το σφάλμα, αντί για μία και για τις τρεις.",
+  "ps_feature_state_brightness_aria": "Φωτεινότητα ανά κατάσταση",
+  "ps_lighting_sb_help": "Για την τρέχουσα λειτουργία. Όσο είναι ενεργό, το ρυθμιστικό φωτεινότητας παραπάνω δεν χρησιμοποιείται.",
+  "ps_lighting_sb_idle_aria": "Φωτεινότητα σε αδράνεια",
+  "ps_lighting_sb_printing_aria": "Φωτεινότητα κατά την εκτύπωση",
+  "ps_lighting_sb_error_aria": "Φωτεινότητα σε σφάλμα",
+  "ps_lighting_sb_idle": "Αδράνεια",
+  "ps_lighting_sb_printing": "Εκτύπωση",
+  "ps_lighting_sb_error": "Σφάλμα"
 }

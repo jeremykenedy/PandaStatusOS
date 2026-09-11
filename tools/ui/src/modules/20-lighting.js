@@ -44,6 +44,7 @@
   }
 
   function render() {
+    renderSb();
     var m = mode(), e = entry();
     if (m !== null && document.activeElement !== modeSel) modeSel.value = String(m);
     var isMusic = m === 0;
@@ -65,6 +66,31 @@
     renderBlocks();
   }
 
+  // A1: the per-state sliders, only while the feature is on, always the current mode's row
+  var sb = [];
+  function renderSb() {
+    var tile = $('ps-lighting-sb'); if (!tile) return;
+    var f = PS.features, m = mode();
+    var on = !!(f && f.features && f.features.state_brightness && m !== null && f.config && f.config.state_brightness && f.config.state_brightness[m]);
+    tile.hidden = !on;
+    if (!on) return;
+    for (var i = 0; i < 3; i++) {
+      var v = f.config.state_brightness[m][i];
+      if (focused !== sb[i]) sb[i].value = v;
+      $('ps-lighting-sb-value-' + i).textContent = v + '%';
+    }
+  }
+  function wireSb(i) {
+    sb[i] = $('ps-lighting-sb-' + i);
+    sb[i].addEventListener('focus', function () { focused = sb[i]; });
+    sb[i].addEventListener('blur', function () { if (focused === sb[i]) focused = null; });
+    sb[i].addEventListener('change', function () {
+      var f = PS.features, m = mode(); if (!f || !f.config || m === null) return;
+      var cfg = JSON.parse(JSON.stringify(f.config.state_brightness));
+      cfg[m][i] = Number(sb[i].value);
+      PS.api({ config: { state_brightness: cfg } });
+    });
+  }
   function renderBlocks() {
     var list = (PS.state.block && PS.state.block.blocklist) || [];
     var want = list.map(function (b) { return b.blockID; }).join(',');
@@ -112,6 +138,7 @@
     });
     bright.addEventListener('input', function () { brightVal.textContent = bright.value + '%'; });
     bright.addEventListener('change', function () { PS.send('settings', { rgb_info_brightness: Number(bright.value) }); });
+    for (var i = 0; i < 3; i++) wireSb(i);
     speed.addEventListener('input', function () { if (speed.disabled) return; speedTouched = true; speedVal.textContent = speed.value + '%'; });
     speed.addEventListener('change', function () { if (!speed.disabled) PS.send('settings', { rgb_info_speed: Number(speed.value) }); });
 
@@ -136,4 +163,5 @@
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', wire); else wire();
   PS.on('state', function () { render(); });
+  PS.on('features', function () { renderSb(); });
 })();

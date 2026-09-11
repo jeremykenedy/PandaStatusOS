@@ -214,6 +214,8 @@ int ps_ws_start(void)
     httpd_uri_t ota    = { .uri = "/ota", .method = HTTP_POST, .handler = ota_post };
     httpd_uri_t ws     = { .uri = "/ws",  .method = HTTP_GET,  .handler = ws_handler, .is_websocket = true };
     httpd_uri_t backup = { .uri = "/backup", .method = HTTP_GET, .handler = ps_backup_get };   /* the clone's own; the factory has none */
+    httpd_uri_t api_g  = { .uri = "/api/features", .method = HTTP_GET,  .handler = ps_api_features_get };   /* the clone's own (ps_api.c) */
+    httpd_uri_t api_p  = { .uri = "/api/features", .method = HTTP_POST, .handler = ps_api_features_post };
     httpd_uri_t any_g  = { .uri = "/*",   .method = HTTP_GET,  .handler = redirect_portal };
     httpd_uri_t any_p  = { .uri = "/*",   .method = HTTP_POST, .handler = redirect_portal };
     httpd_uri_t any_h  = { .uri = "/*",   .method = HTTP_HEAD, .handler = redirect_portal };
@@ -223,6 +225,8 @@ int ps_ws_start(void)
     httpd_register_uri_handler(s_hd, &ota);
     httpd_register_uri_handler(s_hd, &ws);
     httpd_register_uri_handler(s_hd, &backup);
+    httpd_register_uri_handler(s_hd, &api_g);
+    httpd_register_uri_handler(s_hd, &api_p);
     httpd_register_uri_handler(s_hd, &any_g);
     httpd_register_uri_handler(s_hd, &any_p);
     httpd_register_uri_handler(s_hd, &any_h);

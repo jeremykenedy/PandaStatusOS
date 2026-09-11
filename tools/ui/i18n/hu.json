@@ -246,5 +246,17 @@
   "ps_system_theme_auto": "Rendszer szerint",
   "ps_system_theme_dark": "Sötét",
   "ps_system_theme_light": "Világos",
-  "ps_system_title": "Rendszer"
+  "ps_system_title": "Rendszer",
+  "ps_system_features": "Funkciók",
+  "ps_system_features_help": "Itt minden alapból ki van kapcsolva, és az eszköz a gyárival azonosan viselkedik, amíg egy kapcsoló be nincs kapcsolva. Minden kapcsoló az eszközön tárolódik.",
+  "ps_feature_state_brightness": "Fényerő állapotonként",
+  "ps_feature_state_brightness_help": "Egy fényerő a tétlen, egy a nyomtatás és egy a hiba állapothoz, egy közös helyett.",
+  "ps_feature_state_brightness_aria": "Fényerő állapotonként",
+  "ps_lighting_sb_help": "Az aktuális módhoz. Amíg ez be van kapcsolva, a fenti fényerőcsúszka nincs használatban.",
+  "ps_lighting_sb_idle_aria": "Fényerő tétlen állapotban",
+  "ps_lighting_sb_printing_aria": "Fényerő nyomtatás közben",
+  "ps_lighting_sb_error_aria": "Fényerő hibánál",
+  "ps_lighting_sb_idle": "Tétlen",
+  "ps_lighting_sb_printing": "Nyomtatás",
+  "ps_lighting_sb_error": "Hiba"
 }

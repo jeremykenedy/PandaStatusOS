@@ -757,6 +757,30 @@ The same evening the sweep failed on that PNG in the moment before a commit, and
 commit went ahead because the sequence did not gate on it; that is recorded here so the
 lesson is not lost: gate on the sweep's exit code, not on reading its last line.
 
+## D-033 Features reach the page through the clone's own JSON route, never through the socket document
+
+**Date** 2026-09-10 · **Reversal** moderate (the route is one file; the page's discovery is one function)
+
+**Decided.** Feature switches and their settings live at `GET`/`POST /api/features`, a JSON
+document taken whole or refused whole. The page probes it once on load; the factory's 302
+means "the factory", a 200 means "the clone", and only then does anything beyond the
+factory page appear. The WebSocket document stays byte-exact.
+
+**Alternatives.** A seventh root in the connect push (breaks gate 2: the state document
+must equal what the device emits); a clone-only root sent only while a feature is on (the
+page could never offer the first switch); a feature field inside `settings` (a wire
+difference on every connect).
+
+**Why.** Gate 2 and Rule 5 both want the wire to be the factory's by default, and the page
+still needs a way to learn that a switch exists. A route the factory answers with a
+redirect gives the page that knowledge at the cost of one request the factory ignores,
+and it is the seed of the JSON API the queue asks for (C2). The mock carries the same
+route behind `PS_CLONE=1`, so every feature is proven against both devices: against the
+factory the harness asserts that nothing appears and nothing is sent.
+
+**What would change it.** The bench showing the factory answers `/api/*` with something
+other than the redirect; then the path moves.
+
 ---
 
 *Entries continue below as the run proceeds.*

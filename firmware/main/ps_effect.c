@@ -36,7 +36,8 @@ static size_t render(void)
     uint8_t st = g_ps.bar_state > PS_BAR_ERROR ? PS_BAR_IDLE : g_ps.bar_state;
     const ps_mode_cfg_t *m = &g_ps.cfg.mode[mode];
     ps_rgba_t colour = m->colour[st];
-    uint8_t brightness = m->brightness;
+    /* A1, PS_FEAT_STATE_BRIGHTNESS: one brightness per bar state; off, the factory's one per mode */
+    uint8_t brightness = (g_ps.cfg.features & PS_FEAT_STATE_BRIGHTNESS) ? g_ps.cfg.state_brightness[mode][st] : m->brightness;
     ps_unlock();
 
     /* mode == PS_MODE_MUSIC: placeholder, see the header comment; the sound path is unknown */

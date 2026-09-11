@@ -42,6 +42,28 @@
       </div>
     </div>
 
+    <!-- A1, behind the state_brightness feature: shown only while it is on. The three
+         sliders are the current mode's; the device's own brightness slider above stays as
+         the factory's and keeps sending the factory frame. -->
+    <div class="ps-tile" id="ps-lighting-sb" hidden>
+      <div class="ps-tile-label" data-ps-str="ps_feature_state_brightness">Brightness per state</div>
+      <div class="ps-grid ps-grid-3">
+        <div>
+          <div class="ps-row"><span class="ps-tile-label" data-ps-str="ps_lighting_sb_idle">Idle</span><span class="max"></span><span class="ps-tile-label" id="ps-lighting-sb-value-0" data-ps-no-i18n>—</span></div>
+          <label class="slider" data-ps-no-i18n><input type="range" min="0" max="100" step="5" id="ps-lighting-sb-0" data-ps-sb="0" data-ps-str-aria="ps_lighting_sb_idle_aria" aria-label="Idle brightness"><span></span></label>
+        </div>
+        <div>
+          <div class="ps-row"><span class="ps-tile-label" data-ps-str="ps_lighting_sb_printing">Printing</span><span class="max"></span><span class="ps-tile-label" id="ps-lighting-sb-value-1" data-ps-no-i18n>—</span></div>
+          <label class="slider" data-ps-no-i18n><input type="range" min="0" max="100" step="5" id="ps-lighting-sb-1" data-ps-sb="1" data-ps-str-aria="ps_lighting_sb_printing_aria" aria-label="Printing brightness"><span></span></label>
+        </div>
+        <div>
+          <div class="ps-row"><span class="ps-tile-label" data-ps-str="ps_lighting_sb_error">Error</span><span class="max"></span><span class="ps-tile-label" id="ps-lighting-sb-value-2" data-ps-no-i18n>—</span></div>
+          <label class="slider" data-ps-no-i18n><input type="range" min="0" max="100" step="5" id="ps-lighting-sb-2" data-ps-sb="2" data-ps-str-aria="ps_lighting_sb_error_aria" aria-label="Error brightness"><span></span></label>
+        </div>
+      </div>
+      <div class="ps-tile-label" data-ps-str="ps_lighting_sb_help">For the current mode. While this is on, the brightness slider above is not used.</div>
+    </div>
+
     <div class="ps-tile" id="ps-lighting-colours">
       <div class="ps-tile-label" data-ps-str="ps_lighting_colours">State colours</div>
       <div class="ps-grid ps-grid-2" data-ps-no-i18n>

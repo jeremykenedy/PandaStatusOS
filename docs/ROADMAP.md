@@ -61,6 +61,9 @@ of valid values is unknown and sending a guess is a write to an unknown surface.
 
 ### Per-state brightness
 
+**BUILT (A1, D-033).** Feature bit 1, `state_brightness`, off by default; the switch on the
+System page, the three sliders on the Lighting page while it is on ([FEATURES.md](FEATURES.md)).
+
 **What it does.** A brightness per bar state instead of one global brightness. Dim idle,
 bright printing, full-brightness error.
 

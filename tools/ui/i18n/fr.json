@@ -246,5 +246,17 @@
   "ps_system_theme_auto": "Suivre le système",
   "ps_system_theme_dark": "Sombre",
   "ps_system_theme_light": "Clair",
-  "ps_system_title": "Système"
+  "ps_system_title": "Système",
+  "ps_system_features": "Fonctions",
+  "ps_system_features_help": "Tout ici est désactivé d'origine, et l'appareil se comporte comme celui d'usine tant qu'aucun interrupteur n'est activé. Chaque interrupteur est enregistré sur l'appareil.",
+  "ps_feature_state_brightness": "Luminosité par état",
+  "ps_feature_state_brightness_help": "Une luminosité pour le repos, une pour l'impression et une pour l'erreur, au lieu d'une seule pour les trois.",
+  "ps_feature_state_brightness_aria": "Luminosité par état",
+  "ps_lighting_sb_help": "Pour le mode actuel. Tant que ceci est activé, le curseur de luminosité ci-dessus n'est pas utilisé.",
+  "ps_lighting_sb_idle_aria": "Luminosité au repos",
+  "ps_lighting_sb_printing_aria": "Luminosité en impression",
+  "ps_lighting_sb_error_aria": "Luminosité en erreur",
+  "ps_lighting_sb_idle": "Repos",
+  "ps_lighting_sb_printing": "Impression",
+  "ps_lighting_sb_error": "Erreur"
 }

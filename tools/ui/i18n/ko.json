@@ -246,5 +246,17 @@
   "ps_system_theme_auto": "시스템 설정 따르기",
   "ps_system_theme_dark": "다크",
   "ps_system_theme_light": "라이트",
-  "ps_system_title": "시스템"
+  "ps_system_title": "시스템",
+  "ps_system_features": "기능",
+  "ps_system_features_help": "여기 있는 모든 항목은 기본적으로 꺼져 있으며, 스위치를 켜기 전까지 기기는 순정 기기와 똑같이 동작합니다. 각 스위치는 기기에 저장됩니다.",
+  "ps_feature_state_brightness": "상태별 밝기",
+  "ps_feature_state_brightness_help": "세 상태에 하나의 밝기 대신 대기, 인쇄, 오류에 각각 밝기를 둡니다.",
+  "ps_feature_state_brightness_aria": "상태별 밝기",
+  "ps_lighting_sb_help": "현재 모드에 적용됩니다. 이 기능이 켜져 있는 동안 위의 밝기 슬라이더는 사용되지 않습니다.",
+  "ps_lighting_sb_idle_aria": "대기 밝기",
+  "ps_lighting_sb_printing_aria": "인쇄 밝기",
+  "ps_lighting_sb_error_aria": "오류 밝기",
+  "ps_lighting_sb_idle": "대기",
+  "ps_lighting_sb_printing": "출력 중",
+  "ps_lighting_sb_error": "오류"
 }

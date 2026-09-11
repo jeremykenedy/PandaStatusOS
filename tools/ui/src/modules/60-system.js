@@ -52,6 +52,16 @@
     var sel = $('ps-system-language');
     if (document.activeElement !== sel && typeof set.language === 'string') sel.value = set.language;
   }
+  // the feature switches: shown when the clone's route answered, each one the device's own word
+  function renderFeatures(doc) {
+    var tile = $('ps-system-features');
+    if (!doc || !doc.features) { tile.hidden = true; return; }
+    tile.hidden = false;
+    Object.keys(doc.features).forEach(function (name) {
+      var cb = document.querySelector('[data-ps-feature="' + name + '"]');
+      if (cb && document.activeElement !== cb) cb.checked = !!doc.features[name];
+    });
+  }
   function renderTheme() {
     var pref = null; try { pref = localStorage.getItem('ps_theme'); } catch (e) {}
     $('ps-system-theme').value = (pref === 'dark' || pref === 'light') ? pref : 'auto';
@@ -64,6 +74,12 @@
     $('ps-topbar-theme').addEventListener('click', function () { setTimeout(renderTheme, 0); });   // the top-bar cycle changes the same preference
     $('ps-system-fw-file').addEventListener('change', function () { var f = this.files && this.files[0]; this.value = ''; if (f) sendFile('fw', 'ota_fw', f); });
     $('ps-system-img-file').addEventListener('change', function () { var f = this.files && this.files[0]; this.value = ''; if (f) sendFile('img', 'ota_img', f); });
+    document.querySelectorAll('[data-ps-feature]').forEach(function (cb) {
+      cb.addEventListener('change', function () {
+        var body = { features: {} }; body.features[cb.getAttribute('data-ps-feature')] = cb.checked;
+        PS.api(body, function (ok) { if (!ok) renderFeatures(PS.features); });   /* refused: the switch goes back */
+      });
+    });
     $('ps-system-factory').addEventListener('click', function () {
       PS.dialog(PS.tr('ps_system_factory_title'), PS.tr('ps_system_factory_dialog'),
         [{ key: 'ps_system_factory_confirm', handler: function () { PS.send('settings', { factory_reset: 1 }); } }, { key: 'ps_global_cancel' }]);
@@ -77,4 +93,5 @@
   });
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', wire); else wire();
   PS.on('state', function (ev) { render(ev.state); });
+  PS.on('features', renderFeatures);
 })();

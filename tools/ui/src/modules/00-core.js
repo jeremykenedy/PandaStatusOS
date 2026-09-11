@@ -236,6 +236,26 @@ var PS = (function () {
     p.className = 'ps-pill' + (cls ? ' ps-pill-' + cls : '');
   }
 
+  // ---------- features: the clone's own route, absent on the factory ----------
+  // GET /api/features answers 200 with JSON on the clone and 302 on the factory, so the page
+  // learns which device it is talking to without a single change to the socket document
+  // (docs/ARCHITECTURE.md, D-033). Until it answers, or when it never does, features is null
+  // and no page shows anything the factory page would not.
+  var features = null;
+  function loadFeatures() {
+    if (typeof fetch !== 'function') return;
+    fetch('/api/features', { redirect: 'manual', cache: 'no-store' })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (doc) { if (doc && doc.features) { features = doc; emit('features', features); } })
+      .catch(function () { /* the factory, or no route: nothing to do */ });
+  }
+  function api(body, cb) {
+    fetch('/api/features', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+      .then(function (r) { if (!r.ok) throw new Error(String(r.status)); return r.json(); })
+      .then(function (doc) { features = doc; logPush({ kind: 'out', root: 'api/features', members: body }); emit('features', features); if (cb) cb(true); })
+      .catch(function () { toast(tr('ps_core_save_failed')); if (cb) cb(false); });
+  }
+
   // ---------- boot ----------
   function boot() {
     dlg = document.getElementById('ps-dialog'); dlgTitle = document.getElementById('ps-dialog-title');
@@ -250,9 +270,11 @@ var PS = (function () {
     apply_translations();
     route();
     connect();
+    loadFeatures();
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
 
   return { state: state, on: on, send: send, upload: upload, UPLOAD_CAPS: UPLOAD_CAPS, log: logRing, clearLog: clearLog, tr: tr, setLang: setLang, fillLangs: fillLangs, apply_translations: apply_translations,
-           dialog: dialog, toast: toast, pill: pill, showCard: showCard, theme: theme, get lang() { return lang; }, get connected() { return !!(sock && sock.readyState === 1); } };
+           dialog: dialog, toast: toast, pill: pill, showCard: showCard, theme: theme, api: api, get features() { return features; },
+           get lang() { return lang; }, get connected() { return !!(sock && sock.readyState === 1); } };
 })();

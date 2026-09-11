@@ -12,7 +12,25 @@ exists so the rule has a home before any feature does. Its value is zero.
 
 | Bit | Flag | What it does | Default | Depends on |
 |---|---|---|---|---|
-| none yet | | | | |
+| 1 | `state_brightness` | one brightness per bar state (idle, printing, error) in each mode, instead of the factory's one per mode (A1) | off | nothing beyond the bar state the printer already drives |
+
+## How a feature reaches the page
+
+The socket document is the factory's and stays byte-exact (gate 2). Features live on the
+clone's own JSON route instead (D-033):
+
+```
+GET  /api/features   {"build":"…","features":{"state_brightness":false},
+                      "config":{"state_brightness":[[50,50,50],[50,50,50]]}}
+POST /api/features   {"features":{…}} and/or {"config":{…}}: taken whole or refused whole (400)
+```
+
+The factory answers 302 to that path like any unknown one, so the page knows which device
+it is talking to by the 200: against the factory it shows nothing the factory page would
+not, and sends nothing the factory page would not. Against the clone the System page shows
+a Features card with one switch per row of the table above, and each feature's own controls
+appear on their page while its switch is on. The switches and their settings are part of the
+config blob ([CONFIG.md](CONFIG.md)): they survive a restart and go with a factory reset.
 
 ## What a feature brings with it
 

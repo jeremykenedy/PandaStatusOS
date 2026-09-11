@@ -246,5 +246,17 @@
   "ps_system_theme_auto": "Zgodnie z systemem",
   "ps_system_theme_dark": "Ciemny",
   "ps_system_theme_light": "Jasny",
-  "ps_system_title": "System"
+  "ps_system_title": "System",
+  "ps_system_features": "Funkcje",
+  "ps_system_features_help": "Wszystko tutaj jest domyślnie wyłączone, a urządzenie zachowuje się jak fabryczne, dopóki nie włączysz przełącznika. Każdy przełącznik jest zapisywany w urządzeniu.",
+  "ps_feature_state_brightness": "Jasność dla każdego stanu",
+  "ps_feature_state_brightness_help": "Jedna jasność dla bezczynności, jedna dla drukowania i jedna dla błędu, zamiast jednej dla wszystkich trzech.",
+  "ps_feature_state_brightness_aria": "Jasność dla każdego stanu",
+  "ps_lighting_sb_help": "Dla bieżącego trybu. Gdy to jest włączone, suwak jasności powyżej nie jest używany.",
+  "ps_lighting_sb_idle_aria": "Jasność w bezczynności",
+  "ps_lighting_sb_printing_aria": "Jasność podczas drukowania",
+  "ps_lighting_sb_error_aria": "Jasność przy błędzie",
+  "ps_lighting_sb_idle": "Bezczynność",
+  "ps_lighting_sb_printing": "Drukowanie",
+  "ps_lighting_sb_error": "Błąd"
 }

@@ -246,5 +246,17 @@
   "ps_system_theme_auto": "לפי המערכת",
   "ps_system_theme_dark": "כהה",
   "ps_system_theme_light": "בהירה",
-  "ps_system_title": "מערכת"
+  "ps_system_title": "מערכת",
+  "ps_system_features": "תכונות",
+  "ps_system_features_help": "כל מה שכאן כבוי כברירת מחדל, והמכשיר מתנהג כמו המכשיר המקורי עד שמפעילים מתג. כל מתג נשמר במכשיר.",
+  "ps_feature_state_brightness": "בהירות לפי מצב",
+  "ps_feature_state_brightness_help": "בהירות אחת להמתנה, אחת להדפסה ואחת לשגיאה, במקום אחת לשלושתן.",
+  "ps_feature_state_brightness_aria": "בהירות לפי מצב",
+  "ps_lighting_sb_help": "למצב הנוכחי. כל עוד זה פעיל, מחוון הבהירות שלמעלה אינו בשימוש.",
+  "ps_lighting_sb_idle_aria": "בהירות בהמתנה",
+  "ps_lighting_sb_printing_aria": "בהירות בהדפסה",
+  "ps_lighting_sb_error_aria": "בהירות בשגיאה",
+  "ps_lighting_sb_idle": "מנוחה",
+  "ps_lighting_sb_printing": "הדפסה",
+  "ps_lighting_sb_error": "שגיאה"
 }
