@@ -50,8 +50,9 @@ if [ -n "$BLOB_HITS" ]; then
     printf '%s\n' "$BLOB_HITS" | sed 's/^/        /' >&2
 fi
 
-# Anything with nvs in the name, any extension.
-NVS_HITS="$(printf '%s\n' "$STAGED" | grep -Ei '(^|/)[^/]*nvs[^/]*$' || true)"
+# Anything with nvs in the name: a partition image, a dump, a generator CSV. C source
+# that merely talks to NVS (a stub header for the host tests) is not an artifact.
+NVS_HITS="$(printf '%s\n' "$STAGED" | grep -Ei '(^|/)[^/]*nvs[^/]*$' | grep -Eiv '\.(c|h|cc|cpp|hpp)$' || true)"
 if [ -n "$NVS_HITS" ]; then
     fail "NVS artifacts are staged. NVS holds live Wi-Fi credentials and never enters the repo."
     printf '%s\n' "$NVS_HITS" | sed 's/^/        /' >&2
@@ -172,7 +173,7 @@ scan_pattern() {
 # their element IDs reached a commit in the first place. Fix the name, not the check.
 
 scan_vendor() {
-    local label="$1" pattern="$2" file line view where
+    local label="$1" pattern="$2" skipre="${3:-}" file line view where
     for file in $STAGED; do
         [ -f "$REPO_ROOT/$file" ] || continue
         case "$file" in
@@ -183,7 +184,7 @@ scan_vendor() {
             while IFS= read -r line; do
                 fail "$label in $where"
                 printf '        %s\n' "$line" >&2
-            done < <(staged_view "$file" "$view" | grep -a -nE "$pattern" || true)
+            done < <(staged_view "$file" "$view" | grep -a -nE "$pattern" | { if [ -n "$skipre" ]; then grep -avE "$skipre"; else cat; fi; } || true)
         done
     done
 }
@@ -198,15 +199,18 @@ scan_vendor "vendor identifier"   '\b(ws_send_data|ws_send_json|ws_on_close|ws_o
 # grep -c, not -q: under pipefail a -q that stops at the first match hands od a broken
 # pipe and the whole test reads as "not binary".
 is_binary() { [ "$(git show ":$1" 2>/dev/null | head -c 8192 | od -An -c | grep -c '\\0')" -gt 0 ]; }
+# Our own translations (tools/ui/i18n/<lang>.json, and the generated string-table line of
+# the built page) carry CJK by design; CJK anywhere else is source text and a hit.
 scan_vendor_text_only() {
     local label="$1" pattern="$2" file
     local saved="$STAGED" keep=""
     for file in $STAGED; do
         [ -f "$REPO_ROOT/$file" ] || continue
         if is_binary "$file"; then continue; fi
+        case "$file" in tools/ui/i18n/*.json) continue ;; esac
         keep="$keep $file"
     done
-    STAGED="$keep"; scan_vendor "$label" "$pattern"; STAGED="$saved"
+    STAGED="$keep"; scan_vendor "$label" "$pattern" '^[0-9]+:var PS_STRINGS = '; STAGED="$saved"
 }
 scan_vendor_text_only "CJK source text" '[^[:print:][:space:]]*[一-龥ぁ-ヿ가-힣]'
 

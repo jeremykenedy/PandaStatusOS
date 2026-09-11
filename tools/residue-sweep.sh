@@ -141,6 +141,13 @@ def is_binary(path):
     except OSError:
         return False
 
+# Our own translations live in tools/ui/i18n/<lang>.json and, once built, on the one line
+# of the page that is the generated string table. CJK there is our work; the check for
+# THEIR strings is the "their i18n key/value pairs" category, which reads those files
+# whole. CJK anywhere else is still source text and still a hit.
+def is_translation(path, line):
+    return path.startswith("tools/ui/i18n/") or line.startswith("var PS_STRINGS = ")
+
 grand = 0
 for name, pat in CHECKS:
     rows = []
@@ -155,6 +162,8 @@ for name, pat in CHECKS:
             if not re.search(pat, line):
                 continue
             if any(a in line for a in ALLOW):
+                continue
+            if name == "CJK source text" and is_translation(f, line):
                 continue
             rows.append((f, i, line.strip()[:88]))
     grand += len(rows)

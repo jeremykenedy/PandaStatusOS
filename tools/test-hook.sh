@@ -114,6 +114,20 @@ bincheck() {                     # name, source file, target, want
   if [ "$got" = "$4" ]; then printf '  OK    %-48s %s\n' "$1" "$got"; pass=$((pass+1))
   else printf '  FAIL  %-48s got=%s want=%s\n' "$1" "$got" "$4"; fail=$((fail+1)); fi
 }
+# A case at a chosen path: the rules that read the file name need the real name.
+pathcheck() {                    # name, path, content, want
+  mkdir -p "$(dirname "$2")"; printf '%s\n' "$3" > "$2"; git add -f "$2" 2>/dev/null
+  if ./.githooks/pre-commit >/dev/null 2>&1; then got=PASS; else got=BLOCK; fi
+  git reset -q >/dev/null 2>&1; rm -f "$2"
+  if [ "$got" = "$4" ]; then printf '  OK    %-48s %s\n' "$1" "$got"; pass=$((pass+1))
+  else printf '  FAIL  %-48s got=%s want=%s\n' "$1" "$got" "$4"; fail=$((fail+1)); fi
+}
+pathcheck "nvs stub header passes"     firmware/test/host/stub/_t_nvs.h  '#pragma once'                    PASS
+pathcheck "nvs generator csv blocks"   docs/_t_nvs.csv                   'key,type,encoding,value'          BLOCK
+pathcheck "nvs dump text blocks"       docs/_t_nvs_dump.txt              'page 0'                           BLOCK
+pathcheck "CJK in a translation table passes" tools/ui/i18n/_t_zz.json  '{"ps_x_y": "状态灯"}'              PASS
+pathcheck "CJK in the built string table passes" docs/_t_strings.js     'var PS_STRINGS = {"zh":{"k":"状态"}};' PASS
+pathcheck "CJK in another json still blocks" docs/_t_other.json         '{"note": "状态灯"}'                BLOCK
 [ -f art/apple-touch-icon-180.png ] && bincheck "generated PNG passes" art/apple-touch-icon-180.png docs/_t.png PASS
 [ -f docs/screenshots/dashboard-dark.png ] && bincheck "screenshot PNG passes" docs/screenshots/dashboard-dark.png docs/_t2.png PASS
 check "CJK in a text file still blocks" 'status text 状态灯 here'                    BLOCK
