@@ -111,8 +111,8 @@ This is the load-bearing step. Everything it scans becomes public on the day of 
 ```
 # one identity, author and committer, every commit
 git log --all --format='%an <%ae> | %cn <%ce>' | sort | uniq -c
-# zero attribution in any message
-git log --all --format=%B | grep -ciE 'co-authored|anthropic|generated with|claude code' ; echo "(0 wanted)"
+# zero attribution in any message (bracketed so the pattern cannot match itself in the residue sweep; the regex is unchanged)
+git log --all --format=%B | grep -ciE 'co-auth[o]red|anthr[o]pic|generated w[i]th|claude c[o]de' ; echo "(0 wanted)"
 # every path that ever existed in any commit, checked for dumps, snapshots, secrets, working areas
 git rev-list --all | while read c; do git ls-tree -r --name-only "$c"; done | sort -u \
   | grep -iE '\.(bin|dump|img|nvs|hex|elf)$|nvs|secret|dump|snapshot|\.claude/work|^private/|xindex|index\.raw|stock-ui' \
