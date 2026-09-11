@@ -48,3 +48,5 @@ Everything so far. No release has been made and no device has been flashed.
 
 - The restore document written before the first install; the pre-flash gate; the
   decisions log (D-001 onward); the roadmap; this set.
+- The publishing checklist, which gates the flip from private to public. Its history
+  checks are the load-bearing part: every commit ever pushed becomes visible that day.

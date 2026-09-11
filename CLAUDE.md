@@ -21,8 +21,21 @@ Nothing is flashed unless Jeremy says so in that message, with the cable connect
 A first install over stock cannot self-revert. The full flash dump is the only revert
 path. No "I'll just flash to test." No flashing implied by an earlier yes.
 
-### Rule 1. Nothing is pushed without Jeremy saying push.
-No `git push`. No remote add. No PR. No release.
+### Rule 1. Pushing is authorized to the one remote; force, rewrite and visibility are not.
+**Amended 2026-09-10 by Jeremy.** The remote `origin` (`git@github.com:jeremykenedy/PandaStatusOS.git`)
+exists, is Jeremy's, and pushing `main` to it is authorized from here on. What stays
+forbidden, without exception:
+
+- No force push. No rewriting of pushed history, by rebase, amend, filter or any other
+  means. What has been pushed stays as pushed.
+- No change to the repository's visibility. It is private; making it public is Jeremy's
+  decision alone, made by hand on GitHub, and it is one way only. `docs/PUBLISHING.md`
+  is the checklist that gates that flip, and its history checks are the load-bearing
+  part: the day the repository goes public, every commit ever pushed becomes visible.
+- No PR, no release, no second remote, without Jeremy saying so.
+
+The original rule, for the record: nothing was pushed and no remote existed until Jeremy
+added the remote and made the first push himself on 2026-09-10.
 
 ### Rule 2. Secret hygiene. The repo is public.
 - Scan for secrets before every commit. The pre-commit hook enforces this, including

@@ -1,30 +1,54 @@
 # Publishing PandaStatusOS
 
-A checklist, not a recovery plan. This repository has been clean from its first commit:
-the history was reset before commit one, every commit since was made through the
-pre-commit hook, and nothing here has ever needed rewriting. The checklist proves that
-again on the day, then the remote is added and the push is made. Two commands, written
-out at the end, and nothing runs them but the maintainer.
+The repository is on GitHub, private, at `git@github.com:jeremykenedy/PandaStatusOS.git`,
+and pushing to it is routine (`CLAUDE.md`, Rule 1 as amended 2026-09-10). The one step
+that cannot be taken back is the flip from private to public. This checklist gates that
+flip. It is run in full on the day, by the maintainer, and read before the setting is
+changed. Nothing in this repository changes the setting: it is done by hand on GitHub,
+once, one way.
+
+## What the flip exposes
+
+The day the repository goes public, every commit ever pushed becomes visible, not just
+the current tree: every version of every file, every commit message, every author line,
+every path that ever existed and was later deleted. Pushed history is never rewritten
+(Rule 1), so nothing pushed while private can be taken back before the flip, and nothing
+can be hidden after it.
+
+That moves the weight of this checklist. The working-tree checks (steps 2 to 4) prove the
+tree as it stands today. The history checks (step 5) prove everything behind it, and they
+are the load-bearing part: a secret that was committed, pushed and later deleted passes
+every working-tree check and is published the moment the flip is made. The tree is
+checked because it is what a visitor reads first; the history is checked because it is
+what a visitor can read at all.
+
+While the repository is private a push is contained but not erasable: what is pushed
+today is published on the day of the flip. The pre-commit hook is the gate on every
+commit; this checklist is the gate on the flip.
 
 ## Where the repository stands
 
-- No `git push` has ever been made by this project's tooling, and nothing in it can.
-  Whether the checkout already has a remote is checked in step 7, not assumed: on
-  2026-09-10 the maintainer's own checkout had `origin` set to the repository below
-  and one push recorded, made by hand.
-- The GitHub repository `jeremykenedy/PandaStatusOS` exists and is **private** as of
-  2026-09-10 (`gh repo view`, unauthenticated API 404).
+- The remote `origin` is the repository above. The maintainer created it and made the
+  first push by hand on 2026-09-10 (`be73ce8`). Every push since is verified by step 8.
+- The repository is **private** (`gh repo view`; a signed-out request for the repository
+  page answers 404). It stays private until this checklist has been run and read on the
+  day the maintainer decides.
 - Every commit is authored and committed by Jeremy Kenedy, one identity.
+- The history was reset before commit one (`docs/DECISIONS.md`, D-001 to D-007), and every
+  commit since was made through the pre-commit hook. Step 5 proves that again on the day
+  rather than trusting it.
 
 ## 1. Back up, twice
 
 ```
 cd ~/sites && TS=$(date +%Y%m%d-%H%M%S) \
-  && tar czf ~/backups/PandaStatus-publish-$TS.tgz --exclude='private/uiwork/node_modules' PandaStatus \
+  && tar cf - --exclude='private/uiwork/node_modules' PandaStatus | gzip -9 -n > ~/backups/PandaStatus-publish-$TS.tgz \
   && shasum -a 256 ~/backups/PandaStatus-publish-$TS.tgz
 ```
 
-Record the sha256. Then the same command to a second file; the two must match.
+Record the sha256. Then the same command to a second file; the two must match. `gzip -n`
+leaves the timestamp out of the archive header. `tar czf` writes one, so two archives of
+the same tree taken a second apart would never match, and the step could never pass.
 
 ## 2. The residue sweep, every category, zero
 
@@ -32,12 +56,12 @@ Record the sha256. Then the same command to a second file; the two must match.
 make residue
 ```
 
-Every category reads ZERO and the last line reads CLEAN. Anything else stops the
-publish: fix the finding, never the check.
+Every category reads ZERO and the last line reads CLEAN. Anything else stops the flip:
+fix the finding, never the check.
 
 ## 3. The secret scan: every tracked file, inside the gzip, inside the binary
 
-The hook scans what is staged. The publish scans everything:
+The hook scans what is staged. The flip scans everything:
 
 ```
 # every tracked file, the hook's patterns, plus the gzip the device serves
@@ -45,16 +69,25 @@ git ls-files | grep -v -x -e .githooks/pre-commit -e tools/test-hook.sh -e tools
   | xargs grep -nE '([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}|Bearer[[:space:]]+[A-Za-z0-9._~+/-]{16,}|BEGIN [A-Z ]*PRIVATE KEY|AKIA[0-9A-Z]{16}|gh[pousr]_[A-Za-z0-9]{16,}|\b0[0-9A-Z]{2}[A-Z]{2}[0-9A-Z]{10,}\b' \
   ; echo "exit $? (1 means no match, which is the answer wanted)"
 gzip -9 -n -c firmware/main/ui.html | gzip -cd | grep -cE 'password|access_code' | xargs echo "credential words in the page (field names only, expected):"
-# the built binary: its strings
-cd firmware && idf.py build >/dev/null && strings -n 8 build/pandastatusos.bin \
-  | grep -nE '([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}|Bearer |PRIVATE KEY|AKIA[0-9A-Z]{16}|gh[pousr]_' ; echo "exit $?"; cd ..
+gzip -9 -n -c firmware/main/ui.html | gzip -cd | grep -oE '[A-Za-z_.-]*(password|access_code)[A-Za-z_.-]*' | sort | uniq -c
+# the built binary: its strings (idf.py comes from the IDF shell; a failed build fails the step)
+( . ~/esp/esp-idf/export.sh >/dev/null && cd firmware && idf.py build >/dev/null ) || echo "BUILD FAILED: this step fails"
+test -f firmware/build/pandastatusos.bin || echo "MISSING BINARY: this step fails"
+strings -n 8 firmware/build/pandastatusos.bin \
+  | grep -nE '([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}|Bearer |PRIVATE KEY|AKIA[0-9A-Z]{16}|gh[pousr]_' ; echo "exit $? (1 wanted)"
 ```
 
-Then the literal scan against the real values:
+The second gzip line lists every word matched by the first: each must be a field name
+or a string-table key, never a value.
+
+Then the literal scan against the real values. The file is read the way the hook reads
+it: blank lines and `#` comments ignored, values shorter than four characters ignored.
+A missing file fails the step; it does not skip it.
 
 ```
-test -s .claude/work/secrets/forbidden-strings.txt && \
-  git grep -n -F -f .claude/work/secrets/forbidden-strings.txt -- . ':!.claude' ; echo "exit $? (1 wanted)"
+F=.claude/work/secrets/forbidden-strings.txt; test -s "$F" || echo "MISSING: $F. The literal scan cannot run and this step fails."
+grep -vE '^(#|[[:space:]]*$)' "$F" | awk 'length($0) >= 4' > /tmp/ps-forbidden.$$ \
+  && git grep -n -F -f /tmp/ps-forbidden.$$ -- . ':!.claude' ; echo "exit $? (1 wanted)"; rm -f /tmp/ps-forbidden.$$
 ```
 
 ## 4. The licence audit
@@ -72,6 +105,8 @@ are generated from primitives (D-010, D-011); the icons are Heroicons 2.2.0 hash
 by one; nothing else is artwork.
 
 ## 5. The history: who, and what, ever
+
+This is the load-bearing step. Everything it scans becomes public on the day of the flip.
 
 ```
 # one identity, author and committer, every commit
@@ -94,41 +129,38 @@ git rev-list --all | while read c; do git ls-tree -r --name-only "$c" \
 ```
 
 The expected answers: one identity line; 0; exit 1; exit 1; 0. Anything else stops the
-publish. The repository was reset before commit one precisely so this section is a
-formality (`docs/DECISIONS.md`, D-001 to D-007).
+flip, and because pushed history is never rewritten, a finding here is not fixed by a
+commit that deletes it: the repository stays private, and what to do next is the
+maintainer's decision. The repository was reset before commit one precisely so that this
+section is a formality (D-001 to D-007).
 
-## 6. Public or private: a decision, not a default
+## 6. The flip: a decision, not a default
 
-The repository is private today. Making it public is the maintainer's decision, made
-on the day, after steps 2 to 5 have been run that day and read. It is not implied by
-the push and not made by any command below. When it is made, it is made on GitHub by
-hand, and the first thing checked afterwards is the repository's own file list.
+The repository is private today. Making it public is the maintainer's decision, made on
+the day, after steps 1 to 5 have been run that day and read. It is not implied by any
+push and not made by any command in this repository. When it is made, it is made on
+GitHub by hand, once; it is one way; and the first thing checked afterwards is step 8's
+signed-out view.
 
-## 7. The remote and the push, ready to run
+## 7. Pushing, which is routine
 
-Check first whether the checkout already has a remote:
-
-```
-git remote -v
-git status -sb | head -1
-```
-
-If it does not, add it. The URL is the SSH form, as PandaVentOS uses:
+The remote exists and pushing `main` to it is authorized. What is never done: a force
+push, a rewrite of pushed history by any means, a second remote, a change to the
+visibility.
 
 ```
-git remote add origin git@github.com:jeremykenedy/PandaStatusOS.git
+git remote -v                      # origin, the SSH URL above, and nothing else
+git status -sb | head -1           # main...origin/main, ahead by what is about to go
+git push origin main
 ```
 
-Then, on the day the maintainer says push, and not before:
+Nothing in this repository runs the push. `make` has no target for it, the harnesses
+never touch git, and the hook does not know the remote exists. A push is not gated by
+this checklist; the flip is. The hook gates the push, one commit at a time.
 
-```
-git push -u origin main
-```
+## 8. Verify: after a push, and after the flip
 
-Nothing in this repository runs either command. `make` has no target for them, the
-harnesses never touch git, and the hook does not know the remote exists.
-
-## 8. Verify after the push
+After every push:
 
 ```
 git fetch origin && git status -sb | head -1        # main...origin/main, nothing ahead or behind
@@ -136,6 +168,9 @@ git ls-remote --heads origin                        # exactly one branch, main
 gh repo view jeremykenedy/PandaStatusOS --json visibility,pushedAt
 ```
 
-Then open the repository in a browser as a signed-out user (a private window) and
-confirm it is what step 6 decided. Read the README as a stranger would: the restore
-path comes first, the disclaimer draws the line, no screenshot shows a real value.
+After the flip, and only then: open the repository in a browser as a signed-out user (a
+private window), or `curl -s -o /dev/null -w '%{http_code}\n' https://github.com/jeremykenedy/PandaStatusOS`,
+which answers 404 while private and 200 once public. Read the README as a stranger would:
+the restore path comes first, the disclaimer draws the line, no screenshot shows a real
+value. Then open the commit list and read it as a stranger too, because that is what the
+flip published.
