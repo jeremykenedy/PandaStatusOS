@@ -13,6 +13,16 @@ Everything so far. No release has been made and no device has been flashed.
 - The hotspot's default name is a placeholder pending the bench session; the factory's
   own name is a parity fact, not a branding choice.
 
+### The artwork
+
+- Jeremy's drawn icon set lands as project source (`tools/ui/src/icons/`), normalised on
+  import so it themes with `currentColor` and carries no export furniture; three stage
+  icons drawn by a committed generator; every print stage, the Printer destination and
+  the printer itself now show their icons. Heroicons stay for generic chrome (D-031).
+- The family mark: Jeremy's panda face over the light bar, generated with the favicons
+  and the touch icon (D-030); the README banner generated from the page's own tokens.
+- The residue sweep gains a hygiene check for unprocessed SVG exports.
+
 ### The page
 
 - Eight pages speaking the factory wire protocol frame for frame: dashboard, lighting,

@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96">
+  <path d="M63,68h11c1.6,0,3,1.4,3,3s-1.4,3-3,3H49" fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round"/>
+  <polyline points="48,80 62,80 53,91 47.3,91 44,85 " fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M71,68V37.5c0-1.9-1.6-3.5-3.5-3.5H41" fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round"/>
+  <polygon points="57,24 61.3,24 66,34 52.3,34 " fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M59,21c0,0,0-1.4,0-3s1.8-3,4-3h7c2.2,0,4-1.8,4-4V3" fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round"/>
+  <path d="M41.8,59.6c-2.1-2-3.8-5.9-3.8-8.8V10.2C38,7.3,35.7,5,32.8,5h-2.6C27.3,5,25,7.3,25,10.2v40.6   c0,2.9-1.6,6.9-3.5,9c0,0-3.5,3.8-3.5,9.2c0,7.7,6.3,14,14,14s14-6.3,14-14C46,63.6,41.8,59.6,41.8,59.6z" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="32" cy="69" r="8" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-miterlimit="10"/>
+  <line x1="38" y1="45" x2="32" y2="45" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <line x1="38" y1="37" x2="32" y2="37" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <line x1="38" y1="29" x2="32" y2="29" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <line x1="38" y1="21" x2="32" y2="21" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <line x1="71" y1="68" x2="60" y2="68" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <polygon points="34,56 30,56 29,62 35,62 " fill="currentColor"/>
+</svg>

@@ -106,9 +106,23 @@ firmware/main/ui.html.gz          derived, gitignored, embedded
 ```
 
 The build fills named slots in the frame, splices each vendored file only if its sha256
-matches its README, minces the Heroicons into one sprite, derives the English table from
-the markup, validates every other table against it, and refuses a page that fails any of
-its checks ([BUILDING.md](BUILDING.md)).
+matches its README, minces the icons into one sprite, derives the English table from the
+markup, validates every other table against it, and refuses a page that fails any of its
+checks ([BUILDING.md](BUILDING.md)).
+
+**The sprite is a build artifact of two sets under two licences.** Heroicons (Tailwind
+Labs, MIT, `firmware/main/vendor/heroicons/`) and the project's own symbols (Jeremy Kenedy,
+this repository's MIT licence, `tools/ui/src/icons/`, `tools/ui/src/ARTWORK.md`) are
+spliced into one inline `<svg>` so the page makes one request for all of them, which is
+the only reason they share a block. The sprite's hash therefore fingerprints a mixture and
+is not evidence about either set; each set's own record carries its own hashes. Heroicons
+for generic chrome, the project's own for print stages, the printer and the bar.
+
+**The marks and the banner are generated**, never embedded from a design tool:
+`tools/art/gen_marks.py` draws the family mark (Jeremy's panda face over this product's
+light bar) as SVG and rasterises the favicons and the touch icon from the same numbers;
+`tools/art/gen_banner.py` draws the README banner from the page's own tokens. Both have a
+`--check` that fails when the committed files are not what the generator produces.
 
 ### The core module
 

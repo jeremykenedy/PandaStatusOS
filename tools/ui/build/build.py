@@ -128,8 +128,11 @@ def mark_svg(name, cls):
 
 
 def sprite_block():
-    """One inline sprite. Heroicons from vendor/heroicons/outline/ (pristine upstream files),
-    our own icons from tools/ui/src/icons/ (ps- prefixed). Returns (html, sha256)."""
+    """One inline sprite, a build artifact of two sets: Heroicons from vendor/heroicons/outline/
+    (pristine upstream files, gated by their README's sha256) and the project's own icons from
+    tools/ui/src/icons/ (Jeremy Kenedy's, MIT, tools/ui/src/ARTWORK.md). Both get the ps-icon-
+    prefix. The sprite's hash fingerprints the mixture and is evidence about neither set
+    (docs/ARCHITECTURE.md). Returns (html, sha256, count)."""
     symbols = []
     hero = os.path.join(VENDOR, "heroicons", "outline")
     ours = os.path.join(SRC, "icons")
@@ -152,8 +155,15 @@ def sprite_block():
             if not inner or not vb:
                 die(f"icon {rel(os.path.join(d, f))} has no viewBox or body")
             name = prefix + f[:-4]
-            symbols.append(f'<symbol id="{name}" viewBox="{vb.group(1)}" fill="none" stroke="currentColor" '
-                           f'stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">{inner.group(1).strip()}</symbol>')
+            if d == hero:
+                # Heroicons files carry only path data; the set's presentation is the outline set's
+                symbols.append(f'<symbol id="{name}" viewBox="{vb.group(1)}" fill="none" stroke="currentColor" '
+                               f'stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">{inner.group(1).strip()}</symbol>')
+            else:
+                # the project's own icons: every element carries its own attributes (tools/ui/normalize_icons.py),
+                # so the symbol imposes nothing, and a butt cap stays a butt cap
+                body = re.sub(r"\s*\n\s*", "", inner.group(1).strip())
+                symbols.append(f'<symbol id="{name}" viewBox="{vb.group(1)}">{body}</symbol>')
     html = '<svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true">' + "".join(symbols) + "</svg>"
     return html, sha256(html), len(symbols)
 

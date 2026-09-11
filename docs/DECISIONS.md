@@ -179,7 +179,8 @@ artwork whose origin is checkable by a stranger.
 
 ## D-011 The mark is a light bar, not a panda
 
-**Date** 2026-09-10 · **Reversal** cheap
+**Date** 2026-09-10 · **Reversal** cheap · **Superseded by D-030** the same evening, once
+provenance of the panda was settled by its author.
 
 **Decided.** The mark depicts what the product is: a short horizontal bar of round LEDs
 with a progress fill. No panda, no bear, no face.
@@ -695,6 +696,48 @@ device has no authentication anywhere and one secret on one route would be theat
 
 **What would change it.** Jeremy deciding the hotspot exposure is acceptable (delete
 `via_hotspot()`), or the device growing authentication (then `/backup` uses it).
+
+## D-030 The mark is the family mark: Jeremy's panda face over this product's light bar
+
+**Date** 2026-09-10 · **Reversal** cheap (one function in `tools/art/gen_marks.py`) · **Supersedes** D-011
+
+**Decided.** The mark, the favicons and the touch icon are generated from Jeremy Kenedy's
+panda primitives (the same ones his PandaVentOS banner draws) with the light bar under the
+face. The vent carries the face alone; the Status carries the face over its bar. The
+favicon was designed at 16 px first.
+
+**Alternatives.** The bar alone (D-011); the vent's panda unchanged; the bar as a headband
+across the forehead. All four were rendered at 16, 64 and 180 on both grounds
+(`gen_marks.py --options`) and looked at.
+
+**Why.** D-011 avoided the panda because its author could not be established; that is
+settled: the panda is Jeremy's and crosses freely (Rule 6 as clarified). What remains is
+the design question he raised: two products with one favicon are indistinguishable as two
+tabs, two repositories, two pages. A shared silhouette says one project line; a
+per-product element tells them apart. The bar is the Status's identity and reads at 16 px
+as a coloured strip under the face; the headband merged with the ears at 16 px.
+
+**What would change it.** Jeremy preferring another option; each is one line to switch.
+
+## D-031 The drawn icon set is project source, normalised on import; stages get icons
+
+**Date** 2026-09-10 · **Reversal** cheap
+
+**Decided.** Jeremy's nine drawn icons (from PandaVent's working files) are project source
+under `tools/ui/src/icons/`, first-party under this repository's MIT licence, never under
+`vendor/`. `tools/ui/normalize_icons.py` rewrites each Illustrator export on import: the
+twenty-class stylesheet becomes the three or four attributes each element actually uses,
+`#010000` becomes `currentColor`, the export furniture goes, the geometry and every stroke
+width stay exactly as drawn. Stroke weights were not changed: rendered beside Heroicons
+at 24 px the two sets read as one, so nothing moved. Three stage icons neither set had
+(`bed-level`, `mesh`, `flow`) are drawn by `tools/ui/gen_icons.py` on the same grid at the
+same weight, provenance by regeneration. Each of the fifteen stage slots shows its stage's
+icon until a file is chosen; the Printer destination shows the printer.
+
+**The real count.** PandaVent's sprite carries 51 symbols: 36 are Heroicons 2.2.0 outline
+paths (several under other names), 8 are Jeremy's 96-grid drawings (`spool` is a file but
+was never in the sprite), and 6 grid-24 symbols match no Heroicons 2.0.18, 2.1.1, 2.1.5 or
+2.2.0 file. Which of those six are his is recorded in `tools/ui/src/ARTWORK.md`.
 
 ---
 

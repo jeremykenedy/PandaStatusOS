@@ -2,8 +2,8 @@
 
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="art/mark-dark.svg">
-    <img src="art/mark-light.svg" alt="" width="160">
+    <source media="(prefers-color-scheme: dark)" srcset="art/banner-dark.svg">
+    <img src="art/banner-light.svg" alt="PandaStatusOS" width="880">
   </picture>
 </p>
 

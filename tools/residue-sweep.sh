@@ -183,6 +183,28 @@ print(f"{'V1/V2 effect list as a set':30s} {len(rows):5d}  {'' if rows else 'ZER
 for f, i, line in rows:
     print(f"{'':36s}{f}:{i}: {line}")
 
+# SVG export furniture. A HYGIENE check, not a provenance one: the project's own icons are
+# Illustrator exports normalised by tools/ui/normalize_icons.py, which strips the export's
+# id="Layer_1", enable-background and the .stN class block. Their appearance in a tracked
+# SVG means unprocessed artwork was committed, and nothing else; it is not evidence about
+# who drew it or where it came from, and nobody should later read it as such.
+SVG_FURNITURE = r'id="Layer_1"|enable-background|\.st\d+\s*\{'
+rows = []
+for f in scanned:
+    if not f.endswith('.svg'):
+        continue
+    try:
+        t = open(f, encoding='utf-8', errors='replace').read()
+    except OSError:
+        continue
+    for i, line in enumerate(t.split('\n'), 1):
+        if re.search(SVG_FURNITURE, line):
+            rows.append((f, i, line.strip()[:88]))
+grand += len(rows)
+print(f"{'SVG export furniture (hygiene)':30s} {len(rows):5d}  {'' if rows else 'ZERO'}")
+for f, i, line in rows:
+    print(f"{'':36s}{f}:{i}: {line}")
+
 print("-" * 78)
 print(f"{'TOTAL':30s} {grand:5d}")
 print("\nCLEAN" if grand == 0 else "\nRESIDUE PRESENT")

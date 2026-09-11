@@ -11,11 +11,12 @@
     </div>
 
     <!-- The fifteen stage slots, in the device's own order. The name in monospace is the
-         device's identifier for the slot and is sent as the OTA-Type header. -->
+         device's identifier for the slot and is sent as the OTA-Type header. Each slot shows
+         the icon of its stage until a file is chosen (tools/ui/src/ARTWORK.md has the mapping). -->
     <div class="ps-grid ps-grid-2" id="ps-images-slots">
       <div class="ps-tile ps-images-slot" data-ps-slot="standby" id="ps-images-slot-standby">
         <div class="ps-row">
-          <div class="ps-images-preview" id="ps-images-preview-standby"><svg class="ps-icon"><use href="#ps-icon-photo"/></svg><img alt="" hidden></div>
+          <div class="ps-images-preview" id="ps-images-preview-standby"><svg class="ps-icon"><use href="#ps-icon-pause-circle"/></svg><img alt="" hidden></div>
           <div class="ps-images-meta max">
             <div class="ps-row">
               <span class="ps-dot" id="ps-images-dot-standby" hidden></span>
@@ -33,7 +34,7 @@
       </div>
       <div class="ps-tile ps-images-slot" data-ps-slot="nozzle_heating" id="ps-images-slot-nozzle-heating">
         <div class="ps-row">
-          <div class="ps-images-preview" id="ps-images-preview-nozzle-heating"><svg class="ps-icon"><use href="#ps-icon-photo"/></svg><img alt="" hidden></div>
+          <div class="ps-images-preview" id="ps-images-preview-nozzle-heating"><svg class="ps-icon"><use href="#ps-icon-nozzle-temp"/></svg><img alt="" hidden></div>
           <div class="ps-images-meta max">
             <div class="ps-row">
               <span class="ps-dot" id="ps-images-dot-nozzle-heating" hidden></span>
@@ -51,7 +52,7 @@
       </div>
       <div class="ps-tile ps-images-slot" data-ps-slot="bed_heating" id="ps-images-slot-bed-heating">
         <div class="ps-row">
-          <div class="ps-images-preview" id="ps-images-preview-bed-heating"><svg class="ps-icon"><use href="#ps-icon-photo"/></svg><img alt="" hidden></div>
+          <div class="ps-images-preview" id="ps-images-preview-bed-heating"><svg class="ps-icon"><use href="#ps-icon-bed-hot"/></svg><img alt="" hidden></div>
           <div class="ps-images-meta max">
             <div class="ps-row">
               <span class="ps-dot" id="ps-images-dot-bed-heating" hidden></span>
@@ -69,7 +70,7 @@
       </div>
       <div class="ps-tile ps-images-slot" data-ps-slot="bed_leveling" id="ps-images-slot-bed-leveling">
         <div class="ps-row">
-          <div class="ps-images-preview" id="ps-images-preview-bed-leveling"><svg class="ps-icon"><use href="#ps-icon-photo"/></svg><img alt="" hidden></div>
+          <div class="ps-images-preview" id="ps-images-preview-bed-leveling"><svg class="ps-icon"><use href="#ps-icon-bed-level"/></svg><img alt="" hidden></div>
           <div class="ps-images-meta max">
             <div class="ps-row">
               <span class="ps-dot" id="ps-images-dot-bed-leveling" hidden></span>
@@ -87,7 +88,7 @@
       </div>
       <div class="ps-tile ps-images-slot" data-ps-slot="homing" id="ps-images-slot-homing">
         <div class="ps-row">
-          <div class="ps-images-preview" id="ps-images-preview-homing"><svg class="ps-icon"><use href="#ps-icon-photo"/></svg><img alt="" hidden></div>
+          <div class="ps-images-preview" id="ps-images-preview-homing"><svg class="ps-icon"><use href="#ps-icon-home"/></svg><img alt="" hidden></div>
           <div class="ps-images-meta max">
             <div class="ps-row">
               <span class="ps-dot" id="ps-images-dot-homing" hidden></span>
@@ -105,7 +106,7 @@
       </div>
       <div class="ps-tile ps-images-slot" data-ps-slot="nozzle_cleaning" id="ps-images-slot-nozzle-cleaning">
         <div class="ps-row">
-          <div class="ps-images-preview" id="ps-images-preview-nozzle-cleaning"><svg class="ps-icon"><use href="#ps-icon-photo"/></svg><img alt="" hidden></div>
+          <div class="ps-images-preview" id="ps-images-preview-nozzle-cleaning"><svg class="ps-icon"><use href="#ps-icon-nozzle"/></svg><img alt="" hidden></div>
           <div class="ps-images-meta max">
             <div class="ps-row">
               <span class="ps-dot" id="ps-images-dot-nozzle-cleaning" hidden></span>
@@ -123,7 +124,7 @@
       </div>
       <div class="ps-tile ps-images-slot" data-ps-slot="calibrating_flow" id="ps-images-slot-calibrating-flow">
         <div class="ps-row">
-          <div class="ps-images-preview" id="ps-images-preview-calibrating-flow"><svg class="ps-icon"><use href="#ps-icon-photo"/></svg><img alt="" hidden></div>
+          <div class="ps-images-preview" id="ps-images-preview-calibrating-flow"><svg class="ps-icon"><use href="#ps-icon-flow"/></svg><img alt="" hidden></div>
           <div class="ps-images-meta max">
             <div class="ps-row">
               <span class="ps-dot" id="ps-images-dot-calibrating-flow" hidden></span>
@@ -141,7 +142,7 @@
       </div>
       <div class="ps-tile ps-images-slot" data-ps-slot="xy_mesh_mode_sweep" id="ps-images-slot-xy-mesh-mode-sweep">
         <div class="ps-row">
-          <div class="ps-images-preview" id="ps-images-preview-xy-mesh-mode-sweep"><svg class="ps-icon"><use href="#ps-icon-photo"/></svg><img alt="" hidden></div>
+          <div class="ps-images-preview" id="ps-images-preview-xy-mesh-mode-sweep"><svg class="ps-icon"><use href="#ps-icon-mesh"/></svg><img alt="" hidden></div>
           <div class="ps-images-meta max">
             <div class="ps-row">
               <span class="ps-dot" id="ps-images-dot-xy-mesh-mode-sweep" hidden></span>
@@ -159,7 +160,7 @@
       </div>
       <div class="ps-tile ps-images-slot" data-ps-slot="filament_check_location" id="ps-images-slot-filament-check-location">
         <div class="ps-row">
-          <div class="ps-images-preview" id="ps-images-preview-filament-check-location"><svg class="ps-icon"><use href="#ps-icon-photo"/></svg><img alt="" hidden></div>
+          <div class="ps-images-preview" id="ps-images-preview-filament-check-location"><svg class="ps-icon"><use href="#ps-icon-material"/></svg><img alt="" hidden></div>
           <div class="ps-images-meta max">
             <div class="ps-row">
               <span class="ps-dot" id="ps-images-dot-filament-check-location" hidden></span>
@@ -177,7 +178,7 @@
       </div>
       <div class="ps-tile ps-images-slot" data-ps-slot="filament_cut" id="ps-images-slot-filament-cut">
         <div class="ps-row">
-          <div class="ps-images-preview" id="ps-images-preview-filament-cut"><svg class="ps-icon"><use href="#ps-icon-photo"/></svg><img alt="" hidden></div>
+          <div class="ps-images-preview" id="ps-images-preview-filament-cut"><svg class="ps-icon"><use href="#ps-icon-scissors"/></svg><img alt="" hidden></div>
           <div class="ps-images-meta max">
             <div class="ps-row">
               <span class="ps-dot" id="ps-images-dot-filament-cut" hidden></span>
@@ -195,7 +196,7 @@
       </div>
       <div class="ps-tile ps-images-slot" data-ps-slot="filament_pull_back_cur" id="ps-images-slot-filament-pull-back-cur">
         <div class="ps-row">
-          <div class="ps-images-preview" id="ps-images-preview-filament-pull-back-cur"><svg class="ps-icon"><use href="#ps-icon-photo"/></svg><img alt="" hidden></div>
+          <div class="ps-images-preview" id="ps-images-preview-filament-pull-back-cur"><svg class="ps-icon"><use href="#ps-icon-spool-end"/></svg><img alt="" hidden></div>
           <div class="ps-images-meta max">
             <div class="ps-row">
               <span class="ps-dot" id="ps-images-dot-filament-pull-back-cur" hidden></span>
@@ -213,7 +214,7 @@
       </div>
       <div class="ps-tile ps-images-slot" data-ps-slot="filament_push_new" id="ps-images-slot-filament-push-new">
         <div class="ps-row">
-          <div class="ps-images-preview" id="ps-images-preview-filament-push-new"><svg class="ps-icon"><use href="#ps-icon-photo"/></svg><img alt="" hidden></div>
+          <div class="ps-images-preview" id="ps-images-preview-filament-push-new"><svg class="ps-icon"><use href="#ps-icon-spool"/></svg><img alt="" hidden></div>
           <div class="ps-images-meta max">
             <div class="ps-row">
               <span class="ps-dot" id="ps-images-dot-filament-push-new" hidden></span>
@@ -231,7 +232,7 @@
       </div>
       <div class="ps-tile ps-images-slot" data-ps-slot="filament_purge_old" id="ps-images-slot-filament-purge-old">
         <div class="ps-row">
-          <div class="ps-images-preview" id="ps-images-preview-filament-purge-old"><svg class="ps-icon"><use href="#ps-icon-photo"/></svg><img alt="" hidden></div>
+          <div class="ps-images-preview" id="ps-images-preview-filament-purge-old"><svg class="ps-icon"><use href="#ps-icon-materials"/></svg><img alt="" hidden></div>
           <div class="ps-images-meta max">
             <div class="ps-row">
               <span class="ps-dot" id="ps-images-dot-filament-purge-old" hidden></span>
@@ -249,7 +250,7 @@
       </div>
       <div class="ps-tile ps-images-slot" data-ps-slot="printing_ok" id="ps-images-slot-printing-ok">
         <div class="ps-row">
-          <div class="ps-images-preview" id="ps-images-preview-printing-ok"><svg class="ps-icon"><use href="#ps-icon-photo"/></svg><img alt="" hidden></div>
+          <div class="ps-images-preview" id="ps-images-preview-printing-ok"><svg class="ps-icon"><use href="#ps-icon-check-circle"/></svg><img alt="" hidden></div>
           <div class="ps-images-meta max">
             <div class="ps-row">
               <span class="ps-dot" id="ps-images-dot-printing-ok" hidden></span>
@@ -267,7 +268,7 @@
       </div>
       <div class="ps-tile ps-images-slot" data-ps-slot="printing" id="ps-images-slot-printing">
         <div class="ps-row">
-          <div class="ps-images-preview" id="ps-images-preview-printing"><svg class="ps-icon"><use href="#ps-icon-photo"/></svg><img alt="" hidden></div>
+          <div class="ps-images-preview" id="ps-images-preview-printing"><svg class="ps-icon"><use href="#ps-icon-printer-enclosed"/></svg><img alt="" hidden></div>
           <div class="ps-images-meta max">
             <div class="ps-row">
               <span class="ps-dot" id="ps-images-dot-printing" hidden></span>

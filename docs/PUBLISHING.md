@@ -99,14 +99,18 @@ grep -vE '^(#|[[:space:]]*$)' "$F" | awk 'length($0) >= 4' > /tmp/ps-forbidden.$
 ```
 python3 tools/ui/build/build.py --check     # every vendored file's sha256 matches its README row
 python3 tools/art/gen_marks.py --check      # the marks are exactly what the generator produces
+python3 tools/art/gen_banner.py --check     # so are the banners
+python3 tools/ui/gen_icons.py --check       # and the generated stage icons
+python3 tools/ui/normalize_icons.py --check # every drawn icon is normalised and carries no export furniture
 for d in firmware/main/vendor/*/; do echo "$d"; grep -E '^\| (version|licence)' "$d/README.md"; done
 git grep -nwE 'MPL|Mozilla Public License' -- . ':!docs/DECISIONS.md' ':!firmware/main/vendor/coloris/README.md' ':!firmware/main/vendor/README.md'
 ```
 
 Every dependency has a row; every row states a version and a licence; the MPL search
 finds nothing but the prose that explains why iro.js was excluded. Provenance: the marks
-are generated from primitives (D-010, D-011); the icons are Heroicons 2.2.0 hashed one
-by one; nothing else is artwork.
+and the banner are generated from primitives (D-010, D-030); the Heroicons are 2.2.0,
+hashed one by one; the project's own icons are Jeremy Kenedy's, first-party under the
+repository licence, recorded in `tools/ui/src/ARTWORK.md` (D-031); nothing else is artwork.
 
 ## 5. The history: who, and what, ever
 

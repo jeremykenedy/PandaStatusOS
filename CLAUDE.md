@@ -108,6 +108,16 @@ in a commit that is later amended.
 - A shared misspelling is the fingerprint that proves copying. If one appears, it is a
   defect, not a coincidence.
 
+**What this rule is not about (2026-09-10, Jeremy).** Rule 6 covers BIQU material only:
+their firmware, their page, their code, their strings, their artwork, their identifiers.
+It has never applied to Jeremy's own work and must not be applied to it again. Jeremy is
+the author of PandaVent in its entirety: every asset, icon, mark, script and line of code
+in that project is his. Anything from PandaVent crosses into this repository freely, under
+this repository's MIT licence, authored Jeremy Kenedy: no provenance investigation, no
+"cannot establish", no vendor row. His artwork is project source (`tools/ui/src/`), never
+`vendor/`. Vendor rows are for genuine third-party components only: Beer CSS, Heroicons,
+Roboto, the colour picker.
+
 ### Rule 7. The string table is this project's own work.
 The UI ships in 24 languages. English is the only hand-authored table; every other
 language is translated from our English.

@@ -44,6 +44,8 @@ body.dark  .ps-mark-light { display: none; }
 /* --- icons: the inline sprite, tinted by the text colour --- */
 .ps-icon { width: 24px; height: 24px; display: inline-block; vertical-align: middle; flex: none; color: currentColor; }
 .ps-icon-sm { width: 18px; height: 18px; }
+.ps-tile-head { gap: 6px; align-items: center; }
+.ps-tile-head .ps-tile-label { margin: 0; }
 
 /* --- navigation. Rail on wide screens, bottom bar on phones. Same destinations, same
    order, both present in the markup; only one is shown. --- */
