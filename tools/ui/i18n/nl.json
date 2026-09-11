@@ -396,5 +396,13 @@
   "ps_lighting_ed_load": "Bewerken",
   "ps_lighting_ed_delete": "Verwijderen",
   "ps_lighting_ed_full": "Acht opgeslagen effecten is de grens; verwijder er eerst een.",
-  "ps_lighting_ed_help": "Opslaan onder een bestaande naam vervangt die. Gebruiken kopieert het effect naar de toestand hierboven; de twee kleurpunteffecten hebben de schakelaar voor effectkleuren nodig om hun punten te lezen."
+  "ps_lighting_ed_help": "Opslaan onder een bestaande naam vervangt die. Gebruiken kopieert het effect naar de toestand hierboven; de twee kleurpunteffecten hebben de schakelaar voor effectkleuren nodig om hun punten te lezen.",
+  "ps_feature_stage_effects": "Effecten per fase",
+  "ps_feature_stage_effects_help": "Elk van de vijftien fasen van het scherm krijgt zijn eigen benoemde effect; een fase zonder toewijzing neemt het effect van zijn toestand over.",
+  "ps_feature_stage_effects_aria": "Effecten per fase",
+  "ps_lighting_st_inherit": "Zoals de toestand",
+  "ps_lighting_st_now": "nu",
+  "ps_lighting_st_none": "Sla eerst een benoemd effect op; de rijen bieden de opgeslagen aan.",
+  "ps_lighting_st_help": "Stel drie toestanden in, overschrijf de twee fasen die ertoe doen, klaar. De fase komt uit het rapport van de printer.",
+  "ps_lighting_st_row_aria": "Effect voor deze fase"
 }

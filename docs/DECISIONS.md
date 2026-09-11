@@ -1000,4 +1000,39 @@ fifteen characters: the blob's magic moves to PSP2 and loads the old one by size
 
 ---
 
+## D-040 A stage row is a named effect copied in, inheriting the state's entry when unset; the stage comes from stg_cur by an INFERENCE table
+
+**Date** 2026-09-11 · **Reversal** cheap for the route and the page; the stage table is one switch statement the capture rewrites
+
+**Decided.** Per-stage effects (B1) and inheritance (B2) are one feature, bit 15: fifteen
+rows, one per display slot, each either unset (the bar state's effect, exactly as before)
+or a copy of a named effect (A14) with the name it came from. The resolve takes the row in
+place of the state's entry and reads it under the same bits, so a stage row is not a new
+kind of thing the renderer has to learn. Rows live in their own blob (`stages`, 664
+bytes) like the presets, so the config layout stays at v4. Assignment is by name from the
+saved effects, which is what makes fifteen rows usable: save a handful of named effects,
+set three states, override the stages that matter.
+
+The stage itself is INFERENCE twice over: `print.stg_cur` is the field the vent reads
+for the printer's stage code, and the table from code to slot (`ps_stage_from_report`)
+is built from the community's documentation of the codes and the codes the vent has met
+in its own logs, checked against nothing on this device. A running job with a code the
+table does not know renders as `printing`, a finished one as `printing_ok`, anything else
+as `standby`; slots the table cannot reach today (`filament_cut`, `filament_purge_old`)
+are reachable only through the preview. The MQTT capture replaces the table with what
+this printer sends, and nothing else moves.
+
+**Alternatives.** Rows that reference a preset by name rather than copy it (deleting a
+preset would empty a row under a running print); raw effects per row without names
+(fifteen editors); a fifth config layout (a 360-byte growth and a migration for what is
+its own thing).
+
+**Why.** The queue names inheritance as the thing that makes the matrix usable and names
+named effects as the unit; the copy keeps a row honest after its source changes.
+
+**What would change it.** The capture: the code table, and whether the display's slot
+really is the right granularity for the bar (it is the queue's premise).
+
+---
+
 *Entries continue below as the run proceeds.*

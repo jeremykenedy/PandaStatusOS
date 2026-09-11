@@ -396,5 +396,13 @@
   "ps_lighting_ed_load": "Modifier",
   "ps_lighting_ed_delete": "Supprimer",
   "ps_lighting_ed_full": "Huit effets enregistrés est la limite ; supprimez-en un d'abord.",
-  "ps_lighting_ed_help": "Enregistrer sous un nom existant le remplace. Utiliser copie l'effet dans l'état ci-dessus ; les deux effets à points de couleur ont besoin du réglage des couleurs d'effet pour lire leurs points."
+  "ps_lighting_ed_help": "Enregistrer sous un nom existant le remplace. Utiliser copie l'effet dans l'état ci-dessus ; les deux effets à points de couleur ont besoin du réglage des couleurs d'effet pour lire leurs points.",
+  "ps_feature_stage_effects": "Effets par étape",
+  "ps_feature_stage_effects_help": "Chacune des quinze étapes de l'écran reçoit son propre effet nommé ; une étape sans affectation reprend l'effet de son état.",
+  "ps_feature_stage_effects_aria": "Effets par étape",
+  "ps_lighting_st_inherit": "Comme l'état",
+  "ps_lighting_st_now": "en cours",
+  "ps_lighting_st_none": "Enregistrez d'abord un effet nommé ; les lignes proposent ceux qui sont enregistrés.",
+  "ps_lighting_st_help": "Réglez trois états, remplacez les deux étapes qui comptent, c'est fait. L'étape vient du rapport de l'imprimante.",
+  "ps_lighting_st_row_aria": "Effet pour cette étape"
 }

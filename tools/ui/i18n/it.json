@@ -396,5 +396,13 @@
   "ps_lighting_ed_load": "Modifica",
   "ps_lighting_ed_delete": "Elimina",
   "ps_lighting_ed_full": "Otto effetti salvati sono il limite; eliminane uno prima.",
-  "ps_lighting_ed_help": "Salvare con un nome esistente lo sostituisce. Usare copia l'effetto nello stato qui sopra; i due effetti a punti di colore hanno bisogno dell'interruttore dei colori effetto per leggere i loro punti."
+  "ps_lighting_ed_help": "Salvare con un nome esistente lo sostituisce. Usare copia l'effetto nello stato qui sopra; i due effetti a punti di colore hanno bisogno dell'interruttore dei colori effetto per leggere i loro punti.",
+  "ps_feature_stage_effects": "Effetti per fase",
+  "ps_feature_stage_effects_help": "Ognuna delle quindici fasi del display riceve il proprio effetto con nome; una fase senza assegnazione prende l'effetto del suo stato.",
+  "ps_feature_stage_effects_aria": "Effetti per fase",
+  "ps_lighting_st_inherit": "Come lo stato",
+  "ps_lighting_st_now": "ora",
+  "ps_lighting_st_none": "Salva prima un effetto con nome; le righe offrono quelli salvati.",
+  "ps_lighting_st_help": "Imposta tre stati, sovrascrivi le due fasi che contano, fatto. La fase arriva dal rapporto della stampante.",
+  "ps_lighting_st_row_aria": "Effetto per questa fase"
 }

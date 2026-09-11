@@ -151,7 +151,7 @@ let STATE = null;
 let booting = false;                    // true while a "restart" is in progress
 let LANDED = null;                      // {build, page, until}: the image an ota_fw upload installed (PS_OTA_LANDS)
 let FEAT = null;                        // the clone's feature document (PS_CLONE); null until first asked
-const FEATURE_NAMES = ['state_brightness', 'state_effects', 'effect_colours', 'effect_params', 'effect_ramp', 'fx_progress', 'fx_progress_anim', 'fx_barber', 'fx_hue_ramp', 'fx_temp', 'hot_warning', 'error_flash', 'preview', 'presets'];
+const FEATURE_NAMES = ['state_brightness', 'state_effects', 'effect_colours', 'effect_params', 'effect_ramp', 'fx_progress', 'fx_progress_anim', 'fx_barber', 'fx_hue_ramp', 'fx_temp', 'hot_warning', 'error_flash', 'preview', 'presets', 'stage_effects'];
 const FX_SELECTABLE = 17;
 // which effect ids the bits allow, as the firmware's ps_fx_allowed(): the seventeen need only the
 // effect switch; the ones that read the print each wait for their own
@@ -163,7 +163,7 @@ function fxAllowed(id, features) {
 }
 const fxDefault = (colour) => ({ effect: 0, brightness: 50, speed: 100, bright_end: 0, opt: 0, aux: 0, colours: [colour, colour, '#000000FF', '#000000FF'] });
 function featDefaults() {
-  return { features: { state_brightness: false, state_effects: false, effect_colours: false, effect_params: false, effect_ramp: false, fx_progress: false, fx_progress_anim: false, fx_barber: false, fx_hue_ramp: false, fx_temp: false, hot_warning: false, error_flash: false, preview: false, presets: false },
+  return { features: { state_brightness: false, state_effects: false, effect_colours: false, effect_params: false, effect_ramp: false, fx_progress: false, fx_progress_anim: false, fx_barber: false, fx_hue_ramp: false, fx_temp: false, hot_warning: false, error_flash: false, preview: false, presets: false, stage_effects: false },
            config: { state_brightness: [[50, 50, 50], [50, 50, 50]],
                      state_effects: [fxDefault('#FFFFFFFF'), fxDefault('#FFFFFFFF'), fxDefault('#FF0000FF')],
                      temp_gradient: { source: 0, lo: 25, hi: 250 },
@@ -260,6 +260,9 @@ const sockets = new Set();
 const SENT = [];                        // frames the device received (the harness reads these)
 let PREVIEW = null;                     // A13: the pinned state, or null
 let PRESETS = { presets: [], max: 8 };  // A14: the named effects
+const SLOT_NAMES = ['standby', 'nozzle_heating', 'bed_heating', 'bed_leveling', 'homing', 'nozzle_cleaning', 'calibrating_flow', 'xy_mesh_mode_sweep', 'filament_check_location', 'filament_cut', 'filament_pull_back_cur', 'filament_push_new', 'filament_purge_old', 'printing_ok', 'printing'];
+function stagesDefault() { return { stages: SLOT_NAMES.map((slot) => Object.assign({ slot, set: false, name: '' }, fxDefault('#FFFFFFFF'))), current: 0 }; }
+let STAGES = stagesDefault();           // B1, B2: the per-stage rows
 const PUSHED = [];                      // frames the device sent
 const t0 = Date.now();
 
@@ -577,7 +580,7 @@ async function handleHttp(req, res) {
   if (p === '/__sent') { res.writeHead(200, { 'Content-Type': 'application/json' }); return res.end(JSON.stringify(SENT)); }
   if (p === '/__pushed') { res.writeHead(200, { 'Content-Type': 'application/json' }); return res.end(JSON.stringify(PUSHED)); }
   if (p === '/__state') { res.writeHead(200, { 'Content-Type': 'application/json' }); return res.end(JSON.stringify(STATE)); }
-  if (p === '/__reset' && req.method === 'POST') { await readBody(req, 1 << 16); STATE = loadFixture(FIXTURE); SENT.length = 0; PUSHED.length = 0; LANDED = null; FEAT = null; PREVIEW = null; PRESETS = { presets: [], max: 8 }; clearTimers(); log({ ev: 'debug_reset' }); res.writeHead(200); return res.end('ok'); }
+  if (p === '/__reset' && req.method === 'POST') { await readBody(req, 1 << 16); STATE = loadFixture(FIXTURE); SENT.length = 0; PUSHED.length = 0; LANDED = null; FEAT = null; PREVIEW = null; PRESETS = { presets: [], max: 8 }; STAGES = stagesDefault(); clearTimers(); log({ ev: 'debug_reset' }); res.writeHead(200); return res.end('ok'); }
   if (p === '/__knob' && req.method === 'POST') {
     const { body } = await readBody(req, 1 << 16);
     try { const k = JSON.parse(body.toString('utf8')); KNOBS[k.name] = k.value; log({ ev: 'knob', detail: `${k.name}=${k.value}` }); res.writeHead(200); return res.end('ok'); }
@@ -678,6 +681,47 @@ async function handleHttp(req, res) {
     }
     SENT.push(rec);
     log({ ev: 'api_presets', detail: rec.text });
+    res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }); return res.end(doc());
+  }
+  if (p === '/api/stages' && knobFlag('PS_CLONE') && FEAT && FEAT.features.stage_effects) {
+    // B1, B2: a named effect per stage (a copy with its name), cleared back to inheriting, or the
+    // whole table; with the switch off the route does not exist (the 302 below)
+    const doc = () => JSON.stringify(STAGES);
+    if (req.method === 'GET') { res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }); return res.end(doc()); }
+    if (req.method !== 'POST') { res.writeHead(405); return res.end(); }
+    const { body } = await readBody(req, 1 << 14);
+    const rec = { t: Date.now(), rel_ms: Date.now() - t0, api: '/api/stages', text: '' };
+    let j;
+    try { j = JSON.parse(body.toString('utf8')); } catch (_) { rec.error = 'not json'; SENT.push(rec); log({ ev: 'api_refused', detail: 'not json' }); res.writeHead(400); return res.end('refused'); }
+    rec.text = JSON.stringify({ api: '/api/stages', body: j }); rec.frame = j; rec.roots = ['api'];
+    const refuse = () => { rec.error = 'refused'; SENT.push(rec); log({ ev: 'api_refused', detail: rec.text }); res.writeHead(400); res.end('refused'); };
+    if (!j || typeof j !== 'object' || Array.isArray(j)) return refuse();
+    const keys = ['assign', 'clear', 'stages'].filter((k) => Object.prototype.hasOwnProperty.call(j, k));
+    if (keys.length !== 1) return refuse();
+    const stageOk = (v) => Number.isInteger(v) && v >= 0 && v < 15;
+    if (keys[0] === 'assign') {
+      const a = j.assign; if (!a || typeof a !== 'object' || !stageOk(a.stage) || typeof a.name !== 'string') return refuse();
+      const found = PRESETS.presets.find((q) => q.name === a.name); if (!found || !fxAllowed(found.effect, FEAT.features)) return refuse();
+      const { name, ...fx } = found;
+      STAGES.stages[a.stage] = Object.assign({ slot: SLOT_NAMES[a.stage], set: true, name }, JSON.parse(JSON.stringify(fx)));
+    } else if (keys[0] === 'clear') {
+      const c = j.clear; if (!c || typeof c !== 'object' || !stageOk(c.stage)) return refuse();
+      STAGES.stages[c.stage].set = false; STAGES.stages[c.stage].name = '';
+    } else {
+      const v = j.stages; if (!Array.isArray(v) || v.length !== 15) return refuse();
+      const out = [];
+      for (let i = 0; i < 15; i++) {
+        const o = v[i]; if (!o || typeof o !== 'object' || Array.isArray(o) || typeof o.set !== 'boolean') return refuse();
+        const { set, name, slot, ...rest } = o;
+        if (name !== undefined && (typeof name !== 'string' || name.length > 15)) return refuse();
+        const fx = fxParse(rest, STAGES.stages[i], FEAT.features); if (!fx) return refuse();
+        delete fx.slot; delete fx.set; delete fx.name;
+        out.push(Object.assign({ slot: SLOT_NAMES[i], set, name: name !== undefined ? name : STAGES.stages[i].name }, fx));
+      }
+      STAGES.stages = out;
+    }
+    SENT.push(rec);
+    log({ ev: 'api_stages', detail: rec.text });
     res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }); return res.end(doc());
   }
   if (p === '/backup' && req.method === 'GET' && knob('PS_BACKUP', '')) {

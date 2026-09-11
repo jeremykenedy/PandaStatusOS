@@ -168,6 +168,18 @@ int main(void)
       c.features &= ~PS_FEAT_EFFECT_COLOURS; ps_fx_resolve(&c, PS_MODE_H2D, PS_BAR_IDLE, false, &k);
       t("without effect colours the palette has one stop, the state colour", k.nstops == 1, k.nstops); }
 
+    /* B1, B2: the stage from the report, and a stage row standing in for the state's entry */
+    t("a finished job is printing_ok", ps_stage_from_report("FINISH", 0) == 13, ps_stage_from_report("FINISH", 0));
+    t("a running job heating the bed is bed_heating", ps_stage_from_report("RUNNING", 2) == 2, ps_stage_from_report("RUNNING", 2));
+    t("a running job with a code the table does not know is printing", ps_stage_from_report("RUNNING", 99) == 14, ps_stage_from_report("RUNNING", 99));
+    t("an idle printer, or no report, is standby", ps_stage_from_report("IDLE", 2) == 0 && ps_stage_from_report(NULL, 2) == 0, ps_stage_from_report("IDLE", 2));
+    { ps_cfg_t c; memset(&c, 0, sizeof c); c.features = PS_FEAT_STATE_EFFECTS | PS_FEAT_STAGE_EFFECTS; c.fx[1].effect = PS_FX_BREATHING;
+      ps_stage_row_t row; memset(&row, 0, sizeof row); row.set = 1; row.fx.effect = PS_FX_CYLON; ps_fx_pick_t k;
+      ps_fx_resolve_stage(&c, PS_MODE_H2D, PS_BAR_PRINTING, true, &row, &k); t("a set stage row stands in for the state's effect", k.fx == PS_FX_CYLON, k.fx);
+      row.set = 0; ps_fx_resolve_stage(&c, PS_MODE_H2D, PS_BAR_PRINTING, true, &row, &k); t("an unset row inherits the state's", k.fx == PS_FX_BREATHING, k.fx);
+      row.set = 1; c.features = PS_FEAT_STATE_EFFECTS; ps_fx_resolve_stage(&c, PS_MODE_H2D, PS_BAR_PRINTING, true, &row, &k); t("with bit 15 off the row is ignored", k.fx == PS_FX_BREATHING, k.fx);
+      ps_fx_resolve(&c, PS_MODE_H2D, PS_BAR_PRINTING, true, &k); t("the plain resolve is the row-less one", k.fx == PS_FX_BREATHING, k.fx); }
+
     /* the colour ramp across the print */
     { ps_rgba_t green = { 0, 255, 0, 255 }; ps_fx_in_t z = { 0, -1000, 0, 0 }, full = { 100, -1000, 0, 0 }, half = { 50, -1000, 0, 0 };
       ps_fx_phase_init(&p);

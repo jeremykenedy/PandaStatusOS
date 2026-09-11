@@ -396,5 +396,13 @@
   "ps_lighting_ed_load": "Editar",
   "ps_lighting_ed_delete": "Eliminar",
   "ps_lighting_ed_full": "Ocho efectos guardados es el límite; elimine uno primero.",
-  "ps_lighting_ed_help": "Guardar con un nombre que ya existe lo reemplaza. Usar copia el efecto al estado de arriba; los dos efectos de puntos de color necesitan el ajuste de colores de efecto para leer sus puntos."
+  "ps_lighting_ed_help": "Guardar con un nombre que ya existe lo reemplaza. Usar copia el efecto al estado de arriba; los dos efectos de puntos de color necesitan el ajuste de colores de efecto para leer sus puntos.",
+  "ps_feature_stage_effects": "Efectos por etapa",
+  "ps_feature_stage_effects_help": "Cada una de las quince etapas de la pantalla recibe su propio efecto con nombre; una etapa sin asignación toma el efecto de su estado.",
+  "ps_feature_stage_effects_aria": "Efectos por etapa",
+  "ps_lighting_st_inherit": "Como el estado",
+  "ps_lighting_st_now": "ahora",
+  "ps_lighting_st_none": "Guarde primero un efecto con nombre; las filas ofrecen los guardados.",
+  "ps_lighting_st_help": "Ajuste tres estados, sobrescriba las dos etapas que importan y listo. La etapa viene del informe de la impresora.",
+  "ps_lighting_st_row_aria": "Efecto para esta etapa"
 }

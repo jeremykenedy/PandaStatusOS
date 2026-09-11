@@ -325,6 +325,47 @@ int ps_presets_save(const ps_presets_t *s)
     return 0;
 }
 
+/* ---- B1, B2: the per-stage rows, their own blob like the presets ---- */
+_Static_assert(sizeof(ps_stage_row_t) == 44 && sizeof(ps_stages_t) == PS_STAGES_SIZE, "the stages layout moved");
+void ps_stages_clamp(ps_stages_t *s)
+{
+    s->magic = PS_STAGES_MAGIC;
+    for (int i = 0; i < PS_GIF_SLOTS; i++) {
+        ps_stage_row_t *r = &s->row[i];
+        if (r->set > 1) r->set = 1;
+        r->name[PS_PRESET_NAME - 1] = 0;
+        if (r->fx.effect >= PS_FX_COUNT) r->fx.effect = PS_FX_STATIC;
+        if (r->fx.brightness > 100) r->fx.brightness = 100;
+        if (r->fx.speed > 100) r->fx.speed = 100;
+        if (r->fx.bright_end > 100) r->fx.bright_end = 100;
+    }
+}
+int ps_stages_load(ps_stages_t *s)
+{
+    memset(s, 0, sizeof *s); s->magic = PS_STAGES_MAGIC;
+    nvs_handle_t h;
+    if (nvs_open(PS_CFG_NVS_NS, NVS_READONLY, &h) != ESP_OK) return 0;
+    ps_stages_t stored; size_t size = sizeof stored;
+    esp_err_t err = nvs_get_blob(h, PS_STAGES_NVS_KEY, &stored, &size);
+    nvs_close(h);
+    if (err != ESP_OK) return 0;
+    if (size != sizeof stored || stored.magic != PS_STAGES_MAGIC) { ESP_LOGW(TAG, "stages blob not recognised, none set"); return 0; }
+    memcpy(s, &stored, sizeof *s);
+    ps_stages_clamp(s);
+    return 0;
+}
+int ps_stages_save(const ps_stages_t *s)
+{
+    nvs_handle_t h;
+    esp_err_t err = nvs_open(PS_CFG_NVS_NS, NVS_READWRITE, &h);
+    if (err != ESP_OK) { ESP_LOGE(TAG, "nvs_open: %d", (int)err); return -1; }
+    err = nvs_set_blob(h, PS_STAGES_NVS_KEY, s, sizeof *s);
+    if (err == ESP_OK) err = nvs_commit(h);
+    nvs_close(h);
+    if (err != ESP_OK) { ESP_LOGE(TAG, "stages save failed: %d", (int)err); return -1; }
+    return 0;
+}
+
 /* ---- colour on the wire: list2[0] entries are "RRGGBB", list2[1] entries "#RRGGBBAA" ---- */
 void ps_rgba_to_wire(ps_rgba_t c, uint8_t mode, char *out)
 {

@@ -396,5 +396,13 @@
   "ps_lighting_ed_load": "Düzenle",
   "ps_lighting_ed_delete": "Sil",
   "ps_lighting_ed_full": "Sekiz kayıtlı efekt sınırdır; önce birini silin.",
-  "ps_lighting_ed_help": "Var olan bir adla kaydetmek onu değiştirir. Kullanmak, efekti yukarıdaki duruma kopyalar; iki renk durağı efekti, duraklarını okumak için efekt renkleri anahtarına gerek duyar."
+  "ps_lighting_ed_help": "Var olan bir adla kaydetmek onu değiştirir. Kullanmak, efekti yukarıdaki duruma kopyalar; iki renk durağı efekti, duraklarını okumak için efekt renkleri anahtarına gerek duyar.",
+  "ps_feature_stage_effects": "Aşamaya göre efektler",
+  "ps_feature_stage_effects_help": "Ekranın on beş aşamasının her biri kendi adlandırılmış efektini alır; atanmamış bir aşama durumunun efektini devralır.",
+  "ps_feature_stage_effects_aria": "Aşamaya göre efektler",
+  "ps_lighting_st_inherit": "Durumla aynı",
+  "ps_lighting_st_now": "şimdi",
+  "ps_lighting_st_none": "Önce adlandırılmış bir efekt kaydedin; satırlar kayıtlı olanları sunar.",
+  "ps_lighting_st_help": "Üç durumu ayarlayın, önemli iki aşamayı geçersiz kılın, bitti. Aşama yazıcının raporundan gelir.",
+  "ps_lighting_st_row_aria": "Bu aşama için efekt"
 }

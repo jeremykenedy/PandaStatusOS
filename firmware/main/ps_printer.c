@@ -49,6 +49,8 @@ static void apply_report(const char *json, size_t len)
     if (!doc) return;
     cJSON *print = cJSON_GetObjectItemCaseSensitive(doc, "print");
     cJSON *gs = print ? cJSON_GetObjectItemCaseSensitive(print, "gcode_state") : NULL;
+    static char s_gcode[16];                          /* the last gcode_state seen: a partial report may carry only stg_cur */
+    if (cJSON_IsString(gs) && gs->valuestring) { strncpy(s_gcode, gs->valuestring, sizeof s_gcode - 1); s_gcode[sizeof s_gcode - 1] = 0; }
     if (cJSON_IsString(gs) && gs->valuestring) {
         uint8_t bar = PS_BAR_IDLE;
         if (!strcmp(gs->valuestring, "RUNNING") || !strcmp(gs->valuestring, "PREPARE")) bar = PS_BAR_PRINTING;
@@ -57,6 +59,17 @@ static void apply_report(const char *json, size_t len)
         uint8_t job = (bar == PS_BAR_PRINTING || !strcmp(gs->valuestring, "PAUSE")) ? 1 : 0;
         ps_lock(); bool changed = g_ps.bar_state != bar || g_ps.job_active != job; g_ps.bar_state = bar; g_ps.job_active = job; ps_unlock();
         if (changed) { ESP_LOGI(TAG, "bar state %u", bar); ps_effect_notify(); }
+    }
+    /* INFERENCE, B1: print.stg_cur is the printer's stage code, as the vent reads it; with gcode_state it
+     * names one of the fifteen display slots (ps_stage_from_report), which the per-stage rows key on */
+    cJSON *sc = print ? cJSON_GetObjectItemCaseSensitive(print, "stg_cur") : NULL;
+    if (cJSON_IsNumber(sc) || (cJSON_IsString(gs) && gs->valuestring)) {
+        ps_lock();
+        if (cJSON_IsNumber(sc)) g_ps.stg_cur = (int16_t)sc->valuedouble;
+        uint8_t stage = ps_stage_from_report(s_gcode[0] ? s_gcode : NULL, g_ps.stg_cur);
+        bool moved = g_ps.stage != stage; g_ps.stage = stage;
+        ps_unlock();
+        if (moved) { ESP_LOGI(TAG, "stage %u", stage); ps_effect_notify(); }
     }
     /* INFERENCE: print.mc_percent is the job's percentage, as the vent reads it from the same report */
     cJSON *pc = print ? cJSON_GetObjectItemCaseSensitive(print, "mc_percent") : NULL;

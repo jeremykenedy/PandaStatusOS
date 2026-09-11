@@ -396,5 +396,13 @@
   "ps_lighting_ed_load": "編輯",
   "ps_lighting_ed_delete": "刪除",
   "ps_lighting_ed_full": "最多儲存八個效果；請先刪除一個。",
-  "ps_lighting_ed_help": "用既有名稱儲存會取代它。「用於」把該效果複製到上方對應狀態；兩種色標效果需要開啟效果顏色開關才能讀取色標。"
+  "ps_lighting_ed_help": "用既有名稱儲存會取代它。「用於」把該效果複製到上方對應狀態；兩種色標效果需要開啟效果顏色開關才能讀取色標。",
+  "ps_feature_stage_effects": "按階段的效果",
+  "ps_feature_stage_effects_help": "顯示器的十五個階段各自可指定一個命名效果；未指定的階段沿用其狀態的效果。",
+  "ps_feature_stage_effects_aria": "按階段的效果",
+  "ps_lighting_st_inherit": "與狀態相同",
+  "ps_lighting_st_now": "目前",
+  "ps_lighting_st_none": "請先儲存一個命名效果；各列會列出已儲存的效果。",
+  "ps_lighting_st_help": "設定三個狀態，再覆寫真正在意的兩個階段，就完成了。階段來自印表機的回報。",
+  "ps_lighting_st_row_aria": "此階段的效果"
 }

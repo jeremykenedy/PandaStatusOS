@@ -396,5 +396,13 @@
   "ps_lighting_ed_load": "编辑",
   "ps_lighting_ed_delete": "删除",
   "ps_lighting_ed_full": "最多保存八个效果；请先删除一个。",
-  "ps_lighting_ed_help": "用已有名称保存会替换它。“用于”把该效果复制到上方对应状态；两种色标效果需要打开效果颜色开关才能读取色标。"
+  "ps_lighting_ed_help": "用已有名称保存会替换它。“用于”把该效果复制到上方对应状态；两种色标效果需要打开效果颜色开关才能读取色标。",
+  "ps_feature_stage_effects": "按阶段的效果",
+  "ps_feature_stage_effects_help": "显示屏的十五个阶段各自可指定一个命名效果；未指定的阶段沿用其状态的效果。",
+  "ps_feature_stage_effects_aria": "按阶段的效果",
+  "ps_lighting_st_inherit": "与状态相同",
+  "ps_lighting_st_now": "当前",
+  "ps_lighting_st_none": "请先保存一个命名效果；各行会列出已保存的效果。",
+  "ps_lighting_st_help": "设置三个状态，再覆盖真正在意的两个阶段，就完成了。阶段来自打印机的报告。",
+  "ps_lighting_st_row_aria": "此阶段的效果"
 }

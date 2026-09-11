@@ -59,6 +59,12 @@ body.dark  .ps-mark-light { display: none; }
 .ps-pv-actions { align-items: end; flex-wrap: wrap; }
 .ps-ed-row { flex-wrap: wrap; align-items: center; gap: 6px; }
 .ps-ed-name { font-weight: 600; margin-right: 4px; }
+.ps-st-rows { display: grid; gap: 6px; }
+.ps-st-row { align-items: center; gap: 8px; flex-wrap: wrap; }
+.ps-st-row > .ps-icon { width: 20px; height: 20px; flex: none; }
+.ps-st-name { min-width: 9em; }
+.ps-st-field { min-width: 12em; margin: 0; }
+.ps-st-now { font-size: 11px; line-height: 16px; padding: 0 6px; border: 1px solid currentColor; border-radius: 8px; }
 .ps-tile-head .ps-tile-label { margin: 0; }
 
 /* --- navigation. Rail on wide screens, bottom bar on phones. Same destinations, same

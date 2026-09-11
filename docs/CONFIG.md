@@ -102,6 +102,14 @@ never touches them. `ps_presets_clamp()` bounds the count, the effect ids and th
 numbers and terminates the names. Two blobs of 328 bytes fit the same partition beside
 the config with room to spare.
 
+## The per-stage rows (B1, B2): a third blob
+
+The stage rows live under the same namespace as `stages`, laid out by `ps_stages_t`:
+magic `0x50535331` ("PSS1") and fifteen rows of forty-four bytes (a set flag, the name
+the row was assigned from, and a `ps_fx_cfg_t`), 664 bytes, pinned by `_Static_assert`,
+read whole or not at all like the presets. A row that is not set inherits the bar state's
+effect; nothing in the config blob changes for them.
+
 ## Reading and writing it on the host
 
 `make test-fw` compiles the real `ps_cfg.c` against a fake NVS: no blob, wrong magic,

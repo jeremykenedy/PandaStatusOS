@@ -26,6 +26,7 @@ exists so the rule has a home before any feature does. Its value is zero.
 | 12 | `error_flash` | a layer: while the bar state is error, one colour strobes over whatever the bar shows, in both modes, at its own brightness and rate; drawn after the hot warning so an error outranks it (A12) | off | the bar state the printer already drives |
 | 13 | `preview` | the live preview: `POST /api/preview` pins the bar to a chosen state (idle, printing or error), with a progress and temperatures if given, for up to ten minutes; the effects that read the print and the layers follow the pin; nothing is stored (A13) | off | nothing; with the switch off the route answers 302 like any unknown path |
 | 14 | `presets` | the named effects: an editor that saves an effect with its colours as stops, timing and direction under a name, up to eight, and copies one into any state; adds the two palette effects (`Colour stops`, still and scrolling) that lay the four colours across the bar (A14) | off | A2 to use one; A3 for the palette effects to read their stops |
+| 15 | `stage_effects` | a named effect per print stage, fifteen rows in their own blob; a row without one inherits its bar state's effect (B1, B2). The stage is `print.stg_cur` with `gcode_state` mapped onto the fifteen display slots (INFERENCE, `ps_stage_from_report`) | off | A2; A14 to have a named effect to assign; a printer bound |
 
 ## How a feature reaches the page
 
@@ -82,7 +83,23 @@ again when it is applied, like any other. Applying copies it into `config.state_
 where it is then an ordinary entry; the page re-reads the features document. The two
 palette effects (ids 22 and 23) read the four colours as stops in order, the unlit ones
 only while their `opt` bit says they are set; without `effect_colours` a palette has one
-stop, the state colour, and is a solid. While bit 14 is off the route answers 302. Which keys the
+stop, the state colour, and is a solid. While bit 14 is off the route answers 302.
+
+The per-stage rows (B1, B2) have their own route and blob (`stages`, [CONFIG.md](CONFIG.md)):
+
+```
+GET  /api/stages     {"stages":[{"slot":"standby","set":false,"name":"","effect":0,…,"colours":[…]},… fifteen],"current":0}
+POST /api/stages     {"assign":{"stage":7,"name":"Ocean"}}: the named preset copied into row 7, with its name
+                     {"clear":{"stage":7}}: row 7 inherits its state's effect again
+                     {"stages":[… fifteen rows {set, name?, …fx} …]}: the whole table, whole or refused
+```
+
+`current` is the stage the device believes the printer is in, as a slot index (INFERENCE
+until the capture). A set row stands in for the state's `state_effects` entry in the
+resolve, and every other bit reads it the same way (colours under A3, params under A4,
+its effect id under its own switch, falling back to solid). Assigning copies the preset,
+so a preset edited or deleted later leaves the row as it was; the row keeps the name it
+was assigned from. While bit 15 is off the route answers 302. Which keys the
 renderer reads depends on which bits are on (A2 reads `effect`; A3 to A5 read the rest),
 so a setting can be made before its switch exists and takes effect when it does. An
 effect id that changes must be allowed under the bits the same document leaves in force:

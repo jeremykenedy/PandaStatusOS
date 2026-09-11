@@ -18,6 +18,8 @@ void ps_state_init(void)
     for (int i = 0; i < PS_TEMP_COUNT; i++) g_ps.temp_c[i] = PS_TEMP_NONE;
     ps_cfg_load(&g_ps.cfg);
     ps_presets_load(&g_ps.presets);                   /* A14: the named effects, or an empty list */
+    ps_stages_load(&g_ps.stages);                     /* B1, B2: the per-stage rows, or none set */
+    g_ps.stg_cur = -1; g_ps.stage = 0; g_ps.pin_stage = -1;
     g_ps.sta_state = g_ps.cfg.wifi_ssid[0] ? PS_STA_CONNECTING : PS_STA_NOSSID;
     g_ps.printer_state = g_ps.cfg.printer_sn[0] || g_ps.cfg.printer_ip[0] ? PS_PRN_CONNECTING : PS_PRN_INVALID;
     g_ps.printer_scan = PS_PSCAN_IDLE;

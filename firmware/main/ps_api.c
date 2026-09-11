@@ -38,6 +38,7 @@ static const struct { const char *name; uint32_t bit; } FEATURES[] = {
     { "error_flash",      PS_FEAT_ERROR_FLASH },
     { "preview",          PS_FEAT_PREVIEW },
     { "presets",          PS_FEAT_PRESETS },
+    { "stage_effects",    PS_FEAT_STAGE_EFFECTS },
 };
 
 static cJSON *fx_json(const ps_fx_cfg_t *f)
@@ -432,6 +433,121 @@ int ps_api_presets_post(httpd_req_t *req)
     free(buf);
     if (rc != 0) { httpd_resp_set_status(req, "400 Bad Request"); return httpd_resp_send(req, "refused", HTTPD_RESP_USE_STRLEN); }
     return send_presets(req);
+}
+
+/* ---- B1, B2: the per-stage rows. A row is assigned a named effect (a copy, with the name),
+ * cleared back to inheriting, or the whole table is replaced at once. ---- */
+char *ps_stages_json(void)
+{
+    cJSON *doc = cJSON_CreateObject();
+    if (!doc) return NULL;
+    cJSON *arr = cJSON_AddArrayToObject(doc, "stages");
+    ps_lock();
+    for (int i = 0; i < PS_GIF_SLOTS; i++) {
+        const ps_stage_row_t *r = &g_ps.stages.row[i];
+        cJSON *o = fx_json(&r->fx);
+        cJSON_AddStringToObject(o, "slot", ps_gif_slot_names[i]);
+        cJSON_AddBoolToObject(o, "set", r->set != 0);
+        cJSON_AddStringToObject(o, "name", r->name);
+        cJSON_AddItemToArray(arr, o);
+    }
+    cJSON_AddNumberToObject(doc, "current", g_ps.stage);
+    ps_unlock();
+    char *s = cJSON_PrintUnformatted(doc);
+    cJSON_Delete(doc);
+    return s;
+}
+
+int ps_stages_apply(const char *json, size_t len)
+{
+    cJSON *root = cJSON_ParseWithLength(json, len);
+    if (!root || !cJSON_IsObject(root)) { cJSON_Delete(root); return -1; }
+    cJSON *as = cJSON_GetObjectItemCaseSensitive(root, "assign");
+    cJSON *cl = cJSON_GetObjectItemCaseSensitive(root, "clear");
+    cJSON *tb = cJSON_GetObjectItemCaseSensitive(root, "stages");
+    int given = (as ? 1 : 0) + (cl ? 1 : 0) + (tb ? 1 : 0);
+    if (given != 1) { cJSON_Delete(root); return -1; }
+    ps_lock(); uint32_t feat = g_ps.cfg.features; ps_unlock();
+    ps_stages_t s; ps_lock(); s = g_ps.stages; ps_unlock();
+    if (tb) {
+        if (!cJSON_IsArray(tb) || cJSON_GetArraySize(tb) != PS_GIF_SLOTS) { cJSON_Delete(root); return -1; }
+        for (int i = 0; i < PS_GIF_SLOTS; i++) {
+            cJSON *o = cJSON_GetArrayItem(tb, i);
+            if (!cJSON_IsObject(o)) { cJSON_Delete(root); return -1; }
+            cJSON *set = cJSON_DetachItemFromObjectCaseSensitive(o, "set");
+            cJSON *nm = cJSON_DetachItemFromObjectCaseSensitive(o, "name");
+            cJSON *sl = cJSON_DetachItemFromObjectCaseSensitive(o, "slot");     /* the slot name is informational; ignored if echoed */
+            bool ok = set && cJSON_IsBool(set) && (!nm || (cJSON_IsString(nm) && strlen(nm->valuestring) < PS_PRESET_NAME));
+            ps_stage_row_t r = s.row[i];
+            if (ok) {
+                r.set = cJSON_IsTrue(set) ? 1 : 0;
+                if (nm) { memset(r.name, 0, sizeof r.name); strncpy(r.name, nm->valuestring, PS_PRESET_NAME - 1); }
+                ok = fx_parse(o, &r.fx, feat);
+            }
+            cJSON_Delete(set); cJSON_Delete(nm); cJSON_Delete(sl);
+            if (!ok) { cJSON_Delete(root); return -1; }
+            s.row[i] = r;
+        }
+    } else if (as) {
+        cJSON *st = cJSON_GetObjectItemCaseSensitive(as, "stage"), *nm = cJSON_GetObjectItemCaseSensitive(as, "name");
+        if (!cJSON_IsObject(as) || !cJSON_IsNumber(st) || st->valuedouble < 0 || st->valuedouble >= PS_GIF_SLOTS || !cJSON_IsString(nm)) { cJSON_Delete(root); return -1; }
+        int stage = (int)st->valuedouble, found = -1;
+        ps_lock();
+        for (int i = 0; i < g_ps.presets.count; i++) if (!strcmp(g_ps.presets.p[i].name, nm->valuestring)) { found = i; break; }
+        bool ok = found >= 0 && ps_fx_allowed(g_ps.cfg.features, g_ps.presets.p[found].fx.effect);
+        if (ok) { s.row[stage].set = 1; s.row[stage].fx = g_ps.presets.p[found].fx; memset(s.row[stage].name, 0, PS_PRESET_NAME); strncpy(s.row[stage].name, g_ps.presets.p[found].name, PS_PRESET_NAME - 1); }
+        ps_unlock();
+        if (!ok) { cJSON_Delete(root); return -1; }
+    } else {
+        cJSON *st = cJSON_GetObjectItemCaseSensitive(cl, "stage");
+        if (!cJSON_IsObject(cl) || !cJSON_IsNumber(st) || st->valuedouble < 0 || st->valuedouble >= PS_GIF_SLOTS) { cJSON_Delete(root); return -1; }
+        int stage = (int)st->valuedouble;
+        s.row[stage].set = 0; memset(s.row[stage].name, 0, PS_PRESET_NAME);
+    }
+    cJSON_Delete(root);
+    ps_stages_clamp(&s);
+    ps_lock(); g_ps.stages = s; ps_unlock();
+    ps_stages_save(&s);
+    ps_effect_notify();
+    return 0;
+}
+
+static esp_err_t send_stages(httpd_req_t *req)
+{
+    char *s = ps_stages_json();
+    if (!s) { httpd_resp_set_status(req, "500 Internal Server Error"); return httpd_resp_send(req, "no memory", HTTPD_RESP_USE_STRLEN); }
+    httpd_resp_set_type(req, "application/json");
+    httpd_resp_set_hdr(req, "Cache-Control", "no-store");
+    esp_err_t e = httpd_resp_send(req, s, HTTPD_RESP_USE_STRLEN);
+    cJSON_free(s);
+    return e;
+}
+static bool stages_on(void) { ps_lock(); bool on = (g_ps.cfg.features & PS_FEAT_STAGE_EFFECTS) != 0; ps_unlock(); return on; }
+
+int ps_api_stages_get(httpd_req_t *req)
+{
+    if (!stages_on()) return ps_http_redirect_portal(req);
+    return send_stages(req);
+}
+
+int ps_api_stages_post(httpd_req_t *req)
+{
+    if (!stages_on()) return ps_http_redirect_portal(req);
+    if (req->content_len == 0 || req->content_len > 8192) { httpd_resp_set_status(req, "400 Bad Request"); return httpd_resp_send(req, "body", HTTPD_RESP_USE_STRLEN); }
+    char *buf = malloc(req->content_len + 1);
+    if (!buf) { httpd_resp_set_status(req, "500 Internal Server Error"); return httpd_resp_send(req, "no memory", HTTPD_RESP_USE_STRLEN); }
+    size_t got = 0;
+    while (got < req->content_len) {
+        int n = httpd_req_recv(req, buf + got, req->content_len - got);
+        if (n == HTTPD_SOCK_ERR_TIMEOUT) continue;
+        if (n <= 0) { free(buf); return ESP_FAIL; }
+        got += (size_t)n;
+    }
+    buf[got] = 0;
+    int rc = ps_stages_apply(buf, got);
+    free(buf);
+    if (rc != 0) { httpd_resp_set_status(req, "400 Bad Request"); return httpd_resp_send(req, "refused", HTTPD_RESP_USE_STRLEN); }
+    return send_stages(req);
 }
 
 static esp_err_t send_doc(httpd_req_t *req)

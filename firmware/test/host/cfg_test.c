@@ -211,6 +211,18 @@ int main(void)
       fill_distinct(&d); wipe(); put(&d, sizeof d); ps_presets_save(&s); ps_cfg_load(&c);
       t("the config blob is untouched by the presets", !strcmp(c.hostname, "t-host") && c.mode[1].speed == 65, c.mode[1].speed); }
 
+    /* 14. B1, B2: the per-stage rows, their own blob */
+    { ps_stages_t s, e; wipe();
+      t("no stages blob loads with no row set and the magic", ps_stages_load(&s) == 0 && s.row[0].set == 0 && s.row[14].set == 0 && s.magic == PS_STAGES_MAGIC, s.row[0].set);
+      s.row[7].set = 1; strcpy(s.row[7].name, "Ocean"); s.row[7].fx.effect = PS_FX_PALETTE_SCROLL; s.row[7].fx.colour[0] = (ps_rgba_t){ 0, 0, 255, 255 };
+      t("stages save", ps_stages_save(&s) == 0, 0);
+      t("and load back whole", ps_stages_load(&e) == 0 && e.row[7].set == 1 && !strcmp(e.row[7].name, "Ocean") && e.row[7].fx.effect == PS_FX_PALETTE_SCROLL && e.row[7].fx.colour[0].b == 255 && e.row[6].set == 0, e.row[7].set);
+      t("the stages blob is 664 bytes", sizeof(ps_stages_t) == 664 && sizeof(ps_stage_row_t) == 44, (long)sizeof(ps_stages_t));
+      s.row[3].set = 7; s.row[3].fx.effect = 250; s.row[3].fx.brightness = 200; memset(s.row[2].name, 'y', PS_PRESET_NAME); ps_stages_clamp(&s);
+      t("clamp bounds set, the ids and the numbers, and terminates the names", s.row[3].set == 1 && s.row[3].fx.effect == PS_FX_STATIC && s.row[3].fx.brightness == 100 && s.row[2].name[PS_PRESET_NAME - 1] == 0, s.row[3].set);
+      ps_stages_t bad; memset(&bad, 0, sizeof bad); bad.magic = 0x11111111; bad.row[0].set = 1; nvs_set_blob(1, PS_STAGES_NVS_KEY, &bad, sizeof bad);
+      t("a stages blob with the wrong magic loads as none set", ps_stages_load(&e) == 0 && e.row[0].set == 0, e.row[0].set); }
+
     printf("\n%d passed, %d failed\n", pass, fail);
     return fail ? 1 : 0;
 }

@@ -484,6 +484,195 @@
       <div class="ps-tile-label" data-ps-str="ps_lighting_ed_help">Saving with a name that exists replaces it. Using a saved effect copies it into that state's effect above; the two colour-stop effects need the effect colours switch to read their stops.</div>
     </div>
 
+    <!-- B1, B2, behind stage_effects: a named effect per print stage; a row without one inherits its state's -->
+    <div class="ps-tile" id="ps-lighting-st" hidden>
+      <div class="ps-tile-label" data-ps-str="ps_feature_stage_effects">Effects per stage</div>
+      <div class="ps-st-rows">
+        <div class="ps-row ps-st-row" data-ps-st="0">
+          <svg class="ps-icon"><use href="#ps-icon-pause-circle"/></svg>
+          <span class="ps-st-name" data-ps-str="ps_images_slot_standby">Standby</span>
+          <span class="ps-st-now" id="ps-lighting-st-now-0" data-ps-str="ps_lighting_st_now" hidden>now</span>
+          <span class="max"></span>
+          <div class="field suffix border small ps-st-field" data-ps-no-i18n>
+            <select id="ps-lighting-st-0" data-ps-st-sel="0" data-ps-str-aria="ps_lighting_st_row_aria" aria-label="Effect for this stage">
+            <option value="" data-ps-str="ps_lighting_st_inherit">Same as the state</option>
+            </select>
+            <svg class="ps-icon"><use href="#ps-icon-chevron-down"/></svg>
+          </div>
+        </div>
+        <div class="ps-row ps-st-row" data-ps-st="1">
+          <svg class="ps-icon"><use href="#ps-icon-nozzle-temp"/></svg>
+          <span class="ps-st-name" data-ps-str="ps_images_slot_nozzle_heating">Nozzle heating</span>
+          <span class="ps-st-now" id="ps-lighting-st-now-1" data-ps-str="ps_lighting_st_now" hidden>now</span>
+          <span class="max"></span>
+          <div class="field suffix border small ps-st-field" data-ps-no-i18n>
+            <select id="ps-lighting-st-1" data-ps-st-sel="1" data-ps-str-aria="ps_lighting_st_row_aria" aria-label="Effect for this stage">
+            <option value="" data-ps-str="ps_lighting_st_inherit">Same as the state</option>
+            </select>
+            <svg class="ps-icon"><use href="#ps-icon-chevron-down"/></svg>
+          </div>
+        </div>
+        <div class="ps-row ps-st-row" data-ps-st="2">
+          <svg class="ps-icon"><use href="#ps-icon-bed-hot"/></svg>
+          <span class="ps-st-name" data-ps-str="ps_images_slot_bed_heating">Bed heating</span>
+          <span class="ps-st-now" id="ps-lighting-st-now-2" data-ps-str="ps_lighting_st_now" hidden>now</span>
+          <span class="max"></span>
+          <div class="field suffix border small ps-st-field" data-ps-no-i18n>
+            <select id="ps-lighting-st-2" data-ps-st-sel="2" data-ps-str-aria="ps_lighting_st_row_aria" aria-label="Effect for this stage">
+            <option value="" data-ps-str="ps_lighting_st_inherit">Same as the state</option>
+            </select>
+            <svg class="ps-icon"><use href="#ps-icon-chevron-down"/></svg>
+          </div>
+        </div>
+        <div class="ps-row ps-st-row" data-ps-st="3">
+          <svg class="ps-icon"><use href="#ps-icon-bed-level"/></svg>
+          <span class="ps-st-name" data-ps-str="ps_images_slot_bed_leveling">Bed levelling</span>
+          <span class="ps-st-now" id="ps-lighting-st-now-3" data-ps-str="ps_lighting_st_now" hidden>now</span>
+          <span class="max"></span>
+          <div class="field suffix border small ps-st-field" data-ps-no-i18n>
+            <select id="ps-lighting-st-3" data-ps-st-sel="3" data-ps-str-aria="ps_lighting_st_row_aria" aria-label="Effect for this stage">
+            <option value="" data-ps-str="ps_lighting_st_inherit">Same as the state</option>
+            </select>
+            <svg class="ps-icon"><use href="#ps-icon-chevron-down"/></svg>
+          </div>
+        </div>
+        <div class="ps-row ps-st-row" data-ps-st="4">
+          <svg class="ps-icon"><use href="#ps-icon-home"/></svg>
+          <span class="ps-st-name" data-ps-str="ps_images_slot_homing">Homing</span>
+          <span class="ps-st-now" id="ps-lighting-st-now-4" data-ps-str="ps_lighting_st_now" hidden>now</span>
+          <span class="max"></span>
+          <div class="field suffix border small ps-st-field" data-ps-no-i18n>
+            <select id="ps-lighting-st-4" data-ps-st-sel="4" data-ps-str-aria="ps_lighting_st_row_aria" aria-label="Effect for this stage">
+            <option value="" data-ps-str="ps_lighting_st_inherit">Same as the state</option>
+            </select>
+            <svg class="ps-icon"><use href="#ps-icon-chevron-down"/></svg>
+          </div>
+        </div>
+        <div class="ps-row ps-st-row" data-ps-st="5">
+          <svg class="ps-icon"><use href="#ps-icon-nozzle"/></svg>
+          <span class="ps-st-name" data-ps-str="ps_images_slot_nozzle_cleaning">Nozzle cleaning</span>
+          <span class="ps-st-now" id="ps-lighting-st-now-5" data-ps-str="ps_lighting_st_now" hidden>now</span>
+          <span class="max"></span>
+          <div class="field suffix border small ps-st-field" data-ps-no-i18n>
+            <select id="ps-lighting-st-5" data-ps-st-sel="5" data-ps-str-aria="ps_lighting_st_row_aria" aria-label="Effect for this stage">
+            <option value="" data-ps-str="ps_lighting_st_inherit">Same as the state</option>
+            </select>
+            <svg class="ps-icon"><use href="#ps-icon-chevron-down"/></svg>
+          </div>
+        </div>
+        <div class="ps-row ps-st-row" data-ps-st="6">
+          <svg class="ps-icon"><use href="#ps-icon-flow"/></svg>
+          <span class="ps-st-name" data-ps-str="ps_images_slot_calibrating_flow">Flow calibration</span>
+          <span class="ps-st-now" id="ps-lighting-st-now-6" data-ps-str="ps_lighting_st_now" hidden>now</span>
+          <span class="max"></span>
+          <div class="field suffix border small ps-st-field" data-ps-no-i18n>
+            <select id="ps-lighting-st-6" data-ps-st-sel="6" data-ps-str-aria="ps_lighting_st_row_aria" aria-label="Effect for this stage">
+            <option value="" data-ps-str="ps_lighting_st_inherit">Same as the state</option>
+            </select>
+            <svg class="ps-icon"><use href="#ps-icon-chevron-down"/></svg>
+          </div>
+        </div>
+        <div class="ps-row ps-st-row" data-ps-st="7">
+          <svg class="ps-icon"><use href="#ps-icon-mesh"/></svg>
+          <span class="ps-st-name" data-ps-str="ps_images_slot_xy_mesh_mode_sweep">XY mesh sweep</span>
+          <span class="ps-st-now" id="ps-lighting-st-now-7" data-ps-str="ps_lighting_st_now" hidden>now</span>
+          <span class="max"></span>
+          <div class="field suffix border small ps-st-field" data-ps-no-i18n>
+            <select id="ps-lighting-st-7" data-ps-st-sel="7" data-ps-str-aria="ps_lighting_st_row_aria" aria-label="Effect for this stage">
+            <option value="" data-ps-str="ps_lighting_st_inherit">Same as the state</option>
+            </select>
+            <svg class="ps-icon"><use href="#ps-icon-chevron-down"/></svg>
+          </div>
+        </div>
+        <div class="ps-row ps-st-row" data-ps-st="8">
+          <svg class="ps-icon"><use href="#ps-icon-material"/></svg>
+          <span class="ps-st-name" data-ps-str="ps_images_slot_filament_check_location">Filament check</span>
+          <span class="ps-st-now" id="ps-lighting-st-now-8" data-ps-str="ps_lighting_st_now" hidden>now</span>
+          <span class="max"></span>
+          <div class="field suffix border small ps-st-field" data-ps-no-i18n>
+            <select id="ps-lighting-st-8" data-ps-st-sel="8" data-ps-str-aria="ps_lighting_st_row_aria" aria-label="Effect for this stage">
+            <option value="" data-ps-str="ps_lighting_st_inherit">Same as the state</option>
+            </select>
+            <svg class="ps-icon"><use href="#ps-icon-chevron-down"/></svg>
+          </div>
+        </div>
+        <div class="ps-row ps-st-row" data-ps-st="9">
+          <svg class="ps-icon"><use href="#ps-icon-scissors"/></svg>
+          <span class="ps-st-name" data-ps-str="ps_images_slot_filament_cut">Filament cut</span>
+          <span class="ps-st-now" id="ps-lighting-st-now-9" data-ps-str="ps_lighting_st_now" hidden>now</span>
+          <span class="max"></span>
+          <div class="field suffix border small ps-st-field" data-ps-no-i18n>
+            <select id="ps-lighting-st-9" data-ps-st-sel="9" data-ps-str-aria="ps_lighting_st_row_aria" aria-label="Effect for this stage">
+            <option value="" data-ps-str="ps_lighting_st_inherit">Same as the state</option>
+            </select>
+            <svg class="ps-icon"><use href="#ps-icon-chevron-down"/></svg>
+          </div>
+        </div>
+        <div class="ps-row ps-st-row" data-ps-st="10">
+          <svg class="ps-icon"><use href="#ps-icon-spool-end"/></svg>
+          <span class="ps-st-name" data-ps-str="ps_images_slot_filament_pull_back_cur">Filament pull back</span>
+          <span class="ps-st-now" id="ps-lighting-st-now-10" data-ps-str="ps_lighting_st_now" hidden>now</span>
+          <span class="max"></span>
+          <div class="field suffix border small ps-st-field" data-ps-no-i18n>
+            <select id="ps-lighting-st-10" data-ps-st-sel="10" data-ps-str-aria="ps_lighting_st_row_aria" aria-label="Effect for this stage">
+            <option value="" data-ps-str="ps_lighting_st_inherit">Same as the state</option>
+            </select>
+            <svg class="ps-icon"><use href="#ps-icon-chevron-down"/></svg>
+          </div>
+        </div>
+        <div class="ps-row ps-st-row" data-ps-st="11">
+          <svg class="ps-icon"><use href="#ps-icon-spool"/></svg>
+          <span class="ps-st-name" data-ps-str="ps_images_slot_filament_push_new">Filament push new</span>
+          <span class="ps-st-now" id="ps-lighting-st-now-11" data-ps-str="ps_lighting_st_now" hidden>now</span>
+          <span class="max"></span>
+          <div class="field suffix border small ps-st-field" data-ps-no-i18n>
+            <select id="ps-lighting-st-11" data-ps-st-sel="11" data-ps-str-aria="ps_lighting_st_row_aria" aria-label="Effect for this stage">
+            <option value="" data-ps-str="ps_lighting_st_inherit">Same as the state</option>
+            </select>
+            <svg class="ps-icon"><use href="#ps-icon-chevron-down"/></svg>
+          </div>
+        </div>
+        <div class="ps-row ps-st-row" data-ps-st="12">
+          <svg class="ps-icon"><use href="#ps-icon-materials"/></svg>
+          <span class="ps-st-name" data-ps-str="ps_images_slot_filament_purge_old">Filament purge</span>
+          <span class="ps-st-now" id="ps-lighting-st-now-12" data-ps-str="ps_lighting_st_now" hidden>now</span>
+          <span class="max"></span>
+          <div class="field suffix border small ps-st-field" data-ps-no-i18n>
+            <select id="ps-lighting-st-12" data-ps-st-sel="12" data-ps-str-aria="ps_lighting_st_row_aria" aria-label="Effect for this stage">
+            <option value="" data-ps-str="ps_lighting_st_inherit">Same as the state</option>
+            </select>
+            <svg class="ps-icon"><use href="#ps-icon-chevron-down"/></svg>
+          </div>
+        </div>
+        <div class="ps-row ps-st-row" data-ps-st="13">
+          <svg class="ps-icon"><use href="#ps-icon-check-circle"/></svg>
+          <span class="ps-st-name" data-ps-str="ps_images_slot_printing_ok">Print finished</span>
+          <span class="ps-st-now" id="ps-lighting-st-now-13" data-ps-str="ps_lighting_st_now" hidden>now</span>
+          <span class="max"></span>
+          <div class="field suffix border small ps-st-field" data-ps-no-i18n>
+            <select id="ps-lighting-st-13" data-ps-st-sel="13" data-ps-str-aria="ps_lighting_st_row_aria" aria-label="Effect for this stage">
+            <option value="" data-ps-str="ps_lighting_st_inherit">Same as the state</option>
+            </select>
+            <svg class="ps-icon"><use href="#ps-icon-chevron-down"/></svg>
+          </div>
+        </div>
+        <div class="ps-row ps-st-row" data-ps-st="14">
+          <svg class="ps-icon"><use href="#ps-icon-printer-enclosed"/></svg>
+          <span class="ps-st-name" data-ps-str="ps_images_slot_printing">Printing</span>
+          <span class="ps-st-now" id="ps-lighting-st-now-14" data-ps-str="ps_lighting_st_now" hidden>now</span>
+          <span class="max"></span>
+          <div class="field suffix border small ps-st-field" data-ps-no-i18n>
+            <select id="ps-lighting-st-14" data-ps-st-sel="14" data-ps-str-aria="ps_lighting_st_row_aria" aria-label="Effect for this stage">
+            <option value="" data-ps-str="ps_lighting_st_inherit">Same as the state</option>
+            </select>
+            <svg class="ps-icon"><use href="#ps-icon-chevron-down"/></svg>
+          </div>
+        </div>
+      </div>
+      <div class="ps-tile-label" id="ps-lighting-st-none" data-ps-str="ps_lighting_st_none" hidden>Save a named effect first; the rows offer the saved ones.</div>
+      <div class="ps-tile-label" data-ps-str="ps_lighting_st_help">Set three states, override the two stages that matter, done. The stage comes from the printer's report.</div>
+    </div>
+
     <div class="ps-tile" id="ps-lighting-colours">
       <div class="ps-tile-label" data-ps-str="ps_lighting_colours">State colours</div>
       <div class="ps-grid ps-grid-2" data-ps-no-i18n>

@@ -57,6 +57,7 @@ extern const char *const ps_gif_slot_names[PS_GIF_SLOTS];
 #define PS_FEAT_ERROR_FLASH       (1u << 12)  /* A12: the error flash layer */
 #define PS_FEAT_PREVIEW           (1u << 13)  /* A13: the live preview route, a pinned printer state */
 #define PS_FEAT_PRESETS           (1u << 14)  /* A14: the named effects and the two palette effects */
+#define PS_FEAT_STAGE_EFFECTS     (1u << 15)  /* B1, B2: an effect per print stage, inheriting the bar state's */
 
 /* which of the printer's temperatures a feature follows (INFERENCE: the report's
  * nozzle_temper, bed_temper and chamber_temper, the fields the vent reads) */
@@ -204,12 +205,29 @@ int  ps_presets_load(ps_presets_t *s);   /* the stored list, or an empty one; ne
 int  ps_presets_save(const ps_presets_t *s);
 void ps_presets_clamp(ps_presets_t *s);
 
+/* B1, B2: an effect per print stage, in its own blob. A row that is not set inherits the bar
+ * state's effect; a set row is a state_effects entry with the name it was assigned from. */
+#define PS_STAGES_NVS_KEY  "stages"
+#define PS_STAGES_MAGIC    0x50535331u   /* 'P' 'S' 'S' '1' */
+typedef struct { uint8_t set; uint8_t _pad[3]; char name[PS_PRESET_NAME]; ps_fx_cfg_t fx; } ps_stage_row_t;   /* 44 bytes */
+typedef struct { uint32_t magic; ps_stage_row_t row[PS_GIF_SLOTS]; } ps_stages_t;                             /* 664 bytes */
+#define PS_STAGES_SIZE     664
+int  ps_stages_load(ps_stages_t *s);     /* the stored rows, or none set; never fails the boot */
+int  ps_stages_save(const ps_stages_t *s);
+void ps_stages_clamp(ps_stages_t *s);
+
 /* what to render this frame, from the config and the live state, honouring every feature
  * bit (A1 to A5); fx < 0 means the placeholder in the state's colour. Pure, in ps_fx.c,
  * host-tested. */
 typedef struct { int fx; ps_rgba_t colour, bg; uint8_t brightness, speed; bool reverse; int bright_end; int band;
                  ps_rgba_t stops[4]; int nstops; } ps_fx_pick_t;   /* stops: the palette effects' colours, in order (A14) */
 void ps_fx_resolve(const ps_cfg_t *c, uint8_t mode, uint8_t st, bool job_active, ps_fx_pick_t *out);
+/* the same with a per-stage row (B1, B2): a set row replaces the state's entry while bit 15 is on;
+ * NULL or an unset row inherits the state's, which is what the plain resolve does */
+void ps_fx_resolve_stage(const ps_cfg_t *c, uint8_t mode, uint8_t st, bool job_active, const ps_stage_row_t *row, ps_fx_pick_t *out);
+/* INFERENCE: the print stage as one of the fifteen display slots, from the report's gcode_state
+ * and stg_cur; pure, host-tested; the MQTT capture corrects its table */
+uint8_t ps_stage_from_report(const char *gcode_state, int stg_cur);
 
 /* ---------------------------------------------------------- the live state ---- */
 typedef struct { char ssid[33]; int8_t rssi; } ps_wifi_hit_t;          /* INFERENCE shape */
@@ -242,6 +260,10 @@ typedef struct {
     int16_t  pin_temp[PS_TEMP_COUNT];  /* PS_TEMP_NONE where the pin gives none: the live reading shows through */
     int64_t  pin_until_us;             /* esp_timer time the pin expires */
     ps_presets_t presets;              /* A14: the named effects, loaded at boot */
+    ps_stages_t  stages;               /* B1, B2: the per-stage rows, loaded at boot */
+    uint8_t  stage;                    /* INFERENCE: the current print stage as a display slot 0..14 (ps_stage_from_report) */
+    int16_t  stg_cur;                  /* INFERENCE: print.stg_cur from the report, -1 until one arrives */
+    int8_t   pin_stage;                /* B3: the pinned stage while the pin is live, -1 for none */
     /* images */
     char     img_version[16];          /* empty until an image pack says otherwise */
 } ps_state_t;
@@ -328,6 +350,10 @@ int ps_api_preview_post(httpd_req_t *req);
 int ps_preview_apply(const char *json, size_t len);   /* the pin from its JSON, whole or refused; 0 on success */
 char *ps_preview_json(void);                          /* the pin as the page reads it; cJSON_free() it */
 int ps_http_redirect_portal(httpd_req_t *req);        /* the wildcard's answer, for a route that must look absent */
+int ps_api_stages_get(httpd_req_t *req);              /* B1, B2: GET/POST /api/stages; a 302 while bit 15 is off */
+int ps_api_stages_post(httpd_req_t *req);
+int ps_stages_apply(const char *json, size_t len);    /* assign a named effect to a stage, clear one, or the whole table; 0 on success */
+char *ps_stages_json(void);                           /* the rows and the current stage as the page reads them; cJSON_free() it */
 int ps_api_presets_get(httpd_req_t *req);             /* A14: GET/POST /api/presets; a 302 while bit 14 is off */
 int ps_api_presets_post(httpd_req_t *req);
 int ps_presets_apply(const char *json, size_t len);   /* the whole list, or one preset into one state; 0 on success */

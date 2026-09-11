@@ -396,5 +396,13 @@
   "ps_lighting_ed_load": "Rediger",
   "ps_lighting_ed_delete": "Slett",
   "ps_lighting_ed_full": "Åtte lagrede effekter er grensen; slett en først.",
-  "ps_lighting_ed_help": "Lagring under et eksisterende navn erstatter det. Bruk kopierer effekten til tilstanden ovenfor; de to fargestoppeffektene trenger bryteren for effektfarger for å lese stoppene sine."
+  "ps_lighting_ed_help": "Lagring under et eksisterende navn erstatter det. Bruk kopierer effekten til tilstanden ovenfor; de to fargestoppeffektene trenger bryteren for effektfarger for å lese stoppene sine.",
+  "ps_feature_stage_effects": "Effekter per trinn",
+  "ps_feature_stage_effects_help": "Hvert av skjermens femten trinn får sin egen navngitte effekt; et trinn uten tildeling tar tilstandens effekt.",
+  "ps_feature_stage_effects_aria": "Effekter per trinn",
+  "ps_lighting_st_inherit": "Som tilstanden",
+  "ps_lighting_st_now": "nå",
+  "ps_lighting_st_none": "Lagre en navngitt effekt først; radene tilbyr de lagrede.",
+  "ps_lighting_st_help": "Still inn tre tilstander, overstyr de to trinnene som betyr noe, ferdig. Trinnet kommer fra skriverens rapport.",
+  "ps_lighting_st_row_aria": "Effekt for dette trinnet"
 }

@@ -548,6 +548,49 @@ async function drive(browser, combo) {
   await page.waitForFunction(() => PS.features.features.presets === false, null, { timeout: 2000 }).catch(() => {});
   await go(page, '#lighting');
   t(`${tag} O13 the tile hides, the error state fell back to Static, and the route is gone again`, await waitHidden(page, 'ps-lighting-ed', true) && (await val(page, 'ps-lighting-fx-2')) === '0' && (await edPost({ presets: [] })) === 302);
+
+  // ---- B1, B2: a named effect per stage, inheriting the state's ----
+  const stFrame = (body) => JSON.stringify({ api: '/api/stages', body });
+  const stPost = (body) => page.evaluate(async (b) => { const r = await fetch('/api/stages', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(b), redirect: 'manual' }); return r.type === 'opaqueredirect' ? 302 : r.status; }, body);
+  t(`${tag} P1 with stage_effects off the tile is hidden and the route answers 302`, (await hidden(page, 'ps-lighting-st')) && (await stPost({ clear: { stage: 0 } })) === 302);
+  await go(page, '#system');
+  await waitHidden(page, 'ps-system-features', false);
+  n = await count();
+  await toggle(page, 'ps-system-feature-presets');
+  got = await sentAfter(n);
+  t(`${tag} P2 named effects back on for the rows to offer one`, got.length === 1 && got[0] === apiFrame({ features: { presets: true } }), got);
+  await page.waitForFunction(() => PS.features.features.presets === true, null, { timeout: 2000 }).catch(() => {});
+  t(`${tag} P3 a preset saved by the route for the rows to use`, (await edPost({ presets: [ocean] })) === 200);
+  n = await count();
+  await toggle(page, 'ps-system-feature-stage-effects');
+  got = await sentAfter(n);
+  t(`${tag} P4 turning effects per stage on sends exactly {"features":{"stage_effects":true}}`, got.length === 1 && got[0] === apiFrame({ features: { stage_effects: true } }), got);
+  await page.waitForFunction(() => PS.features.features.stage_effects === true, null, { timeout: 2000 }).catch(() => {});
+  await go(page, '#lighting');
+  t(`${tag} P5 the tile shows fifteen rows, each offering the state and Ocean, every row inheriting, standby marked now`, await waitHidden(page, 'ps-lighting-st', false)
+    && await page.waitForFunction(() => document.querySelectorAll('[data-ps-st-sel]').length === 15 && [...document.querySelectorAll('[data-ps-st-sel]')].every((s) => s.options.length === 2 && s.options[1].value === 'Ocean' && s.value === ''), null, { timeout: 3000 }).then(() => true).catch(() => false)
+    && !(await hidden(page, 'ps-lighting-st-now-0')) && (await hidden(page, 'ps-lighting-st-now-7')));
+  n = await count();
+  await $(page, 'ps-lighting-st-7').selectOption('Ocean');
+  got = await sentAfter(n);
+  t(`${tag} P6 choosing Ocean for the mesh sweep sends exactly {"assign":{"stage":7,"name":"Ocean"}}`, got.length === 1 && got[0] === stFrame({ assign: { stage: 7, name: 'Ocean' } }), got);
+  t(`${tag} P7 the answer lands: the row reads Ocean and the others still inherit`, await page.waitForFunction(() => document.getElementById('ps-lighting-st-7').value === 'Ocean' && document.getElementById('ps-lighting-st-6').value === '', null, { timeout: 2000 }).then(() => true).catch(() => false));
+  await pw.shot(page, `features-lighting-st-${combo.theme}-${combo.width}`, { full: true });
+  n = await count();
+  await $(page, 'ps-lighting-st-7').selectOption('');
+  got = await sentAfter(n);
+  t(`${tag} P8 choosing the state again sends exactly {"clear":{"stage":7}}`, got.length === 1 && got[0] === stFrame({ clear: { stage: 7 } }), got);
+  t(`${tag} P9 the row inherits again`, await page.waitForFunction(() => document.getElementById('ps-lighting-st-7').value === '', null, { timeout: 2000 }).then(() => true).catch(() => false));
+  t(`${tag} P10 an unknown name and a sixteenth stage are refused (400)`, (await stPost({ assign: { stage: 7, name: 'nope' } })) === 400 && (await stPost({ assign: { stage: 15, name: 'Ocean' } })) === 400);
+  await go(page, '#system');
+  await waitHidden(page, 'ps-system-features', false);
+  n = await count();
+  await toggle(page, 'ps-system-feature-stage-effects');
+  got = await sentAfter(n);
+  t(`${tag} P11 turning effects per stage off sends exactly {"features":{"stage_effects":false}}`, got.length === 1 && got[0] === apiFrame({ features: { stage_effects: false } }), got);
+  await page.waitForFunction(() => PS.features.features.stage_effects === false, null, { timeout: 2000 }).catch(() => {});
+  t(`${tag} P12 the preset removed and named effects off again, the tile hidden and the route gone`, (await edPost({ presets: [] })) === 200 && (await (async () => { n = await count(); await toggle(page, 'ps-system-feature-presets'); got = await sentAfter(n); return got.length === 1 && got[0] === apiFrame({ features: { presets: false } }); })())
+    && (await (async () => { await page.waitForFunction(() => PS.features.features.presets === false, null, { timeout: 2000 }).catch(() => {}); await go(page, '#lighting'); return (await waitHidden(page, 'ps-lighting-st', true)) && (await stPost({ clear: { stage: 0 } })) === 302; })()));
   await go(page, '#system');
   await waitHidden(page, 'ps-system-features', false);
   n = await count();

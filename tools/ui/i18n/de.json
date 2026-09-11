@@ -396,5 +396,13 @@
   "ps_lighting_ed_load": "Bearbeiten",
   "ps_lighting_ed_delete": "Löschen",
   "ps_lighting_ed_full": "Acht gespeicherte Effekte sind die Grenze; erst einen löschen.",
-  "ps_lighting_ed_help": "Speichern unter einem vorhandenen Namen ersetzt ihn. Verwenden kopiert den Effekt in den Zustand oben; die beiden Stützpunkt-Effekte brauchen den Schalter für Effektfarben, um ihre Stützpunkte zu lesen."
+  "ps_lighting_ed_help": "Speichern unter einem vorhandenen Namen ersetzt ihn. Verwenden kopiert den Effekt in den Zustand oben; die beiden Stützpunkt-Effekte brauchen den Schalter für Effektfarben, um ihre Stützpunkte zu lesen.",
+  "ps_feature_stage_effects": "Effekte je Druckphase",
+  "ps_feature_stage_effects_help": "Jede der fünfzehn Phasen des Displays bekommt ihren eigenen benannten Effekt; eine Phase ohne Zuweisung übernimmt den Effekt ihres Zustands.",
+  "ps_feature_stage_effects_aria": "Effekte je Druckphase",
+  "ps_lighting_st_inherit": "Wie der Zustand",
+  "ps_lighting_st_now": "jetzt",
+  "ps_lighting_st_none": "Zuerst einen benannten Effekt speichern; die Zeilen bieten die gespeicherten an.",
+  "ps_lighting_st_help": "Drei Zustände einstellen, die zwei Phasen überschreiben, die zählen, fertig. Die Phase kommt aus dem Bericht des Druckers.",
+  "ps_lighting_st_row_aria": "Effekt für diese Phase"
 }

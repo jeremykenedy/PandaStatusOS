@@ -110,6 +110,11 @@ the dump to learn the layout.
 
 ### Per-stage colour
 
+**BUILT (B1, B2, D-040).** Feature bit 15, `stage_effects`: a named effect per display
+slot, fifteen rows in their own blob, a row without one inheriting its bar state's effect
+([FEATURES.md](FEATURES.md)). The stage is read from the report by an INFERENCE table
+that the capture below corrects; the caveat that sizes the work still stands.
+
 **What it does.** Give each of the 15 print stages its own bar colour, instead of
 collapsing them into three states.
 

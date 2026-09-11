@@ -44,7 +44,7 @@
   }
 
   function render() {
-    renderSb(); renderFx(); renderFxc(); renderFxp(); renderFxr(); renderTg(); renderHot(); renderEf(); renderPv(); renderEd();
+    renderSb(); renderFx(); renderFxc(); renderFxp(); renderFxr(); renderTg(); renderHot(); renderEf(); renderPv(); renderEd(); renderSt();
     var m = mode(), e = entry();
     if (m !== null && document.activeElement !== modeSel) modeSel.value = String(m);
     var isMusic = m === 0;
@@ -316,7 +316,7 @@
       var del = document.createElement('button'); del.className = 'border small'; del.textContent = PS.tr('ps_lighting_ed_delete'); del.setAttribute('data-ps-ed-delete', '');
       del.addEventListener('click', function () {
         var rest = items.filter(function (q) { return q.name !== p.name; }).map(edStrip);
-        PS.post('/api/presets', { presets: rest }, function (doc) { if (doc) { presets = doc; edList(); } });
+        PS.post('/api/presets', { presets: rest }, function (doc) { if (doc) { presets = doc; edList(); stList(); } });
       });
       row.appendChild(ed); row.appendChild(del);
       list.appendChild(row);
@@ -348,7 +348,51 @@
       var items = ((presets && presets.presets) || []).filter(function (q) { return q.name !== p.name; }).map(edStrip);
       if (items.length >= ((presets && presets.max) || 8)) { PS.toast(PS.tr('ps_lighting_ed_full')); return; }
       items.push(p);
-      PS.post('/api/presets', { presets: items }, function (doc) { if (doc) { presets = doc; edList(); } });
+      PS.post('/api/presets', { presets: items }, function (doc) { if (doc) { presets = doc; edList(); stList(); } });
+    });
+  }
+  // B1, B2: a named effect per stage; a row without one inherits its state's
+  var stages = null;
+  function stNames() {
+    var names = ((presets && presets.presets) || []).map(function (p) { return p.name; });
+    return names;
+  }
+  function stFill(sel, names, own) {
+    var want = names.slice(); if (own && want.indexOf(own) < 0) want.push(own);
+    var have = Array.prototype.slice.call(sel.options, 1).map(function (o) { return o.value; });
+    if (have.join('\n') === want.join('\n')) return;
+    while (sel.options.length > 1) sel.remove(1);
+    want.forEach(function (nm) { var o = document.createElement('option'); o.value = nm; o.textContent = nm; sel.appendChild(o); });
+  }
+  function stList() {
+    var rows = (stages && stages.stages) || [], names = stNames();
+    var none = $('ps-lighting-st-none'); if (none) none.hidden = names.length > 0;
+    for (var i = 0; i < 15; i++) {
+      var sel = $('ps-lighting-st-' + i), now = $('ps-lighting-st-now-' + i); if (!sel) continue;
+      var r = rows[i];
+      stFill(sel, names, r && r.set ? r.name : '');
+      if (document.activeElement !== sel) sel.value = r && r.set ? r.name : '';
+      if (now) now.hidden = !(stages && stages.current === i);
+    }
+  }
+  function renderSt() {
+    var tile = $('ps-lighting-st'); if (!tile) return;
+    var f = PS.features;
+    var on = !!(f && f.features && f.features.stage_effects);
+    tile.hidden = !on;
+    if (!on) { stages = null; return; }
+    // the names are re-read each time: a preset saved by another client must reach the rows
+    if (f.features.presets) PS.get('/api/presets', function (doc) { if (doc) presets = doc; stList(); });
+    if (!stages) PS.get('/api/stages', function (doc) { stages = doc || { stages: [], current: -1 }; stList(); });
+    else stList();
+  }
+  function wireSt() {
+    document.querySelectorAll('[data-ps-st-sel]').forEach(function (sel) {
+      var i = Number(sel.getAttribute('data-ps-st-sel'));
+      sel.addEventListener('change', function () {
+        var body = sel.value ? { assign: { stage: i, name: sel.value } } : { clear: { stage: i } };
+        PS.post('/api/stages', body, function (doc) { if (doc) { stages = doc; stList(); } });
+      });
     });
   }
   function wireFxb() {
@@ -541,7 +585,7 @@
     bright.addEventListener('input', function () { brightVal.textContent = bright.value + '%'; });
     bright.addEventListener('change', function () { PS.send('settings', { rgb_info_brightness: Number(bright.value) }); });
     for (var i = 0; i < 3; i++) { wireSb(i); wireFx(i); }
-    wireFxc(); wireFxp(); wireFxr(); wireFxb(); wireTg(); wireHot(); wireEf(); wirePv(); wireEd();
+    wireFxc(); wireFxp(); wireFxr(); wireFxb(); wireTg(); wireHot(); wireEf(); wirePv(); wireEd(); wireSt();
     speed.addEventListener('input', function () { if (speed.disabled) return; speedTouched = true; speedVal.textContent = speed.value + '%'; });
     speed.addEventListener('change', function () { if (!speed.disabled) PS.send('settings', { rgb_info_speed: Number(speed.value) }); });
 
@@ -566,5 +610,5 @@
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', wire); else wire();
   PS.on('state', function () { render(); });
-  PS.on('features', function () { renderSb(); renderFx(); renderFxc(); renderFxp(); renderFxr(); renderTg(); renderHot(); renderEf(); renderPv(); renderEd(); });
+  PS.on('features', function () { renderSb(); renderFx(); renderFxc(); renderFxp(); renderFxr(); renderTg(); renderHot(); renderEf(); renderPv(); renderEd(); renderSt(); });
 })();

@@ -18,6 +18,10 @@ Everything so far. No release has been made and no device has been flashed.
 - The clone's own JSON route, `/api/features`: the page discovers a clone by its 200 where
   the factory answers 302, and shows a Features card on the System page only then. The
   socket document stays the factory's (D-033).
+- B1 and B2, effects per stage with inheritance, behind `stage_effects`: fifteen rows,
+  one per display slot, each a named effect copied in or the bar state's effect when
+  unset, in their own blob; the stage from the printer's report by an INFERENCE table
+  (D-040).
 - A14, the named effects, behind `presets`: an editor that saves an effect with its
   colours as stops, timing and direction under a name, eight of them in their own blob,
   and copies one into any state; two palette effects that lay the colours across the bar,

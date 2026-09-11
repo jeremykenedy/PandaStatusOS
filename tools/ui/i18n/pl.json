@@ -396,5 +396,13 @@
   "ps_lighting_ed_load": "Edytuj",
   "ps_lighting_ed_delete": "Usuń",
   "ps_lighting_ed_full": "Osiem zapisanych efektów to limit; najpierw usuń jeden.",
-  "ps_lighting_ed_help": "Zapis pod istniejącą nazwą zastępuje ją. Użycie kopiuje efekt do stanu powyżej; dwa efekty punktów koloru wymagają przełącznika kolorów efektu, by odczytać swoje punkty."
+  "ps_lighting_ed_help": "Zapis pod istniejącą nazwą zastępuje ją. Użycie kopiuje efekt do stanu powyżej; dwa efekty punktów koloru wymagają przełącznika kolorów efektu, by odczytać swoje punkty.",
+  "ps_feature_stage_effects": "Efekty według etapu",
+  "ps_feature_stage_effects_help": "Każdy z piętnastu etapów wyświetlacza dostaje własny nazwany efekt; etap bez przypisania przejmuje efekt swojego stanu.",
+  "ps_feature_stage_effects_aria": "Efekty według etapu",
+  "ps_lighting_st_inherit": "Jak stan",
+  "ps_lighting_st_now": "teraz",
+  "ps_lighting_st_none": "Najpierw zapisz nazwany efekt; wiersze oferują zapisane.",
+  "ps_lighting_st_help": "Ustaw trzy stany, nadpisz dwa etapy, które się liczą, gotowe. Etap pochodzi z raportu drukarki.",
+  "ps_lighting_st_row_aria": "Efekt dla tego etapu"
 }

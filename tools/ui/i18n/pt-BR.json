@@ -396,5 +396,13 @@
   "ps_lighting_ed_load": "Editar",
   "ps_lighting_ed_delete": "Excluir",
   "ps_lighting_ed_full": "Oito efeitos salvos é o limite; exclua um primeiro.",
-  "ps_lighting_ed_help": "Salvar com um nome existente o substitui. Usar copia o efeito para o estado acima; os dois efeitos de pontos de cor precisam da chave de cores de efeito para ler seus pontos."
+  "ps_lighting_ed_help": "Salvar com um nome existente o substitui. Usar copia o efeito para o estado acima; os dois efeitos de pontos de cor precisam da chave de cores de efeito para ler seus pontos.",
+  "ps_feature_stage_effects": "Efeitos por etapa",
+  "ps_feature_stage_effects_help": "Cada uma das quinze etapas da tela recebe seu próprio efeito nomeado; uma etapa sem atribuição herda o efeito do seu estado.",
+  "ps_feature_stage_effects_aria": "Efeitos por etapa",
+  "ps_lighting_st_inherit": "Igual ao estado",
+  "ps_lighting_st_now": "agora",
+  "ps_lighting_st_none": "Salve um efeito nomeado primeiro; as linhas oferecem os salvos.",
+  "ps_lighting_st_help": "Ajuste três estados, sobrescreva as duas etapas que importam, pronto. A etapa vem do relatório da impressora.",
+  "ps_lighting_st_row_aria": "Efeito para esta etapa"
 }

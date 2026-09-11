@@ -127,6 +127,32 @@ uint32_t ps_fx_render_palette(int fx, const ps_rgba_t *stops, int nstops, uint8_
     return ps_fx_period(speed);
 }
 
+/* INFERENCE, B1: the print stage as one of the fifteen display slots, from the report's
+ * gcode_state and stg_cur. The codes are the printer's own stage numbers as the community
+ * documents them and as the vent has met them in its logs; nothing here has been checked
+ * against this device, and the MQTT capture corrects the table. A running job with a code
+ * the table does not know is `printing`; a finished job is `printing_ok`; anything else is
+ * `standby`. The slot numbers are the device's order (ps_gif_slot_names). */
+uint8_t ps_stage_from_report(const char *gcode_state, int stg_cur)
+{
+    if (!gcode_state) return 0;
+    if (!strcmp(gcode_state, "FINISH")) return 13;                                  /* printing_ok */
+    if (strcmp(gcode_state, "RUNNING") && strcmp(gcode_state, "PREPARE") && strcmp(gcode_state, "PAUSE")) return 0;   /* standby */
+    switch (stg_cur) {
+    case 1:            return 3;    /* bed_leveling */
+    case 2:            return 2;    /* bed_heating */
+    case 3:            return 7;    /* xy_mesh_mode_sweep */
+    case 4:            return 8;    /* filament_check_location: a filament change under way */
+    case 7:            return 1;    /* nozzle_heating */
+    case 8: case 19:   return 6;    /* calibrating_flow */
+    case 13:           return 4;    /* homing */
+    case 14:           return 5;    /* nozzle_cleaning */
+    case 22:           return 10;   /* filament_pull_back_cur */
+    case 24:           return 11;   /* filament_push_new */
+    default:           return 14;   /* printing */
+    }
+}
+
 /* Which effects the bits allow. The first seventeen need no live input and come with A2;
  * the ones that read the print or the printer each wait for their own switch. */
 bool ps_fx_allowed(uint32_t features, int fx)
@@ -185,11 +211,17 @@ uint8_t ps_fx_ramp(ps_fx_phase_t *p, uint8_t bright, int bright_end)
  * With every bit clear the answer is the factory's colour, brightness and speed, solid. */
 void ps_fx_resolve(const ps_cfg_t *c, uint8_t mode, uint8_t st, bool job_active, ps_fx_pick_t *o)
 {
+    ps_fx_resolve_stage(c, mode, st, job_active, NULL, o);
+}
+
+void ps_fx_resolve_stage(const ps_cfg_t *c, uint8_t mode, uint8_t st, bool job_active, const ps_stage_row_t *row, ps_fx_pick_t *o)
+{
     if (mode > PS_MODE_H2D) mode = PS_MODE_H2D;
     if (st > PS_BAR_ERROR) st = PS_BAR_IDLE;
     const ps_mode_cfg_t *m = &c->mode[mode];
-    const ps_fx_cfg_t *f = &c->fx[st];
     uint32_t feat = c->features;
+    /* B2: a set stage row stands in for the state's entry; every bit below reads it the same way */
+    const ps_fx_cfg_t *f = (row && row->set && (feat & PS_FEAT_STAGE_EFFECTS)) ? &row->fx : &c->fx[st];
     o->fx = -1;
     o->colour = m->colour[st];
     o->bg = (ps_rgba_t){ 0, 0, 0, 0xFF };

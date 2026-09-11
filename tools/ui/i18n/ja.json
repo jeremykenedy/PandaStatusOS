@@ -396,5 +396,13 @@
   "ps_lighting_ed_load": "編集",
   "ps_lighting_ed_delete": "削除",
   "ps_lighting_ed_full": "保存できる効果は8個までです。先に1つ削除してください。",
-  "ps_lighting_ed_help": "既存の名前で保存すると置き換えられます。「使う」を押すと上の状態の効果にコピーされます。2つの色の区切り点効果は、区切り点を読むために効果の色のスイッチが必要です。"
+  "ps_lighting_ed_help": "既存の名前で保存すると置き換えられます。「使う」を押すと上の状態の効果にコピーされます。2つの色の区切り点効果は、区切り点を読むために効果の色のスイッチが必要です。",
+  "ps_feature_stage_effects": "段階ごとの効果",
+  "ps_feature_stage_effects_help": "ディスプレイの15段階それぞれに名前付き効果を割り当てられます。割り当てのない段階は、その状態の効果を引き継ぎます。",
+  "ps_feature_stage_effects_aria": "段階ごとの効果",
+  "ps_lighting_st_inherit": "状態と同じ",
+  "ps_lighting_st_now": "現在",
+  "ps_lighting_st_none": "先に名前付き効果を保存してください。各行には保存した効果が並びます。",
+  "ps_lighting_st_help": "3つの状態を設定し、重要な2つの段階だけ上書きすれば完了です。段階はプリンターの報告から取得します。",
+  "ps_lighting_st_row_aria": "この段階の効果"
 }

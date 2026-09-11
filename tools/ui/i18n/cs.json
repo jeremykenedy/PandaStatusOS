@@ -396,5 +396,13 @@
   "ps_lighting_ed_load": "Upravit",
   "ps_lighting_ed_delete": "Smazat",
   "ps_lighting_ed_full": "Osm uložených efektů je limit; nejdříve jeden smažte.",
-  "ps_lighting_ed_help": "Uložení pod existujícím názvem jej nahradí. Použití zkopíruje efekt do stavu výše; dva efekty barevných bodů potřebují přepínač barev efektu, aby přečetly své body."
+  "ps_lighting_ed_help": "Uložení pod existujícím názvem jej nahradí. Použití zkopíruje efekt do stavu výše; dva efekty barevných bodů potřebují přepínač barev efektu, aby přečetly své body.",
+  "ps_feature_stage_effects": "Efekty podle fáze",
+  "ps_feature_stage_effects_help": "Každá z patnácti fází displeje dostane vlastní pojmenovaný efekt; fáze bez přiřazení převezme efekt svého stavu.",
+  "ps_feature_stage_effects_aria": "Efekty podle fáze",
+  "ps_lighting_st_inherit": "Jako stav",
+  "ps_lighting_st_now": "teď",
+  "ps_lighting_st_none": "Nejprve uložte pojmenovaný efekt; řádky nabízejí uložené.",
+  "ps_lighting_st_help": "Nastavte tři stavy, přepište dvě fáze, na kterých záleží, hotovo. Fáze pochází ze zprávy tiskárny.",
+  "ps_lighting_st_row_aria": "Efekt pro tuto fázi"
 }

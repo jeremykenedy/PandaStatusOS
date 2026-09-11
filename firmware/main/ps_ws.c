@@ -221,6 +221,8 @@ int ps_ws_start(void)
     httpd_uri_t pv_p   = { .uri = "/api/preview",  .method = HTTP_POST, .handler = ps_api_preview_post };
     httpd_uri_t pr_g   = { .uri = "/api/presets",  .method = HTTP_GET,  .handler = ps_api_presets_get };    /* A14; answers 302 while its bit is off */
     httpd_uri_t pr_p   = { .uri = "/api/presets",  .method = HTTP_POST, .handler = ps_api_presets_post };
+    httpd_uri_t sg_g   = { .uri = "/api/stages",   .method = HTTP_GET,  .handler = ps_api_stages_get };     /* B1, B2; answers 302 while its bit is off */
+    httpd_uri_t sg_p   = { .uri = "/api/stages",   .method = HTTP_POST, .handler = ps_api_stages_post };
     httpd_uri_t any_g  = { .uri = "/*",   .method = HTTP_GET,  .handler = redirect_portal };
     httpd_uri_t any_p  = { .uri = "/*",   .method = HTTP_POST, .handler = redirect_portal };
     httpd_uri_t any_h  = { .uri = "/*",   .method = HTTP_HEAD, .handler = redirect_portal };
@@ -236,6 +238,8 @@ int ps_ws_start(void)
     httpd_register_uri_handler(s_hd, &pv_p);
     httpd_register_uri_handler(s_hd, &pr_g);
     httpd_register_uri_handler(s_hd, &pr_p);
+    httpd_register_uri_handler(s_hd, &sg_g);
+    httpd_register_uri_handler(s_hd, &sg_p);
     httpd_register_uri_handler(s_hd, &any_g);
     httpd_register_uri_handler(s_hd, &any_p);
     httpd_register_uri_handler(s_hd, &any_h);

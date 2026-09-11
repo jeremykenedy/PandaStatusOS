@@ -396,5 +396,13 @@
   "ps_lighting_ed_load": "Rediger",
   "ps_lighting_ed_delete": "Slet",
   "ps_lighting_ed_full": "Otte gemte effekter er grænsen; slet en først.",
-  "ps_lighting_ed_help": "At gemme under et eksisterende navn erstatter det. Brug kopierer effekten til tilstanden ovenfor; de to farvestopeffekter kræver kontakten for effektfarver for at læse deres stop."
+  "ps_lighting_ed_help": "At gemme under et eksisterende navn erstatter det. Brug kopierer effekten til tilstanden ovenfor; de to farvestopeffekter kræver kontakten for effektfarver for at læse deres stop.",
+  "ps_feature_stage_effects": "Effekter pr. trin",
+  "ps_feature_stage_effects_help": "Hvert af skærmens femten trin får sin egen navngivne effekt; et trin uden tildeling tager sin tilstands effekt.",
+  "ps_feature_stage_effects_aria": "Effekter pr. trin",
+  "ps_lighting_st_inherit": "Som tilstanden",
+  "ps_lighting_st_now": "nu",
+  "ps_lighting_st_none": "Gem først en navngivet effekt; rækkerne tilbyder de gemte.",
+  "ps_lighting_st_help": "Indstil tre tilstande, tilsidesæt de to trin, der betyder noget, færdig. Trinnet kommer fra printerens rapport.",
+  "ps_lighting_st_row_aria": "Effekt for dette trin"
 }

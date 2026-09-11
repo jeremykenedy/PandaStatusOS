@@ -396,5 +396,13 @@
   "ps_lighting_ed_load": "Muokkaa",
   "ps_lighting_ed_delete": "Poista",
   "ps_lighting_ed_full": "Kahdeksan tallennettua tehostetta on raja; poista ensin yksi.",
-  "ps_lighting_ed_help": "Tallennus olemassa olevalla nimellä korvaa sen. Käyttö kopioi tehosteen yllä olevaan tilaan; kaksi väripistetehostetta tarvitsevat tehostevärien kytkimen lukeakseen pisteensä."
+  "ps_lighting_ed_help": "Tallennus olemassa olevalla nimellä korvaa sen. Käyttö kopioi tehosteen yllä olevaan tilaan; kaksi väripistetehostetta tarvitsevat tehostevärien kytkimen lukeakseen pisteensä.",
+  "ps_feature_stage_effects": "Tehosteet vaiheittain",
+  "ps_feature_stage_effects_help": "Jokainen näytön viidestätoista vaiheesta saa oman nimetyn tehosteensa; vaihe ilman määritystä perii tilansa tehosteen.",
+  "ps_feature_stage_effects_aria": "Tehosteet vaiheittain",
+  "ps_lighting_st_inherit": "Kuten tila",
+  "ps_lighting_st_now": "nyt",
+  "ps_lighting_st_none": "Tallenna ensin nimetty tehoste; rivit tarjoavat tallennetut.",
+  "ps_lighting_st_help": "Aseta kolme tilaa, ohita ne kaksi vaihetta, joilla on väliä, valmis. Vaihe tulee tulostimen raportista.",
+  "ps_lighting_st_row_aria": "Tehoste tälle vaiheelle"
 }

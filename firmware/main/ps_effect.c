@@ -44,15 +44,18 @@ static uint32_t render(void)
     uint8_t st = g_ps.bar_state; bool job = g_ps.job_active != 0; int percent = g_ps.print_percent;
     int temps[PS_TEMP_COUNT]; for (int i = 0; i < PS_TEMP_COUNT; i++) temps[i] = g_ps.temp_c[i];
     uint32_t pin_left_ms = 0;
+    uint8_t stage = g_ps.stage < PS_GIF_SLOTS ? g_ps.stage : 0;
     if (g_ps.pin_active) {
         int64_t now = esp_timer_get_time();
         if (now < g_ps.pin_until_us) {
             st = g_ps.pin_state; job = st == PS_BAR_PRINTING; percent = g_ps.pin_percent;
             for (int i = 0; i < PS_TEMP_COUNT; i++) if (g_ps.pin_temp[i] != PS_TEMP_NONE) temps[i] = g_ps.pin_temp[i];
+            if (g_ps.pin_stage >= 0 && g_ps.pin_stage < PS_GIF_SLOTS) stage = (uint8_t)g_ps.pin_stage;   /* B3 */
             pin_left_ms = (uint32_t)((g_ps.pin_until_us - now) / 1000) + 1;
         } else { g_ps.pin_active = 0; ESP_LOGI(TAG, "preview over"); }
     }
-    ps_fx_resolve(&g_ps.cfg, g_ps.cfg.current_mode, st, job, &k);
+    /* B1, B2: the row for this stage stands in for the state's entry while set; unset inherits */
+    ps_fx_resolve_stage(&g_ps.cfg, g_ps.cfg.current_mode, st, job, &g_ps.stages.row[stage], &k);
     uint8_t src = g_ps.cfg.temp_src < PS_TEMP_COUNT ? g_ps.cfg.temp_src : PS_TEMP_NOZZLE;
     int temp = temps[src], temp_lo = g_ps.cfg.temp_lo, temp_hi = g_ps.cfg.temp_hi;
 
