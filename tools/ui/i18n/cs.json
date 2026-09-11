@@ -285,5 +285,14 @@
   "ps_fx_fill_empty_in": "Naplnit a vyprázdnit dovnitř",
   "ps_lighting_fx_idle": "Nečinnost",
   "ps_lighting_fx_printing": "Tisk",
-  "ps_lighting_fx_error": "Chyba"
+  "ps_lighting_fx_error": "Chyba",
+  "ps_feature_effect_colours": "Barvy efektu",
+  "ps_feature_effect_colours_help": "Každý efekt má vlastní barvy, jednu svítící a jednu zhasnutou, každou pro tisk a pro zbytek, místo barvy stavu výše.",
+  "ps_feature_effect_colours_aria": "Barvy efektu",
+  "ps_lighting_fxc_help": "Svítící barva maluje tam, kde je efekt zapnutý; zhasnutá tam, kde je vypnutý, černá po vymazání. Tisk znamená běžící nebo pozastavenou úlohu.",
+  "ps_lighting_fxc_active_printing": "Svítící při tisku",
+  "ps_lighting_fxc_active_idle": "Svítící jinak",
+  "ps_lighting_fxc_bg_printing": "Zhasnutá při tisku",
+  "ps_lighting_fxc_bg_idle": "Zhasnutá jinak",
+  "ps_lighting_fxc_clear_aria": "Vymazat zhasnutou barvu"
 }

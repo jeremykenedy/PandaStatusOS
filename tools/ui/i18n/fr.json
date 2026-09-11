@@ -285,5 +285,14 @@
   "ps_fx_fill_empty_in": "Remplir et vider vers l'intérieur",
   "ps_lighting_fx_idle": "Repos",
   "ps_lighting_fx_printing": "Impression",
-  "ps_lighting_fx_error": "Erreur"
+  "ps_lighting_fx_error": "Erreur",
+  "ps_feature_effect_colours": "Couleurs de l'effet",
+  "ps_feature_effect_colours_help": "Chaque effet a ses propres couleurs, une allumée et une éteinte, chacune pour l'impression et pour le reste, au lieu de la couleur d'état ci-dessus.",
+  "ps_feature_effect_colours_aria": "Couleurs de l'effet",
+  "ps_lighting_fxc_help": "La couleur allumée peint là où l'effet est actif ; la couleur éteinte peint là où il ne l'est pas, noir si effacée. Impression signifie qu'un travail est en cours ou en pause.",
+  "ps_lighting_fxc_active_printing": "Allumé en impression",
+  "ps_lighting_fxc_active_idle": "Allumé sinon",
+  "ps_lighting_fxc_bg_printing": "Éteint en impression",
+  "ps_lighting_fxc_bg_idle": "Éteint sinon",
+  "ps_lighting_fxc_clear_aria": "Effacer la couleur éteinte"
 }

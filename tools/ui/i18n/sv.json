@@ -285,5 +285,14 @@
   "ps_fx_fill_empty_in": "Fyll och töm inåt",
   "ps_lighting_fx_idle": "Vila",
   "ps_lighting_fx_printing": "Utskrift",
-  "ps_lighting_fx_error": "Fel"
+  "ps_lighting_fx_error": "Fel",
+  "ps_feature_effect_colours": "Effektfärger",
+  "ps_feature_effect_colours_help": "Varje effekt får egna färger, en tänd och en släckt, var och en för utskrift och för annat, i stället för tillståndsfärgen ovan.",
+  "ps_feature_effect_colours_aria": "Effektfärger",
+  "ps_lighting_fxc_help": "Den tända färgen målar där effekten är på; den släckta målar där den är av, svart om den rensats. Utskrift betyder att ett jobb pågår eller är pausat.",
+  "ps_lighting_fxc_active_printing": "Tänd vid utskrift",
+  "ps_lighting_fxc_active_idle": "Tänd annars",
+  "ps_lighting_fxc_bg_printing": "Släckt vid utskrift",
+  "ps_lighting_fxc_bg_idle": "Släckt annars",
+  "ps_lighting_fxc_clear_aria": "Rensa den släckta färgen"
 }

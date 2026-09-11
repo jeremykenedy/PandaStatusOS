@@ -285,5 +285,14 @@
   "ps_fx_fill_empty_in": "Fyll og tøm innover",
   "ps_lighting_fx_idle": "Inaktiv",
   "ps_lighting_fx_printing": "Skriver ut",
-  "ps_lighting_fx_error": "Feil"
+  "ps_lighting_fx_error": "Feil",
+  "ps_feature_effect_colours": "Effektfarger",
+  "ps_feature_effect_colours_help": "Hver effekt får egne farger, én tent og én slukket, hver for utskrift og for ellers, i stedet for tilstandsfargen over.",
+  "ps_feature_effect_colours_aria": "Effektfarger",
+  "ps_lighting_fxc_help": "Den tente fargen maler der effekten er på; den slukkede maler der den er av, svart når den er fjernet. Utskrift betyr at en jobb pågår eller er satt på pause.",
+  "ps_lighting_fxc_active_printing": "Tent ved utskrift",
+  "ps_lighting_fxc_active_idle": "Tent ellers",
+  "ps_lighting_fxc_bg_printing": "Slukket ved utskrift",
+  "ps_lighting_fxc_bg_idle": "Slukket ellers",
+  "ps_lighting_fxc_clear_aria": "Fjern den slukkede fargen"
 }

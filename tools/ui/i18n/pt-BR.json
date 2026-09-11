@@ -285,5 +285,14 @@
   "ps_fx_fill_empty_in": "Encher e esvaziar para dentro",
   "ps_lighting_fx_idle": "Ocioso",
   "ps_lighting_fx_printing": "Imprimindo",
-  "ps_lighting_fx_error": "Erro"
+  "ps_lighting_fx_error": "Erro",
+  "ps_feature_effect_colours": "Cores do efeito",
+  "ps_feature_effect_colours_help": "Cada efeito tem suas próprias cores, uma acesa e uma apagada, cada uma para impressão e para o restante, em vez da cor do estado acima.",
+  "ps_feature_effect_colours_aria": "Cores do efeito",
+  "ps_lighting_fxc_help": "A cor acesa pinta onde o efeito está ligado; a apagada pinta onde está desligado, preto se limpa. Impressão significa um trabalho em andamento ou pausado.",
+  "ps_lighting_fxc_active_printing": "Acesa ao imprimir",
+  "ps_lighting_fxc_active_idle": "Acesa em outros casos",
+  "ps_lighting_fxc_bg_printing": "Apagada ao imprimir",
+  "ps_lighting_fxc_bg_idle": "Apagada em outros casos",
+  "ps_lighting_fxc_clear_aria": "Limpar a cor apagada"
 }

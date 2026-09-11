@@ -285,5 +285,14 @@
   "ps_fx_fill_empty_in": "Riempi e svuota verso l'interno",
   "ps_lighting_fx_idle": "Inattivo",
   "ps_lighting_fx_printing": "In stampa",
-  "ps_lighting_fx_error": "Errore"
+  "ps_lighting_fx_error": "Errore",
+  "ps_feature_effect_colours": "Colori dell'effetto",
+  "ps_feature_effect_colours_help": "Ogni effetto ha i propri colori, uno acceso e uno spento, ciascuno per la stampa e per il resto, invece del colore di stato qui sopra.",
+  "ps_feature_effect_colours_aria": "Colori dell'effetto",
+  "ps_lighting_fxc_help": "Il colore acceso dipinge dove l'effetto è attivo; quello spento dipinge dove non lo è, nero se cancellato. Stampa significa un lavoro in corso o in pausa.",
+  "ps_lighting_fxc_active_printing": "Acceso in stampa",
+  "ps_lighting_fxc_active_idle": "Acceso altrimenti",
+  "ps_lighting_fxc_bg_printing": "Spento in stampa",
+  "ps_lighting_fxc_bg_idle": "Spento altrimenti",
+  "ps_lighting_fxc_clear_aria": "Cancella il colore spento"
 }

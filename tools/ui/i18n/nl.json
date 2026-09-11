@@ -285,5 +285,14 @@
   "ps_fx_fill_empty_in": "Vullen en legen naar binnen",
   "ps_lighting_fx_idle": "Inactief",
   "ps_lighting_fx_printing": "Printen",
-  "ps_lighting_fx_error": "Fout"
+  "ps_lighting_fx_error": "Fout",
+  "ps_feature_effect_colours": "Effectkleuren",
+  "ps_feature_effect_colours_help": "Elk effect krijgt eigen kleuren, een brandende en een gedoofde, elk voor afdrukken en voor de rest, in plaats van de toestandskleur hierboven.",
+  "ps_feature_effect_colours_aria": "Effectkleuren",
+  "ps_lighting_fxc_help": "De brandende kleur kleurt waar het effect aan is; de gedoofde kleurt waar het uit is, zwart als gewist. Afdrukken betekent dat een taak loopt of gepauzeerd is.",
+  "ps_lighting_fxc_active_printing": "Brandend bij afdrukken",
+  "ps_lighting_fxc_active_idle": "Brandend anders",
+  "ps_lighting_fxc_bg_printing": "Gedoofd bij afdrukken",
+  "ps_lighting_fxc_bg_idle": "Gedoofd anders",
+  "ps_lighting_fxc_clear_aria": "Gedoofde kleur wissen"
 }

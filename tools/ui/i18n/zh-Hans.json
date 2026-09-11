@@ -285,5 +285,14 @@
   "ps_fx_fill_empty_in": "向内填充并清空",
   "ps_lighting_fx_idle": "空闲",
   "ps_lighting_fx_printing": "打印中",
-  "ps_lighting_fx_error": "错误"
+  "ps_lighting_fx_error": "错误",
+  "ps_feature_effect_colours": "效果颜色",
+  "ps_feature_effect_colours_help": "每个效果使用自己的颜色而不是上方的状态颜色：一个点亮色、一个熄灭色，分别用于打印中和其他时候。",
+  "ps_feature_effect_colours_aria": "效果颜色",
+  "ps_lighting_fxc_help": "点亮色绘制效果亮起的位置；熄灭色绘制其熄灭的位置，清除后为黑色。打印中指作业正在运行或已暂停。",
+  "ps_lighting_fxc_active_printing": "打印中点亮色",
+  "ps_lighting_fxc_active_idle": "其他时候点亮色",
+  "ps_lighting_fxc_bg_printing": "打印中熄灭色",
+  "ps_lighting_fxc_bg_idle": "其他时候熄灭色",
+  "ps_lighting_fxc_clear_aria": "清除熄灭色"
 }

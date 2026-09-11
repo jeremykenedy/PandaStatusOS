@@ -48,8 +48,9 @@ body.dark  .ps-mark-light { display: none; }
 .ps-feature { display: flex; gap: 12px; align-items: flex-start; padding-top: 8px; }
 .ps-feature .switch { flex: none; margin-top: 2px; }
 .ps-feature-name { font-weight: 600; }
-.ps-grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
-@media (max-width: 991px) { .ps-grid-3 { grid-template-columns: minmax(0, 1fr); } }
+.ps-fxc { display: grid; gap: 6px; margin-top: 8px; }
+.ps-fxc-row { gap: 6px; align-items: center; }
+.ps-fxc-clear { flex: none; min-width: 2.25rem; padding: 0 0.5rem; }
 .ps-tile-head .ps-tile-label { margin: 0; }
 
 /* --- navigation. Rail on wide screens, bottom bar on phones. Same destinations, same
@@ -78,6 +79,7 @@ article[data-ps-card] {
 .ps-card-title { margin: 0 0 12px; font-size: 1.05rem; font-weight: 600; }
 .ps-grid { display: grid; grid-template-columns: 1fr; gap: var(--ps-gap); }
 @media (min-width: 700px) { .ps-grid-2 { grid-template-columns: 1fr 1fr; } }
+@media (min-width: 700px) { .ps-grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 /* Card content is one column with one gap; tiles are columns with one smaller gap. Beer's
    sibling-margin heuristic (1rem above p, .field, h1..h6 and so on) is switched off inside
    a tile so the rhythm is the gap and nothing else. */

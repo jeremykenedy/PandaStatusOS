@@ -285,5 +285,14 @@
   "ps_fx_fill_empty_in": "Feltöltés és ürítés befelé",
   "ps_lighting_fx_idle": "Tétlen",
   "ps_lighting_fx_printing": "Nyomtatás",
-  "ps_lighting_fx_error": "Hiba"
+  "ps_lighting_fx_error": "Hiba",
+  "ps_feature_effect_colours": "Effektszínek",
+  "ps_feature_effect_colours_help": "Minden effekt saját színeket kap, egy világítót és egy sötétet, mindkettőt nyomtatáshoz és egyébkor, a fenti állapotszín helyett.",
+  "ps_feature_effect_colours_aria": "Effektszínek",
+  "ps_lighting_fxc_help": "A világító szín oda fest, ahol az effekt be van kapcsolva; a sötét oda, ahol ki van, törölve fekete. A nyomtatás futó vagy szüneteltetett munkát jelent.",
+  "ps_lighting_fxc_active_printing": "Világító nyomtatáskor",
+  "ps_lighting_fxc_active_idle": "Világító egyébkor",
+  "ps_lighting_fxc_bg_printing": "Sötét nyomtatáskor",
+  "ps_lighting_fxc_bg_idle": "Sötét egyébkor",
+  "ps_lighting_fxc_clear_aria": "A sötét szín törlése"
 }

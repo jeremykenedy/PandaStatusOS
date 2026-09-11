@@ -25,6 +25,7 @@ static const char *TAG = "ps_api";
 static const struct { const char *name; uint32_t bit; } FEATURES[] = {
     { "state_brightness", PS_FEAT_STATE_BRIGHTNESS },
     { "state_effects",    PS_FEAT_STATE_EFFECTS },
+    { "effect_colours",   PS_FEAT_EFFECT_COLOURS },
 };
 
 static cJSON *fx_json(const ps_fx_cfg_t *f)

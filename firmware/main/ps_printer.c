@@ -53,7 +53,9 @@ static void apply_report(const char *json, size_t len)
         uint8_t bar = PS_BAR_IDLE;
         if (!strcmp(gs->valuestring, "RUNNING") || !strcmp(gs->valuestring, "PREPARE")) bar = PS_BAR_PRINTING;
         else if (!strcmp(gs->valuestring, "FAILED")) bar = PS_BAR_ERROR;
-        ps_lock(); bool changed = g_ps.bar_state != bar; g_ps.bar_state = bar; ps_unlock();
+        /* INFERENCE: a job is on while running, preparing or paused; A3's colours cross on it */
+        uint8_t job = (bar == PS_BAR_PRINTING || !strcmp(gs->valuestring, "PAUSE")) ? 1 : 0;
+        ps_lock(); bool changed = g_ps.bar_state != bar || g_ps.job_active != job; g_ps.bar_state = bar; g_ps.job_active = job; ps_unlock();
         if (changed) { ESP_LOGI(TAG, "bar state %u", bar); ps_effect_notify(); }
     }
     cJSON_Delete(doc);

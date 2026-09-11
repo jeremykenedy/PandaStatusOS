@@ -66,7 +66,8 @@
 
     <!-- A2, behind the state_effects feature: shown only while it is on. In H2D, each bar
          state runs the effect chosen here in the colour it already has above. The effect
-         ids are the firmware's (enum ps_fx); the names are this project's own. -->
+         ids are the firmware's (enum ps_fx); the names are this project's own. A3 adds the
+         effect's own four colours under each select, behind effect_colours. -->
     <div class="ps-tile" id="ps-lighting-fx" hidden>
       <div class="ps-tile-label" data-ps-str="ps_feature_state_effects">Effect per state</div>
       <div class="ps-grid ps-grid-3">
@@ -94,6 +95,23 @@
             </select>
             <svg class="ps-icon"><use href="#ps-icon-chevron-down"/></svg>
           </div>
+          <!-- A3, behind effect_colours: the effect's own four colours -->
+          <div class="ps-fxc" data-ps-fxc-state="0" hidden>
+            <div class="ps-row ps-fxc-row">
+              <label class="field prefix border small ps-colour-field max" data-ps-no-i18n><span class="ps-dot" id="ps-lighting-fxc-dot-0-0"></span><input type="text" id="ps-lighting-fxc-0-0" data-ps-fxc="0" data-ps-fxc-i="0" data-ps-str-aria="ps_lighting_fxc_active_printing" aria-label="Lit while printing"><span class="helper" data-ps-str="ps_lighting_fxc_active_printing">Lit while printing</span></label>
+            </div>
+            <div class="ps-row ps-fxc-row">
+              <label class="field prefix border small ps-colour-field max" data-ps-no-i18n><span class="ps-dot" id="ps-lighting-fxc-dot-0-1"></span><input type="text" id="ps-lighting-fxc-0-1" data-ps-fxc="0" data-ps-fxc-i="1" data-ps-str-aria="ps_lighting_fxc_active_idle" aria-label="Lit otherwise"><span class="helper" data-ps-str="ps_lighting_fxc_active_idle">Lit otherwise</span></label>
+            </div>
+            <div class="ps-row ps-fxc-row">
+              <label class="field prefix border small ps-colour-field max" data-ps-no-i18n><span class="ps-dot" id="ps-lighting-fxc-dot-0-2"></span><input type="text" id="ps-lighting-fxc-0-2" data-ps-fxc="0" data-ps-fxc-i="2" data-ps-str-aria="ps_lighting_fxc_bg_printing" aria-label="Unlit while printing"><span class="helper" data-ps-str="ps_lighting_fxc_bg_printing">Unlit while printing</span></label>
+              <button class="border small ps-fxc-clear" data-ps-fxc-clear="0" data-ps-fxc-i="2" data-ps-str-aria="ps_lighting_fxc_clear_aria" aria-label="Clear the unlit colour" data-ps-no-i18n>&#215;</button>
+            </div>
+            <div class="ps-row ps-fxc-row">
+              <label class="field prefix border small ps-colour-field max" data-ps-no-i18n><span class="ps-dot" id="ps-lighting-fxc-dot-0-3"></span><input type="text" id="ps-lighting-fxc-0-3" data-ps-fxc="0" data-ps-fxc-i="3" data-ps-str-aria="ps_lighting_fxc_bg_idle" aria-label="Unlit otherwise"><span class="helper" data-ps-str="ps_lighting_fxc_bg_idle">Unlit otherwise</span></label>
+              <button class="border small ps-fxc-clear" data-ps-fxc-clear="0" data-ps-fxc-i="3" data-ps-str-aria="ps_lighting_fxc_clear_aria" aria-label="Clear the unlit colour" data-ps-no-i18n>&#215;</button>
+            </div>
+          </div>
         </div>
         <div>
           <div class="ps-tile-label" data-ps-str="ps_lighting_fx_printing">Printing</div>
@@ -118,6 +136,23 @@
             <option value="16" data-ps-str="ps_fx_fill_empty_in">Fill and empty inward</option>
             </select>
             <svg class="ps-icon"><use href="#ps-icon-chevron-down"/></svg>
+          </div>
+          <!-- A3, behind effect_colours: the effect's own four colours -->
+          <div class="ps-fxc" data-ps-fxc-state="1" hidden>
+            <div class="ps-row ps-fxc-row">
+              <label class="field prefix border small ps-colour-field max" data-ps-no-i18n><span class="ps-dot" id="ps-lighting-fxc-dot-1-0"></span><input type="text" id="ps-lighting-fxc-1-0" data-ps-fxc="1" data-ps-fxc-i="0" data-ps-str-aria="ps_lighting_fxc_active_printing" aria-label="Lit while printing"><span class="helper" data-ps-str="ps_lighting_fxc_active_printing">Lit while printing</span></label>
+            </div>
+            <div class="ps-row ps-fxc-row">
+              <label class="field prefix border small ps-colour-field max" data-ps-no-i18n><span class="ps-dot" id="ps-lighting-fxc-dot-1-1"></span><input type="text" id="ps-lighting-fxc-1-1" data-ps-fxc="1" data-ps-fxc-i="1" data-ps-str-aria="ps_lighting_fxc_active_idle" aria-label="Lit otherwise"><span class="helper" data-ps-str="ps_lighting_fxc_active_idle">Lit otherwise</span></label>
+            </div>
+            <div class="ps-row ps-fxc-row">
+              <label class="field prefix border small ps-colour-field max" data-ps-no-i18n><span class="ps-dot" id="ps-lighting-fxc-dot-1-2"></span><input type="text" id="ps-lighting-fxc-1-2" data-ps-fxc="1" data-ps-fxc-i="2" data-ps-str-aria="ps_lighting_fxc_bg_printing" aria-label="Unlit while printing"><span class="helper" data-ps-str="ps_lighting_fxc_bg_printing">Unlit while printing</span></label>
+              <button class="border small ps-fxc-clear" data-ps-fxc-clear="1" data-ps-fxc-i="2" data-ps-str-aria="ps_lighting_fxc_clear_aria" aria-label="Clear the unlit colour" data-ps-no-i18n>&#215;</button>
+            </div>
+            <div class="ps-row ps-fxc-row">
+              <label class="field prefix border small ps-colour-field max" data-ps-no-i18n><span class="ps-dot" id="ps-lighting-fxc-dot-1-3"></span><input type="text" id="ps-lighting-fxc-1-3" data-ps-fxc="1" data-ps-fxc-i="3" data-ps-str-aria="ps_lighting_fxc_bg_idle" aria-label="Unlit otherwise"><span class="helper" data-ps-str="ps_lighting_fxc_bg_idle">Unlit otherwise</span></label>
+              <button class="border small ps-fxc-clear" data-ps-fxc-clear="1" data-ps-fxc-i="3" data-ps-str-aria="ps_lighting_fxc_clear_aria" aria-label="Clear the unlit colour" data-ps-no-i18n>&#215;</button>
+            </div>
           </div>
         </div>
         <div>
@@ -144,9 +179,27 @@
             </select>
             <svg class="ps-icon"><use href="#ps-icon-chevron-down"/></svg>
           </div>
+          <!-- A3, behind effect_colours: the effect's own four colours -->
+          <div class="ps-fxc" data-ps-fxc-state="2" hidden>
+            <div class="ps-row ps-fxc-row">
+              <label class="field prefix border small ps-colour-field max" data-ps-no-i18n><span class="ps-dot" id="ps-lighting-fxc-dot-2-0"></span><input type="text" id="ps-lighting-fxc-2-0" data-ps-fxc="2" data-ps-fxc-i="0" data-ps-str-aria="ps_lighting_fxc_active_printing" aria-label="Lit while printing"><span class="helper" data-ps-str="ps_lighting_fxc_active_printing">Lit while printing</span></label>
+            </div>
+            <div class="ps-row ps-fxc-row">
+              <label class="field prefix border small ps-colour-field max" data-ps-no-i18n><span class="ps-dot" id="ps-lighting-fxc-dot-2-1"></span><input type="text" id="ps-lighting-fxc-2-1" data-ps-fxc="2" data-ps-fxc-i="1" data-ps-str-aria="ps_lighting_fxc_active_idle" aria-label="Lit otherwise"><span class="helper" data-ps-str="ps_lighting_fxc_active_idle">Lit otherwise</span></label>
+            </div>
+            <div class="ps-row ps-fxc-row">
+              <label class="field prefix border small ps-colour-field max" data-ps-no-i18n><span class="ps-dot" id="ps-lighting-fxc-dot-2-2"></span><input type="text" id="ps-lighting-fxc-2-2" data-ps-fxc="2" data-ps-fxc-i="2" data-ps-str-aria="ps_lighting_fxc_bg_printing" aria-label="Unlit while printing"><span class="helper" data-ps-str="ps_lighting_fxc_bg_printing">Unlit while printing</span></label>
+              <button class="border small ps-fxc-clear" data-ps-fxc-clear="2" data-ps-fxc-i="2" data-ps-str-aria="ps_lighting_fxc_clear_aria" aria-label="Clear the unlit colour" data-ps-no-i18n>&#215;</button>
+            </div>
+            <div class="ps-row ps-fxc-row">
+              <label class="field prefix border small ps-colour-field max" data-ps-no-i18n><span class="ps-dot" id="ps-lighting-fxc-dot-2-3"></span><input type="text" id="ps-lighting-fxc-2-3" data-ps-fxc="2" data-ps-fxc-i="3" data-ps-str-aria="ps_lighting_fxc_bg_idle" aria-label="Unlit otherwise"><span class="helper" data-ps-str="ps_lighting_fxc_bg_idle">Unlit otherwise</span></label>
+              <button class="border small ps-fxc-clear" data-ps-fxc-clear="2" data-ps-fxc-i="3" data-ps-str-aria="ps_lighting_fxc_clear_aria" aria-label="Clear the unlit colour" data-ps-no-i18n>&#215;</button>
+            </div>
+          </div>
         </div>
       </div>
       <div class="ps-tile-label" data-ps-str="ps_lighting_fx_help">For H2D mode. Each state keeps its colour from above; the animation is chosen here.</div>
+      <div class="ps-tile-label" id="ps-lighting-fxc-help" data-ps-str="ps_lighting_fxc_help" hidden>The lit colour paints where the effect is on; the unlit colour paints where it is off, black when cleared. Printing means a job is running or paused.</div>
     </div>
 
     <div class="ps-tile" id="ps-lighting-colours">

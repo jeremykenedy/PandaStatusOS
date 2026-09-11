@@ -56,6 +56,7 @@ async function drive(browser, combo) {
     await go(page, '#lighting');
     t(`${tag} F4 factory: the per-state tile stays hidden`, await hidden(page, 'ps-lighting-sb'));
     t(`${tag} F4b factory: the effect tile stays hidden`, await hidden(page, 'ps-lighting-fx'));
+    t(`${tag} F4c factory: no colour field box is shown`, await page.$$eval('[data-ps-fxc-state]', (els) => els.every((e) => e.hidden)));
     await pw.shot(page, `features-factory-lighting-${combo.theme}-${combo.width}`);
     t(`${tag} F5 no page errors`, errors.length === 0, errors);
     await ctx.close();
@@ -128,7 +129,52 @@ async function drive(browser, combo) {
   t(`${tag} E5 choosing Breathing for printing sends the whole three-state table with effect 1`, got.length === 1 && got[0] === apiFrame({ config: { state_effects: want } }), got);
   t(`${tag} E6 the answer lands: printing reads Breathing`, await page.waitForFunction(() => PS.features.config.state_effects[1].effect === 1, null, { timeout: 2000 }).then(() => true).catch(() => false)
     && (await val(page, 'ps-lighting-fx-1')) === '1');
-  await pw.shot(page, `features-lighting-fx-${combo.theme}-${combo.width}`, { fullPage: true });
+  await pw.shot(page, `features-lighting-fx-${combo.theme}-${combo.width}`, { full: true });
+
+  // ---- A3: the effect's own colours ----
+  t(`${tag} G1 with only effects on, the colour boxes stay hidden`, await page.$$eval('[data-ps-fxc-state]', (els) => els.every((e) => e.hidden)));
+  await go(page, '#system');
+  await waitHidden(page, 'ps-system-features', false);
+  n = await count();
+  await toggle(page, 'ps-system-feature-effect-colours');
+  got = await sentAfter(n);
+  t(`${tag} G2 turning effect colours on sends exactly {"features":{"effect_colours":true}}`, got.length === 1 && got[0] === apiFrame({ features: { effect_colours: true } }), got);
+  await go(page, '#lighting');
+  t(`${tag} G3 the twelve colour fields show, lit ones filled from the state colours, unlit ones empty`,
+    await page.waitForFunction(() => [...document.querySelectorAll('[data-ps-fxc-state]')].every((e) => !e.hidden), null, { timeout: 2000 }).then(() => true).catch(() => false)
+    && (await page.$$eval('[data-ps-fxc]', (els) => els.length)) === 12
+    && (await val(page, 'ps-lighting-fxc-1-0')) === '#FFFFFFFF' && (await val(page, 'ps-lighting-fxc-2-1')) === '#FF0000FF' && (await val(page, 'ps-lighting-fxc-1-2')) === '');
+  n = await count();
+  await $(page, 'ps-lighting-fxc-1-0').fill('#00FF00'); await page.keyboard.press('Tab');
+  got = await sentAfter(n);
+  let cur = await page.evaluate(() => JSON.parse(JSON.stringify(PS.features.config.state_effects)));
+  let want2 = JSON.parse(JSON.stringify(cur)); want2[1].colours[0] = '#00FF00FF';
+  t(`${tag} G4 a lit colour change sends the whole table with that colour as #RRGGBBAA`, got.length === 1 && got[0] === apiFrame({ config: { state_effects: want2 } }), got);
+  await page.waitForFunction(() => PS.features.config.state_effects[1].colours[0] === '#00FF00FF', null, { timeout: 2000 }).catch(() => {});
+  n = await count();
+  await $(page, 'ps-lighting-fxc-1-2').fill('#0000FF'); await page.keyboard.press('Tab');
+  got = await sentAfter(n);
+  cur = await page.evaluate(() => JSON.parse(JSON.stringify(PS.features.config.state_effects)));
+  want2 = JSON.parse(JSON.stringify(cur)); want2[1].colours[2] = '#0000FFFF'; want2[1].opt = want2[1].opt | 1;
+  t(`${tag} G5 an unlit colour change sets its bit in opt as well`, got.length === 1 && got[0] === apiFrame({ config: { state_effects: want2 } }), got);
+  await page.waitForFunction(() => (PS.features.config.state_effects[1].opt & 1) === 1, null, { timeout: 2000 }).catch(() => {});
+  t(`${tag} G6 the answer lands: the unlit field shows the colour`, (await val(page, 'ps-lighting-fxc-1-2')) === '#0000FFFF');
+  n = await count();
+  await page.locator('[data-ps-fxc-clear="1"][data-ps-fxc-i="2"]').click();
+  got = await sentAfter(n);
+  cur = await page.evaluate(() => JSON.parse(JSON.stringify(PS.features.config.state_effects)));
+  want2 = JSON.parse(JSON.stringify(cur)); want2[1].colours[2] = '#000000FF'; want2[1].opt = want2[1].opt & ~1;
+  t(`${tag} G7 clearing the unlit colour sends black with the bit clear`, got.length === 1 && got[0] === apiFrame({ config: { state_effects: want2 } }), got);
+  t(`${tag} G8 the field empties again`, await page.waitForFunction(() => document.getElementById('ps-lighting-fxc-1-2').value === '', null, { timeout: 2000 }).then(() => true).catch(() => false));
+  await pw.shot(page, `features-lighting-fxc-${combo.theme}-${combo.width}`, { full: true });
+  await go(page, '#system');
+  await waitHidden(page, 'ps-system-features', false);
+  n = await count();
+  await toggle(page, 'ps-system-feature-effect-colours');
+  got = await sentAfter(n);
+  t(`${tag} G9 turning effect colours off sends exactly {"features":{"effect_colours":false}}`, got.length === 1 && got[0] === apiFrame({ features: { effect_colours: false } }), got);
+  await go(page, '#lighting');
+  t(`${tag} G10 the colour boxes hide again`, await page.waitForFunction(() => [...document.querySelectorAll('[data-ps-fxc-state]')].every((e) => e.hidden), null, { timeout: 2000 }).then(() => true).catch(() => false));
   await page.reload(); await pw.sleep(900);
   t(`${tag} E7 after a reload printing is still Breathing`, await waitHidden(page, 'ps-lighting-fx', false) && (await val(page, 'ps-lighting-fx-1')) === '1');
   await go(page, '#system');

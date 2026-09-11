@@ -285,5 +285,14 @@
   "ps_fx_fill_empty_in": "İçe dolup boşalma",
   "ps_lighting_fx_idle": "Boşta",
   "ps_lighting_fx_printing": "Baskıda",
-  "ps_lighting_fx_error": "Hata"
+  "ps_lighting_fx_error": "Hata",
+  "ps_feature_effect_colours": "Efekt renkleri",
+  "ps_feature_effect_colours_help": "Her efekt yukarıdaki durum rengi yerine kendi renklerini alır: yazdırma için ve diğer zamanlar için birer yanan ve sönük renk.",
+  "ps_feature_effect_colours_aria": "Efekt renkleri",
+  "ps_lighting_fxc_help": "Yanan renk efektin açık olduğu yeri boyar; sönük renk kapalı olduğu yeri, temizlenince siyah. Yazdırma, bir işin sürdüğü veya duraklatıldığı anlamına gelir.",
+  "ps_lighting_fxc_active_printing": "Yazdırırken yanan",
+  "ps_lighting_fxc_active_idle": "Diğer zamanlarda yanan",
+  "ps_lighting_fxc_bg_printing": "Yazdırırken sönük",
+  "ps_lighting_fxc_bg_idle": "Diğer zamanlarda sönük",
+  "ps_lighting_fxc_clear_aria": "Sönük rengi temizle"
 }

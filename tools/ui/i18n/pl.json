@@ -285,5 +285,14 @@
   "ps_fx_fill_empty_in": "Wypełnij i opróżnij do środka",
   "ps_lighting_fx_idle": "Bezczynność",
   "ps_lighting_fx_printing": "Drukowanie",
-  "ps_lighting_fx_error": "Błąd"
+  "ps_lighting_fx_error": "Błąd",
+  "ps_feature_effect_colours": "Kolory efektu",
+  "ps_feature_effect_colours_help": "Każdy efekt ma własne kolory, jeden świecący i jeden zgaszony, każdy dla drukowania i dla reszty, zamiast koloru stanu powyżej.",
+  "ps_feature_effect_colours_aria": "Kolory efektu",
+  "ps_lighting_fxc_help": "Kolor świecący maluje tam, gdzie efekt jest włączony; zgaszony tam, gdzie jest wyłączony, czarny po wyczyszczeniu. Drukowanie oznacza zadanie w toku lub wstrzymane.",
+  "ps_lighting_fxc_active_printing": "Świecący podczas drukowania",
+  "ps_lighting_fxc_active_idle": "Świecący w innym razie",
+  "ps_lighting_fxc_bg_printing": "Zgaszony podczas drukowania",
+  "ps_lighting_fxc_bg_idle": "Zgaszony w innym razie",
+  "ps_lighting_fxc_clear_aria": "Wyczyść zgaszony kolor"
 }

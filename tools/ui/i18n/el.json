@@ -285,5 +285,14 @@
   "ps_fx_fill_empty_in": "Γέμισμα και άδειασμα προς τα μέσα",
   "ps_lighting_fx_idle": "Αδράνεια",
   "ps_lighting_fx_printing": "Εκτύπωση",
-  "ps_lighting_fx_error": "Σφάλμα"
+  "ps_lighting_fx_error": "Σφάλμα",
+  "ps_feature_effect_colours": "Χρώματα εφέ",
+  "ps_feature_effect_colours_help": "Κάθε εφέ έχει δικά του χρώματα, ένα αναμμένο και ένα σβηστό, το καθένα για την εκτύπωση και για τα υπόλοιπα, αντί για το χρώμα κατάστασης παραπάνω.",
+  "ps_feature_effect_colours_aria": "Χρώματα εφέ",
+  "ps_lighting_fxc_help": "Το αναμμένο χρώμα βάφει όπου το εφέ είναι ενεργό· το σβηστό όπου δεν είναι, μαύρο αν καθαριστεί. Εκτύπωση σημαίνει εργασία σε εξέλιξη ή σε παύση.",
+  "ps_lighting_fxc_active_printing": "Αναμμένο κατά την εκτύπωση",
+  "ps_lighting_fxc_active_idle": "Αναμμένο αλλιώς",
+  "ps_lighting_fxc_bg_printing": "Σβηστό κατά την εκτύπωση",
+  "ps_lighting_fxc_bg_idle": "Σβηστό αλλιώς",
+  "ps_lighting_fxc_clear_aria": "Καθαρισμός του σβηστού χρώματος"
 }

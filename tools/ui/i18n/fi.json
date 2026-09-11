@@ -285,5 +285,14 @@
   "ps_fx_fill_empty_in": "Täytä ja tyhjennä sisäänpäin",
   "ps_lighting_fx_idle": "Lepotila",
   "ps_lighting_fx_printing": "Tulostus",
-  "ps_lighting_fx_error": "Virhe"
+  "ps_lighting_fx_error": "Virhe",
+  "ps_feature_effect_colours": "Tehosteen värit",
+  "ps_feature_effect_colours_help": "Jokainen tehoste saa omat värinsä, yhden palavan ja yhden sammuneen, kummankin tulostukselle ja muulle ajalle, yllä olevan tilan värin sijaan.",
+  "ps_feature_effect_colours_aria": "Tehosteen värit",
+  "ps_lighting_fxc_help": "Palava väri maalaa sinne, missä tehoste on päällä; sammunut väri sinne, missä se on pois, musta jos tyhjennetty. Tulostus tarkoittaa käynnissä tai tauolla olevaa työtä.",
+  "ps_lighting_fxc_active_printing": "Palava tulostettaessa",
+  "ps_lighting_fxc_active_idle": "Palava muulloin",
+  "ps_lighting_fxc_bg_printing": "Sammunut tulostettaessa",
+  "ps_lighting_fxc_bg_idle": "Sammunut muulloin",
+  "ps_lighting_fxc_clear_aria": "Tyhjennä sammunut väri"
 }

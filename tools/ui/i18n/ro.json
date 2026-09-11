@@ -285,5 +285,14 @@
   "ps_fx_fill_empty_in": "Umple și golește spre interior",
   "ps_lighting_fx_idle": "Repaus",
   "ps_lighting_fx_printing": "Imprimare",
-  "ps_lighting_fx_error": "Eroare"
+  "ps_lighting_fx_error": "Eroare",
+  "ps_feature_effect_colours": "Culorile efectului",
+  "ps_feature_effect_colours_help": "Fiecare efect are propriile culori, una aprinsă și una stinsă, fiecare pentru imprimare și pentru rest, în locul culorii de stare de mai sus.",
+  "ps_feature_effect_colours_aria": "Culorile efectului",
+  "ps_lighting_fxc_help": "Culoarea aprinsă vopsește unde efectul este pornit; cea stinsă unde este oprit, negru dacă e ștearsă. Imprimare înseamnă o lucrare în curs sau în pauză.",
+  "ps_lighting_fxc_active_printing": "Aprins la imprimare",
+  "ps_lighting_fxc_active_idle": "Aprins altfel",
+  "ps_lighting_fxc_bg_printing": "Stins la imprimare",
+  "ps_lighting_fxc_bg_idle": "Stins altfel",
+  "ps_lighting_fxc_clear_aria": "Șterge culoarea stinsă"
 }

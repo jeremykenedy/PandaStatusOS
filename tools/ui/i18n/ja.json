@@ -285,5 +285,14 @@
   "ps_fx_fill_empty_in": "内向きに満たして空にする",
   "ps_lighting_fx_idle": "待機",
   "ps_lighting_fx_printing": "印刷中",
-  "ps_lighting_fx_error": "エラー"
+  "ps_lighting_fx_error": "エラー",
+  "ps_feature_effect_colours": "効果の色",
+  "ps_feature_effect_colours_help": "各効果は、上の状態の色の代わりに独自の色を持ちます。点灯色と消灯色をそれぞれ印刷中とそれ以外に設定します。",
+  "ps_feature_effect_colours_aria": "効果の色",
+  "ps_lighting_fxc_help": "点灯色は効果がオンの部分を、消灯色はオフの部分を塗ります。クリアすると黒になります。印刷中とは、ジョブが実行中または一時停止中のことです。",
+  "ps_lighting_fxc_active_printing": "印刷中の点灯色",
+  "ps_lighting_fxc_active_idle": "その他の点灯色",
+  "ps_lighting_fxc_bg_printing": "印刷中の消灯色",
+  "ps_lighting_fxc_bg_idle": "その他の消灯色",
+  "ps_lighting_fxc_clear_aria": "消灯色をクリア"
 }

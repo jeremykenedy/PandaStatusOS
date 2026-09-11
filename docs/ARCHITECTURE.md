@@ -85,9 +85,13 @@ through `tools/fw/preflight.sh` first (D-028, [FLASHING.md](FLASHING.md)).
 that effect's phase and returns the milliseconds the effect wants before the next frame,
 so a fast effect and a slow one share the one render task and the host test drives the
 shipping body with gcc. It is Jeremy Kenedy's engine, the one PandaVentOS renders with,
-adapted to one strip and this project's colour type (D-034). `ps_effect.c` owns the task,
-the inputs and the strip, and renders the engine only in H2D and only while the
-`state_effects` bit is set; everything else is the placeholder that Phase 1 replaces.
+adapted to one strip and this project's colour type (D-034). `ps_fx_resolve()` is the one
+place that decides what each feature bit takes over from the factory's values (the
+colour, the brightness, the speed, the direction, the ramp), so a device with every bit
+clear is at parity by construction and the host test asserts each bit on its own.
+`ps_effect.c` owns the task, the inputs and the strip, and renders the engine only in H2D
+and only while the `state_effects` bit is set; everything else is the placeholder that
+Phase 1 replaces.
 
 ### Storage
 

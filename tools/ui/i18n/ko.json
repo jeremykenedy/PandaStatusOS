@@ -285,5 +285,14 @@
   "ps_fx_fill_empty_in": "안쪽으로 채우고 비우기",
   "ps_lighting_fx_idle": "대기",
   "ps_lighting_fx_printing": "출력 중",
-  "ps_lighting_fx_error": "오류"
+  "ps_lighting_fx_error": "오류",
+  "ps_feature_effect_colours": "효과 색상",
+  "ps_feature_effect_colours_help": "각 효과는 위의 상태 색 대신 자체 색을 가집니다. 켜진 색과 꺼진 색을 인쇄 중과 그 외 각각에 둡니다.",
+  "ps_feature_effect_colours_aria": "효과 색상",
+  "ps_lighting_fxc_help": "켜진 색은 효과가 켜진 곳을, 꺼진 색은 꺼진 곳을 칠하며, 지우면 검정이 됩니다. 인쇄 중은 작업이 실행 중이거나 일시 정지된 상태를 뜻합니다.",
+  "ps_lighting_fxc_active_printing": "인쇄 중 켜진 색",
+  "ps_lighting_fxc_active_idle": "그 외 켜진 색",
+  "ps_lighting_fxc_bg_printing": "인쇄 중 꺼진 색",
+  "ps_lighting_fxc_bg_idle": "그 외 꺼진 색",
+  "ps_lighting_fxc_clear_aria": "꺼진 색 지우기"
 }

@@ -14,7 +14,7 @@ exists so the rule has a home before any feature does. Its value is zero.
 |---|---|---|---|---|
 | 1 | `state_brightness` | one brightness per bar state (idle, printing, error) in each mode, instead of the factory's one per mode (A1) | off | nothing beyond the bar state the printer already drives |
 | 2 | `state_effects` | in H2D, each bar state runs an effect from the engine in the state's colour instead of a solid fill (A2); seventeen effects that need no live input | off | the bar state; the LED count is PROVISIONAL, so the shapes are right and the scale is not yet |
-| 3 | `effect_colours` | reserved for A3: the effect's own four colours | off | A2 |
+| 3 | `effect_colours` | the effect's own four colours: lit and unlit, each for printing and for otherwise, instead of the state colour (A3) | off | A2; "printing" is a job running, preparing or paused, INFERENCE until the capture |
 | 4 | `effect_params` | reserved for A4: the effect's own brightness, speed and direction | off | A2 |
 | 5 | `effect_ramp` | reserved for A5: the brightness ramp | off | A4 |
 

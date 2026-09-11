@@ -285,5 +285,14 @@
   "ps_fx_fill_empty_in": "Fyld og tøm indad",
   "ps_lighting_fx_idle": "Hvile",
   "ps_lighting_fx_printing": "Printer",
-  "ps_lighting_fx_error": "Fejl"
+  "ps_lighting_fx_error": "Fejl",
+  "ps_feature_effect_colours": "Effektfarver",
+  "ps_feature_effect_colours_help": "Hver effekt får sine egne farver, én tændt og én slukket, hver til udskrivning og til ellers, i stedet for tilstandsfarven ovenfor.",
+  "ps_feature_effect_colours_aria": "Effektfarver",
+  "ps_lighting_fxc_help": "Den tændte farve maler, hvor effekten er tændt; den slukkede maler, hvor den er slukket, sort når den er ryddet. Udskrivning betyder, at et job kører eller er sat på pause.",
+  "ps_lighting_fxc_active_printing": "Tændt under udskrivning",
+  "ps_lighting_fxc_active_idle": "Tændt ellers",
+  "ps_lighting_fxc_bg_printing": "Slukket under udskrivning",
+  "ps_lighting_fxc_bg_idle": "Slukket ellers",
+  "ps_lighting_fxc_clear_aria": "Ryd den slukkede farve"
 }

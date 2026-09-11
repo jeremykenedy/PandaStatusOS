@@ -285,5 +285,14 @@
   "ps_fx_fill_empty_in": "تعبئة وتفريغ إلى الداخل",
   "ps_lighting_fx_idle": "الخمول",
   "ps_lighting_fx_printing": "الطباعة",
-  "ps_lighting_fx_error": "خطأ"
+  "ps_lighting_fx_error": "خطأ",
+  "ps_feature_effect_colours": "ألوان التأثير",
+  "ps_feature_effect_colours_help": "لكل تأثير ألوانه الخاصة، لون مضاء ولون مطفأ، لكل من الطباعة وغيرها، بدلًا من لون الحالة أعلاه.",
+  "ps_feature_effect_colours_aria": "ألوان التأثير",
+  "ps_lighting_fxc_help": "اللون المضاء يرسم حيث يكون التأثير مفعّلًا؛ واللون المطفأ حيث يكون معطّلًا، ويصبح أسود عند المسح. الطباعة تعني أن ثمة مهمة جارية أو متوقفة مؤقتًا.",
+  "ps_lighting_fxc_active_printing": "مضاء أثناء الطباعة",
+  "ps_lighting_fxc_active_idle": "مضاء في غير ذلك",
+  "ps_lighting_fxc_bg_printing": "مطفأ أثناء الطباعة",
+  "ps_lighting_fxc_bg_idle": "مطفأ في غير ذلك",
+  "ps_lighting_fxc_clear_aria": "مسح اللون المطفأ"
 }

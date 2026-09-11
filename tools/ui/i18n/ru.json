@@ -285,5 +285,14 @@
   "ps_fx_fill_empty_in": "Заполнить и опустошить внутрь",
   "ps_lighting_fx_idle": "Ожидание",
   "ps_lighting_fx_printing": "Печать",
-  "ps_lighting_fx_error": "Ошибка"
+  "ps_lighting_fx_error": "Ошибка",
+  "ps_feature_effect_colours": "Цвета эффекта",
+  "ps_feature_effect_colours_help": "У каждого эффекта свои цвета, горящий и погашенный, каждый для печати и для остального времени, вместо цвета состояния выше.",
+  "ps_feature_effect_colours_aria": "Цвета эффекта",
+  "ps_lighting_fxc_help": "Горящий цвет красит там, где эффект включён; погашенный там, где выключен, чёрный при очистке. Печать означает, что задание выполняется или на паузе.",
+  "ps_lighting_fxc_active_printing": "Горящий при печати",
+  "ps_lighting_fxc_active_idle": "Горящий иначе",
+  "ps_lighting_fxc_bg_printing": "Погашенный при печати",
+  "ps_lighting_fxc_bg_idle": "Погашенный иначе",
+  "ps_lighting_fxc_clear_aria": "Очистить погашенный цвет"
 }

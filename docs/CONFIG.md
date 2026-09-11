@@ -42,7 +42,7 @@ this table with it.
 | `fx[3].effect` | u8 | an `enum ps_fx` id below 17 | 0, solid | v3 | `POST /api/features` `config.state_effects[].effect`; read in H2D while bit 2 is set (A2) |
 | `fx[3].brightness`, `.speed`, `.bright_end` | u8 | 0 to 100 | 50, 100, 0 | v3 | `config.state_effects[]`; read while bits 4 and 5 are set (A4, A5, reserved) |
 | `fx[3].opt`, `.aux` | u8 | option bits, one number for the effect that reads it | 0 | v3 | `config.state_effects[]`; A3 to A5 |
-| `fx[3].colour[4]` | RGBA | any | the H2D state colour for the two active entries, black for the two inactive ones | v3 | `config.state_effects[].colours`, `#RRGGBBAA`; read while bit 3 is set (A3, reserved) |
+| `fx[3].colour[4]` | RGBA | any | the H2D state colour for the two lit entries, black for the two unlit ones | v3 | `config.state_effects[].colours`, `#RRGGBBAA`; read while bit 3 is set (A3): `[0]` lit and `[2]` unlit while a job is on, `[1]` and `[3]` otherwise; an unlit entry counts only while its `opt` bit (1 or 2) is set |
 
 The colour indices are 0 idle, 1 printing, 2 error. The mode indices are 0 Music,
 1 H2D. Colours are stored as four bytes and written to the wire in the format the

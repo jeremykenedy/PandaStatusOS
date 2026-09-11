@@ -285,5 +285,14 @@
   "ps_fx_fill_empty_in": "מילוי וריקון פנימה",
   "ps_lighting_fx_idle": "מנוחה",
   "ps_lighting_fx_printing": "הדפסה",
-  "ps_lighting_fx_error": "שגיאה"
+  "ps_lighting_fx_error": "שגיאה",
+  "ps_feature_effect_colours": "צבעי האפקט",
+  "ps_feature_effect_colours_help": "לכל אפקט צבעים משלו, דולק וכבוי, לכל אחד מהם בהדפסה ובשאר הזמן, במקום צבע המצב שלמעלה.",
+  "ps_feature_effect_colours_aria": "צבעי האפקט",
+  "ps_lighting_fxc_help": "הצבע הדולק צובע היכן שהאפקט פועל; הכבוי היכן שאינו פועל, שחור אם נוקה. הדפסה פירושה עבודה שרצה או מושהית.",
+  "ps_lighting_fxc_active_printing": "דולק בהדפסה",
+  "ps_lighting_fxc_active_idle": "דולק אחרת",
+  "ps_lighting_fxc_bg_printing": "כבוי בהדפסה",
+  "ps_lighting_fxc_bg_idle": "כבוי אחרת",
+  "ps_lighting_fxc_clear_aria": "נקה את הצבע הכבוי"
 }

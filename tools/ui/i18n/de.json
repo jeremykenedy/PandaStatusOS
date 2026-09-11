@@ -285,5 +285,14 @@
   "ps_fx_fill_empty_in": "Füllen und Leeren nach innen",
   "ps_lighting_fx_idle": "Leerlauf",
   "ps_lighting_fx_printing": "Drucken",
-  "ps_lighting_fx_error": "Fehler"
+  "ps_lighting_fx_error": "Fehler",
+  "ps_feature_effect_colours": "Effektfarben",
+  "ps_feature_effect_colours_help": "Jeder Effekt bekommt eigene Farben, eine leuchtende und eine unbeleuchtete, jeweils fürs Drucken und für sonst, statt der Zustandsfarbe oben.",
+  "ps_feature_effect_colours_aria": "Effektfarben",
+  "ps_lighting_fxc_help": "Die leuchtende Farbe malt, wo der Effekt an ist; die unbeleuchtete malt, wo er aus ist, Schwarz wenn gelöscht. Drucken heißt, ein Auftrag läuft oder pausiert.",
+  "ps_lighting_fxc_active_printing": "Leuchtend beim Drucken",
+  "ps_lighting_fxc_active_idle": "Leuchtend sonst",
+  "ps_lighting_fxc_bg_printing": "Unbeleuchtet beim Drucken",
+  "ps_lighting_fxc_bg_idle": "Unbeleuchtet sonst",
+  "ps_lighting_fxc_clear_aria": "Unbeleuchtete Farbe löschen"
 }

@@ -285,5 +285,14 @@
   "ps_fx_fill_empty_in": "Заповнити й спорожнити всередину",
   "ps_lighting_fx_idle": "Простій",
   "ps_lighting_fx_printing": "Друк",
-  "ps_lighting_fx_error": "Помилка"
+  "ps_lighting_fx_error": "Помилка",
+  "ps_feature_effect_colours": "Кольори ефекту",
+  "ps_feature_effect_colours_help": "Кожен ефект має власні кольори, увімкнений і вимкнений, кожен для друку та для решти часу, замість кольору стану вище.",
+  "ps_feature_effect_colours_aria": "Кольори ефекту",
+  "ps_lighting_fxc_help": "Увімкнений колір малює там, де ефект увімкнено; вимкнений там, де вимкнено, чорний після очищення. Друк означає, що завдання виконується або призупинене.",
+  "ps_lighting_fxc_active_printing": "Увімкнений під час друку",
+  "ps_lighting_fxc_active_idle": "Увімкнений інакше",
+  "ps_lighting_fxc_bg_printing": "Вимкнений під час друку",
+  "ps_lighting_fxc_bg_idle": "Вимкнений інакше",
+  "ps_lighting_fxc_clear_aria": "Очистити вимкнений колір"
 }

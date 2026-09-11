@@ -148,6 +148,12 @@ typedef struct {
 #define PS_CFG_SIZE      572
 #define PS_CFG_NVS_BUDGET 2048
 
+/* what to render this frame, from the config and the live state, honouring every feature
+ * bit (A1 to A5); fx < 0 means the placeholder in the state's colour. Pure, in ps_fx.c,
+ * host-tested. */
+typedef struct { int fx; ps_rgba_t colour, bg; uint8_t brightness, speed; bool reverse; int bright_end; int band; } ps_fx_pick_t;
+void ps_fx_resolve(const ps_cfg_t *c, uint8_t mode, uint8_t st, bool job_active, ps_fx_pick_t *out);
+
 /* ---------------------------------------------------------- the live state ---- */
 typedef struct { char ssid[33]; int8_t rssi; } ps_wifi_hit_t;          /* INFERENCE shape */
 typedef struct { char name[33]; char ip[16]; } ps_printer_hit_t;       /* INFERENCE shape */
@@ -168,6 +174,7 @@ typedef struct {
     uint8_t  printer_hits;
     ps_printer_hit_t printer_list[8];
     uint8_t  bar_state;                /* enum ps_bar_state, driven by the printer */
+    uint8_t  job_active;               /* INFERENCE: a job is running, preparing or paused; the printing/not-printing crossing for A3's colours */
     /* images */
     char     img_version[16];          /* empty until an image pack says otherwise */
 } ps_state_t;

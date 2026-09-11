@@ -110,6 +110,39 @@ int main(void)
     t("an unknown effect id is not dark", max_chan(px, 8) == 255, max_chan(px, 8));
     (void)same;
 
+    /* the resolve: which bits take over from the factory's values */
+    {
+        ps_cfg_t c; memset(&c, 0, sizeof c);
+        c.mode[1].brightness = 50; c.mode[1].speed = 100;
+        c.mode[1].colour[1] = (ps_rgba_t){ 0x1B, 0x00, 0xFF, 0xFF };     /* H2D printing */
+        c.state_brightness[1][1] = 80;
+        c.fx[1].effect = PS_FX_WAVE; c.fx[1].brightness = 30; c.fx[1].speed = 20; c.fx[1].bright_end = 5; c.fx[1].aux = 4;
+        c.fx[1].colour[0] = (ps_rgba_t){ 1, 1, 1, 255 }; c.fx[1].colour[1] = (ps_rgba_t){ 2, 2, 2, 255 };
+        c.fx[1].colour[2] = (ps_rgba_t){ 3, 3, 3, 255 }; c.fx[1].colour[3] = (ps_rgba_t){ 4, 4, 4, 255 };
+        c.fx[1].opt = PS_FX_OPT_BG_PRINTING | PS_FX_OPT_RAMP | PS_FX_OPT_AUX | PS_FX_OPT_REVERSE;
+        ps_fx_pick_t k;
+        c.features = 0; ps_fx_resolve(&c, PS_MODE_H2D, PS_BAR_PRINTING, true, &k);
+        t("every bit clear: the placeholder in the factory's colour, brightness and speed", k.fx < 0 && k.colour.b == 0xFF && k.brightness == 50 && k.speed == 100 && !k.reverse && k.bright_end < 0, k.brightness);
+        c.features = PS_FEAT_STATE_BRIGHTNESS; ps_fx_resolve(&c, PS_MODE_H2D, PS_BAR_PRINTING, true, &k);
+        t("A1: the per-state brightness, still the placeholder", k.fx < 0 && k.brightness == 80, k.brightness);
+        c.features = PS_FEAT_STATE_EFFECTS; ps_fx_resolve(&c, PS_MODE_H2D, PS_BAR_PRINTING, true, &k);
+        t("A2: the state's effect in the state's colour, factory brightness, black unlit", k.fx == PS_FX_WAVE && k.colour.b == 0xFF && k.colour.r == 0x1B && k.brightness == 50 && k.bg.r == 0 && !k.reverse, k.fx);
+        ps_fx_resolve(&c, PS_MODE_MUSIC, PS_BAR_PRINTING, true, &k);
+        t("A2 in Music mode: the placeholder", k.fx < 0, k.fx);
+        c.features = PS_FEAT_STATE_EFFECTS | PS_FEAT_EFFECT_COLOURS; ps_fx_resolve(&c, PS_MODE_H2D, PS_BAR_PRINTING, true, &k);
+        t("A3 with a job on: the effect's lit-while-printing colour and its set unlit colour", k.colour.r == 1 && k.bg.r == 3, k.bg.r);
+        ps_fx_resolve(&c, PS_MODE_H2D, PS_BAR_PRINTING, false, &k);
+        t("A3 with no job: the other lit colour, and black unlit because that bit is clear", k.colour.r == 2 && k.bg.r == 0, k.bg.r);
+        c.features = PS_FEAT_STATE_EFFECTS | PS_FEAT_EFFECT_PARAMS; ps_fx_resolve(&c, PS_MODE_H2D, PS_BAR_PRINTING, true, &k);
+        t("A4: the effect's own brightness, speed, direction and band; no ramp without A5", k.brightness == 30 && k.speed == 20 && k.reverse && k.band == 4 && k.bright_end < 0, k.speed);
+        c.features |= PS_FEAT_EFFECT_RAMP; ps_fx_resolve(&c, PS_MODE_H2D, PS_BAR_PRINTING, true, &k);
+        t("A5 with A4: the ramp's end", k.bright_end == 5, k.bright_end);
+        c.fx[1].opt &= (uint8_t)~PS_FX_OPT_RAMP; ps_fx_resolve(&c, PS_MODE_H2D, PS_BAR_PRINTING, true, &k);
+        t("A5 without the effect's ramp bit: no ramp", k.bright_end < 0, k.bright_end);
+        c.features = PS_FEAT_STATE_EFFECTS; c.fx[1].effect = 200; ps_fx_resolve(&c, PS_MODE_H2D, PS_BAR_PRINTING, true, &k);
+        t("an effect id beyond the selectable set resolves to solid", k.fx == PS_FX_STATIC, k.fx);
+    }
+
     printf("\n%d passed, %d failed\n", pass, fail);
     return fail ? 1 : 0;
 }

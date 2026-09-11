@@ -87,6 +87,41 @@ uint8_t ps_fx_ramp(ps_fx_phase_t *p, uint8_t bright, int bright_end)
     return (uint8_t)(b + 0.5f);
 }
 
+/* The bits, in the order they take over from the factory's values:
+ *   A1 state_brightness  the brightness per bar state instead of per mode
+ *   A2 state_effects     in H2D, the state's effect instead of a solid fill
+ *   A3 effect_colours    the effect's own lit and unlit colours, chosen by whether a job is on
+ *   A4 effect_params     the effect's own brightness, speed, direction and band, over A1's
+ *   A5 effect_ramp       the brightness ramp, only with A4 and only when the effect set one
+ * With every bit clear the answer is the factory's colour, brightness and speed, solid. */
+void ps_fx_resolve(const ps_cfg_t *c, uint8_t mode, uint8_t st, bool job_active, ps_fx_pick_t *o)
+{
+    if (mode > PS_MODE_H2D) mode = PS_MODE_H2D;
+    if (st > PS_BAR_ERROR) st = PS_BAR_IDLE;
+    const ps_mode_cfg_t *m = &c->mode[mode];
+    const ps_fx_cfg_t *f = &c->fx[st];
+    uint32_t feat = c->features;
+    o->fx = -1;
+    o->colour = m->colour[st];
+    o->bg = (ps_rgba_t){ 0, 0, 0, 0xFF };
+    o->brightness = (feat & PS_FEAT_STATE_BRIGHTNESS) ? c->state_brightness[mode][st] : m->brightness;
+    o->speed = m->speed;
+    o->reverse = false; o->bright_end = -1; o->band = 0;
+    if (mode != PS_MODE_H2D || !(feat & PS_FEAT_STATE_EFFECTS)) return;
+    o->fx = f->effect < PS_FX_SELECTABLE ? f->effect : PS_FX_STATIC;
+    if (feat & PS_FEAT_EFFECT_COLOURS) {
+        o->colour = f->colour[job_active ? 0 : 1];
+        uint8_t bit = job_active ? PS_FX_OPT_BG_PRINTING : PS_FX_OPT_BG_IDLE;
+        if (f->opt & bit) o->bg = f->colour[job_active ? 2 : 3];
+    }
+    if (feat & PS_FEAT_EFFECT_PARAMS) {
+        o->brightness = f->brightness; o->speed = f->speed;
+        o->reverse = (f->opt & PS_FX_OPT_REVERSE) != 0;
+        if (f->opt & PS_FX_OPT_AUX) o->band = f->aux;
+        if ((feat & PS_FEAT_EFFECT_RAMP) && (f->opt & PS_FX_OPT_RAMP)) o->bright_end = f->bright_end;
+    }
+}
+
 #define BREATH_FLOOR   0.12f
 #define BREATH_DELTA   0.02f
 #define WAVE_CYCLES    2.0f
