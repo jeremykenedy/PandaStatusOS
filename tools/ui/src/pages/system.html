@@ -224,6 +224,16 @@
           <div class="ps-tile-label" data-ps-str="ps_feature_config_io_help">Export every setting as one JSON file and import it back; the three passwords stay out of it.</div>
         </div>
       </div>
+      <div class="ps-feature">
+        <label class="switch" data-ps-no-i18n>
+          <input type="checkbox" id="ps-system-feature-restart" data-ps-feature="restart" data-ps-str-aria="ps_feature_restart_aria" aria-label="Restart button">
+          <span></span>
+        </label>
+        <div class="ps-feature-text">
+          <div class="ps-feature-name" data-ps-str="ps_feature_restart">Restart button</div>
+          <div class="ps-tile-label" data-ps-str="ps_feature_restart_help">A button on this page that restarts the device now, keeping every setting. The factory's own restart command is named reset; this one is named what it does.</div>
+        </div>
+      </div>
     </div>
 
     <!-- C3, behind config_io: the settings as one file, out and back in -->
@@ -249,7 +259,12 @@
       </div>
       <div class="ps-system-reset">
         <div class="ps-system-reset-name" data-ps-str="ps_system_restart">Restart</div>
-        <div class="ps-tile-label" data-ps-str="ps_system_restart_text">The device restarts itself after a hostname or hotspot address change, and after a firmware update. There is no restart button.</div>
+        <div class="ps-tile-label" id="ps-system-restart-text" data-ps-str="ps_system_restart_text">The device restarts itself after a hostname or hotspot address change, and after a firmware update. There is no restart button.</div>
+        <!-- C4, behind restart: the button, and the note that replaces the parity one while it is on -->
+        <div class="ps-tile-label" id="ps-system-restart-now-text" data-ps-str="ps_system_restart_now_text" hidden>With the switch on, the button restarts the device now. Nothing is erased.</div>
+        <div class="ps-row" id="ps-system-restart-row" hidden>
+          <button class="border" id="ps-system-restart" data-ps-str="ps_system_restart_button">Restart now</button>
+        </div>
       </div>
       <div class="ps-system-reset">
         <div class="ps-system-reset-name" data-ps-str="ps_system_factory">Factory reset</div>

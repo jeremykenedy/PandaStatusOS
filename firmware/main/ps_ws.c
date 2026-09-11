@@ -227,6 +227,7 @@ int ps_ws_start(void)
     httpd_uri_t sg_p   = { .uri = "/api/stages",   .method = HTTP_POST, .handler = ps_api_stages_post };
     httpd_uri_t cf_g   = { .uri = "/api/config",   .method = HTTP_GET,  .handler = ps_api_config_get };     /* C3; answers 302 while its bit is off */
     httpd_uri_t cf_p   = { .uri = "/api/config",   .method = HTTP_POST, .handler = ps_api_config_post };
+    httpd_uri_t rs_p   = { .uri = "/api/restart",  .method = HTTP_POST, .handler = ps_api_restart_post };   /* C4; answers 302 while its bit is off */
     httpd_uri_t any_g  = { .uri = "/*",   .method = HTTP_GET,  .handler = redirect_portal };
     httpd_uri_t any_p  = { .uri = "/*",   .method = HTTP_POST, .handler = redirect_portal };
     httpd_uri_t any_h  = { .uri = "/*",   .method = HTTP_HEAD, .handler = redirect_portal };
@@ -248,6 +249,7 @@ int ps_ws_start(void)
     httpd_register_uri_handler(s_hd, &sg_p);
     httpd_register_uri_handler(s_hd, &cf_g);
     httpd_register_uri_handler(s_hd, &cf_p);
+    httpd_register_uri_handler(s_hd, &rs_p);
     httpd_register_uri_handler(s_hd, &any_g);
     httpd_register_uri_handler(s_hd, &any_p);
     httpd_register_uri_handler(s_hd, &any_h);

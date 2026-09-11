@@ -417,5 +417,13 @@
   "ps_system_cfg_import_aria": "Elegir un archivo de ajustes",
   "ps_system_cfg_help": "El archivo nombra tu red y tu impresora y contiene cada ajuste salvo las contraseñas del Wi-Fi, del punto de acceso y del código de acceso; guárdalo en privado. Una importación aplica todo el archivo o nada.",
   "ps_system_cfg_done": "Ajustes importados.",
-  "ps_system_cfg_failed": "El archivo fue rechazado."
+  "ps_system_cfg_failed": "El archivo fue rechazado.",
+  "ps_feature_restart": "Botón de reinicio",
+  "ps_feature_restart_help": "Un botón en esta página que reinicia el dispositivo ahora, conservando cada ajuste. El comando de reinicio de fábrica se llama restablecer; este se llama como lo que hace.",
+  "ps_feature_restart_aria": "Botón de reinicio",
+  "ps_system_restart_button": "Reiniciar ahora",
+  "ps_system_restart_now_text": "Con el interruptor, el botón reinicia el dispositivo ahora. No se borra nada.",
+  "ps_system_restart_title": "¿Reiniciar el dispositivo?",
+  "ps_system_restart_dialog": "La barra se apaga unos segundos y esta página se vuelve a conectar. No se borra nada.",
+  "ps_system_restart_confirm": "Reiniciar"
 }

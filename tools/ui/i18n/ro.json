@@ -417,5 +417,13 @@
   "ps_system_cfg_import_aria": "Alege un fișier de setări",
   "ps_system_cfg_help": "Fișierul numește rețeaua și imprimanta ta și conține fiecare setare în afară de parolele Wi-Fi, ale hotspotului și ale codului de acces; păstrează-l privat. Un import aplică tot fișierul sau nimic.",
   "ps_system_cfg_done": "Setări importate.",
-  "ps_system_cfg_failed": "Fișierul a fost refuzat."
+  "ps_system_cfg_failed": "Fișierul a fost refuzat.",
+  "ps_feature_restart": "Buton de repornire",
+  "ps_feature_restart_help": "Un buton pe această pagină care repornește dispozitivul acum, păstrând fiecare setare. Comanda de repornire a fabricii se numește resetare; aceasta se numește după ce face.",
+  "ps_feature_restart_aria": "Buton de repornire",
+  "ps_system_restart_button": "Repornește acum",
+  "ps_system_restart_now_text": "Cu comutatorul pornit, butonul repornește dispozitivul acum. Nimic nu se șterge.",
+  "ps_system_restart_title": "Repornești dispozitivul?",
+  "ps_system_restart_dialog": "Bara se stinge câteva secunde și această pagină se reconectează. Nimic nu se șterge.",
+  "ps_system_restart_confirm": "Repornește"
 }

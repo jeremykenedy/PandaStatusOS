@@ -18,6 +18,8 @@ Everything so far. No release has been made and no device has been flashed.
 - The clone's own JSON route, `/api/features`: the page discovers a clone by its 200 where
   the factory answers 302, and shows a Features card on the System page only then. The
   socket document stays the factory's (D-033).
+- C4, a plain restart behind `restart`: `POST /api/restart` and a Restart button on the
+  System page, named what it does and erasing nothing (D-043).
 - C3, the settings as one file, behind `config_io`: export everything stored except the
   three passwords, import the same document whole or refused, every client pushed the
   result; Export and Import on the System page (D-042).

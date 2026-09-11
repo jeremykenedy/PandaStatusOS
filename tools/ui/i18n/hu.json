@@ -417,5 +417,13 @@
   "ps_system_cfg_import_aria": "Beállításfájl kiválasztása",
   "ps_system_cfg_help": "A fájl megnevezi a hálózatot és a nyomtatót, és minden beállítást tartalmaz a Wi-Fi, a hotspot és a hozzáférési kód jelszaván kívül; tartsa meg magának. Az importálás a teljes fájlt alkalmazza, vagy semmit.",
   "ps_system_cfg_done": "Beállítások importálva.",
-  "ps_system_cfg_failed": "A fájl el lett utasítva."
+  "ps_system_cfg_failed": "A fájl el lett utasítva.",
+  "ps_feature_restart": "Újraindítás gomb",
+  "ps_feature_restart_help": "Egy gomb ezen az oldalon, amely azonnal újraindítja az eszközt, minden beállítást megtartva. A gyári újraindító parancs neve reset; ez arról kapta a nevét, amit tesz.",
+  "ps_feature_restart_aria": "Újraindítás gomb",
+  "ps_system_restart_button": "Újraindítás most",
+  "ps_system_restart_now_text": "Bekapcsolt kapcsolóval a gomb azonnal újraindítja az eszközt. Semmi nem törlődik.",
+  "ps_system_restart_title": "Újraindítja az eszközt?",
+  "ps_system_restart_dialog": "A sáv néhány másodpercre elsötétül, és ez az oldal újracsatlakozik. Semmi nem törlődik.",
+  "ps_system_restart_confirm": "Újraindítás"
 }

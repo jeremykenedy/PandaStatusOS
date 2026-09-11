@@ -417,5 +417,13 @@
   "ps_system_cfg_import_aria": "Escolher um arquivo de configurações",
   "ps_system_cfg_help": "O arquivo nomeia sua rede e sua impressora e contém cada configuração exceto as senhas do Wi-Fi, do hotspot e do código de acesso; mantenha-o privado. Uma importação aplica o arquivo inteiro ou nada.",
   "ps_system_cfg_done": "Configurações importadas.",
-  "ps_system_cfg_failed": "O arquivo foi recusado."
+  "ps_system_cfg_failed": "O arquivo foi recusado.",
+  "ps_feature_restart": "Botão de reiniciar",
+  "ps_feature_restart_help": "Um botão nesta página que reinicia o dispositivo agora, mantendo cada configuração. O comando de reiniciar da fábrica se chama reset; este se chama pelo que faz.",
+  "ps_feature_restart_aria": "Botão de reiniciar",
+  "ps_system_restart_button": "Reiniciar agora",
+  "ps_system_restart_now_text": "Com a chave ligada, o botão reinicia o dispositivo agora. Nada é apagado.",
+  "ps_system_restart_title": "Reiniciar o dispositivo?",
+  "ps_system_restart_dialog": "A barra apaga por alguns segundos e esta página reconecta. Nada é apagado.",
+  "ps_system_restart_confirm": "Reiniciar"
 }

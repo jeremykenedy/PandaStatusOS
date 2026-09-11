@@ -417,5 +417,13 @@
   "ps_system_cfg_import_aria": "Scegli un file di impostazioni",
   "ps_system_cfg_help": "Il file nomina la tua rete e la tua stampante e contiene ogni impostazione tranne le password del Wi-Fi, dell'hotspot e del codice di accesso; tienilo privato. Un'importazione applica tutto il file o niente.",
   "ps_system_cfg_done": "Impostazioni importate.",
-  "ps_system_cfg_failed": "Il file è stato rifiutato."
+  "ps_system_cfg_failed": "Il file è stato rifiutato.",
+  "ps_feature_restart": "Pulsante di riavvio",
+  "ps_feature_restart_help": "Un pulsante in questa pagina che riavvia subito il dispositivo, conservando ogni impostazione. Il comando di riavvio di fabbrica si chiama ripristino; questo si chiama come ciò che fa.",
+  "ps_feature_restart_aria": "Pulsante di riavvio",
+  "ps_system_restart_button": "Riavvia ora",
+  "ps_system_restart_now_text": "Con l'interruttore acceso, il pulsante riavvia subito il dispositivo. Nulla viene cancellato.",
+  "ps_system_restart_title": "Riavviare il dispositivo?",
+  "ps_system_restart_dialog": "La barra si spegne per qualche secondo e questa pagina si riconnette. Nulla viene cancellato.",
+  "ps_system_restart_confirm": "Riavvia"
 }

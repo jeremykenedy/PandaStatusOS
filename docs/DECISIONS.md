@@ -1096,4 +1096,27 @@ hostname or hotspot change from an import waits for the next restart, which C4 a
 
 ---
 
+## D-043 A restart is its own route and its own button, and erases nothing
+
+**Date** 2026-09-11 · **Reversal** cheap
+
+**Decided.** `POST /api/restart` (bit 17) answers `{"restarting":true}` and restarts about
+300 ms later, after the answer has left, keeping every setting; with the switch on the
+System page's Restart tile gains a button behind a confirm dialog, and its parity note
+("there is no restart button") gives way to one that says what the button does. The
+factory's socket command for the same thing is named `reset`, beside `rgb_reset` and
+`factory_reset`; the parity wire keeps that name, and the clone's own route is named
+what it is.
+
+**Alternatives.** A restart inside `/api/features` (a restart is not a setting); no
+switch (a button that restarts the device is pressable by anyone on the network, like
+the factory's own command, but a device at parity should have no such route to find).
+
+**Why.** The queue asks for a plain restart "named honestly and separated from the two
+resets", and the settings import (C3) needs one for network names to take effect.
+
+**What would change it.** Nothing foreseeable.
+
+---
+
 *Entries continue below as the run proceeds.*

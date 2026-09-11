@@ -417,5 +417,13 @@
   "ps_system_cfg_import_aria": "Valitse asetustiedosto",
   "ps_system_cfg_help": "Tiedosto nimeää verkkosi ja tulostimesi ja sisältää jokaisen asetuksen paitsi Wi-Fi-, yhteyspiste- ja pääsykoodisalasanat; pidä se omana tietonasi. Tuonti ottaa käyttöön koko tiedoston tai ei mitään.",
   "ps_system_cfg_done": "Asetukset tuotu.",
-  "ps_system_cfg_failed": "Tiedosto hylättiin."
+  "ps_system_cfg_failed": "Tiedosto hylättiin.",
+  "ps_feature_restart": "Uudelleenkäynnistyspainike",
+  "ps_feature_restart_help": "Painike tällä sivulla, joka käynnistää laitteen uudelleen heti ja säilyttää jokaisen asetuksen. Tehtaan oma uudelleenkäynnistyskomento on nimeltään nollaus; tämä on nimetty sen mukaan, mitä se tekee.",
+  "ps_feature_restart_aria": "Uudelleenkäynnistyspainike",
+  "ps_system_restart_button": "Käynnistä uudelleen nyt",
+  "ps_system_restart_now_text": "Kytkimen ollessa päällä painike käynnistää laitteen uudelleen heti. Mitään ei poisteta.",
+  "ps_system_restart_title": "Käynnistetäänkö laite uudelleen?",
+  "ps_system_restart_dialog": "Palkki sammuu muutamaksi sekunniksi ja tämä sivu yhdistää uudelleen. Mitään ei poisteta.",
+  "ps_system_restart_confirm": "Käynnistä uudelleen"
 }

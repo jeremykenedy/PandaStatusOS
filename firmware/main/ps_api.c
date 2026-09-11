@@ -42,6 +42,7 @@ static const struct { const char *name; uint32_t bit; } FEATURES[] = {
     { "presets",          PS_FEAT_PRESETS },
     { "stage_effects",    PS_FEAT_STAGE_EFFECTS },
     { "config_io",        PS_FEAT_CONFIG_IO },
+    { "restart",          PS_FEAT_RESTART },
 };
 
 static cJSON *fx_json(const ps_fx_cfg_t *f)
@@ -836,6 +837,30 @@ int ps_api_config_post(httpd_req_t *req)
     httpd_resp_set_hdr(req, "Cache-Control", "no-store");
     esp_err_t e = httpd_resp_send(req, s, HTTPD_RESP_USE_STRLEN);
     cJSON_free(s);
+    return e;
+}
+
+/* ---- C4: a plain restart, named what it is. The factory's own restart is a socket command
+ * called reset; this route restarts and erases nothing. The answer leaves first. ---- */
+static void api_restart_cb(void *arg) { (void)arg; ps_restart("api/restart"); }
+static bool restart_on(void) { ps_lock(); bool on = (g_ps.cfg.features & PS_FEAT_RESTART) != 0; ps_unlock(); return on; }
+
+int ps_api_restart_post(httpd_req_t *req)
+{
+    if (!restart_on()) return ps_http_redirect_portal(req);
+    char drain[64]; size_t left = req->content_len;                    /* the route takes no document */
+    while (left) {
+        int n = httpd_req_recv(req, drain, left < sizeof drain ? left : sizeof drain);
+        if (n == HTTPD_SOCK_ERR_TIMEOUT) continue;
+        if (n <= 0) return ESP_FAIL;
+        left -= (size_t)n;
+    }
+    httpd_resp_set_type(req, "application/json");
+    httpd_resp_set_hdr(req, "Cache-Control", "no-store");
+    esp_err_t e = httpd_resp_send(req, "{\"restarting\":true}", HTTPD_RESP_USE_STRLEN);
+    const esp_timer_create_args_t ta = { .callback = api_restart_cb, .name = "ps_api_restart" };
+    esp_timer_handle_t h;
+    if (esp_timer_create(&ta, &h) == ESP_OK) esp_timer_start_once(h, 300000);   /* let the answer leave */
     return e;
 }
 

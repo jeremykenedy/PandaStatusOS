@@ -417,5 +417,13 @@
   "ps_system_cfg_import_aria": "Vybrat soubor nastavení",
   "ps_system_cfg_help": "Soubor jmenuje vaši síť a tiskárnu a obsahuje každé nastavení kromě hesel Wi-Fi, hotspotu a přístupového kódu; nechte si ho pro sebe. Import použije celý soubor, nebo nic.",
   "ps_system_cfg_done": "Nastavení importována.",
-  "ps_system_cfg_failed": "Soubor byl odmítnut."
+  "ps_system_cfg_failed": "Soubor byl odmítnut.",
+  "ps_feature_restart": "Tlačítko restartu",
+  "ps_feature_restart_help": "Tlačítko na této stránce, které zařízení hned restartuje a zachová každé nastavení. Tovární příkaz restartu se jmenuje reset; toto se jmenuje podle toho, co dělá.",
+  "ps_feature_restart_aria": "Tlačítko restartu",
+  "ps_system_restart_button": "Restartovat teď",
+  "ps_system_restart_now_text": "Se zapnutým přepínačem tlačítko zařízení hned restartuje. Nic se nemaže.",
+  "ps_system_restart_title": "Restartovat zařízení?",
+  "ps_system_restart_dialog": "Lišta na několik sekund zhasne a tato stránka se znovu připojí. Nic se nemaže.",
+  "ps_system_restart_confirm": "Restartovat"
 }

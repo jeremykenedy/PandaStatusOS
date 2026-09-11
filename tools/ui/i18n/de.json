@@ -417,5 +417,13 @@
   "ps_system_cfg_import_aria": "Eine Einstellungsdatei wählen",
   "ps_system_cfg_help": "Die Datei nennt dein Netzwerk und deinen Drucker und enthält jede Einstellung außer dem WLAN-, Hotspot- und Zugangscode-Passwort; behalte sie für dich. Ein Import übernimmt die ganze Datei oder nichts davon.",
   "ps_system_cfg_done": "Einstellungen importiert.",
-  "ps_system_cfg_failed": "Die Datei wurde abgelehnt."
+  "ps_system_cfg_failed": "Die Datei wurde abgelehnt.",
+  "ps_feature_restart": "Neustart-Taste",
+  "ps_feature_restart_help": "Eine Taste auf dieser Seite, die das Gerät sofort neu startet und jede Einstellung behält. Der eigene Neustartbefehl des Werks heißt Zurücksetzen; dieser heißt, was er tut.",
+  "ps_feature_restart_aria": "Neustart-Taste",
+  "ps_system_restart_button": "Jetzt neu starten",
+  "ps_system_restart_now_text": "Mit dem Schalter startet die Taste das Gerät sofort neu. Nichts wird gelöscht.",
+  "ps_system_restart_title": "Gerät neu starten?",
+  "ps_system_restart_dialog": "Der Balken wird für ein paar Sekunden dunkel und diese Seite verbindet sich neu. Nichts wird gelöscht.",
+  "ps_system_restart_confirm": "Neu starten"
 }

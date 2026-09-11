@@ -417,5 +417,13 @@
   "ps_system_cfg_import_aria": "Wybierz plik ustawień",
   "ps_system_cfg_help": "Plik wymienia twoją sieć i drukarkę i zawiera każde ustawienie oprócz haseł Wi-Fi, hotspotu i kodu dostępu; zachowaj go dla siebie. Import stosuje cały plik albo nic.",
   "ps_system_cfg_done": "Ustawienia zaimportowane.",
-  "ps_system_cfg_failed": "Plik został odrzucony."
+  "ps_system_cfg_failed": "Plik został odrzucony.",
+  "ps_feature_restart": "Przycisk restartu",
+  "ps_feature_restart_help": "Przycisk na tej stronie, który od razu restartuje urządzenie, zachowując każde ustawienie. Fabryczne polecenie restartu nazywa się reset; to nazywa się tak, jak działa.",
+  "ps_feature_restart_aria": "Przycisk restartu",
+  "ps_system_restart_button": "Uruchom ponownie teraz",
+  "ps_system_restart_now_text": "Przy włączonym przełączniku przycisk od razu restartuje urządzenie. Nic nie jest kasowane.",
+  "ps_system_restart_title": "Uruchomić urządzenie ponownie?",
+  "ps_system_restart_dialog": "Pasek gaśnie na kilka sekund, a ta strona łączy się ponownie. Nic nie jest kasowane.",
+  "ps_system_restart_confirm": "Uruchom ponownie"
 }

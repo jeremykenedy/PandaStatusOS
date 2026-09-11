@@ -417,5 +417,13 @@
   "ps_system_cfg_import_aria": "Velg en innstillingsfil",
   "ps_system_cfg_help": "Filen navngir nettverket og skriveren din og inneholder hver innstilling unntatt wifi-, hotspot- og tilgangskodepassordene; hold den privat. En import tar i bruk hele filen eller ingenting.",
   "ps_system_cfg_done": "Innstillinger importert.",
-  "ps_system_cfg_failed": "Filen ble avvist."
+  "ps_system_cfg_failed": "Filen ble avvist.",
+  "ps_feature_restart": "Omstartsknapp",
+  "ps_feature_restart_help": "En knapp på denne siden som starter enheten på nytt nå og beholder hver innstilling. Fabrikkens egen omstartskommando heter tilbakestill; denne heter det den gjør.",
+  "ps_feature_restart_aria": "Omstartsknapp",
+  "ps_system_restart_button": "Start på nytt nå",
+  "ps_system_restart_now_text": "Med bryteren på starter knappen enheten på nytt nå. Ingenting slettes.",
+  "ps_system_restart_title": "Starte enheten på nytt?",
+  "ps_system_restart_dialog": "Linjen slukker i noen sekunder og denne siden kobler til igjen. Ingenting slettes.",
+  "ps_system_restart_confirm": "Start på nytt"
 }

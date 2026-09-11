@@ -417,5 +417,13 @@
   "ps_system_cfg_import_aria": "בחירת קובץ הגדרות",
   "ps_system_cfg_help": "הקובץ מציין את הרשת והמדפסת שלך ומכיל כל הגדרה מלבד סיסמאות ה‑Wi‑Fi, נקודת הגישה וקוד הגישה; שמרו אותו לעצמכם. ייבוא מחיל את הקובץ כולו או כלום.",
   "ps_system_cfg_done": "ההגדרות יובאו.",
-  "ps_system_cfg_failed": "הקובץ נדחה."
+  "ps_system_cfg_failed": "הקובץ נדחה.",
+  "ps_feature_restart": "כפתור הפעלה מחדש",
+  "ps_feature_restart_help": "כפתור בדף הזה שמפעיל מחדש את המכשיר עכשיו ושומר על כל הגדרה. פקודת ההפעלה מחדש של היצרן נקראת איפוס; הכפתור הזה נקרא על שם מה שהוא עושה.",
+  "ps_feature_restart_aria": "כפתור הפעלה מחדש",
+  "ps_system_restart_button": "הפעל מחדש עכשיו",
+  "ps_system_restart_now_text": "כשהמתג דולק, הכפתור מפעיל מחדש את המכשיר עכשיו. שום דבר לא נמחק.",
+  "ps_system_restart_title": "להפעיל מחדש את המכשיר?",
+  "ps_system_restart_dialog": "הפס כבה לכמה שניות והדף הזה מתחבר מחדש. שום דבר לא נמחק.",
+  "ps_system_restart_confirm": "הפעל מחדש"
 }

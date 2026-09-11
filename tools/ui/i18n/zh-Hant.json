@@ -417,5 +417,13 @@
   "ps_system_cfg_import_aria": "選擇設定檔案",
   "ps_system_cfg_help": "檔案會寫明你的網路和印表機，並包含除 Wi‑Fi、熱點和存取碼密碼之外的全部設定；請勿外傳。匯入時要麼套用整個檔案，要麼什麼都不套用。",
   "ps_system_cfg_done": "設定已匯入。",
-  "ps_system_cfg_failed": "檔案被拒絕。"
+  "ps_system_cfg_failed": "檔案被拒絕。",
+  "ps_feature_restart": "重新啟動按鈕",
+  "ps_feature_restart_help": "本頁上的一個按鈕，立即重新啟動裝置並保留全部設定。原廠的重新啟動命令叫作重設；這個按鈕以它所做的事命名。",
+  "ps_feature_restart_aria": "重新啟動按鈕",
+  "ps_system_restart_button": "立即重新啟動",
+  "ps_system_restart_now_text": "開關打開後，此按鈕會立即重新啟動裝置。不會清除任何內容。",
+  "ps_system_restart_title": "重新啟動裝置？",
+  "ps_system_restart_dialog": "燈帶會熄滅幾秒鐘，本頁隨後重新連線。不會清除任何內容。",
+  "ps_system_restart_confirm": "重新啟動"
 }

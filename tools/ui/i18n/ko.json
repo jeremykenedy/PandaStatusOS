@@ -417,5 +417,13 @@
   "ps_system_cfg_import_aria": "설정 파일 선택",
   "ps_system_cfg_help": "파일에는 네트워크와 프린터 이름이 들어 있고 Wi‑Fi, 핫스팟, 액세스 코드 비밀번호를 제외한 모든 설정이 담깁니다. 외부에 공유하지 마세요. 가져오기는 파일 전체를 적용하거나 아무것도 적용하지 않습니다.",
   "ps_system_cfg_done": "설정을 가져왔습니다.",
-  "ps_system_cfg_failed": "파일이 거부되었습니다."
+  "ps_system_cfg_failed": "파일이 거부되었습니다.",
+  "ps_feature_restart": "다시 시작 버튼",
+  "ps_feature_restart_help": "이 페이지의 버튼으로 모든 설정을 유지한 채 장치를 바로 다시 시작합니다. 공장 펌웨어의 다시 시작 명령은 reset이라 불리지만, 이 버튼은 하는 일 그대로의 이름입니다.",
+  "ps_feature_restart_aria": "다시 시작 버튼",
+  "ps_system_restart_button": "지금 다시 시작",
+  "ps_system_restart_now_text": "스위치를 켜면 이 버튼이 장치를 바로 다시 시작합니다. 아무것도 지워지지 않습니다.",
+  "ps_system_restart_title": "장치를 다시 시작할까요?",
+  "ps_system_restart_dialog": "막대가 몇 초간 꺼지고 이 페이지는 다시 연결됩니다. 아무것도 지워지지 않습니다.",
+  "ps_system_restart_confirm": "다시 시작"
 }

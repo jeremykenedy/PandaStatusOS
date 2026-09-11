@@ -151,7 +151,7 @@ let STATE = null;
 let booting = false;                    // true while a "restart" is in progress
 let LANDED = null;                      // {build, page, until}: the image an ota_fw upload installed (PS_OTA_LANDS)
 let FEAT = null;                        // the clone's feature document (PS_CLONE); null until first asked
-const FEATURE_NAMES = ['state_brightness', 'state_effects', 'effect_colours', 'effect_params', 'effect_ramp', 'fx_progress', 'fx_progress_anim', 'fx_barber', 'fx_hue_ramp', 'fx_temp', 'hot_warning', 'error_flash', 'preview', 'presets', 'stage_effects', 'config_io'];
+const FEATURE_NAMES = ['state_brightness', 'state_effects', 'effect_colours', 'effect_params', 'effect_ramp', 'fx_progress', 'fx_progress_anim', 'fx_barber', 'fx_hue_ramp', 'fx_temp', 'hot_warning', 'error_flash', 'preview', 'presets', 'stage_effects', 'config_io', 'restart'];
 const FX_SELECTABLE = 17;
 // which effect ids the bits allow, as the firmware's ps_fx_allowed(): the seventeen need only the
 // effect switch; the ones that read the print each wait for their own
@@ -163,7 +163,7 @@ function fxAllowed(id, features) {
 }
 const fxDefault = (colour) => ({ effect: 0, brightness: 50, speed: 100, bright_end: 0, opt: 0, aux: 0, colours: [colour, colour, '#000000FF', '#000000FF'] });
 function featDefaults() {
-  return { features: { state_brightness: false, state_effects: false, effect_colours: false, effect_params: false, effect_ramp: false, fx_progress: false, fx_progress_anim: false, fx_barber: false, fx_hue_ramp: false, fx_temp: false, hot_warning: false, error_flash: false, preview: false, presets: false, stage_effects: false, config_io: false },
+  return { features: { state_brightness: false, state_effects: false, effect_colours: false, effect_params: false, effect_ramp: false, fx_progress: false, fx_progress_anim: false, fx_barber: false, fx_hue_ramp: false, fx_temp: false, hot_warning: false, error_flash: false, preview: false, presets: false, stage_effects: false, config_io: false, restart: false },
            config: { state_brightness: [[50, 50, 50], [50, 50, 50]],
                      state_effects: [fxDefault('#FFFFFFFF'), fxDefault('#FFFFFFFF'), fxDefault('#FF0000FF')],
                      temp_gradient: { source: 0, lo: 25, hi: 250 },
@@ -643,6 +643,17 @@ async function handleHttp(req, res) {
     if (req.method !== 'GET') { res.writeHead(405); return res.end(); }
     const doc = {}; for (const r of ['wifi', 'sta', 'ap', 'printer', 'settings', 'block']) doc[r] = rootBody(r);
     res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }); return res.end(JSON.stringify(doc));
+  }
+  if (p === '/api/restart' && knobFlag('PS_CLONE') && FEAT && FEAT.features.restart) {
+    // C4: a plain restart, settings kept; the answer leaves first, the sockets close after the restart delay
+    if (req.method !== 'POST') { res.writeHead(405); return res.end(); }
+    const { body } = await readBody(req, 1 << 10);
+    let j = {}; if (body.length) { try { j = JSON.parse(body.toString('utf8')); } catch (_) { j = {}; } }
+    const rec = { t: Date.now(), rel_ms: Date.now() - t0, api: '/api/restart', text: JSON.stringify({ api: '/api/restart', body: j }), frame: j, roots: ['api'] };
+    SENT.push(rec); log({ ev: 'api_restart' });
+    res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }); res.end('{"restarting":true}');
+    restart('api/restart', null);
+    return;
   }
   if (p === '/api/config' && knobFlag('PS_CLONE') && FEAT && FEAT.features.config_io) {
     // C3: the settings as one document; the export leaves the three passwords out, the import is

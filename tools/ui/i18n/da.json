@@ -417,5 +417,13 @@
   "ps_system_cfg_import_aria": "Vælg en indstillingsfil",
   "ps_system_cfg_help": "Filen navngiver dit netværk og din printer og indeholder hver indstilling undtagen wifi-, hotspot- og adgangskode-adgangskoderne; hold den privat. En import anvender hele filen eller intet.",
   "ps_system_cfg_done": "Indstillinger importeret.",
-  "ps_system_cfg_failed": "Filen blev afvist."
+  "ps_system_cfg_failed": "Filen blev afvist.",
+  "ps_feature_restart": "Genstartsknap",
+  "ps_feature_restart_help": "En knap på denne side, der genstarter enheden nu og beholder hver indstilling. Fabrikkens egen genstartskommando hedder nulstil; denne hedder det, den gør.",
+  "ps_feature_restart_aria": "Genstartsknap",
+  "ps_system_restart_button": "Genstart nu",
+  "ps_system_restart_now_text": "Med kontakten tændt genstarter knappen enheden nu. Intet slettes.",
+  "ps_system_restart_title": "Genstart enheden?",
+  "ps_system_restart_dialog": "Linjen slukker i nogle sekunder, og denne side forbinder igen. Intet slettes.",
+  "ps_system_restart_confirm": "Genstart"
 }

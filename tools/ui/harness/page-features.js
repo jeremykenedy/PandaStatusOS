@@ -654,6 +654,34 @@ async function drive(browser, combo) {
   t(`${tag} R9 turning it off sends exactly {"features":{"config_io":false}}`, got.length === 1 && got[0] === apiFrame({ features: { config_io: false } }), got);
   await page.waitForFunction(() => PS.features.features.config_io === false, null, { timeout: 2000 }).catch(() => {});
   t(`${tag} R10 the tile hides and the route is gone`, await waitHidden(page, 'ps-system-cfg', true) && (await cfPost({ hostname: 'x' })) === 302);
+
+  // ---- C4: a plain restart ----
+  const rsPost = () => page.evaluate(async () => { const r = await fetch('/api/restart', { method: 'POST', redirect: 'manual' }); return r.type === 'opaqueredirect' ? 302 : r.status; });
+  t(`${tag} S1 with restart off the button row is hidden and the route answers 302`, (await hidden(page, 'ps-system-restart-row')) && (await rsPost()) === 302);
+  n = await count();
+  await toggle(page, 'ps-system-feature-restart');
+  got = await sentAfter(n);
+  t(`${tag} S2 turning the restart button on sends exactly {"features":{"restart":true}}`, got.length === 1 && got[0] === apiFrame({ features: { restart: true } }), got);
+  await page.waitForFunction(() => PS.features.features.restart === true, null, { timeout: 2000 }).catch(() => {});
+  t(`${tag} S3 the button shows and the parity note gives way to the switch's note`, await waitHidden(page, 'ps-system-restart-row', false) && (await hidden(page, 'ps-system-restart-text')) && !(await hidden(page, 'ps-system-restart-now-text')));
+  await $(page, 'ps-system-restart').click();
+  t(`${tag} S4 a confirm dialog opens with the restart text`, await page.waitForFunction(() => document.getElementById('ps-dialog').open && document.getElementById('ps-dialog-title').textContent === PS.tr('ps_system_restart_title'), null, { timeout: 2000 }).then(() => true).catch(() => false));
+  await pw.shot(page, `features-system-restart-${combo.theme}-${combo.width}`);
+  n = await count();
+  await $(page, 'ps-dialog-ok').click();
+  got = await sentAfter(n);
+  t(`${tag} S5 confirming sends exactly {"api":"/api/restart","body":{}}`, got.length === 1 && got[0] === JSON.stringify({ api: '/api/restart', body: {} }), got);
+  t(`${tag} S6 the device restarts: the socket closes and the page says so`, await page.waitForFunction(() => document.getElementById('ps-dialog').open && document.getElementById('ps-dialog-title').textContent === PS.tr('ps_core_lost_title'), null, { timeout: 5000 }).then(() => true).catch(() => false));
+  await page.reload(); await pw.sleep(1200);
+  await go(page, '#system');
+  await waitHidden(page, 'ps-system-features', false);
+  t(`${tag} S7 after the restart the switch is still on: nothing was erased`, await page.waitForFunction(() => PS.features && PS.features.features.restart === true, null, { timeout: 3000 }).then(() => true).catch(() => false) && !(await hidden(page, 'ps-system-restart-row')));
+  n = await count();
+  await toggle(page, 'ps-system-feature-restart');
+  got = await sentAfter(n);
+  t(`${tag} S8 turning it off sends exactly {"features":{"restart":false}}`, got.length === 1 && got[0] === apiFrame({ features: { restart: false } }), got);
+  await page.waitForFunction(() => PS.features.features.restart === false, null, { timeout: 2000 }).catch(() => {});
+  t(`${tag} S9 the row hides again and the route is gone`, await waitHidden(page, 'ps-system-restart-row', true) && (await rsPost()) === 302);
   await go(page, '#system');
   await waitHidden(page, 'ps-system-features', false);
   n = await count();

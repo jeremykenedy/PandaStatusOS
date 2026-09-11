@@ -417,5 +417,13 @@
   "ps_system_cfg_import_aria": "Een instellingenbestand kiezen",
   "ps_system_cfg_help": "Het bestand noemt je netwerk en je printer en bevat elke instelling behalve het wifi-, hotspot- en toegangscodewachtwoord; houd het privé. Een import past het hele bestand toe of niets.",
   "ps_system_cfg_done": "Instellingen geïmporteerd.",
-  "ps_system_cfg_failed": "Het bestand is geweigerd."
+  "ps_system_cfg_failed": "Het bestand is geweigerd.",
+  "ps_feature_restart": "Herstartknop",
+  "ps_feature_restart_help": "Een knop op deze pagina die het apparaat nu herstart en elke instelling bewaart. De eigen herstartopdracht van de fabriek heet reset; deze heet wat hij doet.",
+  "ps_feature_restart_aria": "Herstartknop",
+  "ps_system_restart_button": "Nu herstarten",
+  "ps_system_restart_now_text": "Met de schakelaar aan herstart de knop het apparaat nu. Er wordt niets gewist.",
+  "ps_system_restart_title": "Apparaat herstarten?",
+  "ps_system_restart_dialog": "De balk gaat een paar seconden uit en deze pagina maakt opnieuw verbinding. Er wordt niets gewist.",
+  "ps_system_restart_confirm": "Herstarten"
 }

@@ -81,8 +81,23 @@
       });
     });
   }
+  // C4: the restart button, behind restart
+  function renderRestart(doc) {
+    var row = $('ps-system-restart-row'); if (!row) return;
+    var on = !!(doc && doc.features && doc.features.restart);
+    row.hidden = !on;
+    $('ps-system-restart-text').hidden = on;
+    $('ps-system-restart-now-text').hidden = !on;
+  }
+  function wireRestart() {
+    var btn = $('ps-system-restart'); if (!btn) return;
+    btn.addEventListener('click', function () {
+      PS.dialog(PS.tr('ps_system_restart_title'), PS.tr('ps_system_restart_dialog'),
+        [{ key: 'ps_system_restart_confirm', handler: function () { PS.post('/api/restart', {}, function () {}); } }, { key: 'ps_global_cancel' }]);
+    });
+  }
   function renderFeatures(doc) {
-    renderCfg(doc);
+    renderCfg(doc); renderRestart(doc);
     var tile = $('ps-system-features');
     if (!doc || !doc.features) { tile.hidden = true; return; }
     tile.hidden = false;
@@ -103,7 +118,7 @@
     $('ps-topbar-theme').addEventListener('click', function () { setTimeout(renderTheme, 0); });   // the top-bar cycle changes the same preference
     $('ps-system-fw-file').addEventListener('change', function () { var f = this.files && this.files[0]; this.value = ''; if (f) sendFile('fw', 'ota_fw', f); });
     $('ps-system-img-file').addEventListener('change', function () { var f = this.files && this.files[0]; this.value = ''; if (f) sendFile('img', 'ota_img', f); });
-    wireCfg();
+    wireCfg(); wireRestart();
     document.querySelectorAll('[data-ps-feature]').forEach(function (cb) {
       cb.addEventListener('change', function () {
         var body = { features: {} }; body.features[cb.getAttribute('data-ps-feature')] = cb.checked;

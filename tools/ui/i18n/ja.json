@@ -417,5 +417,13 @@
   "ps_system_cfg_import_aria": "設定ファイルを選ぶ",
   "ps_system_cfg_help": "ファイルにはネットワーク名とプリンターが記され、Wi‑Fi、ホットスポット、アクセスコードのパスワードを除くすべての設定が含まれます。他人に渡さないでください。読み込みはファイル全体を適用するか、何も適用しません。",
   "ps_system_cfg_done": "設定を読み込みました。",
-  "ps_system_cfg_failed": "ファイルは拒否されました。"
+  "ps_system_cfg_failed": "ファイルは拒否されました。",
+  "ps_feature_restart": "再起動ボタン",
+  "ps_feature_restart_help": "このページのボタンで、すべての設定を保ったまま本体をすぐに再起動します。工場の再起動コマンドはリセットという名前ですが、こちらは行うことそのままの名前です。",
+  "ps_feature_restart_aria": "再起動ボタン",
+  "ps_system_restart_button": "今すぐ再起動",
+  "ps_system_restart_now_text": "スイッチをオンにすると、このボタンで本体をすぐに再起動できます。何も消去されません。",
+  "ps_system_restart_title": "本体を再起動しますか？",
+  "ps_system_restart_dialog": "バーが数秒間消灯し、このページは再接続します。何も消去されません。",
+  "ps_system_restart_confirm": "再起動"
 }

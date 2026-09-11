@@ -88,5 +88,8 @@
   "ps_lighting_ed_delete": "Delete",
   "ps_lighting_ed_full": "Eight saved effects is the limit; delete one first.",
   "ps_system_cfg_done": "Settings imported.",
-  "ps_system_cfg_failed": "The file was refused."
+  "ps_system_cfg_failed": "The file was refused.",
+  "ps_system_restart_title": "Restart the device?",
+  "ps_system_restart_dialog": "The bar goes dark for a few seconds and this page reconnects. Nothing is erased.",
+  "ps_system_restart_confirm": "Restart"
 }

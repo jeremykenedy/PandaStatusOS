@@ -417,5 +417,13 @@
   "ps_system_cfg_import_aria": "选择设置文件",
   "ps_system_cfg_help": "文件会写明你的网络和打印机，并包含除 Wi‑Fi、热点和访问码密码之外的全部设置；请勿外传。导入时要么应用整个文件，要么什么都不应用。",
   "ps_system_cfg_done": "设置已导入。",
-  "ps_system_cfg_failed": "文件被拒绝。"
+  "ps_system_cfg_failed": "文件被拒绝。",
+  "ps_feature_restart": "重启按钮",
+  "ps_feature_restart_help": "本页上的一个按钮，立即重启设备并保留全部设置。原厂的重启命令叫作重置；这个按钮以它所做的事命名。",
+  "ps_feature_restart_aria": "重启按钮",
+  "ps_system_restart_button": "立即重启",
+  "ps_system_restart_now_text": "开关打开后，此按钮会立即重启设备。不会清除任何内容。",
+  "ps_system_restart_title": "重启设备？",
+  "ps_system_restart_dialog": "灯带会熄灭几秒钟，本页随后重新连接。不会清除任何内容。",
+  "ps_system_restart_confirm": "重启"
 }

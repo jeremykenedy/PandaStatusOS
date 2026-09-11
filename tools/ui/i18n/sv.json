@@ -417,5 +417,13 @@
   "ps_system_cfg_import_aria": "Välj en inställningsfil",
   "ps_system_cfg_help": "Filen namnger ditt nätverk och din skrivare och innehåller varje inställning utom wifi-, hotspot- och åtkomstkodslösenorden; håll den privat. En import tillämpar hela filen eller inget.",
   "ps_system_cfg_done": "Inställningar importerade.",
-  "ps_system_cfg_failed": "Filen avvisades."
+  "ps_system_cfg_failed": "Filen avvisades.",
+  "ps_feature_restart": "Omstartsknapp",
+  "ps_feature_restart_help": "En knapp på den här sidan som startar om enheten nu och behåller varje inställning. Fabrikens eget omstartskommando heter återställ; den här heter det den gör.",
+  "ps_feature_restart_aria": "Omstartsknapp",
+  "ps_system_restart_button": "Starta om nu",
+  "ps_system_restart_now_text": "Med brytaren på startar knappen om enheten nu. Inget raderas.",
+  "ps_system_restart_title": "Starta om enheten?",
+  "ps_system_restart_dialog": "Listen slocknar några sekunder och den här sidan återansluter. Inget raderas.",
+  "ps_system_restart_confirm": "Starta om"
 }

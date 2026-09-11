@@ -417,5 +417,13 @@
   "ps_system_cfg_import_aria": "Choisir un fichier de réglages",
   "ps_system_cfg_help": "Le fichier nomme votre réseau et votre imprimante et contient chaque réglage sauf les mots de passe Wi-Fi, du point d'accès et du code d'accès ; gardez-le pour vous. Un import applique tout le fichier ou rien.",
   "ps_system_cfg_done": "Réglages importés.",
-  "ps_system_cfg_failed": "Le fichier a été refusé."
+  "ps_system_cfg_failed": "Le fichier a été refusé.",
+  "ps_feature_restart": "Bouton de redémarrage",
+  "ps_feature_restart_help": "Un bouton sur cette page qui redémarre l'appareil tout de suite en gardant chaque réglage. La commande de redémarrage de l'usine s'appelle réinitialisation ; celle-ci porte le nom de ce qu'elle fait.",
+  "ps_feature_restart_aria": "Bouton de redémarrage",
+  "ps_system_restart_button": "Redémarrer maintenant",
+  "ps_system_restart_now_text": "Avec l'interrupteur, le bouton redémarre l'appareil tout de suite. Rien n'est effacé.",
+  "ps_system_restart_title": "Redémarrer l'appareil ?",
+  "ps_system_restart_dialog": "La barre s'éteint quelques secondes et cette page se reconnecte. Rien n'est effacé.",
+  "ps_system_restart_confirm": "Redémarrer"
 }

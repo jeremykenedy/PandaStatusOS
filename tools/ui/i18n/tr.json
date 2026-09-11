@@ -417,5 +417,13 @@
   "ps_system_cfg_import_aria": "Bir ayar dosyası seçin",
   "ps_system_cfg_help": "Dosya ağınızı ve yazıcınızı adlandırır ve Wi-Fi, erişim noktası ve erişim kodu parolaları dışında her ayarı içerir; kendinize saklayın. İçe aktarma dosyanın tamamını uygular ya da hiçbirini.",
   "ps_system_cfg_done": "Ayarlar içe aktarıldı.",
-  "ps_system_cfg_failed": "Dosya reddedildi."
+  "ps_system_cfg_failed": "Dosya reddedildi.",
+  "ps_feature_restart": "Yeniden başlatma düğmesi",
+  "ps_feature_restart_help": "Bu sayfadaki, her ayarı koruyarak cihazı hemen yeniden başlatan bir düğme. Fabrikanın kendi yeniden başlatma komutunun adı sıfırla; bunun adı yaptığı şeydir.",
+  "ps_feature_restart_aria": "Yeniden başlatma düğmesi",
+  "ps_system_restart_button": "Şimdi yeniden başlat",
+  "ps_system_restart_now_text": "Anahtar açıkken düğme cihazı hemen yeniden başlatır. Hiçbir şey silinmez.",
+  "ps_system_restart_title": "Cihaz yeniden başlatılsın mı?",
+  "ps_system_restart_dialog": "Çubuk birkaç saniye kararır ve bu sayfa yeniden bağlanır. Hiçbir şey silinmez.",
+  "ps_system_restart_confirm": "Yeniden başlat"
 }
