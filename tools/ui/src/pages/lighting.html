@@ -97,6 +97,8 @@
             <option value="19" data-ps-fx-needs="fx_barber" data-ps-str="ps_fx_barber" hidden>Barber pole</option>
             <option value="20" data-ps-fx-needs="fx_temp" data-ps-str="ps_fx_temp_gradient" hidden>Temperature gradient</option>
             <option value="21" data-ps-fx-needs="fx_hue_ramp" data-ps-str="ps_fx_progress_hue" hidden>Progress colour ramp</option>
+            <option value="22" data-ps-fx-needs="presets" data-ps-str="ps_fx_palette" hidden>Colour stops</option>
+            <option value="23" data-ps-fx-needs="presets" data-ps-str="ps_fx_palette_scroll" hidden>Colour stops, scrolling</option>
             </select>
             <svg class="ps-icon"><use href="#ps-icon-chevron-down"/></svg>
           </div>
@@ -169,6 +171,8 @@
             <option value="19" data-ps-fx-needs="fx_barber" data-ps-str="ps_fx_barber" hidden>Barber pole</option>
             <option value="20" data-ps-fx-needs="fx_temp" data-ps-str="ps_fx_temp_gradient" hidden>Temperature gradient</option>
             <option value="21" data-ps-fx-needs="fx_hue_ramp" data-ps-str="ps_fx_progress_hue" hidden>Progress colour ramp</option>
+            <option value="22" data-ps-fx-needs="presets" data-ps-str="ps_fx_palette" hidden>Colour stops</option>
+            <option value="23" data-ps-fx-needs="presets" data-ps-str="ps_fx_palette_scroll" hidden>Colour stops, scrolling</option>
             </select>
             <svg class="ps-icon"><use href="#ps-icon-chevron-down"/></svg>
           </div>
@@ -241,6 +245,8 @@
             <option value="19" data-ps-fx-needs="fx_barber" data-ps-str="ps_fx_barber" hidden>Barber pole</option>
             <option value="20" data-ps-fx-needs="fx_temp" data-ps-str="ps_fx_temp_gradient" hidden>Temperature gradient</option>
             <option value="21" data-ps-fx-needs="fx_hue_ramp" data-ps-str="ps_fx_progress_hue" hidden>Progress colour ramp</option>
+            <option value="22" data-ps-fx-needs="presets" data-ps-str="ps_fx_palette" hidden>Colour stops</option>
+            <option value="23" data-ps-fx-needs="presets" data-ps-str="ps_fx_palette_scroll" hidden>Colour stops, scrolling</option>
             </select>
             <svg class="ps-icon"><use href="#ps-icon-chevron-down"/></svg>
           </div>
@@ -397,6 +403,85 @@
         <span class="ps-tile-label" id="ps-lighting-pv-left" data-ps-no-i18n>—</span>
       </div>
       <div class="ps-tile-label" data-ps-str="ps_lighting_pv_help">Nothing is stored. The bar returns to the printer's real state when the time is up or on Stop.</div>
+    </div>
+
+    <!-- A14, behind presets: the effect editor and the named effects -->
+    <div class="ps-tile" id="ps-lighting-ed" hidden>
+      <div class="ps-tile-label" data-ps-str="ps_feature_presets">Named effects</div>
+      <div class="ps-grid ps-grid-2">
+        <div class="field border small" data-ps-no-i18n>
+          <input type="text" id="ps-lighting-ed-name" maxlength="15" data-ps-str-aria="ps_lighting_ed_name_aria" aria-label="Name of the effect to save">
+          <span class="helper" data-ps-str="ps_lighting_ed_name">Name</span>
+        </div>
+        <div class="field suffix border small" data-ps-no-i18n>
+          <select id="ps-lighting-ed-effect" data-ps-str-aria="ps_lighting_ed_effect_aria" aria-label="Effect to save">
+          <option value="0" data-ps-str="ps_fx_solid">Solid</option>
+          <option value="1" data-ps-str="ps_fx_breathing">Breathing</option>
+          <option value="2" data-ps-str="ps_fx_strobe">Strobe</option>
+          <option value="3" data-ps-str="ps_fx_wave">Wave</option>
+          <option value="4" data-ps-str="ps_fx_marquee">Marquee</option>
+          <option value="5" data-ps-str="ps_fx_hue_cycle">Hue cycle</option>
+          <option value="6" data-ps-str="ps_fx_rainbow">Rainbow</option>
+          <option value="7" data-ps-str="ps_fx_scanner">Scanner</option>
+          <option value="8" data-ps-str="ps_fx_bounce">Bounce</option>
+          <option value="9" data-ps-str="ps_fx_marquee_out">Marquee outward</option>
+          <option value="10" data-ps-str="ps_fx_marquee_in">Marquee inward</option>
+          <option value="11" data-ps-str="ps_fx_fill_out">Fill outward</option>
+          <option value="12" data-ps-str="ps_fx_fill_in">Fill inward</option>
+          <option value="13" data-ps-str="ps_fx_bounce_out">Bounce outward</option>
+          <option value="14" data-ps-str="ps_fx_bounce_in">Bounce inward</option>
+          <option value="15" data-ps-str="ps_fx_fill_empty_out">Fill and empty outward</option>
+          <option value="16" data-ps-str="ps_fx_fill_empty_in">Fill and empty inward</option>
+          <option value="17" data-ps-fx-needs="fx_progress" data-ps-str="ps_fx_progress" hidden>Progress bar</option>
+          <option value="18" data-ps-fx-needs="fx_progress_anim" data-ps-str="ps_fx_progress_anim" hidden>Progress, animated</option>
+          <option value="19" data-ps-fx-needs="fx_barber" data-ps-str="ps_fx_barber" hidden>Barber pole</option>
+          <option value="20" data-ps-fx-needs="fx_temp" data-ps-str="ps_fx_temp_gradient" hidden>Temperature gradient</option>
+          <option value="21" data-ps-fx-needs="fx_hue_ramp" data-ps-str="ps_fx_progress_hue" hidden>Progress colour ramp</option>
+          <option value="22" data-ps-fx-needs="presets" data-ps-str="ps_fx_palette" hidden>Colour stops</option>
+          <option value="23" data-ps-fx-needs="presets" data-ps-str="ps_fx_palette_scroll" hidden>Colour stops, scrolling</option>
+                      </select>
+          <svg class="ps-icon"><use href="#ps-icon-chevron-down"/></svg>
+          <span class="helper" data-ps-str="ps_lighting_ed_effect">Effect</span>
+        </div>
+      </div>
+      <div class="ps-tile-label" data-ps-str="ps_lighting_ed_stops">Colours, in order</div>
+      <div class="ps-grid ps-grid-2" data-ps-no-i18n>
+        <label class="field prefix border small ps-colour-field"><span class="ps-dot" id="ps-lighting-ed-dot-0"></span><input type="text" id="ps-lighting-ed-colour-0" data-ps-layerc="ed" data-ps-ed-stop="0" data-ps-str-aria="ps_lighting_ed_stop_aria" aria-label="Colour stop"><span class="helper">1</span></label>
+        <label class="field prefix border small ps-colour-field"><span class="ps-dot" id="ps-lighting-ed-dot-1"></span><input type="text" id="ps-lighting-ed-colour-1" data-ps-layerc="ed" data-ps-ed-stop="1" data-ps-str-aria="ps_lighting_ed_stop_aria" aria-label="Colour stop"><span class="helper">2</span></label>
+        <label class="field prefix border small ps-colour-field"><span class="ps-dot" id="ps-lighting-ed-dot-2"></span><input type="text" id="ps-lighting-ed-colour-2" data-ps-layerc="ed" data-ps-ed-stop="2" data-ps-str-aria="ps_lighting_ed_stop_aria" aria-label="Colour stop"><span class="helper">3</span></label>
+        <label class="field prefix border small ps-colour-field"><span class="ps-dot" id="ps-lighting-ed-dot-3"></span><input type="text" id="ps-lighting-ed-colour-3" data-ps-layerc="ed" data-ps-ed-stop="3" data-ps-str-aria="ps_lighting_ed_stop_aria" aria-label="Colour stop"><span class="helper">4</span></label>
+      </div>
+      <div class="ps-grid ps-grid-3">
+        <div>
+          <div class="ps-row"><span class="ps-tile-label" data-ps-str="ps_lighting_fxp_brightness">Brightness</span><span class="max"></span><span class="ps-tile-label" id="ps-lighting-ed-brightness-value" data-ps-no-i18n>50%</span></div>
+          <label class="slider" data-ps-no-i18n><input type="range" min="0" max="100" step="5" value="50" id="ps-lighting-ed-brightness" data-ps-str-aria="ps_lighting_fxp_brightness_aria" aria-label="Brightness of the effect"><span></span></label>
+        </div>
+        <div>
+          <div class="ps-row"><span class="ps-tile-label" data-ps-str="ps_lighting_fxp_speed">Speed</span><span class="max"></span><span class="ps-tile-label" id="ps-lighting-ed-speed-value" data-ps-no-i18n>100%</span></div>
+          <label class="slider" data-ps-no-i18n><input type="range" min="0" max="100" step="5" value="100" id="ps-lighting-ed-speed" data-ps-str-aria="ps_lighting_fxp_speed_aria" aria-label="Speed of the effect"><span></span></label>
+        </div>
+        <div>
+          <div class="ps-row"><span class="ps-tile-label" data-ps-str="ps_lighting_fxr_end">Ramp to</span><span class="max"></span><span class="ps-tile-label" id="ps-lighting-ed-end-value" data-ps-no-i18n>0%</span></div>
+          <label class="slider" data-ps-no-i18n><input type="range" min="0" max="100" step="5" value="0" id="ps-lighting-ed-end" data-ps-str-aria="ps_lighting_fxr_end_aria" aria-label="End of the ramp"><span></span></label>
+        </div>
+      </div>
+      <div class="ps-grid ps-grid-3">
+        <div>
+          <div class="ps-row"><span class="ps-tile-label" data-ps-str="ps_lighting_fxb_band">Band width</span><span class="max"></span><span class="ps-tile-label" id="ps-lighting-ed-band-value" data-ps-no-i18n>0</span></div>
+          <label class="slider" data-ps-no-i18n><input type="range" min="0" max="16" step="1" value="0" id="ps-lighting-ed-band" data-ps-str-aria="ps_lighting_fxb_band_aria" aria-label="Band width of the pole in pixels"><span></span></label>
+        </div>
+        <label class="checkbox ps-fxp-reverse" data-ps-no-i18n>
+          <input type="checkbox" id="ps-lighting-ed-reverse" data-ps-str-aria="ps_lighting_fxp_reverse_aria" aria-label="Run the other way">
+          <span data-ps-str="ps_lighting_fxp_reverse">Run the other way</span>
+        </label>
+        <div class="ps-row ps-pv-actions">
+          <button class="border" id="ps-lighting-ed-save" data-ps-str="ps_lighting_ed_save">Save as named effect</button>
+        </div>
+      </div>
+      <div class="ps-tile-label" data-ps-str="ps_lighting_ed_saved">Saved effects</div>
+      <div id="ps-lighting-ed-list" class="ps-grid" data-ps-no-i18n></div>
+      <div class="ps-tile-label" id="ps-lighting-ed-none" data-ps-str="ps_lighting_ed_none">No saved effects yet.</div>
+      <div class="ps-tile-label" data-ps-str="ps_lighting_ed_help">Saving with a name that exists replaces it. Using a saved effect copies it into that state's effect above; the two colour-stop effects need the effect colours switch to read their stops.</div>
     </div>
 
     <div class="ps-tile" id="ps-lighting-colours">

@@ -37,6 +37,7 @@ static const struct { const char *name; uint32_t bit; } FEATURES[] = {
     { "hot_warning",      PS_FEAT_HOT_WARNING },
     { "error_flash",      PS_FEAT_ERROR_FLASH },
     { "preview",          PS_FEAT_PREVIEW },
+    { "presets",          PS_FEAT_PRESETS },
 };
 
 static cJSON *fx_json(const ps_fx_cfg_t *f)
@@ -324,6 +325,113 @@ int ps_api_preview_post(httpd_req_t *req)
     buf[got] = 0;
     if (ps_preview_apply(buf, got) != 0) { httpd_resp_set_status(req, "400 Bad Request"); return httpd_resp_send(req, "refused", HTTPD_RESP_USE_STRLEN); }
     return send_preview(req);
+}
+
+/* ---- A14: the named effects. The whole list is replaced at once (taken whole or refused
+ * whole, names unique, at most eight), or one named preset is copied into one bar state's
+ * effect, which is then a plain state_effects entry. ---- */
+char *ps_presets_json(void)
+{
+    cJSON *doc = cJSON_CreateObject();
+    if (!doc) return NULL;
+    cJSON *arr = cJSON_AddArrayToObject(doc, "presets");
+    ps_lock();
+    for (int i = 0; i < g_ps.presets.count; i++) {
+        cJSON *o = fx_json(&g_ps.presets.p[i].fx);
+        cJSON_AddStringToObject(o, "name", g_ps.presets.p[i].name);
+        cJSON_AddItemToArray(arr, o);
+    }
+    ps_unlock();
+    cJSON_AddNumberToObject(doc, "max", PS_PRESETS_MAX);
+    char *s = cJSON_PrintUnformatted(doc);
+    cJSON_Delete(doc);
+    return s;
+}
+
+int ps_presets_apply(const char *json, size_t len)
+{
+    cJSON *root = cJSON_ParseWithLength(json, len);
+    if (!root || !cJSON_IsObject(root)) { cJSON_Delete(root); return -1; }
+    cJSON *list = cJSON_GetObjectItemCaseSensitive(root, "presets");
+    cJSON *ap = cJSON_GetObjectItemCaseSensitive(root, "apply");
+    if ((!list && !ap) || (list && ap) || (list && !cJSON_IsArray(list)) || (ap && !cJSON_IsObject(ap))) { cJSON_Delete(root); return -1; }
+    ps_lock(); uint32_t feat = g_ps.cfg.features; ps_unlock();
+    if (list) {
+        int n = cJSON_GetArraySize(list);
+        if (n > PS_PRESETS_MAX) { cJSON_Delete(root); return -1; }
+        ps_presets_t s; memset(&s, 0, sizeof s); s.magic = PS_PRESETS_MAGIC;
+        for (int i = 0; i < n; i++) {
+            cJSON *o = cJSON_GetArrayItem(list, i);
+            if (!cJSON_IsObject(o)) { cJSON_Delete(root); return -1; }
+            cJSON *nm = cJSON_DetachItemFromObjectCaseSensitive(o, "name");          /* the name is not an effect field */
+            bool ok = nm && cJSON_IsString(nm) && nm->valuestring[0] && strlen(nm->valuestring) < PS_PRESET_NAME;
+            for (int j = 0; ok && j < i; j++) if (!strcmp(s.p[j].name, nm->valuestring)) ok = false;   /* names are unique */
+            if (!ok) { cJSON_Delete(nm); cJSON_Delete(root); return -1; }
+            strncpy(s.p[i].name, nm->valuestring, PS_PRESET_NAME - 1); cJSON_Delete(nm);
+            ps_fx_cfg_t f; memset(&f, 0, sizeof f); f.brightness = 50; f.speed = 100;   /* a fresh preset starts solid white at the parity numbers */
+            for (int c = 0; c < 4; c++) f.colour[c] = (ps_rgba_t){ 0xFF, 0xFF, 0xFF, 0xFF };
+            if (!fx_parse(o, &f, feat)) { cJSON_Delete(root); return -1; }
+            s.p[i].fx = f;
+        }
+        s.count = (uint8_t)n;
+        cJSON_Delete(root);
+        ps_presets_clamp(&s);
+        ps_lock(); g_ps.presets = s; ps_unlock();
+        ps_presets_save(&s);
+        ESP_LOGI(TAG, "presets: %d saved", n);
+        return 0;
+    }
+    cJSON *nm = cJSON_GetObjectItemCaseSensitive(ap, "name"), *st = cJSON_GetObjectItemCaseSensitive(ap, "state");
+    if (!cJSON_IsString(nm) || !cJSON_IsNumber(st) || st->valuedouble < 0 || st->valuedouble > PS_BAR_ERROR) { cJSON_Delete(root); return -1; }
+    int state = (int)st->valuedouble, found = -1;
+    ps_lock();
+    for (int i = 0; i < g_ps.presets.count; i++) if (!strcmp(g_ps.presets.p[i].name, nm->valuestring)) { found = i; break; }
+    bool ok = found >= 0 && ps_fx_allowed(g_ps.cfg.features, g_ps.presets.p[found].fx.effect);   /* its effect needs its switch, like any other */
+    if (ok) { g_ps.cfg.fx[state] = g_ps.presets.p[found].fx; ps_cfg_save(&g_ps.cfg); }
+    ps_unlock();
+    cJSON_Delete(root);
+    if (!ok) return -1;
+    ps_effect_notify();
+    ESP_LOGI(TAG, "preset applied to state %d", state);
+    return 0;
+}
+
+static esp_err_t send_presets(httpd_req_t *req)
+{
+    char *s = ps_presets_json();
+    if (!s) { httpd_resp_set_status(req, "500 Internal Server Error"); return httpd_resp_send(req, "no memory", HTTPD_RESP_USE_STRLEN); }
+    httpd_resp_set_type(req, "application/json");
+    httpd_resp_set_hdr(req, "Cache-Control", "no-store");
+    esp_err_t e = httpd_resp_send(req, s, HTTPD_RESP_USE_STRLEN);
+    cJSON_free(s);
+    return e;
+}
+static bool presets_on(void) { ps_lock(); bool on = (g_ps.cfg.features & PS_FEAT_PRESETS) != 0; ps_unlock(); return on; }
+
+int ps_api_presets_get(httpd_req_t *req)
+{
+    if (!presets_on()) return ps_http_redirect_portal(req);
+    return send_presets(req);
+}
+
+int ps_api_presets_post(httpd_req_t *req)
+{
+    if (!presets_on()) return ps_http_redirect_portal(req);
+    if (req->content_len == 0 || req->content_len > 4096) { httpd_resp_set_status(req, "400 Bad Request"); return httpd_resp_send(req, "body", HTTPD_RESP_USE_STRLEN); }
+    char *buf = malloc(req->content_len + 1);
+    if (!buf) { httpd_resp_set_status(req, "500 Internal Server Error"); return httpd_resp_send(req, "no memory", HTTPD_RESP_USE_STRLEN); }
+    size_t got = 0;
+    while (got < req->content_len) {
+        int n = httpd_req_recv(req, buf + got, req->content_len - got);
+        if (n == HTTPD_SOCK_ERR_TIMEOUT) continue;
+        if (n <= 0) { free(buf); return ESP_FAIL; }
+        got += (size_t)n;
+    }
+    buf[got] = 0;
+    int rc = ps_presets_apply(buf, got);
+    free(buf);
+    if (rc != 0) { httpd_resp_set_status(req, "400 Bad Request"); return httpd_resp_send(req, "refused", HTTPD_RESP_USE_STRLEN); }
+    return send_presets(req);
 }
 
 static esp_err_t send_doc(httpd_req_t *req)

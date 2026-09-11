@@ -90,6 +90,18 @@ committed), so the budget is twice the blob plus a page of slack (2,048 bytes fo
 stores. A blob over budget saves
 silently-failing and a reboot loses everything; the assert makes that a compile error.
 
+## The named effects (A14): a second blob
+
+The presets are not part of the config layout. They live under the same namespace as a
+second key, `presets`, laid out by `ps_presets_t`: magic `0x50535031` ("PSP1"), a count,
+and eight slots of forty bytes (a fifteen-character name and its terminator, then a
+`ps_fx_cfg_t`), 328 bytes in all, pinned by `_Static_assert`. It is read whole or not at
+all: a blob of another size or magic loads as an empty list, and the config blob is not
+involved either way, so the presets never move the config layout and a config migration
+never touches them. `ps_presets_clamp()` bounds the count, the effect ids and the
+numbers and terminates the names. Two blobs of 328 bytes fit the same partition beside
+the config with room to spare.
+
 ## Reading and writing it on the host
 
 `make test-fw` compiles the real `ps_cfg.c` against a fake NVS: no blob, wrong magic,

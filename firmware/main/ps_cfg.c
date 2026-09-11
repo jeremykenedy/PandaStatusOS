@@ -283,6 +283,48 @@ int ps_cfg_erase(void)
     return err == ESP_OK ? 0 : -1;
 }
 
+/* ---- A14: the named effects, their own blob under the same namespace. Not part of the
+ * config layout: it has its own magic and size and is read whole or not at all. ---- */
+_Static_assert(sizeof(ps_preset_t) == 40 && sizeof(ps_presets_t) == PS_PRESETS_SIZE, "the presets layout moved");
+void ps_presets_clamp(ps_presets_t *s)
+{
+    s->magic = PS_PRESETS_MAGIC;
+    if (s->count > PS_PRESETS_MAX) s->count = PS_PRESETS_MAX;
+    for (int i = 0; i < PS_PRESETS_MAX; i++) {
+        s->p[i].name[PS_PRESET_NAME - 1] = 0;
+        ps_fx_cfg_t *f = &s->p[i].fx;
+        if (f->effect >= PS_FX_COUNT) f->effect = PS_FX_STATIC;
+        if (f->brightness > 100) f->brightness = 100;
+        if (f->speed > 100) f->speed = 100;
+        if (f->bright_end > 100) f->bright_end = 100;
+    }
+}
+int ps_presets_load(ps_presets_t *s)
+{
+    memset(s, 0, sizeof *s); s->magic = PS_PRESETS_MAGIC;
+    nvs_handle_t h;
+    if (nvs_open(PS_CFG_NVS_NS, NVS_READONLY, &h) != ESP_OK) return 0;
+    ps_presets_t stored; size_t size = sizeof stored;
+    esp_err_t err = nvs_get_blob(h, PS_PRESETS_NVS_KEY, &stored, &size);
+    nvs_close(h);
+    if (err != ESP_OK) return 0;                                   /* none yet, or a size that does not fit: empty */
+    if (size != sizeof stored || stored.magic != PS_PRESETS_MAGIC) { ESP_LOGW(TAG, "presets blob not recognised, empty"); return 0; }
+    memcpy(s, &stored, sizeof *s);
+    ps_presets_clamp(s);
+    return 0;
+}
+int ps_presets_save(const ps_presets_t *s)
+{
+    nvs_handle_t h;
+    esp_err_t err = nvs_open(PS_CFG_NVS_NS, NVS_READWRITE, &h);
+    if (err != ESP_OK) { ESP_LOGE(TAG, "nvs_open: %d", (int)err); return -1; }
+    err = nvs_set_blob(h, PS_PRESETS_NVS_KEY, s, sizeof *s);
+    if (err == ESP_OK) err = nvs_commit(h);
+    nvs_close(h);
+    if (err != ESP_OK) { ESP_LOGE(TAG, "presets save failed: %d", (int)err); return -1; }
+    return 0;
+}
+
 /* ---- colour on the wire: list2[0] entries are "RRGGBB", list2[1] entries "#RRGGBBAA" ---- */
 void ps_rgba_to_wire(ps_rgba_t c, uint8_t mode, char *out)
 {

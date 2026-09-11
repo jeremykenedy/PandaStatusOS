@@ -197,6 +197,20 @@ int main(void)
     t("a source out of range clamps to the nozzle, the degrees to the bound, the percentages to 100", c.temp_src == PS_TEMP_NOZZLE && c.hot_src == PS_TEMP_NOZZLE && c.temp_hi == PS_TEMP_MAX && c.temp_lo == 0 && c.hot_c == PS_TEMP_MAX && c.err_brightness == 100 && c.err_speed == 100, c.temp_hi);
     t("a fresh default's gradient follows the nozzle from 25 to 250", (ps_cfg_factory_defaults(&d), d.temp_src == PS_TEMP_NOZZLE && d.temp_lo == 25 && d.temp_hi == 250), d.temp_hi);
 
+    /* 13. A14: the named effects, their own blob beside the config */
+    { ps_presets_t s, e; wipe();
+      t("no presets blob loads as an empty list with the magic", ps_presets_load(&s) == 0 && s.count == 0 && s.magic == PS_PRESETS_MAGIC, s.count);
+      s.count = 2; strcpy(s.p[0].name, "Ocean"); s.p[0].fx.effect = PS_FX_PALETTE_SCROLL; s.p[0].fx.colour[1] = (ps_rgba_t){ 0, 255, 255, 255 }; strcpy(s.p[1].name, "Ember"); s.p[1].fx.effect = PS_FX_BREATHING;
+      t("presets save", ps_presets_save(&s) == 0, 0);
+      t("and load back whole", ps_presets_load(&e) == 0 && e.count == 2 && !strcmp(e.p[0].name, "Ocean") && e.p[0].fx.effect == PS_FX_PALETTE_SCROLL && e.p[0].fx.colour[1].g == 255 && !strcmp(e.p[1].name, "Ember"), e.count);
+      t("the presets blob is 328 bytes beside the 592-byte config", sizeof(ps_presets_t) == 328 && sizeof(ps_cfg_t) == 592, (long)sizeof(ps_presets_t));
+      s.count = 200; s.p[3].fx.effect = 250; s.p[3].fx.speed = 111; memset(s.p[2].name, 'x', PS_PRESET_NAME); ps_presets_clamp(&s);
+      t("clamp bounds the count, the ids, the numbers and terminates the names", s.count == PS_PRESETS_MAX && s.p[3].fx.effect == PS_FX_STATIC && s.p[3].fx.speed == 100 && s.p[2].name[PS_PRESET_NAME - 1] == 0, s.count);
+      ps_presets_t bad; memset(&bad, 0, sizeof bad); bad.magic = 0x12345678; bad.count = 3; nvs_set_blob(1, PS_PRESETS_NVS_KEY, &bad, sizeof bad);
+      t("a blob with the wrong magic loads as empty", ps_presets_load(&e) == 0 && e.count == 0, e.count);
+      fill_distinct(&d); wipe(); put(&d, sizeof d); ps_presets_save(&s); ps_cfg_load(&c);
+      t("the config blob is untouched by the presets", !strcmp(c.hostname, "t-host") && c.mode[1].speed == 65, c.mode[1].speed); }
+
     printf("\n%d passed, %d failed\n", pass, fail);
     return fail ? 1 : 0;
 }

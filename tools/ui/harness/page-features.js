@@ -497,6 +497,57 @@ async function drive(browser, combo) {
   await page.waitForFunction(() => PS.features.features.preview === false, null, { timeout: 2000 }).catch(() => {});
   await go(page, '#lighting');
   t(`${tag} N12 the tile hides and the route is gone again`, await waitHidden(page, 'ps-lighting-pv', true) && (await pvPost({ state: 0 })) === 302);
+
+  // ---- A14: the effect editor and the named effects ----
+  const edFrame = (body) => JSON.stringify({ api: '/api/presets', body });
+  const edPost = (body) => page.evaluate(async (b) => { const r = await fetch('/api/presets', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(b), redirect: 'manual' }); return r.type === 'opaqueredirect' ? 302 : r.status; }, body);
+  t(`${tag} O1 with presets off the tile is hidden and the route answers 302`, (await hidden(page, 'ps-lighting-ed')) && (await edPost({ presets: [] })) === 302);
+  await go(page, '#system');
+  await waitHidden(page, 'ps-system-features', false);
+  n = await count();
+  await toggle(page, 'ps-system-feature-presets');
+  got = await sentAfter(n);
+  t(`${tag} O2 turning named effects on sends exactly {"features":{"presets":true}}`, got.length === 1 && got[0] === apiFrame({ features: { presets: true } }), got);
+  await page.waitForFunction(() => PS.features.features.presets === true, null, { timeout: 2000 }).catch(() => {});
+  await go(page, '#lighting');
+  t(`${tag} O3 the tile shows with an empty list, and the two palette effects are offered in the editor and in the state selects`, await waitHidden(page, 'ps-lighting-ed', false)
+    && await page.waitForFunction(() => !document.getElementById('ps-lighting-ed-none').hidden, null, { timeout: 2000 }).then(() => true).catch(() => false)
+    && (await page.$eval('#ps-lighting-ed-effect', (el) => [...el.options].filter((o) => o.value === '22' || o.value === '23').every((o) => !o.hidden)))
+    && (await page.$eval('#ps-lighting-fx-2', (el) => [...el.options].filter((o) => !o.hidden).length)) === 19);
+  await $(page, 'ps-lighting-ed-name').fill('Ocean');
+  await $(page, 'ps-lighting-ed-effect').selectOption('23');
+  await $(page, 'ps-lighting-ed-colour-0').fill('#0000FF'); await page.keyboard.press('Tab');
+  await $(page, 'ps-lighting-ed-colour-1').fill('#00FFFF'); await page.keyboard.press('Tab');
+  n = await count();
+  await $(page, 'ps-lighting-ed-save').click();
+  got = await sentAfter(n);
+  const ocean = { name: 'Ocean', effect: 23, brightness: 50, speed: 100, bright_end: 0, opt: 0, aux: 0, colours: ['#0000FFFF', '#00FFFFFF', '#000000FF', '#000000FF'] };
+  t(`${tag} O4 saving sends the whole list with the one preset, its stops as #RRGGBBAA`, got.length === 1 && got[0] === edFrame({ presets: [ocean] }), got);
+  t(`${tag} O5 the answer lands: the list shows Ocean`, await page.waitForFunction(() => !!document.querySelector('[data-ps-ed-name="Ocean"]') && document.getElementById('ps-lighting-ed-none').hidden, null, { timeout: 2000 }).then(() => true).catch(() => false));
+  n = await count();
+  await page.locator('[data-ps-ed-name="Ocean"] [data-ps-ed-use="2"]').click();
+  got = await sentAfter(n);
+  t(`${tag} O6 Use for error sends exactly {"apply":{"name":"Ocean","state":2}}`, got.length === 1 && got[0] === edFrame({ apply: { name: 'Ocean', state: 2 } }), got);
+  t(`${tag} O7 the error state's select now reads the scrolling palette`, await page.waitForFunction(() => document.getElementById('ps-lighting-fx-2').value === '23', null, { timeout: 3000 }).then(() => true).catch(() => false));
+  await $(page, 'ps-lighting-ed-name').fill('');
+  await page.locator('[data-ps-ed-name="Ocean"] [data-ps-ed-load]').click();
+  t(`${tag} O8 Edit loads the preset back into the editor`, (await val(page, 'ps-lighting-ed-name')) === 'Ocean' && (await val(page, 'ps-lighting-ed-effect')) === '23' && (await val(page, 'ps-lighting-ed-colour-1')) === '#00FFFFFF');
+  await pw.shot(page, `features-lighting-ed-${combo.theme}-${combo.width}`, { full: true });
+  n = await count();
+  await page.locator('[data-ps-ed-name="Ocean"] [data-ps-ed-delete]').click();
+  got = await sentAfter(n);
+  t(`${tag} O9 Delete sends the list without it`, got.length === 1 && got[0] === edFrame({ presets: [] }), got);
+  t(`${tag} O10 the list is empty again`, await page.waitForFunction(() => !document.querySelector('[data-ps-ed-name]') && !document.getElementById('ps-lighting-ed-none').hidden, null, { timeout: 2000 }).then(() => true).catch(() => false));
+  t(`${tag} O11 an empty name and an unknown preset are refused (400)`, (await edPost({ presets: [{ name: '' }] })) === 400 && (await edPost({ apply: { name: 'nope', state: 0 } })) === 400);
+  await go(page, '#system');
+  await waitHidden(page, 'ps-system-features', false);
+  n = await count();
+  await toggle(page, 'ps-system-feature-presets');
+  got = await sentAfter(n);
+  t(`${tag} O12 turning named effects off sends exactly {"features":{"presets":false}}`, got.length === 1 && got[0] === apiFrame({ features: { presets: false } }), got);
+  await page.waitForFunction(() => PS.features.features.presets === false, null, { timeout: 2000 }).catch(() => {});
+  await go(page, '#lighting');
+  t(`${tag} O13 the tile hides, the error state fell back to Static, and the route is gone again`, await waitHidden(page, 'ps-lighting-ed', true) && (await val(page, 'ps-lighting-fx-2')) === '0' && (await edPost({ presets: [] })) === 302);
   await go(page, '#system');
   await waitHidden(page, 'ps-system-features', false);
   n = await count();

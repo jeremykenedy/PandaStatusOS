@@ -146,6 +146,28 @@ int main(void)
       t("the strobe's brightness scales its colour", on && f4[0].r == 50 && f4[0].g == 0, f4[0].r);
       t("the rate is the engine's period: faster at 100 than at 0", ps_fx_period(100) < ps_fx_period(0), (long)ps_fx_period(100)); }
 
+    /* A14: the palette effects */
+    { ps_rgba_t stops[3] = { { 255, 0, 0, 255 }, { 0, 255, 0, 255 }, { 0, 0, 255, 255 } }; ps_fx_phase_init(&p);
+      ps_fx_render_palette(PS_FX_PALETTE, stops, 3, 100, 50, false, &p, px, 5);
+      t("a still palette lays its stops across the strip: the end pixels are the end stops", px[0].r == 255 && px[0].g == 0 && px[4].b == 255 && px[4].r == 0, px[4].b);
+      t("and the middle pixel is the middle stop", px[2].g == 255 && px[2].r == 0 && px[2].b == 0, px[2].g);
+      ps_fx_render_palette(PS_FX_PALETTE, stops, 3, 100, 50, true, &p, px, 5);
+      t("reverse mirrors it", px[0].b == 255 && px[4].r == 255, px[0].b);
+      ps_fx_render_palette(PS_FX_PALETTE, stops, 1, 100, 50, false, &p, px, 5);
+      t("one stop is a solid", px[0].r == 255 && px[4].r == 255 && px[2].g == 0, px[4].r);
+      ps_fx_render_palette(PS_FX_PALETTE, stops, 3, 50, 50, false, &p, px, 5);
+      t("the brightness scales the stops", px[0].r == 127 && px[4].b == 127, px[0].r);
+      ps_fx_phase_init(&p); ps_fx_render_palette(PS_FX_PALETTE_SCROLL, stops, 3, 100, 50, false, &p, px, 6); ps_rgba_t first = px[0];
+      ps_fx_render_palette(PS_FX_PALETTE_SCROLL, stops, 3, 100, 50, false, &p, px, 6);
+      t("the scrolling palette moves between frames", first.r != px[0].r || first.g != px[0].g || first.b != px[0].b, px[0].r);
+      t("the palette ids wait for the presets switch", ps_fx_allowed(PS_FEAT_PRESETS, PS_FX_PALETTE_SCROLL) && !ps_fx_allowed(PS_FEAT_STATE_EFFECTS, PS_FX_PALETTE), 0);
+      ps_cfg_t c; memset(&c, 0, sizeof c); c.features = PS_FEAT_STATE_EFFECTS | PS_FEAT_EFFECT_COLOURS | PS_FEAT_PRESETS;
+      c.fx[0].effect = PS_FX_PALETTE; c.fx[0].colour[0] = stops[0]; c.fx[0].colour[1] = stops[1]; c.fx[0].colour[2] = stops[2]; c.fx[0].opt = PS_FX_OPT_BG_PRINTING;
+      ps_fx_pick_t k; ps_fx_resolve(&c, PS_MODE_H2D, PS_BAR_IDLE, false, &k);
+      t("the resolve hands the palette its stops: the two lit colours and the set unlit ones, in order", k.fx == PS_FX_PALETTE && k.nstops == 3 && k.stops[2].b == 255, k.nstops);
+      c.features &= ~PS_FEAT_EFFECT_COLOURS; ps_fx_resolve(&c, PS_MODE_H2D, PS_BAR_IDLE, false, &k);
+      t("without effect colours the palette has one stop, the state colour", k.nstops == 1, k.nstops); }
+
     /* the colour ramp across the print */
     { ps_rgba_t green = { 0, 255, 0, 255 }; ps_fx_in_t z = { 0, -1000, 0, 0 }, full = { 100, -1000, 0, 0 }, half = { 50, -1000, 0, 0 };
       ps_fx_phase_init(&p);

@@ -964,4 +964,40 @@ field; the route and its semantics stay.
 
 ---
 
+## D-039 A named effect is a state_effects entry with a name, in its own blob; the editor's "colour stops" are the four colours read by two palette effects
+
+**Date** 2026-09-11 · **Reversal** cheap for the route and the page, moderate for the blob (a second key with its own magic; dropping it costs nothing to the config)
+
+**Decided.** The effect editor (A14) saves an effect under a name: the same seven
+fields a `state_effects` entry has (effect, brightness, speed, ramp end, options, band,
+four colours) plus a name of up to fifteen characters, unique. Up to eight live in a
+second NVS blob under the same namespace, `presets`, with its own magic and size, so
+the config layout stays where v4 left it and no migration is needed for them; a wrong
+blob loads as an empty list. Applying a preset copies it into one state's effect,
+after which it is an ordinary entry the existing controls edit; the preset itself is
+untouched.
+
+"Colour stops" are the four colours a state effect already carries, read in order by
+two new engine effects: `Colour stops` lays them across the strip piecewise-linear, end
+to end; `Colour stops, scrolling` wraps the last back into the first and scrolls. The
+unlit colours count as stops only while their option bits say they are set, so a
+two-stop and a four-stop palette are both expressible without a new field. Both ids
+wait for bit 14 like the other input-bearing effects wait for theirs, and a preset's
+id must be allowed under the bits in force both when saved and when applied.
+
+**Alternatives.** Stops as a new field with its own count (a fifth layout and a larger
+entry for a capability the four colours already hold); presets kept in the browser
+(lost with the browser, and invisible to Phase B's per-stage rows, which will want to
+assign by name); presets inside the config blob (eight of them is 320 bytes on every
+config save and a migration).
+
+**Why.** The queue wants "more effects" to be a solved problem rather than a list: a
+named effect is the unit that Phase B assigns per stage, so it has to live on the
+device, and it has to be the same shape the renderer already reads.
+
+**What would change it.** Phase B needing more than eight, or names longer than
+fifteen characters: the blob's magic moves to PSP2 and loads the old one by size.
+
+---
+
 *Entries continue below as the run proceeds.*

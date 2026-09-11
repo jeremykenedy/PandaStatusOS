@@ -44,7 +44,7 @@
   }
 
   function render() {
-    renderSb(); renderFx(); renderFxc(); renderFxp(); renderFxr(); renderTg(); renderHot(); renderEf(); renderPv();
+    renderSb(); renderFx(); renderFxc(); renderFxp(); renderFxr(); renderTg(); renderHot(); renderEf(); renderPv(); renderEd();
     var m = mode(), e = entry();
     if (m !== null && document.activeElement !== modeSel) modeSel.value = String(m);
     var isMusic = m === 0;
@@ -259,6 +259,98 @@
       PS.post('/api/preview', { seconds: 0 }, function () { if (pvTimer) { clearInterval(pvTimer); pvTimer = null; } pvShow(false); });
     });
   }
+  // A14: the effect editor and the named effects
+  var presets = null;                       // the device's list while the switch is on
+  var ED_DEFAULT = { name: '', effect: 0, brightness: 50, speed: 100, bright_end: 0, opt: 0, aux: 0, colours: ['#FFFFFFFF', '#FFFFFFFF', '#000000FF', '#000000FF'] };
+  function gateOptions(sel, f) {
+    Array.prototype.forEach.call(sel.options, function (opt) {
+      var needs = opt.getAttribute('data-ps-fx-needs');
+      if (needs) { var ok = !!(f && f.features && f.features[needs]); opt.hidden = !ok; opt.disabled = !ok; }
+    });
+  }
+  function edStrip(p) { return { name: p.name, effect: p.effect, brightness: p.brightness, speed: p.speed, bright_end: p.bright_end, opt: p.opt, aux: p.aux, colours: p.colours.slice() }; }
+  function edRead() {                       // the editor's fields as one preset, in the route's key order
+    var cols = [], opt = 0;
+    for (var i = 0; i < 4; i++) { var v = $('ps-lighting-ed-colour-' + i).value; cols.push(v ? toDevice(v, 1) : '#000000FF'); }
+    if ($('ps-lighting-ed-colour-2').value) opt |= 0x01;
+    if ($('ps-lighting-ed-colour-3').value) opt |= 0x02;
+    var end = Number($('ps-lighting-ed-end').value); if (end > 0) opt |= 0x04;
+    var band = Number($('ps-lighting-ed-band').value); if (band > 0) opt |= 0x08;
+    if ($('ps-lighting-ed-reverse').checked) opt |= 0x10;
+    return { name: $('ps-lighting-ed-name').value.trim(), effect: Number($('ps-lighting-ed-effect').value), brightness: Number($('ps-lighting-ed-brightness').value), speed: Number($('ps-lighting-ed-speed').value), bright_end: end, opt: opt, aux: band, colours: cols };
+  }
+  function edWrite(p) {                     // a preset into the editor's fields
+    $('ps-lighting-ed-name').value = p.name || '';
+    $('ps-lighting-ed-effect').value = String(p.effect);
+    for (var i = 0; i < 4; i++) {
+      var set = i < 2 || !!(p.opt & (i === 2 ? 0x01 : 0x02));
+      var css = set ? toCss(p.colours[i]) : '';
+      var inp = $('ps-lighting-ed-colour-' + i); inp.value = css; inp.dispatchEvent(new Event('input', { bubbles: false }));
+      $('ps-lighting-ed-dot-' + i).style.background = css || '';
+    }
+    var end = (p.opt & 0x04) ? p.bright_end : 0, band = (p.opt & 0x08) ? p.aux : 0;
+    $('ps-lighting-ed-brightness').value = p.brightness; $('ps-lighting-ed-brightness-value').textContent = p.brightness + '%';
+    $('ps-lighting-ed-speed').value = p.speed; $('ps-lighting-ed-speed-value').textContent = p.speed + '%';
+    $('ps-lighting-ed-end').value = end; $('ps-lighting-ed-end-value').textContent = end + '%';
+    $('ps-lighting-ed-band').value = band; $('ps-lighting-ed-band-value').textContent = String(band);
+    $('ps-lighting-ed-reverse').checked = !!(p.opt & 0x10);
+  }
+  function edList() {
+    var list = $('ps-lighting-ed-list'), none = $('ps-lighting-ed-none');
+    while (list.firstChild) list.removeChild(list.firstChild);
+    var items = (presets && presets.presets) || [];
+    none.hidden = items.length > 0;
+    items.forEach(function (p) {
+      var row = document.createElement('div'); row.className = 'ps-row ps-ed-row'; row.setAttribute('data-ps-ed-name', p.name);
+      var name = document.createElement('span'); name.className = 'ps-ed-name'; name.textContent = p.name;
+      var fx = document.createElement('span'); fx.className = 'ps-tile-label';
+      var o = $('ps-lighting-ed-effect').querySelector('option[value="' + p.effect + '"]'); fx.textContent = o ? o.textContent : String(p.effect);
+      row.appendChild(name); row.appendChild(fx);
+      [[0, PS.tr('ps_lighting_ed_use_idle')], [1, PS.tr('ps_lighting_ed_use_printing')], [2, PS.tr('ps_lighting_ed_use_error')]].forEach(function (s) {
+        var b = document.createElement('button'); b.className = 'border small'; b.textContent = s[1]; b.setAttribute('data-ps-ed-use', String(s[0]));
+        b.addEventListener('click', function () { PS.post('/api/presets', { apply: { name: p.name, state: s[0] } }, function (doc) { if (doc) { presets = doc; edList(); PS.refreshFeatures(); } }); });
+        row.appendChild(b);
+      });
+      var ed = document.createElement('button'); ed.className = 'border small'; ed.textContent = PS.tr('ps_lighting_ed_load'); ed.setAttribute('data-ps-ed-load', '');
+      ed.addEventListener('click', function () { edWrite(p); });
+      var del = document.createElement('button'); del.className = 'border small'; del.textContent = PS.tr('ps_lighting_ed_delete'); del.setAttribute('data-ps-ed-delete', '');
+      del.addEventListener('click', function () {
+        var rest = items.filter(function (q) { return q.name !== p.name; }).map(edStrip);
+        PS.post('/api/presets', { presets: rest }, function (doc) { if (doc) { presets = doc; edList(); } });
+      });
+      row.appendChild(ed); row.appendChild(del);
+      list.appendChild(row);
+    });
+  }
+  function renderEd() {
+    var tile = $('ps-lighting-ed'); if (!tile) return;
+    var f = PS.features;
+    var on = !!(f && f.features && f.features.presets);
+    tile.hidden = !on;
+    if (!on) { presets = null; return; }
+    gateOptions($('ps-lighting-ed-effect'), f);
+    if (!presets) PS.get('/api/presets', function (doc) { presets = doc || { presets: [], max: 8 }; edList(); });
+    else edList();
+  }
+  function wireEd() {
+    var save = $('ps-lighting-ed-save'); if (!save) return;
+    edWrite(ED_DEFAULT);
+    [['brightness', '%'], ['speed', '%'], ['end', '%'], ['band', '']].forEach(function (p) {
+      var inp = $('ps-lighting-ed-' + p[0]);
+      inp.addEventListener('input', function () { $('ps-lighting-ed-' + p[0] + '-value').textContent = inp.value + p[1]; });
+    });
+    for (var i = 0; i < 4; i++) (function (i) {
+      var inp = $('ps-lighting-ed-colour-' + i);
+      inp.addEventListener('change', function () { $('ps-lighting-ed-dot-' + i).style.background = inp.value ? toCss(toDevice(inp.value, 1)) : ''; });
+    })(i);
+    save.addEventListener('click', function () {
+      var p = edRead(); if (!p.name) { PS.toast(PS.tr('ps_lighting_ed_name')); return; }
+      var items = ((presets && presets.presets) || []).filter(function (q) { return q.name !== p.name; }).map(edStrip);
+      if (items.length >= ((presets && presets.max) || 8)) { PS.toast(PS.tr('ps_lighting_ed_full')); return; }
+      items.push(p);
+      PS.post('/api/presets', { presets: items }, function (doc) { if (doc) { presets = doc; edList(); } });
+    });
+  }
   function wireFxb() {
     document.querySelectorAll('[data-ps-fxb]').forEach(function (inp) {
       var s = Number(inp.getAttribute('data-ps-fxb'));
@@ -449,7 +541,7 @@
     bright.addEventListener('input', function () { brightVal.textContent = bright.value + '%'; });
     bright.addEventListener('change', function () { PS.send('settings', { rgb_info_brightness: Number(bright.value) }); });
     for (var i = 0; i < 3; i++) { wireSb(i); wireFx(i); }
-    wireFxc(); wireFxp(); wireFxr(); wireFxb(); wireTg(); wireHot(); wireEf(); wirePv();
+    wireFxc(); wireFxp(); wireFxr(); wireFxb(); wireTg(); wireHot(); wireEf(); wirePv(); wireEd();
     speed.addEventListener('input', function () { if (speed.disabled) return; speedTouched = true; speedVal.textContent = speed.value + '%'; });
     speed.addEventListener('change', function () { if (!speed.disabled) PS.send('settings', { rgb_info_speed: Number(speed.value) }); });
 
@@ -474,5 +566,5 @@
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', wire); else wire();
   PS.on('state', function () { render(); });
-  PS.on('features', function () { renderSb(); renderFx(); renderFxc(); renderFxp(); renderFxr(); renderTg(); renderHot(); renderEf(); renderPv(); });
+  PS.on('features', function () { renderSb(); renderFx(); renderFxc(); renderFxp(); renderFxr(); renderTg(); renderHot(); renderEf(); renderPv(); renderEd(); });
 })();

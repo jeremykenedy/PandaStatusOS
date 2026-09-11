@@ -56,6 +56,7 @@ extern const char *const ps_gif_slot_names[PS_GIF_SLOTS];
 #define PS_FEAT_HOT_WARNING       (1u << 11)  /* A11, reserved: the hot warning layer */
 #define PS_FEAT_ERROR_FLASH       (1u << 12)  /* A12: the error flash layer */
 #define PS_FEAT_PREVIEW           (1u << 13)  /* A13: the live preview route, a pinned printer state */
+#define PS_FEAT_PRESETS           (1u << 14)  /* A14: the named effects and the two palette effects */
 
 /* which of the printer's temperatures a feature follows (INFERENCE: the report's
  * nozzle_temper, bed_temper and chamber_temper, the fields the vent reads) */
@@ -72,6 +73,7 @@ enum ps_fx {
     PS_FX_BOUNCE_OUT, PS_FX_BOUNCE_IN, PS_FX_BOUNCE_FILL_OUT, PS_FX_BOUNCE_FILL_IN,
     PS_FX_PROGRESS, PS_FX_PROGRESS_ANIM, PS_FX_BARBER, PS_FX_TEMP_GRADIENT,
     PS_FX_PROGRESS_HUE,
+    PS_FX_PALETTE, PS_FX_PALETTE_SCROLL,   /* A14: the four colours as stops across the strip, still and scrolling */
     PS_FX_COUNT
 };
 #define PS_FX_SELECTABLE 17    /* A2 offers ids 0..16, the ones that need no live input; the rest arrive with their features */
@@ -83,6 +85,7 @@ void ps_fx_layer_pulse(ps_rgba_t *px, int n, ps_rgba_t colour, uint8_t bright100
 /* A12: a strobe over the base, pure in time: hard on (the strip is the colour at its brightness)
  * for one half period, hard off (the base untouched) for the next. Returns whether it is on. */
 bool ps_fx_layer_strobe(ps_rgba_t *px, int n, ps_rgba_t colour, uint8_t bright100, uint32_t now_ms, uint32_t half_ms);
+
 #define PS_FX_RAMP_STEPS 100
 
 /* one effect's stored parameters; the vent's model. Which fields are read depends on the
@@ -114,10 +117,15 @@ typedef struct {
     float split_pos, fill_pos, sbounce_pos, sbounce_dir, sfill_pos, sfill_dir;
     float progress_shown, wave_pos, cycle_hue, rainbow_phase;
     int   chase_pos, anim_breath, barber_pos, ramp_step;
+    float palette_pos;                  /* A14: the scrolling palette's offset, 0..1 of the strip */
 } ps_fx_phase_t;
 
 uint32_t ps_fx_period(uint8_t speed);                              /* ms per frame for this speed */
 void     ps_fx_phase_init(ps_fx_phase_t *p);
+/* A14: the palette effects: the stops laid across the strip piecewise-linear (PS_FX_PALETTE), or
+ * wrapped round and scrolling (PS_FX_PALETTE_SCROLL); one stop is a solid, none is dark */
+uint32_t ps_fx_render_palette(int fx, const ps_rgba_t *stops, int nstops, uint8_t bright100, uint8_t speed, bool reverse,
+                              ps_fx_phase_t *p, ps_rgba_t *px, int n);
 uint8_t  ps_fx_ramp(ps_fx_phase_t *p, uint8_t bright, int bright_end);   /* bright_end < 0: no ramp */
 /* fills px[0..n-1], advances the phase once, returns the ms to wait before the next frame */
 uint32_t ps_fx_render(int fx, ps_rgba_t colour, ps_rgba_t bg, uint8_t bright100, uint8_t speed, bool reverse,
@@ -183,10 +191,24 @@ typedef struct {
 #define PS_CFG_SIZE      592
 #define PS_CFG_NVS_BUDGET 2048
 
+/* A14: the named effects, a second blob under the same namespace with its own magic and
+ * size, so the config layout does not move for them. Eight presets of forty bytes each. */
+#define PS_PRESETS_NVS_KEY "presets"
+#define PS_PRESETS_MAGIC   0x50535031u   /* 'P' 'S' 'P' '1' */
+#define PS_PRESETS_MAX     8
+#define PS_PRESET_NAME     16            /* fifteen characters and the terminator */
+typedef struct { char name[PS_PRESET_NAME]; ps_fx_cfg_t fx; } ps_preset_t;                                          /* 40 bytes */
+typedef struct { uint32_t magic; uint8_t count; uint8_t _pad[3]; ps_preset_t p[PS_PRESETS_MAX]; } ps_presets_t;    /* 328 bytes */
+#define PS_PRESETS_SIZE    328
+int  ps_presets_load(ps_presets_t *s);   /* the stored list, or an empty one; never fails the boot */
+int  ps_presets_save(const ps_presets_t *s);
+void ps_presets_clamp(ps_presets_t *s);
+
 /* what to render this frame, from the config and the live state, honouring every feature
  * bit (A1 to A5); fx < 0 means the placeholder in the state's colour. Pure, in ps_fx.c,
  * host-tested. */
-typedef struct { int fx; ps_rgba_t colour, bg; uint8_t brightness, speed; bool reverse; int bright_end; int band; } ps_fx_pick_t;
+typedef struct { int fx; ps_rgba_t colour, bg; uint8_t brightness, speed; bool reverse; int bright_end; int band;
+                 ps_rgba_t stops[4]; int nstops; } ps_fx_pick_t;   /* stops: the palette effects' colours, in order (A14) */
 void ps_fx_resolve(const ps_cfg_t *c, uint8_t mode, uint8_t st, bool job_active, ps_fx_pick_t *out);
 
 /* ---------------------------------------------------------- the live state ---- */
@@ -219,6 +241,7 @@ typedef struct {
     int16_t  pin_percent;              /* -1 for none */
     int16_t  pin_temp[PS_TEMP_COUNT];  /* PS_TEMP_NONE where the pin gives none: the live reading shows through */
     int64_t  pin_until_us;             /* esp_timer time the pin expires */
+    ps_presets_t presets;              /* A14: the named effects, loaded at boot */
     /* images */
     char     img_version[16];          /* empty until an image pack says otherwise */
 } ps_state_t;
@@ -305,6 +328,10 @@ int ps_api_preview_post(httpd_req_t *req);
 int ps_preview_apply(const char *json, size_t len);   /* the pin from its JSON, whole or refused; 0 on success */
 char *ps_preview_json(void);                          /* the pin as the page reads it; cJSON_free() it */
 int ps_http_redirect_portal(httpd_req_t *req);        /* the wildcard's answer, for a route that must look absent */
+int ps_api_presets_get(httpd_req_t *req);             /* A14: GET/POST /api/presets; a 302 while bit 14 is off */
+int ps_api_presets_post(httpd_req_t *req);
+int ps_presets_apply(const char *json, size_t len);   /* the whole list, or one preset into one state; 0 on success */
+char *ps_presets_json(void);                          /* the list as the page reads it; cJSON_free() it */
 
 /* ------------------------------------------------------------------ utility ---- */
 void ps_restart(const char *why);

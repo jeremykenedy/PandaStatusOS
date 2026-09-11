@@ -151,19 +151,19 @@ let STATE = null;
 let booting = false;                    // true while a "restart" is in progress
 let LANDED = null;                      // {build, page, until}: the image an ota_fw upload installed (PS_OTA_LANDS)
 let FEAT = null;                        // the clone's feature document (PS_CLONE); null until first asked
-const FEATURE_NAMES = ['state_brightness', 'state_effects', 'effect_colours', 'effect_params', 'effect_ramp', 'fx_progress', 'fx_progress_anim', 'fx_barber', 'fx_hue_ramp', 'fx_temp', 'hot_warning', 'error_flash', 'preview'];
+const FEATURE_NAMES = ['state_brightness', 'state_effects', 'effect_colours', 'effect_params', 'effect_ramp', 'fx_progress', 'fx_progress_anim', 'fx_barber', 'fx_hue_ramp', 'fx_temp', 'hot_warning', 'error_flash', 'preview', 'presets'];
 const FX_SELECTABLE = 17;
 // which effect ids the bits allow, as the firmware's ps_fx_allowed(): the seventeen need only the
 // effect switch; the ones that read the print each wait for their own
-const FX_NEEDS = { 17: 'fx_progress', 18: 'fx_progress_anim', 19: 'fx_barber', 20: 'fx_temp', 21: 'fx_hue_ramp' };
+const FX_NEEDS = { 17: 'fx_progress', 18: 'fx_progress_anim', 19: 'fx_barber', 20: 'fx_temp', 21: 'fx_hue_ramp', 22: 'presets', 23: 'presets' };
 function fxAllowed(id, features) {
-  if (!Number.isInteger(id) || id < 0 || id >= 22) return false;
+  if (!Number.isInteger(id) || id < 0 || id >= 24) return false;
   if (id < FX_SELECTABLE) return !!features.state_effects;
   return FX_NEEDS[id] ? !!features[FX_NEEDS[id]] : false;
 }
 const fxDefault = (colour) => ({ effect: 0, brightness: 50, speed: 100, bright_end: 0, opt: 0, aux: 0, colours: [colour, colour, '#000000FF', '#000000FF'] });
 function featDefaults() {
-  return { features: { state_brightness: false, state_effects: false, effect_colours: false, effect_params: false, effect_ramp: false, fx_progress: false, fx_progress_anim: false, fx_barber: false, fx_hue_ramp: false, fx_temp: false, hot_warning: false, error_flash: false, preview: false },
+  return { features: { state_brightness: false, state_effects: false, effect_colours: false, effect_params: false, effect_ramp: false, fx_progress: false, fx_progress_anim: false, fx_barber: false, fx_hue_ramp: false, fx_temp: false, hot_warning: false, error_flash: false, preview: false, presets: false },
            config: { state_brightness: [[50, 50, 50], [50, 50, 50]],
                      state_effects: [fxDefault('#FFFFFFFF'), fxDefault('#FFFFFFFF'), fxDefault('#FF0000FF')],
                      temp_gradient: { source: 0, lo: 25, hi: 250 },
@@ -259,6 +259,7 @@ const timers = new Set();               // every pending timer, outside STATE
 const sockets = new Set();
 const SENT = [];                        // frames the device received (the harness reads these)
 let PREVIEW = null;                     // A13: the pinned state, or null
+let PRESETS = { presets: [], max: 8 };  // A14: the named effects
 const PUSHED = [];                      // frames the device sent
 const t0 = Date.now();
 
@@ -576,7 +577,7 @@ async function handleHttp(req, res) {
   if (p === '/__sent') { res.writeHead(200, { 'Content-Type': 'application/json' }); return res.end(JSON.stringify(SENT)); }
   if (p === '/__pushed') { res.writeHead(200, { 'Content-Type': 'application/json' }); return res.end(JSON.stringify(PUSHED)); }
   if (p === '/__state') { res.writeHead(200, { 'Content-Type': 'application/json' }); return res.end(JSON.stringify(STATE)); }
-  if (p === '/__reset' && req.method === 'POST') { await readBody(req, 1 << 16); STATE = loadFixture(FIXTURE); SENT.length = 0; PUSHED.length = 0; LANDED = null; FEAT = null; PREVIEW = null; clearTimers(); log({ ev: 'debug_reset' }); res.writeHead(200); return res.end('ok'); }
+  if (p === '/__reset' && req.method === 'POST') { await readBody(req, 1 << 16); STATE = loadFixture(FIXTURE); SENT.length = 0; PUSHED.length = 0; LANDED = null; FEAT = null; PREVIEW = null; PRESETS = { presets: [], max: 8 }; clearTimers(); log({ ev: 'debug_reset' }); res.writeHead(200); return res.end('ok'); }
   if (p === '/__knob' && req.method === 'POST') {
     const { body } = await readBody(req, 1 << 16);
     try { const k = JSON.parse(body.toString('utf8')); KNOBS[k.name] = k.value; log({ ev: 'knob', detail: `${k.name}=${k.value}` }); res.writeHead(200); return res.end('ok'); }
@@ -639,6 +640,44 @@ async function handleHttp(req, res) {
     PREVIEW = seconds === 0 ? null : { state, percent, temps, until: Date.now() + seconds * 1000 };
     SENT.push(rec);
     log({ ev: 'api_preview', detail: rec.text });
+    res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }); return res.end(doc());
+  }
+  if (p === '/api/presets' && knobFlag('PS_CLONE') && FEAT && FEAT.features.presets) {
+    // A14: the named effects. The whole list at once, or one preset into one state; with the
+    // switch off the route does not exist (the 302 below).
+    const doc = () => JSON.stringify(PRESETS);
+    if (req.method === 'GET') { res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }); return res.end(doc()); }
+    if (req.method !== 'POST') { res.writeHead(405); return res.end(); }
+    const { body } = await readBody(req, 1 << 13);
+    const rec = { t: Date.now(), rel_ms: Date.now() - t0, api: '/api/presets', text: '' };
+    let j;
+    try { j = JSON.parse(body.toString('utf8')); } catch (_) { rec.error = 'not json'; SENT.push(rec); log({ ev: 'api_refused', detail: 'not json' }); res.writeHead(400); return res.end('refused'); }
+    rec.text = JSON.stringify({ api: '/api/presets', body: j }); rec.frame = j; rec.roots = ['api'];
+    const refuse = () => { rec.error = 'refused'; SENT.push(rec); log({ ev: 'api_refused', detail: rec.text }); res.writeHead(400); res.end('refused'); };
+    if (!j || typeof j !== 'object' || Array.isArray(j)) return refuse();
+    const hasList = Object.prototype.hasOwnProperty.call(j, 'presets'), hasApply = Object.prototype.hasOwnProperty.call(j, 'apply');
+    if (hasList === hasApply) return refuse();
+    if (hasList) {
+      const v = j.presets; if (!Array.isArray(v) || v.length > 8) return refuse();
+      const out = [], names = new Set();
+      for (const o of v) {
+        if (!o || typeof o !== 'object' || Array.isArray(o)) return refuse();
+        const { name, ...rest } = o;
+        if (typeof name !== 'string' || name.length < 1 || name.length > 15 || names.has(name)) return refuse();
+        names.add(name);
+        const fx = fxParse(rest, fxDefault('#FFFFFFFF'), FEAT.features); if (!fx) return refuse();
+        out.push(Object.assign({ name }, fx));
+      }
+      PRESETS = { presets: out, max: 8 };
+    } else {
+      const a = j.apply;
+      if (!a || typeof a !== 'object' || typeof a.name !== 'string' || !Number.isInteger(a.state) || a.state < 0 || a.state > 2) return refuse();
+      const found = PRESETS.presets.find((q) => q.name === a.name);
+      if (!found || !fxAllowed(found.effect, FEAT.features)) return refuse();
+      const { name, ...fx } = found; FEAT.config.state_effects[a.state] = JSON.parse(JSON.stringify(fx));
+    }
+    SENT.push(rec);
+    log({ ev: 'api_presets', detail: rec.text });
     res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }); return res.end(doc());
   }
   if (p === '/backup' && req.method === 'GET' && knob('PS_BACKUP', '')) {

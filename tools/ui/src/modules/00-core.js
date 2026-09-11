@@ -264,6 +264,14 @@ var PS = (function () {
       .catch(function () { toast(tr('ps_core_save_failed')); if (cb) cb(null); });
   }
 
+  // a GET of one of the clone's other routes; the document to cb, or null (a 302 is "no such route")
+  function get(path, cb) {
+    fetch(path, { redirect: 'manual', cache: 'no-store' })
+      .then(function (r) { if (!r.ok) throw new Error(String(r.status)); return r.json(); })
+      .then(function (doc) { if (cb) cb(doc); })
+      .catch(function () { if (cb) cb(null); });
+  }
+
   // ---------- boot ----------
   function boot() {
     dlg = document.getElementById('ps-dialog'); dlgTitle = document.getElementById('ps-dialog-title');
@@ -283,6 +291,6 @@ var PS = (function () {
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
 
   return { state: state, on: on, send: send, upload: upload, UPLOAD_CAPS: UPLOAD_CAPS, log: logRing, clearLog: clearLog, tr: tr, setLang: setLang, fillLangs: fillLangs, apply_translations: apply_translations,
-           dialog: dialog, toast: toast, pill: pill, showCard: showCard, theme: theme, api: api, post: post, get features() { return features; },
+           dialog: dialog, toast: toast, pill: pill, showCard: showCard, theme: theme, api: api, post: post, get: get, refreshFeatures: loadFeatures, get features() { return features; },
            get lang() { return lang; }, get connected() { return !!(sock && sock.readyState === 1); } };
 })();

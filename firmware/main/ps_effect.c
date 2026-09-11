@@ -74,7 +74,10 @@ static uint32_t render(void)
     } else {
         ps_fx_in_t in = { .percent = percent, .temp_c = temp, .temp_lo = temp_lo, .temp_hi = temp_hi };
         uint8_t b = ps_fx_ramp(&s_phase, k.brightness, k.bright_end);
-        wait = ps_fx_render(k.fx, k.colour, k.bg, b, k.speed, k.reverse, k.band, &in, &s_phase, s_frame, CONFIG_PS_LED_COUNT);
+        if (k.fx == PS_FX_PALETTE || k.fx == PS_FX_PALETTE_SCROLL)
+            wait = ps_fx_render_palette(k.fx, k.stops, k.nstops, b, k.speed, k.reverse, &s_phase, s_frame, CONFIG_PS_LED_COUNT);
+        else
+            wait = ps_fx_render(k.fx, k.colour, k.bg, b, k.speed, k.reverse, k.band, &in, &s_phase, s_frame, CONFIG_PS_LED_COUNT);
     }
 
     /* the layers, over the base, in time rather than in frames so a static base still pulses;

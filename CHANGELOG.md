@@ -18,6 +18,10 @@ Everything so far. No release has been made and no device has been flashed.
 - The clone's own JSON route, `/api/features`: the page discovers a clone by its 200 where
   the factory answers 302, and shows a Features card on the System page only then. The
   socket document stays the factory's (D-033).
+- A14, the named effects, behind `presets`: an editor that saves an effect with its
+  colours as stops, timing and direction under a name, eight of them in their own blob,
+  and copies one into any state; two palette effects that lay the colours across the bar,
+  still and scrolling (D-039).
 - A13, the live preview, behind `preview`: `POST /api/preview` pins the bar to a chosen
   state, progress and temperatures for up to ten minutes so a setting can be seen without
   a print; nothing is stored, and the route answers 302 while the switch is off (D-038).
