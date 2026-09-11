@@ -219,7 +219,10 @@ scan_pattern "MAC address"            '([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}'
 # separator. It needs a VALUE after the keyword: eight or more plain characters following
 # whitespace, a colon or an equals. The bare words "wifi" and "password" on one line are
 # a field path or an enum label, not a leak.
-scan_pattern "wifi/psk proximity"     '[Ww][Ii]-?[Ff][Ii].*(pass|psk|pwd)[a-z]*[[:space:]:=]+["'"'"'`]?[A-Za-z0-9_~+-]{8,}'
+# Proximity is bounded: within 120 characters. The built page carries every language's
+# string table on one line, and an unbounded .* paired a Wi-Fi label in one language with
+# a word half a megabyte later in another.
+scan_pattern "wifi/psk proximity"     '[Ww][Ii]-?[Ff][Ii].{0,120}(pass|psk|pwd)[a-z]*[[:space:]:=]+["'"'"'`]?[A-Za-z0-9_~+-]{8,}'
 scan_pattern "credential assignment"  "$SENS_ASSIGN"
 scan_pattern "bearer token"           'Bearer[[:space:]]+[A-Za-z0-9._~+/-]{16,}'
 scan_pattern "private key block"      'BEGIN [A-Z ]*PRIVATE KEY'

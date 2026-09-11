@@ -54,6 +54,8 @@ check "field paths on a line pass"  '[d.wifi.password, d.ap.ssid, d.printer.sn]'
 check "short fake in a frame passes" "{ ssid: 'net', password: 'pw' }"                   PASS
 check "enum label passes"          "t('sta.state 5 password error', ok)"                PASS
 check "wifi psk with a value still blocks" 'set WiFi psk = Tr0ub4dor3x'                   BLOCK
+check "wifi far from a token on one line passes" "$(printf 'Wi-Fi%0200d passed through unchanged' 0)" PASS
+check "wifi near a token on one line blocks" 'Wi-Fi network, password: hunter2swordfish'   BLOCK
 check "quoted value still blocks"  'password = "hunter2swordfish"'                       BLOCK
 # Our i18n keys are ps_<page>_<what> and can end in a credential word. The key is a name,
 # its value is UI copy; neither is an assignment of a secret.
