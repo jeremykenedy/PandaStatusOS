@@ -173,6 +173,13 @@ several. The connect-time push carries six of them at once.
 observed connect-time push. Not yet seen on the wire. `ws_theme` and `response` were
 likewise not seen, because neither a theme page visit nor a command occurred.
 
+**FACT, observed on the wire, the other way round:** the connect-time push carries two
+things the page does **not** handle. `sta` carries `auth_err_reason` (a number; 0 when
+connected), and `printer` carries `sn`, `access_code` and `ip` alongside `name`, `state`
+and `scan`. The device sends them; the factory page ignores them. This project's page
+shows the reason code when non-zero and the printer's serial number and address, and
+never shows the access code.
+
 ## Enumerations
 
 **FACT.** Values and their meanings, read from the artifact's own dispatch logic.
