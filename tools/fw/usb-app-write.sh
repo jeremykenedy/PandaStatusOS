@@ -43,6 +43,17 @@ say "image: $IMG_PROJECT $IMG_VERSION build $IMG_BUILD, $IMG_SIZE bytes"
 
 command -v esptool.py >/dev/null 2>&1 || . ~/esp/esp-idf/export.sh >/dev/null 2>&1 || true
 ESPTOOL="python3 -m esptool"; $ESPTOOL version >/dev/null 2>&1 || die "esptool is not available; run . ~/esp/esp-idf/export.sh first"
+# esptool v4 spells its subcommands and reset modes with underscores, v5 with hyphens, and the
+# two are NOT interchangeable: v4 answers a hyphenated subcommand with a usage error and exits.
+# This script is the one that runs when a device will not boot, so it asks which spelling this
+# esptool speaks rather than assuming, exactly as golden.sh does. Every call below uses the
+# answer. Hardcoding either one meant this tool failed on its first call, at the worst moment.
+if $ESPTOOL --help 2>&1 | grep -q 'read_flash'; then U=_; else U=-; fi
+if $ESPTOOL --help 2>&1 | grep -q 'default_reset'; then R=_; else R=-; fi
+SUB_CHIP="chip${U}id"; SUB_FLASH="flash${U}id"; SUB_MAC="read${U}mac"
+SUB_READ="read${U}flash"; SUB_WRITE="write${U}flash"
+BEFORE="default${R}reset"; AFTER_HARD="hard${R}reset"; AFTER_NONE="no${R}reset"
+say "esptool speaks ${SUB_WRITE} / ${BEFORE}"
 if [ -z "$PORT" ]; then
     set +u; PORTS=( /dev/cu.usbmodem* /dev/cu.usbserial* /dev/cu.wchusbserial* /dev/cu.SLAB_USBtoUART* ); set -u
     PORTS=( $(for p in "${PORTS[@]}"; do [ -e "$p" ] && echo "$p"; done) )
@@ -50,10 +61,10 @@ if [ -z "$PORT" ]; then
     PORT="${PORTS[0]}"
 fi
 UNIT="$ROOT/stock/RESTORE-THIS-UNIT.txt"
-CHIP="$($ESPTOOL --chip auto --port "$PORT" chip-id 2>&1 | awk -F'Chip is ' '/Chip is/{print $2}' | awk '{print $1}')"
-case "$CHIP" in ESP32-C3*) ;; *) die "chip-id reports '${CHIP:-nothing}', not an ESP32-C3";; esac
-FLASH="$($ESPTOOL --chip auto --port "$PORT" flash-id 2>&1 | awk -F'Detected flash size: ' '/Detected flash size/{print $2}' | awk '{print $1}')"
-MAC="$($ESPTOOL --chip auto --port "$PORT" read-mac 2>&1 | awk '/^MAC:/{print tolower($2)}' | head -1)"
+CHIP="$($ESPTOOL --chip auto --port "$PORT" "$SUB_CHIP" 2>&1 | awk -F'Chip is ' '/Chip is/{print $2}' | awk '{print $1}')"
+case "$CHIP" in ESP32-C3*) ;; *) die "$SUB_CHIP reports '${CHIP:-nothing}', not an ESP32-C3";; esac
+FLASH="$($ESPTOOL --chip auto --port "$PORT" "$SUB_FLASH" 2>&1 | awk -F'Detected flash size: ' '/Detected flash size/{print $2}' | awk '{print $1}')"
+MAC="$($ESPTOOL --chip auto --port "$PORT" "$SUB_MAC" 2>&1 | awk '/^MAC:/{print tolower($2)}' | head -1)"
 [ "$MAC" = "$(awk -F= '/^MAC=/{print tolower($2)}' "$UNIT")" ] || die "this unit's MAC differs from the stock dump's unit"
 [ "$FLASH" = "$(awk -F= '/^FLASH_SIZE=/{print $2}' "$UNIT")" ] || die "flash size $FLASH differs from the recorded $(awk -F= '/^FLASH_SIZE=/{print $2}' "$UNIT")"
 say "unit: ESP32-C3, $FLASH, MAC matches"
@@ -69,7 +80,7 @@ N="$(echo "$SLOTS_JSON" | python3 -c 'import json,sys; print(len(json.load(sys.s
 if [ -z "$SLOT" ]; then
     [ -n "$OTA_OFF" ] || die "no otadata partition in the stock table; pass --slot"
     OTATMP="$(mktemp)"
-    $ESPTOOL --chip esp32c3 --port "$PORT" -b 460800 --before default_reset --after no_reset read-flash "$OTA_OFF" "$OTA_SIZE" "$OTATMP" >/dev/null 2>&1 || die "could not read otadata"
+    $ESPTOOL --chip esp32c3 --port "$PORT" -b 460800 --before "$BEFORE" --after "$AFTER_NONE" "$SUB_READ" "$OTA_OFF" "$OTA_SIZE" "$OTATMP" >/dev/null 2>&1 || die "could not read otadata"
     ACTIVE="$($FI otadata "$OTATMP" "$(echo "$SLOTS_JSON" | python3 -c 'import json,sys; print(len([s for s in json.load(sys.stdin) if s[0].startswith("ota_")]))')" | awk -F= '/^ACTIVE=/{print $2}')"; rm -f "$OTATMP"
     if [ "$ACTIVE" = none ]; then SLOT="$(echo "$SLOTS_JSON" | python3 -c 'import json,sys; print(json.load(sys.stdin)[0][0])')"; say "otadata has no valid entry; the bootloader boots the first slot, $SLOT"
     else SLOT="ota_$ACTIVE"; say "otadata says the bootloader boots $SLOT"; fi
@@ -78,8 +89,8 @@ read -r OFFSET SIZE <<< "$(echo "$SLOTS_JSON" | python3 -c 'import json,sys; s=[
 [ -n "$OFFSET" ] || die "no app slot named $SLOT in the stock table"
 [ "$IMG_SIZE" -le "$SIZE" ] || die "the image ($IMG_SIZE bytes) does not fit slot $SLOT ($SIZE bytes)"
 say "writing $IMG_SIZE bytes to $SLOT at $(printf '0x%x' "$OFFSET") (the flashing rule: only because the maintainer said so in this message)"
-$ESPTOOL --chip esp32c3 --port "$PORT" -b 460800 --before default_reset --after hard_reset write-flash "$(printf '0x%x' "$OFFSET")" "$BIN" || die "write failed; read firmware/SAFETY.md, 'if something goes wrong'"
+$ESPTOOL --chip esp32c3 --port "$PORT" -b 460800 --before "$BEFORE" --after "$AFTER_HARD" "$SUB_WRITE" "$(printf '0x%x' "$OFFSET")" "$BIN" || die "write failed; read firmware/SAFETY.md, 'if something goes wrong'"
 BACK="$(mktemp)"
-$ESPTOOL --chip esp32c3 --port "$PORT" -b 460800 --before default_reset --after hard_reset read-flash "$(printf '0x%x' "$OFFSET")" "$IMG_SIZE" "$BACK" >/dev/null 2>&1 || die "read-back failed"
+$ESPTOOL --chip esp32c3 --port "$PORT" -b 460800 --before "$BEFORE" --after "$AFTER_HARD" "$SUB_READ" "$(printf '0x%x' "$OFFSET")" "$IMG_SIZE" "$BACK" >/dev/null 2>&1 || die "read-back failed"
 if cmp -s "$BACK" "$BIN"; then say "VERIFIED: slot $SLOT reads back identical to $BIN"; rm -f "$BACK"; exit 0; fi
 rm -f "$BACK"; die "read-back DIFFERS from the image. Do not power-cycle; read firmware/SAFETY.md"

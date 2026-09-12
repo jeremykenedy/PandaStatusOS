@@ -266,8 +266,26 @@ python3 -m esptool --chip esp32c3 --port <PORT> -b 460800 \
 ```
 
 **The flashing rule applies to step 2.** It runs only with Jeremy's authorization in that message and
-the cable confirmed connected. If your esptool prints `write_flash` (underscore) in its
-help, you have an older version; both spellings are accepted.
+the cable confirmed connected.
+
+**The spelling is not interchangeable, and getting it wrong wastes the one attempt you have.**
+esptool v4 spells its subcommands, its reset modes and its flags with underscores
+(`write_flash`, `default_reset`, `--flash_size`); v5 spells all three with hyphens. A v4
+esptool answers a hyphenated subcommand with `invalid choice` and exits before touching the
+device, which is survivable here but is not survivable in a script. Ask yours before you
+type, and use what it answers:
+
+```
+python3 -m esptool --help | grep -q read_flash && echo underscores || echo hyphens
+python3 -m esptool version
+```
+
+The commands in this section are written in the **hyphenated** form. If the line above says
+underscores, replace every `-` inside a subcommand or a flag name with `_`: `write-flash`
+becomes `write_flash`, `read-flash` becomes `read_flash`, `--flash-size` becomes
+`--flash_size`, `default-reset` becomes `default_reset`. `tools/fw/golden.sh` and
+`tools/fw/usb-app-write.sh` both probe for this rather than assuming, so neither needs the
+substitution; this section is the one a person types by hand.
 
 Then read it back. A write that completes without error is not a verified restore:
 
