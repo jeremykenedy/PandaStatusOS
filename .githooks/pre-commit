@@ -182,6 +182,28 @@ scan_pattern() {
 # with every new control is a check that decays to nothing, and a decayed check is how
 # their element IDs reached a commit in the first place. Fix the name, not the check.
 
+# Raster images are not searched for vendor tokens, and every other file still is.
+#
+# Rule 8 has no allowlist, and this is not one: an allowlist exempts a NAME, which is how a
+# check decays. This exempts a FILE FORMAT whose content is pixels. A screenshot cannot carry
+# a source identifier as meaning; what it carries is DEFLATE output, and DEFLATE output spells
+# short tokens by chance. Two screenshots of this project's own page blocked a commit on three
+# bytes reading "c_x". Filtering to long printable runs was tried first and was not enough:
+# compressed data produces long printable runs too.
+#
+# Everything else is still scanned in full, binary included, which the hook suite pins in both
+# directions: a vendor identifier embedded in a non-image binary is still a finding.
+# The CJK scan below already skips every binary, for the same reason and with the same caveat.
+is_raster() {
+    case "$1" in
+        *.png|*.PNG|*.jpg|*.JPG|*.jpeg|*.JPEG|*.gif|*.GIF|*.webp|*.WEBP|*.ico|*.ICO) return 0 ;;
+        *) return 1 ;;
+    esac
+}
+vendor_readable() {
+    if [ "$2" != "gz" ] && is_raster "$1"; then :; else cat; return; fi
+}
+
 scan_vendor() {
     local label="$1" pattern="$2" skipre="${3:-}" file line view where
     for file in $STAGED; do
@@ -194,7 +216,7 @@ scan_vendor() {
             while IFS= read -r line; do
                 fail "$label in $where"
                 printf '        %s\n' "$line" >&2
-            done < <(staged_view "$file" "$view" | LC_ALL=C grep -a -nE "$pattern" | { if [ -n "$skipre" ]; then LC_ALL=C grep -avE "$skipre"; else cat; fi; } || true)
+            done < <(staged_view "$file" "$view" | vendor_readable "$file" "$view" | LC_ALL=C grep -a -nE "$pattern" | { if [ -n "$skipre" ]; then LC_ALL=C grep -avE "$skipre"; else cat; fi; } || true)
         done
     done
 }

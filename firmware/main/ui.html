@@ -254,6 +254,59 @@ article[data-ps-card] {
    the input; the picker is the only thing Coloris adds. */
 .ps-colour-field { position: relative; }
 .ps-colour-field > .ps-dot { position: absolute; inset-inline-start: 1.1rem; inset-block-start: calc(var(--_input, 2.5rem) / 2 - 7px); width: 14px; height: 14px; box-shadow: 0 0 0 1px var(--outline); z-index: 10; pointer-events: none; }
+/* The left rail is one surface with the top bar. Beer gives the rail --surface and the two bars
+   --surface-container, so the rail and the bar meet at a visible seam in both themes. */
+nav.left.ps-rail { background-color: var(--surface-container); }
+
+/* Checkboxes, radios and switches, drawn here rather than by an icon font.
+   Beer renders all three with Material Symbols ligatures: content:"check_box",
+   "radio_button_checked", "check". This project ships Roboto and no icon font, so the browser
+   printed the ligature NAME inside the control, and a chosen radio read "radio_button_checked".
+   Shipping a second font for three glyphs is not worth the weight on a page already over a
+   megabyte, so the glyphs are drawn with a border and a background, which is how these controls
+   were drawn before icon fonts. Beer's own .icon class blanks the same content, which is the
+   hook this uses. */
+:is(.checkbox, .radio, .switch) > span::before,
+:is(.checkbox, .radio) > input:checked + span::before,
+.checkbox > input:indeterminate + span::before,
+.switch > input:checked + span::before {
+  content: "" !important;
+  font-variation-settings: unset !important;
+}
+/* The glyph box is Beer's own 1.5rem square, so both marks are drawn ON it with a gradient
+   rather than as a second box that would have to be lined up against a size Beer controls. */
+.checkbox > span::before {
+  box-sizing: border-box; border: 2px solid var(--on-surface-variant); border-radius: 5px;
+  background: transparent;
+}
+.checkbox > input:checked + span::before,
+.checkbox > input:indeterminate + span::before {
+  border-color: var(--primary); background-color: var(--primary);
+}
+/* the tick: two bars crossed at the right angles, drawn as gradients over the filled box */
+.checkbox > input:checked + span::before {
+  background-image:
+    linear-gradient(45deg, transparent 44%, var(--on-primary) 44% 56%, transparent 56%),
+    linear-gradient(-45deg, transparent 44%, var(--on-primary) 44% 56%, transparent 56%);
+  background-size: 44% 44%, 62% 62%;
+  background-position: 24% 62%, 56% 38%;
+  background-repeat: no-repeat;
+}
+.checkbox > input:indeterminate + span::before {
+  background-image: linear-gradient(var(--on-primary), var(--on-primary));
+  background-size: 56% 2px; background-position: center; background-repeat: no-repeat;
+}
+
+/* a radio: a ring, with a dot painted inside it when chosen */
+.radio > span::before {
+  box-sizing: border-box; border: 2px solid var(--on-surface-variant); border-radius: 50%;
+  background: transparent;
+}
+.radio > input:checked + span::before {
+  border-color: var(--primary);
+  background-image: radial-gradient(circle at center, var(--primary) 0 30%, transparent 31%);
+}
+
 /* a password field: Beer's suffix slot, holding the reveal. Logical properties, so in Arabic
    and Hebrew the button sits on the trailing edge and the input's spare room moves with it.
    Beer styles bare buttons as filled primary ones from selectors that tie with a single class,

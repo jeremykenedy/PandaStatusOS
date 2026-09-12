@@ -28,6 +28,22 @@ Everything so far. No release has been made and no device has been flashed.
 
 ### Found by running it on the hardware
 
+- The page kept saying the connection was lost. The socket pool was the IDF's default of ten
+  and the demand is at least thirteen: the page server's eight, the captive portal's DNS
+  listener, two for printer discovery, the multicast responder and the printer's MQTT link.
+  The pool was raised in `sdkconfig.defaults`, but that file only seeds a *fresh*
+  configuration and the generated `sdkconfig` already existed, so the change had never taken
+  effect. Regenerating it applied exactly three settings and lost nothing.
+- Switches showed the word inside them. Beer CSS draws checkboxes, radios and switches with
+  Material Symbols ligatures, `content:"check"` and `content:"radio_button_checked"`; this
+  project ships Roboto and no icon font, so the browser printed the ligature name. All three
+  controls are drawn here now with a border and a gradient, which costs nothing and adds no
+  second font to a page already over a megabyte.
+- The left rail and the top bar are one surface. Beer gives the rail `--surface` and the bars
+  `--surface-container`, which met at a visible seam in both themes.
+- The screenshots in the README are from the running device, and the mock disclaimer is gone.
+  Every identifier is replaced before the shutter.
+
 - Printer discovery works. A printer announces itself over SSDP multicast and the device now
   listens for it continuously, so Scan lists what is actually on the network: name, address and
   serial. Selecting one fills all three and leaves the caret in the access code, which is the

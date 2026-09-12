@@ -57,14 +57,23 @@ It is a reimplementation, not a modification of their firmware. "Panda Status" i
 
 ## Where This Stands
 
-**Built against a mock device. No unit has been flashed.** Every page, every wire frame
-and every firmware module in this repository was written from the protocol the stock
-unit speaks and tested against a mock that speaks it back. The first flash of real
-hardware is a deliberate, separate step, and it has not happened. Until it does, treat
-every number about the flash layout as PROVISIONAL; the files say so themselves.
+**It runs on the hardware.** A Panda Status P2 was backed up, flashed and is serving this
+page over Wi-Fi. The flash layout is no longer a guess: the partition table in this
+repository was read out of a real unit, and the dump disproved every row of the table that
+had been inferred before it. The device finds printers on the network by their own
+announcements, answers to `status.local`, and raises a hotspot that opens its own setup page
+when you join it.
+
+**What is still unproven, and says so where it matters.** The light bar's data pin and LED
+count are the last two numbers nobody has established: they are marked PROVISIONAL in the
+configuration and in the boot log, and until they are read off the hardware the bar is the
+one part of this that has not been seen working. Music mode is not implemented. The
+screenshots below are from the running device; the animation frames it shows on the display
+are the factory's own, untouched, because nothing here writes them.
 
 Read [firmware/SAFETY.md](firmware/SAFETY.md) before touching a device. Read the next
-section before touching yours.
+section before touching yours: the restore path is not optional, and it is the reason a
+first install is survivable.
 
 ## The Restore Path Comes First
 
@@ -200,8 +209,13 @@ Pick a language on the setup page, or change it any time from the System page.
 
 ## Screenshots
 
-Taken by the harnesses against the mock, never against hardware. Every value on them is
-a placeholder.
+Taken from a running device over Wi-Fi, not from a mock and not from a design tool. The
+Printer page below is a real scan finding two real printers on a real network.
+
+One thing is altered: every identifier is replaced before the shutter. Network names become
+`your-network`, addresses become `192.0.2.x`, which is the range reserved for documentation,
+and serials become `EXAMPLESERIAL01`. Nothing else is touched, and the page's own layout,
+state and wording are exactly what the device served.
 
 | Dashboard, light | Dashboard, dark |
 | --- | --- |

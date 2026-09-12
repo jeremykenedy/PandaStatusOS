@@ -141,6 +141,18 @@ check "a language named in its own script passes" '| Japanese | 日本語 | `ja`
 check "CJK beside another code still blocks"   '| Something | 状态灯 | `de` | |'             BLOCK
 [ -f art/apple-touch-icon-180.png ] && bincheck "generated PNG passes" art/apple-touch-icon-180.png docs/_t.png PASS
 [ -f docs/screenshots/dashboard-dark.png ] && bincheck "screenshot PNG passes" docs/screenshots/dashboard-dark.png docs/_t2.png PASS
+# That one case passed by luck: it happened to hold no run of compressed bytes reading like a
+# vendor token. Two screenshots did, and blocked a commit on three bytes of DEFLATE output
+# spelling "c_x". Raster images are no longer searched for vendor tokens, because their content
+# is pixels and cannot carry a source identifier as meaning. Every other file still is, binary
+# included, and the two BLOCK cases below are what stops that becoming an exemption: a check
+# that stopped finding real identifiers would be worse than the noise it removed.
+[ -f docs/screenshots/images-dark.png ] && bincheck "the screenshot that tripped the c_ scan passes" docs/screenshots/images-dark.png docs/_t3.png PASS
+[ -f docs/screenshots/lighting-light.png ] && bincheck "and the other one" docs/screenshots/lighting-light.png docs/_t4.png PASS
+printf 'PK\003\004\000\001\002 id_password_wifi padding padding \000\001\002' > "${TMPDIR:-/tmp}/ps-hooktest-embedded.bin"
+bincheck "a vendor identifier embedded in a binary is still found" "${TMPDIR:-/tmp}/ps-hooktest-embedded.bin" docs/_t5.bin BLOCK
+printf '\000\001\002 c_colorpicker is their class name too \000\377' > "${TMPDIR:-/tmp}/ps-hooktest-embedded2.bin"
+bincheck "and so is a vendor class name in a binary" "${TMPDIR:-/tmp}/ps-hooktest-embedded2.bin" docs/_t6.bin BLOCK
 check "CJK in a text file still blocks" 'status text 状态灯 here'                    BLOCK
 check "CJK in a comment still blocks"   '// 状態表示ライト'                            BLOCK
 
@@ -188,6 +200,8 @@ else
 fi
 
 echo
+
+
 echo "  passed=$pass failed=$fail"
 [ "$fail" -eq 0 ] && echo "  ALL GOOD" || echo "  REGRESSION"
 # restore
