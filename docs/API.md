@@ -16,7 +16,7 @@ sees the 200 (D-033). Two more read-only routes are always answered by a clone:
 | Route | Answer |
 |---|---|
 | `GET /api/info` | identification: `{"product":"PandaStatusOS","build":"<16 hex>","version":"V1.0.0","idf":"v5.3.1","uptime_s":n,"heap_free":n,"flash_size":n,"leds":n,"mode":0 or 1,"features":<the switch bits as a number>,"config_layout":"PS04"}`. No network name, address, serial or credential. |
-| `GET /api/state` | the six-root state document the socket pushes on connect (`wifi`, `sta`, `ap`, `printer`, `settings`, `block`), as JSON over HTTP, for tools and for gate 2. It carries exactly what the socket gives any client on the network. |
+| `GET /api/state` | the six-root state document the socket pushes on connect (`wifi`, `sta`, `ap`, `printer`, `settings`, `block`), as JSON over HTTP, for tools and for gate 2. **Three fields are emptied here and nowhere else:** `wifi.password`, `ap.password` and `printer.access_code`. The socket still carries them, because the factory's socket does and the page's fields are filled from that push; this route is the clone's own, answers an unauthenticated GET from anyone who can reach port 80, and a second copy of a secret is a second place to lose it. The fields keep their shape and come back empty. The printer serial stays: it is on a sticker and the printer broadcasts it to the whole network itself. |
 
 `build` is the first eight bytes of the app image's ELF sha256, the same value `X-Build`
 carries on `GET /`; `tools/fw/ota-install.sh` proves an install by it.

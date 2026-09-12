@@ -612,12 +612,41 @@ int ps_api_info_get(httpd_req_t *req)
     return send_json(req, s);
 }
 
+/* The state document with the three secrets taken out.
+ *
+ * The socket carries them, because the factory's socket carries them and the page's fields are
+ * filled from that push; that is parity and it is documented. This route is NOT the factory's.
+ * It is the clone's own, it answers an unauthenticated GET from anyone who can reach port 80,
+ * and it was handing out the Wi-Fi password, the hotspot password and the printer's access code
+ * to all of them. A second, easier copy of a secret is a second place to lose it.
+ *
+ * What goes: wifi.password, ap.password, printer.access_code, each replaced by an empty string
+ * rather than removed, so the document keeps its shape and anything reading it still finds the
+ * field. The printer serial stays: it is on a sticker and the printer broadcasts it to the whole
+ * network in its own announcement, so withholding it here would protect nothing. */
+static void redact_secret(cJSON *root, const char *branch, const char *field)
+{
+    cJSON *b = cJSON_GetObjectItem(root, branch);
+    if (!cJSON_IsObject(b)) return;
+    cJSON *f = cJSON_GetObjectItem(b, field);
+    if (cJSON_IsString(f)) cJSON_SetValuestring(f, "");
+}
+
 int ps_api_state_get(httpd_req_t *req)
 {
     ps_lock();
     char *s = ps_state_json(PS_ROOT_ALL);
     ps_unlock();
-    return send_json(req, s);
+    if (!s) return send_json(req, s);
+    cJSON *doc = cJSON_Parse(s);
+    cJSON_free(s);
+    if (!doc) return send_json(req, NULL);
+    redact_secret(doc, "wifi", "password");
+    redact_secret(doc, "ap", "password");
+    redact_secret(doc, "printer", "access_code");
+    char *out = cJSON_PrintUnformatted(doc);
+    cJSON_Delete(doc);
+    return send_json(req, out);
 }
 
 /* ---- C3: the settings as one document. The export carries everything the device stores

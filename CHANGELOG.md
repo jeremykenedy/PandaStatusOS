@@ -28,6 +28,13 @@ Everything so far. No release has been made and no device has been flashed.
 
 ### Found by running it on the hardware
 
+- `GET /api/state` was handing the Wi-Fi password, the hotspot password and the printer's
+  access code to anyone who could reach port 80, with nothing asked of them. The socket carries
+  those because the factory's socket does and the page's fields are filled from that push; this
+  route is the clone's own addition, so a second and easier copy of a secret was a second place
+  to lose it. The three fields now come back empty and keep their shape. The printer serial
+  stays, because it is on a sticker and the printer broadcasts it to the whole network itself.
+
 - The page kept saying the connection was lost. The socket pool was the IDF's default of ten
   and the demand is at least thirteen: the page server's eight, the captive portal's DNS
   listener, two for printer discovery, the multicast responder and the printer's MQTT link.
