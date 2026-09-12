@@ -206,6 +206,11 @@ static esp_err_t ws_handler(httpd_req_t *req)
     return ESP_OK;
 }
 
+/* The number of routes ps_ws_start registers. httpd's max_uri_handlers must be at least this,
+ * and a registration past the cap is refused rather than fatal, so the two are tied together
+ * here and the loop below hard-fails if they ever disagree. */
+#define PS_HTTP_ROUTES 22
+
 int ps_ws_start(void)
 {
     for (int i = 0; i < CONFIG_PS_WS_MAX_CLIENTS; i++) s_clients[i] = -1;
@@ -215,58 +220,66 @@ int ps_ws_start(void)
     cfg.max_open_sockets = CONFIG_PS_WS_MAX_CLIENTS + 3;
     cfg.lru_purge_enable = true;
     cfg.stack_size = 8192;
+    /* The routes table below decides this. Eight is httpd's default and is far too few. */
+    cfg.max_uri_handlers = PS_HTTP_ROUTES;
     esp_err_t e = httpd_start(&s_hd, &cfg);
     if (e != ESP_OK) { ESP_LOGE(TAG, "httpd_start: %d", (int)e); s_hd = NULL; return -1; }
 
-    /* specific routes first; the wildcard last, because matching runs in registration order */
-    httpd_uri_t page   = { .uri = "/",    .method = HTTP_GET,  .handler = page_get };
-    httpd_uri_t head   = { .uri = "/",    .method = HTTP_HEAD, .handler = not_allowed };
-    httpd_uri_t otaget = { .uri = "/ota", .method = HTTP_GET,  .handler = not_allowed };
-    httpd_uri_t ota    = { .uri = "/ota", .method = HTTP_POST, .handler = ota_post };
-    httpd_uri_t ws     = { .uri = "/ws",  .method = HTTP_GET,  .handler = ws_handler, .is_websocket = true };
-    httpd_uri_t backup = { .uri = "/backup", .method = HTTP_GET, .handler = ps_backup_get };   /* the clone's own; the factory has none */
-    httpd_uri_t info_g = { .uri = "/api/info",     .method = HTTP_GET,  .handler = ps_api_info_get };       /* the clone's own (ps_api.c), always answered */
-    httpd_uri_t st_g   = { .uri = "/api/state",    .method = HTTP_GET,  .handler = ps_api_state_get };
-    httpd_uri_t api_g  = { .uri = "/api/features", .method = HTTP_GET,  .handler = ps_api_features_get };   /* the clone's own (ps_api.c) */
-    httpd_uri_t api_p  = { .uri = "/api/features", .method = HTTP_POST, .handler = ps_api_features_post };
-    httpd_uri_t pv_g   = { .uri = "/api/preview",  .method = HTTP_GET,  .handler = ps_api_preview_get };    /* A13; answers 302 while its bit is off */
-    httpd_uri_t pv_p   = { .uri = "/api/preview",  .method = HTTP_POST, .handler = ps_api_preview_post };
-    httpd_uri_t pr_g   = { .uri = "/api/presets",  .method = HTTP_GET,  .handler = ps_api_presets_get };    /* A14; answers 302 while its bit is off */
-    httpd_uri_t pr_p   = { .uri = "/api/presets",  .method = HTTP_POST, .handler = ps_api_presets_post };
-    httpd_uri_t sg_g   = { .uri = "/api/stages",   .method = HTTP_GET,  .handler = ps_api_stages_get };     /* B1, B2; answers 302 while its bit is off */
-    httpd_uri_t sg_p   = { .uri = "/api/stages",   .method = HTTP_POST, .handler = ps_api_stages_post };
-    httpd_uri_t cf_g   = { .uri = "/api/config",   .method = HTTP_GET,  .handler = ps_api_config_get };     /* C3; answers 302 while its bit is off */
-    httpd_uri_t cf_p   = { .uri = "/api/config",   .method = HTTP_POST, .handler = ps_api_config_post };
-    httpd_uri_t rs_p   = { .uri = "/api/restart",  .method = HTTP_POST, .handler = ps_api_restart_post };   /* C4; answers 302 while its bit is off */
-    /* The wildcard answers every client, not only the hotspot's. That is parity: the factory
-       answers 302 to any path it does not serve, and every gated route leans on it to look
-       absent while its switch is off. It is also what makes a phone's captive probe open the
-       setup page, once ps_portal.c is answering DNS for the hotspot. Do not narrow it. */
-    httpd_uri_t any_g  = { .uri = "/*",   .method = HTTP_GET,  .handler = redirect_portal };
-    httpd_uri_t any_p  = { .uri = "/*",   .method = HTTP_POST, .handler = redirect_portal };
-    httpd_uri_t any_h  = { .uri = "/*",   .method = HTTP_HEAD, .handler = redirect_portal };
-    httpd_register_uri_handler(s_hd, &page);
-    httpd_register_uri_handler(s_hd, &head);
-    httpd_register_uri_handler(s_hd, &otaget);
-    httpd_register_uri_handler(s_hd, &ota);
-    httpd_register_uri_handler(s_hd, &ws);
-    httpd_register_uri_handler(s_hd, &backup);
-    httpd_register_uri_handler(s_hd, &info_g);
-    httpd_register_uri_handler(s_hd, &st_g);
-    httpd_register_uri_handler(s_hd, &api_g);
-    httpd_register_uri_handler(s_hd, &api_p);
-    httpd_register_uri_handler(s_hd, &pv_g);
-    httpd_register_uri_handler(s_hd, &pv_p);
-    httpd_register_uri_handler(s_hd, &pr_g);
-    httpd_register_uri_handler(s_hd, &pr_p);
-    httpd_register_uri_handler(s_hd, &sg_g);
-    httpd_register_uri_handler(s_hd, &sg_p);
-    httpd_register_uri_handler(s_hd, &cf_g);
-    httpd_register_uri_handler(s_hd, &cf_p);
-    httpd_register_uri_handler(s_hd, &rs_p);
-    httpd_register_uri_handler(s_hd, &any_g);
-    httpd_register_uri_handler(s_hd, &any_p);
-    httpd_register_uri_handler(s_hd, &any_h);
+    /* One table, and the cap comes FROM it. Specific routes first and the wildcard last,
+       because matching runs in registration order and the first match wins.
+
+       httpd's max_uri_handlers defaults to EIGHT. This list is far longer, and
+       httpd_register_uri_handler answers ESP_ERR_HTTPD_HANDLERS_FULL rather than complaining:
+       registering past the cap and ignoring the result silently dropped everything after the
+       eighth route. The three wildcards are last, so they were the first casualties, and a
+       phone's captive probe met httpd's own 404 instead of the redirect that opens the setup
+       page. The whole features, presets, stages, config and restart API went with them.
+       So: the cap is sizeof this table, every result is checked, and a refusal is fatal. */
+    static const httpd_uri_t routes[] = {
+        { .uri = "/",              .method = HTTP_GET,  .handler = page_get },
+        { .uri = "/",              .method = HTTP_HEAD, .handler = not_allowed },
+        { .uri = "/ota",           .method = HTTP_GET,  .handler = not_allowed },
+        { .uri = "/ota",           .method = HTTP_POST, .handler = ota_post },
+        { .uri = "/ws",            .method = HTTP_GET,  .handler = ws_handler, .is_websocket = true },
+        { .uri = "/backup",        .method = HTTP_GET,  .handler = ps_backup_get },          /* the clone's own; the factory has none */
+        { .uri = "/api/info",      .method = HTTP_GET,  .handler = ps_api_info_get },        /* the clone's own (ps_api.c), always answered */
+        { .uri = "/api/state",     .method = HTTP_GET,  .handler = ps_api_state_get },
+        { .uri = "/api/features",  .method = HTTP_GET,  .handler = ps_api_features_get },
+        { .uri = "/api/features",  .method = HTTP_POST, .handler = ps_api_features_post },
+        { .uri = "/api/preview",   .method = HTTP_GET,  .handler = ps_api_preview_get },     /* A13; answers 302 while its bit is off */
+        { .uri = "/api/preview",   .method = HTTP_POST, .handler = ps_api_preview_post },
+        { .uri = "/api/presets",   .method = HTTP_GET,  .handler = ps_api_presets_get },     /* A14; 302 while its bit is off */
+        { .uri = "/api/presets",   .method = HTTP_POST, .handler = ps_api_presets_post },
+        { .uri = "/api/stages",    .method = HTTP_GET,  .handler = ps_api_stages_get },      /* B1, B2; 302 while its bit is off */
+        { .uri = "/api/stages",    .method = HTTP_POST, .handler = ps_api_stages_post },
+        { .uri = "/api/config",    .method = HTTP_GET,  .handler = ps_api_config_get },      /* C3; 302 while its bit is off */
+        { .uri = "/api/config",    .method = HTTP_POST, .handler = ps_api_config_post },
+        { .uri = "/api/restart",   .method = HTTP_POST, .handler = ps_api_restart_post },    /* C4; 302 while its bit is off */
+        /* The wildcard answers every client, not only the hotspot's. That is parity: the
+           factory answers 302 to any path it does not serve, and every gated route leans on it
+           to look absent while its switch is off. It is also what makes a phone's captive probe
+           open the setup page, with ps_portal.c answering DNS for the hotspot. Do not narrow
+           it, and do not let anything be registered after it. */
+        { .uri = "/*",             .method = HTTP_GET,  .handler = redirect_portal },
+        { .uri = "/*",             .method = HTTP_POST, .handler = redirect_portal },
+        { .uri = "/*",             .method = HTTP_HEAD, .handler = redirect_portal },
+    };
+    /* The cap was set from PS_HTTP_ROUTES before the table existed. If they ever disagree the
+       build stops here rather than the device silently dropping whatever did not fit. */
+    _Static_assert(sizeof routes / sizeof routes[0] == PS_HTTP_ROUTES,
+                   "PS_HTTP_ROUTES must equal the number of entries in routes[]");
+    for (size_t i = 0; i < sizeof routes / sizeof routes[0]; i++) {
+        esp_err_t r = httpd_register_uri_handler(s_hd, &routes[i]);
+        if (r != ESP_OK) {
+            ESP_LOGE(TAG, "route %u of %u refused (%s %s): %s", (unsigned)(i + 1),
+                     (unsigned)(sizeof routes / sizeof routes[0]), routes[i].uri,
+                     routes[i].method == HTTP_GET ? "GET" : routes[i].method == HTTP_POST ? "POST" : "HEAD",
+                     esp_err_to_name(r));
+            httpd_stop(s_hd); s_hd = NULL;
+            return -1;
+        }
+    }
+    ESP_LOGI(TAG, "%u routes registered", (unsigned)(sizeof routes / sizeof routes[0]));
     ESP_LOGI(TAG, "listening on :80, page %u bytes gzip", (unsigned)(ui_html_gz_end - ui_html_gz_start));
     return 0;
 }
