@@ -74,7 +74,12 @@ static cJSON *root_printer(void)
     cJSON_AddNumberToObject(o, "scan", g_ps.printer_scan);
     if (g_ps.printer_scan == PS_PSCAN_DONE) {
         cJSON *l = cJSON_AddArrayToObject(o, "list");                   /* entry shape INFERENCE */
-        for (int i = 0; i < g_ps.printer_hits; i++) { cJSON *e = cJSON_CreateObject(); cJSON_AddStringToObject(e, "name", g_ps.printer_list[i].name); cJSON_AddStringToObject(e, "ip", g_ps.printer_list[i].ip); cJSON_AddItemToArray(l, e); }
+        for (int i = 0; i < g_ps.printer_hits; i++) { cJSON *e = cJSON_CreateObject(); cJSON_AddStringToObject(e, "name", g_ps.printer_list[i].name); cJSON_AddStringToObject(e, "ip", g_ps.printer_list[i].ip);
+            /* the serial as well: the announcement carries it, and it is what the bind form
+               otherwise makes a person copy off the printer by hand. The factory's own list
+               shape is an INFERENCE and was never seen carrying anything, because the factory
+               has no discovery either. */
+            cJSON_AddStringToObject(e, "sn", g_ps.printer_list[i].sn); cJSON_AddItemToArray(l, e); }
     }
     return o;
 }

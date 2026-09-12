@@ -1292,4 +1292,54 @@ password. Those are parity facts and would replace the prefix and the nine chara
 
 ---
 
+## D-048 Printers announce themselves, so discovery listens instead of searching
+
+**Date** 2026-09-11 · **Reversal** cheap (one pure module, one task, one field on the wire)
+
+**Decided, after the Scan button found nothing on real hardware.** It was never going to: the
+scan was a deliberate stub that set a state, waited, and reported zero, because no discovery
+mechanism had been established and D-044 recorded that as the one open hole. It is closed now,
+and not by guessing.
+
+**How it was established.** By listening on the network the printers are actually on, which is
+evidence rather than recollection. Both units send an SSDP NOTIFY to the multicast group
+239.255.255.250 carrying `NT: urn:bambulab-com:device:3dprinter:1`, the address in `Location`,
+the serial in `USN`, and the owner's own name for it in `DevName.bambu.com`. That is every
+field the bind form needs except the access code, which a printer does not broadcast because it
+is a secret read off its own screen. The datagrams arrived on port 2021 while their own `Host`
+header named 1990, and the two units did not agree with each other on header capitalisation, so
+both ports are listened to and header names are matched without regard to case.
+
+**Listening, not searching.** The device does not probe addresses one at a time. A task joins
+the group and keeps its own table, always, and a scan copies that table across. Pressing Scan
+therefore reports what has actually been heard rather than depending on a printer announcing
+itself inside the scan's own window, and it also sends one M-SEARCH to prompt anything that
+would otherwise wait. The table is deliberately not written into the state document as
+announcements arrive: `printer.list` appears only once a scan has finished, which is the shape
+the page and the state test already expect.
+
+**The serial goes on the wire, which the factory's shape did not.** `printer.list` entries now
+carry `sn` as well as `name` and `ip`. The factory's own entry shape is an INFERENCE and was
+never observed carrying anything at all, because the factory has no discovery either, so this
+extends a document that is empty in the factory case rather than contradicting an observed one.
+Selecting a printer fills the name, the address and the serial, and leaves the caret in the
+access code.
+
+**The parser is pure and host-tested, because the group is shared.** Two DLNA servers announce
+themselves on the same multicast address on this network, and one of them is the machine holding
+the backups. Nineteen cases pin it, using the real datagrams: a DLNA announcement is not a
+printer, somebody else's search is not a printer, `ssdp:byebye` is not a find, an announcement
+with no address is useless, `LocationExtra` is not `Location`, and a reject leaves no stale
+fields behind for a caller to read.
+
+**Alternatives.** Probing every address on the subnet, which is slow, noisy, and indistinguishable
+from scanning someone's network; asking the owner to type the address and serial, which is what
+it did and what he objected to; mDNS, which was not what these units were observed using.
+
+**What would change it.** A printer firmware that stops announcing, or announces differently.
+The parser is the only thing that would need to change, and it is host-tested, so the change
+would be visible as failing cases rather than as a Scan button that quietly finds nothing.
+
+---
+
 *Entries continue below as the run proceeds.*

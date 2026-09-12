@@ -242,6 +242,16 @@ typedef struct { char name[33]; char ip[16]; char sn[33]; } ps_printer_hit_t;
 
 /* C7: what a rebind scan concluded. The numbers are the wire's own printer.scan states
  * (4 sn not matched, 5 ip not changed, 6 new ip applied), so the page needs nothing new. */
+/* A printer's own SSDP announcement, read into a hit. Pure, in ps_ssdp.c, host-tested.
+ * Returns 1 and fills out when the datagram is a live Bambu 3D printer announcement carrying
+ * an address, 0 otherwise. Established by listening on a real network, not from a document:
+ * multicast 239.255.255.250, UDP 2021, NT urn:bambulab-com:device:3dprinter:1. */
+int ps_ssdp_parse_printer(const char *buf, size_t len, ps_printer_hit_t *out);
+void ps_printer_discover_start(void);   /* the always-on listener for those announcements */
+#define PS_SSDP_GROUP  "239.255.255.250"
+#define PS_SSDP_PORT   2021        /* where both units were observed announcing */
+#define PS_SSDP_PORT2  1990        /* what their own Host header claims; listened to as well */
+
 enum ps_rebind { PS_REBIND_NO_MATCH = PS_PSCAN_SN_MISMATCH, PS_REBIND_UNCHANGED = PS_PSCAN_IP_UNCHANGED, PS_REBIND_MOVED = PS_PSCAN_NEW_IP };
 /* pure, in ps_rebind.c, host-tested: which of the three a scan's hits amount to, and where to */
 int ps_rebind_decide(const char *bound_sn, const uint8_t bound_ip[4], const ps_printer_hit_t *hits, int n, uint8_t out_ip[4]);

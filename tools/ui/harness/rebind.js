@@ -3,7 +3,8 @@
 /*
  * C7: the bound printer takes a new address. No browser: this is socket and route behaviour.
  *
- * The device's own search finds nothing until a discovery mechanism is documented
+ * On real hardware the device's own search now finds printers by their SSDP announcement
+ * (ps_ssdp.c, D-048); this harness drives the mock, which serves a fixed list
  * (docs/ROADMAP.md), so on real hardware the conclusion is always "sn not matched" today.
  * The mock's search does return what it was told to find, which is what makes the policy
  * and all three of its conclusions provable: the wire's own printer.scan states 4, 5 and 6,

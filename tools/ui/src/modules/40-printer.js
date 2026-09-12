@@ -9,7 +9,10 @@
    - printer.state and printer.scan are enums; the labels for state are the dashboard's
    - the bind form is not pre-filled from the device: the factory UI does not handle those
      fields, so its form starts empty, and what Bind sends is exactly what was typed
-   - list entries are {name, ip}, the mock's INFERENCE of the shape until the bench */
+   - list entries are {name, ip, sn}. The first two are the factory's inferred shape; the
+     serial is this project's addition, because a printer's own announcement carries it and
+     there is no reason to make a person copy it off the printer by hand (ps_ssdp.c). Use fills
+     all three and leaves the caret in the access code, which nothing broadcasts */
 
 (function () {
   var $ = function (id) { return document.getElementById(id); };
@@ -48,12 +51,17 @@
       if (!e || typeof e !== 'object') return;
       var row = document.createElement('div'); row.className = 'ps-row ps-printer-found-row'; row.setAttribute('data-ps-found', String(i));
       var name = document.createElement('span'); name.className = 'ps-tile-value'; name.textContent = present(e.name) ? String(e.name) : '—';
-      var ip = document.createElement('span'); ip.className = 'ps-tile-label ps-mono'; ip.textContent = present(e.ip) ? String(e.ip) : '';
+      var ip = document.createElement('span'); ip.className = 'ps-tile-label ps-mono';
+      ip.textContent = (present(e.ip) ? String(e.ip) : '') + (present(e.sn) ? '  ' + String(e.sn) : '');
       var use = document.createElement('button'); use.className = 'border small'; use.setAttribute('data-ps-str', 'ps_printer_use'); use.textContent = PS.tr('ps_printer_use');
+      /* Use fills everything the announcement carried and nothing it did not. The access
+         code is the one field a printer never broadcasts: it is a secret read off the
+         printer's own screen, so the caret lands there with the rest already filled in. */
       use.addEventListener('click', function () {
         $('ps-printer-bind-name').value = present(e.name) ? String(e.name) : '';
         $('ps-printer-bind-ip').value = present(e.ip) ? String(e.ip) : '';
-        $('ps-printer-bind-sn').focus();
+        if (present(e.sn)) $('ps-printer-bind-sn').value = String(e.sn);
+        $('ps-printer-bind-code').focus();
       });
       row.appendChild(name); row.appendChild(ip); row.appendChild(use); box.appendChild(row);
     });

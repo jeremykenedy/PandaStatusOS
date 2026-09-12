@@ -59,10 +59,12 @@ async function drive(browser, combo) {
   t(`${tag} B1 scan sends {scan:1}, once`, got.length === 1 && got[0] === frame('printer', { scan: 1 }), got);
   t(`${tag} B2 scanning: label 1, button disabled`, await waitText(page, 'ps-printer-scan-state', await tr(page, 'ps_printer_scan_1')) && await $(page, 'ps-printer-scan').isDisabled());
   t(`${tag} B3 scan finishes: label 2, one printer found`, await waitText(page, 'ps-printer-scan-state', await tr(page, 'ps_printer_scan_2')) && (await page.locator('[data-ps-found]').count()) === 1 && !(await $(page, 'ps-printer-scan').isDisabled()));
-  t(`${tag} B4 the found row names the printer and its address`, (await page.$eval('[data-ps-found="0"]', (r) => r.textContent)).includes('Mock P2S') && (await page.$eval('[data-ps-found="0"]', (r) => r.textContent)).includes('192.0.2.20'));
+  t(`${tag} B4 the found row names the printer, its address and its serial`, (await page.$eval('[data-ps-found="0"]', (r) => r.textContent)).includes('Mock P2S') && (await page.$eval('[data-ps-found="0"]', (r) => r.textContent)).includes('192.0.2.20') && (await page.$eval('[data-ps-found="0"]', (r) => r.textContent)).includes('MOCKSN000000001'));
   n = await count();
   await pw.tap(page, '[data-ps-found="0"] button');
-  t(`${tag} B5 Use fills name and address, nothing else, sends nothing`, (await val(page, 'ps-printer-bind-name')) === 'Mock P2S' && (await val(page, 'ps-printer-bind-ip')) === '192.0.2.20' && (await val(page, 'ps-printer-bind-sn')) === '' && (await count()) === n);
+  t(`${tag} B5 Use fills name, address and serial, sends nothing`, (await val(page, 'ps-printer-bind-name')) === 'Mock P2S' && (await val(page, 'ps-printer-bind-ip')) === '192.0.2.20' && (await val(page, 'ps-printer-bind-sn')) === 'MOCKSN000000001' && (await count()) === n);
+  // the access code is the one thing no announcement carries, so it stays empty and takes the caret
+  t(`${tag} B5b it leaves the access code empty and focused`, (await val(page, 'ps-printer-bind-code')) === '' && (await page.evaluate(() => document.activeElement && document.activeElement.id)) === 'ps-printer-bind-code');
 
   // ---- C. bind ----
   await $(page, 'ps-printer-bind-sn').fill('<PRINTER_SN>');

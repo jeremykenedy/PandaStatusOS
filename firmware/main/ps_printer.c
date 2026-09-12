@@ -18,7 +18,9 @@
  *
  * printer.state values and meanings are FACT (protocol doc, Enumerations); which transport
  * error maps to which value is INFERENCE, one line each below. Printer discovery on the
- * LAN has no documented fact here: a scan completes empty. */
+ * LAN: established by listening, not from a document. A printer announces itself over SSDP
+ * multicast and ps_ssdp.c reads the announcement; discovery is no longer the open hole it
+ * was (D-048). */
 #include <string.h>
 #include <stdio.h>
 #include "esp_log.h"
@@ -26,6 +28,9 @@
 #include "esp_mac.h"
 #include "mqtt_client.h"
 #include "cJSON.h"
+#include "lwip/sockets.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
 #include "ps.h"
 
 static const char *TAG = "ps_printer";
@@ -200,32 +205,176 @@ void ps_printer_unbind(void)
     ps_effect_notify();
 }
 
-/* INFERENCE: no documented discovery mechanism, so a scan finishes empty after a moment,
- * which is what the page can render honestly */
-/* Discovery itself is the open question: no mechanism for finding a printer on the network
- * is documented in this repository, so this finds nothing and the scan completes empty. When
- * the mechanism is known it fills g_ps.printer_list and g_ps.printer_hits here, and both the
- * page's scan and the rebind policy start working without another change. */
+/* Discovery. Printers announce themselves; nothing here probes addresses one by one.
+ *
+ * Established by listening on a real network: a Bambu printer sends an SSDP NOTIFY to the
+ * multicast group 239.255.255.250 carrying its address, its serial and the name its owner gave
+ * it. ps_ssdp.c reads one datagram and is host-tested against the real ones, including the DLNA
+ * servers that share the same group and must not be mistaken for printers.
+ *
+ * The listener runs all the time and keeps its own table. It deliberately does NOT write
+ * g_ps.printer_list as announcements arrive: printer.list appears in the state document only
+ * once a scan has finished, which is the shape the page and the state test already expect. A
+ * scan copies the table across, so pressing Scan reports what has actually been heard instead
+ * of depending on a printer announcing itself inside the scan's own window. */
+#define SEEN_MAX      (int)(sizeof g_ps.printer_list / sizeof g_ps.printer_list[0])
+#define SEEN_FRESH_US (180 * 1000 * 1000LL)     /* three minutes: longer than their announcement gap */
+
+static ps_printer_hit_t s_seen[8];
+static int64_t          s_seen_at[8];
+static int              s_seen_n;
+static SemaphoreHandle_t s_seen_lock;
+
+static void seen_put(const ps_printer_hit_t *h)
+{
+    if (!s_seen_lock) return;
+    xSemaphoreTake(s_seen_lock, portMAX_DELAY);
+    int slot = -1;
+    for (int i = 0; i < s_seen_n; i++) {
+        /* the serial identifies a printer; the address is what moves. With no serial, the
+           address is all there is to go on. */
+        bool same = h->sn[0] ? !strcmp(s_seen[i].sn, h->sn) : !strcmp(s_seen[i].ip, h->ip);
+        if (same) { slot = i; break; }
+    }
+    if (slot < 0) {
+        if (s_seen_n < SEEN_MAX) slot = s_seen_n++;
+        else {                                   /* full: replace the one heard longest ago */
+            slot = 0;
+            for (int i = 1; i < s_seen_n; i++) if (s_seen_at[i] < s_seen_at[slot]) slot = i;
+        }
+    }
+    bool fresh = strcmp(s_seen[slot].ip, h->ip) != 0 || strcmp(s_seen[slot].name, h->name) != 0;
+    s_seen[slot] = *h;
+    s_seen_at[slot] = esp_timer_get_time();
+    xSemaphoreGive(s_seen_lock);
+    if (fresh) ESP_LOGI(TAG, "printer announced: %s at %s", h->name[0] ? h->name : "(unnamed)", h->ip);
+}
+
+static int seen_copy(ps_printer_hit_t *out, int max)
+{
+    if (!s_seen_lock) return 0;
+    int64_t now = esp_timer_get_time();
+    int n = 0;
+    xSemaphoreTake(s_seen_lock, portMAX_DELAY);
+    for (int i = 0; i < s_seen_n && n < max; i++)
+        if (now - s_seen_at[i] <= SEEN_FRESH_US) out[n++] = s_seen[i];
+    xSemaphoreGive(s_seen_lock);
+    return n;
+}
+
+/* Ask anything listening to announce itself now, so a scan does not have to wait out the gap
+ * between a printer's own announcements. Sent to the group on every port one was observed on
+ * and on SSDP's own, because the two units disagreed about which port they were using. */
+static void ssdp_search(void)
+{
+    int s = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+    if (s < 0) return;
+    int ttl = 2;
+    setsockopt(s, IPPROTO_IP, IP_MULTICAST_TTL, &ttl, sizeof ttl);
+    static const char m[] = "M-SEARCH * HTTP/1.1\r\n" "HOST: " PS_SSDP_GROUP ":1900\r\n"
+                            "MAN: \"ssdp:discover\"\r\n" "MX: 1\r\n"
+                            "ST: urn:bambulab-com:device:3dprinter:1\r\n\r\n";
+    const int ports[] = { PS_SSDP_PORT, PS_SSDP_PORT2, 1900 };
+    for (size_t i = 0; i < sizeof ports / sizeof ports[0]; i++) {
+        struct sockaddr_in to = { .sin_family = AF_INET, .sin_port = htons(ports[i]) };
+        to.sin_addr.s_addr = inet_addr(PS_SSDP_GROUP);
+        sendto(s, m, sizeof m - 1, 0, (struct sockaddr *)&to, sizeof to);
+    }
+    close(s);
+}
+
+static int join_group(int port)
+{
+    int s = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+    if (s < 0) return -1;
+    int one = 1;
+    setsockopt(s, SOL_SOCKET, SO_REUSEADDR, &one, sizeof one);
+    struct sockaddr_in me = { .sin_family = AF_INET, .sin_port = htons(port) };
+    me.sin_addr.s_addr = htonl(INADDR_ANY);
+    if (bind(s, (struct sockaddr *)&me, sizeof me) < 0) { close(s); return -1; }
+    struct ip_mreq mreq;
+    mreq.imr_multiaddr.s_addr = inet_addr(PS_SSDP_GROUP);
+    mreq.imr_interface.s_addr = htonl(INADDR_ANY);
+    if (setsockopt(s, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof mreq) < 0) { close(s); return -1; }
+    return s;
+}
+
+static void discover_task(void *arg)
+{
+    (void)arg;
+    int a = -1, b = -1;
+    char buf[1024];
+    for (;;) {
+        /* The group can only be joined once an interface has an address, and the station may
+           come and go, so the sockets are opened lazily and reopened if they ever fail. */
+        if (a < 0) a = join_group(PS_SSDP_PORT);
+        if (b < 0) b = join_group(PS_SSDP_PORT2);
+        if (a < 0 && b < 0) { vTaskDelay(pdMS_TO_TICKS(3000)); continue; }
+
+        fd_set rd; FD_ZERO(&rd);
+        int mx = -1;
+        if (a >= 0) { FD_SET(a, &rd); if (a > mx) mx = a; }
+        if (b >= 0) { FD_SET(b, &rd); if (b > mx) mx = b; }
+        struct timeval tv = { .tv_sec = 2, .tv_usec = 0 };
+        int r = select(mx + 1, &rd, NULL, NULL, &tv);
+        if (r <= 0) continue;
+
+        for (int i = 0; i < 2; i++) {
+            int s = i ? b : a;
+            if (s < 0 || !FD_ISSET(s, &rd)) continue;
+            struct sockaddr_in from; socklen_t fl = sizeof from;
+            int n = recvfrom(s, buf, sizeof buf - 1, 0, (struct sockaddr *)&from, &fl);
+            if (n <= 0) { close(s); if (i) b = -1; else a = -1; continue; }
+            buf[n] = 0;
+            ps_printer_hit_t h;
+            if (ps_ssdp_parse_printer(buf, (size_t)n, &h)) seen_put(&h);
+        }
+    }
+}
+
+void ps_printer_discover_start(void)
+{
+    if (s_seen_lock) return;
+    s_seen_lock = xSemaphoreCreateMutex();
+    if (!s_seen_lock) { ESP_LOGE(TAG, "discovery: no mutex"); return; }
+    if (xTaskCreate(discover_task, "ps_pdisc", 4096, NULL, 4, NULL) != pdPASS)
+        ESP_LOGE(TAG, "discovery task would not start: scanning will find nothing");
+    else
+        ESP_LOGI(TAG, "listening for printer announcements on %s:%d and :%d", PS_SSDP_GROUP, PS_SSDP_PORT, PS_SSDP_PORT2);
+}
+
 static void scan_done(void *arg);
 
 void ps_printer_discover(void)
 {
+    ssdp_search();                               /* prompt, rather than wait out their own gap */
     if (!s_scan_timer) { const esp_timer_create_args_t ta = { .callback = scan_done, .name = "ps_pscan" }; esp_timer_create(&ta, &s_scan_timer); }
-    if (s_scan_timer) esp_timer_start_once(s_scan_timer, 800 * 1000);
+    if (s_scan_timer) esp_timer_start_once(s_scan_timer, 2500 * 1000);
 }
 
 static void scan_done(void *arg)
 {
     (void)arg;
     if (!s_rebinding) {
-        ps_lock(); g_ps.printer_scan = PS_PSCAN_DONE; g_ps.printer_hits = 0; ps_unlock();
+        ps_printer_hit_t found[8];
+        int n = seen_copy(found, (int)(sizeof found / sizeof found[0]));
+        ps_lock();
+        for (int i = 0; i < n; i++) g_ps.printer_list[i] = found[i];
+        g_ps.printer_hits = (uint8_t)n;
+        g_ps.printer_scan = PS_PSCAN_DONE;
+        ps_unlock();
+        ESP_LOGI(TAG, "scan done, %d printer(s)", n);
         ps_ws_push(PS_ROOT_PRINTER, -1);
         return;
     }
     /* C7: the scan the rebind policy started. Decide, report through the wire's own states,
      * and bind to the new address if there is one. */
     uint8_t ip[4] = { 0, 0, 0, 0 };
+    ps_printer_hit_t found[8];
+    int n = seen_copy(found, (int)(sizeof found / sizeof found[0]));
     ps_lock();
+    for (int i = 0; i < n; i++) g_ps.printer_list[i] = found[i];
+    g_ps.printer_hits = (uint8_t)n;
     int outcome = ps_rebind_decide(g_ps.cfg.printer_sn, g_ps.cfg.printer_ip, g_ps.printer_list, g_ps.printer_hits, ip);
     g_ps.printer_scan = (uint8_t)outcome;
     g_ps.printer_hits = 0;

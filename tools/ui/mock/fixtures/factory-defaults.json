@@ -70,11 +70,12 @@
         "rssi": -71
       }
     ],
-    "printer_scan_results_shape": "INFERENCE: entry shape unknown until the bench; {name, ip} assumed",
+    "printer_scan_results_shape": "{name, ip, sn}: name and ip are the factory's assumed shape, still INFERENCE; sn is this project's own addition, read from the printer's SSDP announcement (ps_ssdp.c)",
     "printer_scan_results": [
       {
         "name": "Mock P2S",
-        "ip": "192.0.2.20"
+        "ip": "192.0.2.20",
+        "sn": "MOCKSN000000001"
       }
     ],
     "ws_theme": {

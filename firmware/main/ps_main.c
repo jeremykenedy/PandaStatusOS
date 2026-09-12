@@ -27,6 +27,7 @@ void app_main(void)
     ps_wifi_start();
     ps_ws_start();
     ps_portal_start();   /* answer DNS for the hotspot, so joining it opens the setup page */
+    ps_printer_discover_start();   /* listen for printer announcements from here on */
     ps_ota_confirm_boot();                       /* the page is reachable: this image stays */
     ps_printer_start();
 }

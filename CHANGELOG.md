@@ -26,6 +26,25 @@ Everything so far. No release has been made and no device has been flashed.
   on the event task's small stack, which overflows it, and a scan in APSTA with the default dwell
   dropped the WebSocket of the page doing the scanning.
 
+### Found by running it on the hardware
+
+- Printer discovery works. A printer announces itself over SSDP multicast and the device now
+  listens for it continuously, so Scan lists what is actually on the network: name, address and
+  serial. Selecting one fills all three and leaves the caret in the access code, which is the
+  one field no printer broadcasts. The parser is pure and host-tested against the real
+  datagrams, including the DLNA servers that share the same multicast group and must not be
+  mistaken for printers (D-048).
+- Every route is registered. httpd's handler cap defaults to eight, this server has
+  twenty-two, and a registration past the cap is refused rather than fatal. Nobody checked the
+  result, so the last fourteen routes were dropped on every boot: the three wildcards went
+  first, which is why a phone's captive probe met a 404 instead of the redirect that opens the
+  setup page, and the whole features, presets, stages, config and restart API answered 404 on
+  hardware while passing against the mock.
+- The USB recovery tool asked esptool which spelling it speaks, instead of assuming. esptool v4
+  uses underscores and v5 hyphens, the two are not interchangeable, and the installed one is
+  v4: every call in the tool that exists for a device that will not boot would have failed on
+  its first line. The restore document also stopped claiming both spellings work.
+
 ### Features, each behind a switch that defaults off
 
 - The clone's own JSON route, `/api/features`: the page discovers a clone by its 200 where
@@ -37,7 +56,7 @@ Everything so far. No release has been made and no device has been flashed.
 - C7, find the printer again after it moves, behind `auto_rebind`: three consecutive
   transport failures start a scan, and a hit carrying the bound serial at a new address is
   saved and bound, reported through the wire's own scan states. The decision is pure and
-  host-tested; discovery itself is still the one open hole and says so everywhere (D-044).
+  host-tested; discovery was the one open hole until D-048 closed it.
 - C5 and C6 recorded as met by parity: the hostname is stored and applied without a
   switch, and `printer.disconnect` unbinds live without a restart.
 - C4, a plain restart behind `restart`: `POST /api/restart` and a Restart button on the

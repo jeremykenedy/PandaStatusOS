@@ -19,6 +19,9 @@ gcc -std=c11 -Wall -Wextra -Wmisleading-indentation -Werror -I "$HERE/stub" -I "
 echo
 gcc -std=c11 -Wall -Wextra -Wmisleading-indentation -Werror -I "$HERE/stub" -I "$HERE/../../main" -o "$OUT-netname" "$HERE/netname_test.c" "$HERE/../../main/ps_netname.c"
 "$OUT-netname"
+echo
+gcc -std=c11 -Wall -Wextra -Wmisleading-indentation -Werror -I "$HERE/stub" -I "$HERE/../../main" -o "$OUT-ssdp" "$HERE/ssdp_test.c" "$HERE/../../main/ps_ssdp.c"
+"$OUT-ssdp"
 IDF="${IDF_PATH:-$HOME/esp/esp-idf}"
 if [ -f "$IDF/components/json/cJSON/cJSON.c" ]; then
     echo
