@@ -24,7 +24,12 @@ void ps_ap_ssid_from_mac(char *out, size_t n, const uint8_t mac[6])
 void ps_hostname_sanitise(char *s, size_t n)
 {
     if (!s || n == 0) return;
-    size_t len = strnlen(s, n);
+    /* A bounded length, written out rather than taken from strnlen: that one is POSIX, not
+       C11, and glibc hides it under -std=c11, so the host test build would not see it. This
+       module stays plain C11 so it compiles the same way in both places. */
+    size_t len = 0;
+    while (len < n && s[len]) len++;
+    if (len == n) return;                 /* not terminated within n: refuse to touch it */
 
     /* trailing dots and blanks first, so ".local ." and "name." both reduce */
     while (len && (s[len - 1] == '.' || s[len - 1] == ' ' || s[len - 1] == '\t')) len--;
