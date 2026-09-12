@@ -14,7 +14,7 @@
  */
 
 const pw = require('./pw');
-const { t, frame, sentAfter, sent, resetMock } = pw;
+const { t, frame, sentAfter, sent, resetMock, tapEye, eye, pressed } = pw;
 
 const FAIL = Number(process.env.PS_PRINTER_FAIL || 0);
 const COMBOS = [
@@ -67,11 +67,11 @@ async function drive(browser, combo) {
   // ---- C. bind ----
   await $(page, 'ps-printer-bind-sn').fill('<PRINTER_SN>');
   await $(page, 'ps-printer-bind-code').fill('<ACCESS_CODE>');
-  // Beer draws its own box over a hidden native checkbox; a person clicks the label
-  await pw.tap(page, 'label.checkbox:has(#ps-printer-bind-show)');
-  t(`${tag} C1 show toggles the code field to text`, (await page.$eval('#ps-printer-bind-show', (e) => e.checked)) && (await page.$eval('#ps-printer-bind-code', (e) => e.type)) === 'text');
-  await pw.tap(page, 'label.checkbox:has(#ps-printer-bind-show)');
-  t(`${tag} C1b and back to a password field`, (await page.$eval('#ps-printer-bind-code', (e) => e.type)) === 'password');
+  t(`${tag} C1 the access code starts hidden`, (await page.$eval('#ps-printer-bind-code', (e) => e.type)) === 'password' && (await eye(page, 'ps-printer-bind-code')) === '#ps-icon-eye');
+  await tapEye(page, 'ps-printer-bind-code');
+  t(`${tag} C1b the eye reveals it, presses itself and strikes the icon through`, (await page.$eval('#ps-printer-bind-code', (e) => e.type)) === 'text' && (await pressed(page, 'ps-printer-bind-code')) === 'true' && (await eye(page, 'ps-printer-bind-code')) === '#ps-icon-eye-slash');
+  await tapEye(page, 'ps-printer-bind-code');
+  t(`${tag} C1c and back to a hidden field`, (await page.$eval('#ps-printer-bind-code', (e) => e.type)) === 'password' && (await pressed(page, 'ps-printer-bind-code')) === 'false');
   n = await count();
   await pw.tap(page, '#ps-printer-bind-send');
   got = await sentAfter(n);

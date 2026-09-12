@@ -26,17 +26,16 @@
           <input type="text" id="ps-setup-ssid" autocomplete="off" spellcheck="false">
           <label data-ps-str="ps_setup_ssid">Network name</label>
         </div>
-        <div class="field border small label">
+        <div class="field border small label ps-pw">
           <input type="password" id="ps-setup-password" autocomplete="off">
           <label data-ps-str="ps_setup_password">Password</label>
+          <button type="button" class="ps-pw-eye" data-ps-pw="ps-setup-password" data-ps-str-aria="ps_global_password_show" aria-label="Show the password" aria-pressed="false">
+            <svg class="ps-icon ps-icon-sm" aria-hidden="true"><use href="#ps-icon-eye"/></svg>
+          </button>
         </div>
       </div>
       <div class="ps-row">
         <button id="ps-setup-connect" data-ps-str="ps_setup_connect">Connect</button>
-        <label class="checkbox">
-          <input type="checkbox" id="ps-setup-show">
-          <span data-ps-str="ps_setup_show">Show the password</span>
-        </label>
       </div>
       <div class="ps-tile-label" data-ps-str="ps_setup_wifi_help">Once it joins, the device leaves its own hotspot and this page loses it. Open it again from your network, by its hostname or address.</div>
     </div>

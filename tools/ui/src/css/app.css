@@ -121,6 +121,28 @@ article[data-ps-card] {
    the input; the picker is the only thing Coloris adds. */
 .ps-colour-field { position: relative; }
 .ps-colour-field > .ps-dot { position: absolute; inset-inline-start: 1.1rem; inset-block-start: calc(var(--_input, 2.5rem) / 2 - 7px); width: 14px; height: 14px; box-shadow: 0 0 0 1px var(--outline); z-index: 10; pointer-events: none; }
+/* a password field: Beer's suffix slot, holding the reveal. Logical properties, so in Arabic
+   and Hebrew the button sits on the trailing edge and the input's spare room moves with it.
+   Beer styles bare buttons as filled primary ones from selectors that tie with a single class,
+   so the few properties that decide whether this reads as a button or as an icon are forced
+   here rather than left to source order. The two states use on-surface-variant and on-surface,
+   a pair the tile labels already use against this background, so the contrast harness has
+   nothing new to measure. */
+.ps-pw { position: relative; }
+.ps-pw > input { padding-inline-end: 2.6rem !important; }
+.ps-pw-eye {
+  position: absolute; inset-inline-end: .3rem;
+  inset-block-start: calc(var(--_input, 2.5rem) / 2 - 1rem);
+  z-index: 10; display: inline-flex; align-items: center; justify-content: center;
+  inline-size: 2rem !important; block-size: 2rem !important; padding: 0 !important;
+  margin: 0 !important; border: 0; border-radius: 50% !important;
+  background: transparent !important; box-shadow: none !important;
+  color: var(--on-surface-variant) !important; cursor: pointer;
+}
+.ps-pw-eye:hover { background: var(--surface-variant) !important; color: var(--on-surface) !important; }
+.ps-pw-eye[aria-pressed="true"] { color: var(--on-surface) !important; }
+.ps-pw-eye:focus-visible { outline: 2px solid var(--outline); outline-offset: 1px; }
+
 .ps-dot-on    { background: var(--ps-led-lit); }
 .ps-dot-warn  { background: var(--tertiary); }
 .ps-dot-error { background: var(--error); }

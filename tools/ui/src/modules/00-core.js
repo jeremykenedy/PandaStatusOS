@@ -273,6 +273,40 @@ var PS = (function () {
   }
 
   // ---------- boot ----------
+  /* Every password field carries its own reveal, and every one of them starts hidden: the
+     type attribute in the markup is the default, so a field is never briefly readable while
+     the page boots. The button keeps one label and reports its state through aria-pressed,
+     which is what a toggle button is, and means no second string to translate 24 times. The
+     icon is the thing that changes. Nothing here reads or stores the value. */
+  function wirePasswordEyes() {
+    document.querySelectorAll('[data-ps-pw]').forEach(function (btn) {
+      var inp = document.getElementById(btn.getAttribute('data-ps-pw'));
+      if (!inp) return;
+      btn.addEventListener('click', function () {
+        var show = inp.type === 'password';
+        inp.type = show ? 'text' : 'password';
+        btn.setAttribute('aria-pressed', show ? 'true' : 'false');
+        var use = btn.querySelector('use');
+        if (use) use.setAttribute('href', show ? '#ps-icon-eye-slash' : '#ps-icon-eye');
+        /* the caret goes back where it was: changing type drops it to the end in WebKit */
+        if (document.activeElement === inp) { var n = inp.value.length; try { inp.setSelectionRange(n, n); } catch (e) {} }
+      });
+    });
+  }
+
+  /* A field the device refilled, or one the page never touched, must not stay readable from a
+     previous reveal. Called after any repaint that can replace a stored value. */
+  function hidePasswords() {
+    document.querySelectorAll('[data-ps-pw]').forEach(function (btn) {
+      var inp = document.getElementById(btn.getAttribute('data-ps-pw'));
+      if (!inp || inp.type === 'password') return;
+      inp.type = 'password';
+      btn.setAttribute('aria-pressed', 'false');
+      var use = btn.querySelector('use');
+      if (use) use.setAttribute('href', '#ps-icon-eye');
+    });
+  }
+
   function boot() {
     dlg = document.getElementById('ps-dialog'); dlgTitle = document.getElementById('ps-dialog-title');
     dlgText = document.getElementById('ps-dialog-text'); dlgOk = document.getElementById('ps-dialog-ok'); dlgCancel = document.getElementById('ps-dialog-cancel');
@@ -284,6 +318,7 @@ var PS = (function () {
     });
     window.addEventListener('hashchange', route);
     apply_translations();
+    wirePasswordEyes();
     route();
     connect();
     loadFeatures();
@@ -291,6 +326,6 @@ var PS = (function () {
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
 
   return { state: state, on: on, send: send, upload: upload, UPLOAD_CAPS: UPLOAD_CAPS, log: logRing, clearLog: clearLog, tr: tr, setLang: setLang, fillLangs: fillLangs, apply_translations: apply_translations,
-           dialog: dialog, toast: toast, pill: pill, showCard: showCard, theme: theme, api: api, post: post, get: get, refreshFeatures: loadFeatures, get features() { return features; },
+           dialog: dialog, toast: toast, pill: pill, showCard: showCard, theme: theme, api: api, post: post, get: get, hidePasswords: hidePasswords, refreshFeatures: loadFeatures, get features() { return features; },
            get lang() { return lang; }, get connected() { return !!(sock && sock.readyState === 1); } };
 })();

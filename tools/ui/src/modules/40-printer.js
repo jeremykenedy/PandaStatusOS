@@ -69,7 +69,6 @@
         ip: $('ps-printer-bind-ip').value,
       });
     });
-    $('ps-printer-bind-show').addEventListener('change', function () { $('ps-printer-bind-code').type = this.checked ? 'text' : 'password'; });
     $('ps-printer-unbind').addEventListener('click', function () {
       PS.dialog(PS.tr('ps_printer_unbind_title'), PS.tr('ps_printer_unbind_text'),
         [{ key: 'ps_printer_unbind_confirm', handler: function () { PS.send('printer', { disconnect: 1 }); } }, { key: 'ps_global_cancel' }]);

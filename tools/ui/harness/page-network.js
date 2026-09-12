@@ -16,7 +16,7 @@
  */
 
 const pw = require('./pw');
-const { t, frame, sentAfter, sent, resetMock } = pw;
+const { t, frame, sentAfter, sent, resetMock, tapEye, eye, pressed } = pw;
 
 const WIFI_FAIL = process.env.PS_WIFI_FAIL === '1';
 const COMBOS = [
@@ -74,9 +74,11 @@ async function drive(browser, combo) {
 
   // ---- C. connect ----
   await $(page, 'ps-network-connect-password').fill('<WIFI_PASSWORD>');
-  await pw.tap(page, 'label.checkbox:has(#ps-network-connect-show)');
-  t(`${tag} C1 show reveals the password field`, (await type(page, 'ps-network-connect-password')) === 'text');
-  await pw.tap(page, 'label.checkbox:has(#ps-network-connect-show)');
+  t(`${tag} C1 the password field starts hidden`, (await type(page, 'ps-network-connect-password')) === 'password' && (await eye(page, 'ps-network-connect-password')) === '#ps-icon-eye');
+  await tapEye(page, 'ps-network-connect-password');
+  t(`${tag} C1b the eye reveals it, presses itself and strikes the icon through`, (await type(page, 'ps-network-connect-password')) === 'text' && (await pressed(page, 'ps-network-connect-password')) === 'true' && (await eye(page, 'ps-network-connect-password')) === '#ps-icon-eye-slash');
+  await tapEye(page, 'ps-network-connect-password');
+  t(`${tag} C1c and hides it again`, (await type(page, 'ps-network-connect-password')) === 'password' && (await pressed(page, 'ps-network-connect-password')) === 'false' && (await eye(page, 'ps-network-connect-password')) === '#ps-icon-eye');
   n = await count();
   await pw.tap(page, '#ps-network-connect-send');
   got = await sentAfter(n);

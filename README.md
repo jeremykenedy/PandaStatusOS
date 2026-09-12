@@ -164,7 +164,7 @@ dependencies is [docs/FEATURES.md](docs/FEATURES.md).
 
 Twenty-five. English is the only hand-written table; every other language is translated
 from it and checked against it on every build for missing keys, extra keys and
-placeholders. A language ships when all 433 strings are in it.
+placeholders. A language ships when all 431 strings are in it.
 
 | Language | Native name | Code | |
 | --- | --- | :---: | --- |

@@ -32,17 +32,16 @@
           <input type="text" id="ps-network-connect-ssid" autocomplete="off" spellcheck="false">
           <label data-ps-str="ps_network_connect_ssid">Network name</label>
         </div>
-        <div class="field border small label">
+        <div class="field border small label ps-pw">
           <input type="password" id="ps-network-connect-password" autocomplete="off">
           <label data-ps-str="ps_network_connect_password">Password</label>
+          <button type="button" class="ps-pw-eye" data-ps-pw="ps-network-connect-password" data-ps-str-aria="ps_global_password_show" aria-label="Show the password" aria-pressed="false">
+            <svg class="ps-icon ps-icon-sm" aria-hidden="true"><use href="#ps-icon-eye"/></svg>
+          </button>
         </div>
       </div>
       <div class="ps-row">
         <button id="ps-network-connect-send" data-ps-str="ps_network_connect_send">Connect</button>
-        <label class="checkbox">
-          <input type="checkbox" id="ps-network-connect-show">
-          <span data-ps-str="ps_network_connect_show">Show the password</span>
-        </label>
       </div>
       <div class="ps-tile-label" data-ps-str="ps_network_connect_help">The device joins the new network and this page loses it. Find the device again at its new address, or on its own hotspot if the network refused it.</div>
     </div>
@@ -72,9 +71,12 @@
           <input type="text" id="ps-network-ap-ssid" autocomplete="off" spellcheck="false">
           <label data-ps-str="ps_network_ap_ssid">Hotspot name</label>
         </div>
-        <div class="field border small label">
+        <div class="field border small label ps-pw">
           <input type="password" id="ps-network-ap-password" autocomplete="off">
           <label data-ps-str="ps_network_ap_password">Hotspot password</label>
+          <button type="button" class="ps-pw-eye" data-ps-pw="ps-network-ap-password" data-ps-str-aria="ps_global_password_show" aria-label="Show the password" aria-pressed="false">
+            <svg class="ps-icon ps-icon-sm" aria-hidden="true"><use href="#ps-icon-eye"/></svg>
+          </button>
         </div>
         <div class="field border small label">
           <input type="text" id="ps-network-ap-ip" autocomplete="off" spellcheck="false" inputmode="decimal">
@@ -83,10 +85,6 @@
       </div>
       <div class="ps-row">
         <button id="ps-network-ap-send" data-ps-str="ps_network_ap_send">Save hotspot</button>
-        <label class="checkbox">
-          <input type="checkbox" id="ps-network-ap-show">
-          <span data-ps-str="ps_network_ap_show">Show the password</span>
-        </label>
       </div>
       <div class="ps-tile-label" data-ps-str="ps_network_ap_help">The hotspot is how the device is reached when it is not on a network. Changing its address restarts the device; the page asks before the restart.</div>
     </div>

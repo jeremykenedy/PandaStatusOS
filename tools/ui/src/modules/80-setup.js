@@ -67,7 +67,6 @@
     $('ps-setup-language').addEventListener('change', function () { PS.send('settings', { language: this.value }); });
     $('ps-setup-scan').addEventListener('click', function () { PS.send('wifi', { scan: 1 }); });
     $('ps-setup-connect').addEventListener('click', function () { PS.send('wifi', { ssid: $('ps-setup-ssid').value, password: $('ps-setup-password').value }); });
-    $('ps-setup-show').addEventListener('change', function () { $('ps-setup-password').type = this.checked ? 'text' : 'password'; });
     var colour = $('ps-setup-colour');
     colour.addEventListener('focus', function () { colourFocused = true; });
     colour.addEventListener('blur', function () { colourFocused = false; });

@@ -106,6 +106,15 @@ async function tap(page, selector) {
   await page.click(selector);
 }
 // A card is shown when it is the only unhidden article.
+/* The reveal on a password field, addressed by the field it belongs to rather than by an id of
+   its own: one field, one button, and the harness says which field it means. tapEye clicks the
+   button itself (it is a real button, not Beer's label-over-a-hidden-checkbox), eye returns the
+   sprite symbol the button is showing, pressed returns its aria-pressed. */
+const eyeSel = (field) => `[data-ps-pw="${field}"]`;
+async function tapEye(page, field) { await tap(page, eyeSel(field)); }
+const eye = (page, field) => page.$eval(eyeSel(field) + ' use', (el) => el.getAttribute('href'));
+const pressed = (page, field) => page.$eval(eyeSel(field), (el) => el.getAttribute('aria-pressed'));
+
 async function waitCard(page, name, ms = 2000) {
   return page.waitForFunction((n) => { const all = [...document.querySelectorAll('article[data-ps-card]')]; return all.length > 1 && all.every((a) => a.hidden === (a.id !== 'ps-card-' + n)); }, name, { timeout: ms, polling: 25 })
     .then(() => true).catch(() => false);
@@ -121,4 +130,4 @@ async function shot(page, name, opts) {
   return file;
 }
 
-module.exports = { BASE, t, verdict, sleep, sent, pushed, mockState, resetMock, knob, sentAfter, frame, apiFrame, launch, open, waitState, tap, waitCard, shot };
+module.exports = { BASE, t, verdict, sleep, sent, pushed, mockState, resetMock, knob, sentAfter, frame, apiFrame, launch, open, waitState, tap, tapEye, eye, pressed, waitCard, shot };

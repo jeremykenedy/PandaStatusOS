@@ -12,6 +12,13 @@ normaliser's own format, so tools/ui/normalize_icons.py --check accepts it uncha
     bed-level    a bed plate under a spirit level: the bed_leveling stage
     mesh         a bed plate under a 3 x 3 probe grid: the xy_mesh_mode_sweep stage
     flow         a nozzle tip, an extruded bead and a caliper: the calibrating_flow stage
+    eye          an open eye: reveal what a password field is hiding
+    eye-slash    the same eye struck through: hide it again
+
+Heroicons has an eye and an eye-slash, and they are not used here: nothing in this tree
+vendors them, and a vendor row has to state the sha256 of the upstream bytes it shipped.
+Drawing them from primitives on the drawn set's own grid is honest and checkable; claiming
+an upstream hash for a file this project wrote would not be.
 """
 import os, sys
 
@@ -49,6 +56,15 @@ ICONS = {
         f'<path d="M18,84h60" {STROKE}/>',                                # the caliper
         f'<path d="M18,78v12" {STROKE}/>', f'<path d="M78,78v12" {STROKE}/>',
         f'<path d="M33,80v8" {THIN}/>', f'<path d="M48,80v8" {THIN}/>', f'<path d="M63,80v8" {THIN}/>',
+    ],
+    "eye": [
+        f'<path d="M8,48C20,30,34,22,48,22C62,22,76,30,88,48C76,66,62,74,48,74C34,74,20,66,8,48Z" {STROKE}/>',
+        f'<circle cx="48" cy="48" r="13" {STROKE}/>',
+    ],
+    "eye-slash": [
+        f'<path d="M8,48C20,30,34,22,48,22C62,22,76,30,88,48C76,66,62,74,48,74C34,74,20,66,8,48Z" {STROKE}/>',
+        f'<circle cx="48" cy="48" r="13" {STROKE}/>',
+        f'<path d="M16,80L80,16" {STROKE}/>',
     ],
 }
 

@@ -81,13 +81,11 @@
     $('ps-network-connect-send').addEventListener('click', function () {
       PS.send('wifi', { ssid: $('ps-network-connect-ssid').value, password: $('ps-network-connect-password').value });
     });
-    $('ps-network-connect-show').addEventListener('change', function () { $('ps-network-connect-password').type = this.checked ? 'text' : 'password'; });
     $('ps-network-hostname-send').addEventListener('click', function () { PS.send('sta', { hostname: $('ps-network-hostname-input').value }); });
     $('ps-network-ap-on').addEventListener('change', function () { PS.send('ap', { on: this.checked ? 1 : 0 }); });
     $('ps-network-ap-send').addEventListener('click', function () {
       PS.send('ap', { ssid: $('ps-network-ap-ssid').value, password: $('ps-network-ap-password').value, ip: $('ps-network-ap-ip').value });
     });
-    $('ps-network-ap-show').addEventListener('change', function () { $('ps-network-ap-password').type = this.checked ? 'text' : 'password'; });
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', wire); else wire();

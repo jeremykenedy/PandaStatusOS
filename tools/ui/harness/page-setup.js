@@ -14,7 +14,7 @@
  */
 
 const pw = require('./pw');
-const { t, frame, sentAfter, sent, resetMock } = pw;
+const { t, frame, sentAfter, sent, resetMock, tapEye, eye, pressed } = pw;
 
 const FACTORY = (process.env.PS_STATE || '').includes('factory');
 const COMBOS = [
@@ -69,8 +69,11 @@ async function drive(browser, combo) {
 
   // ---- C. connect ----
   await $(page, 'ps-setup-password').fill('<WIFI_PASSWORD>');
-  await pw.tap(page, 'label.checkbox:has(#ps-setup-show)');
-  t(`${tag} C1 show reveals the password`, (await page.$eval('#ps-setup-password', (e) => e.type)) === 'text');
+  t(`${tag} C1 the password field starts hidden`, (await page.$eval('#ps-setup-password', (e) => e.type)) === 'password');
+  await tapEye(page, 'ps-setup-password');
+  t(`${tag} C1b the eye reveals it and strikes its icon through`, (await page.$eval('#ps-setup-password', (e) => e.type)) === 'text' && (await eye(page, 'ps-setup-password')) === '#ps-icon-eye-slash');
+  await tapEye(page, 'ps-setup-password');
+  t(`${tag} C1c and hides it again`, (await page.$eval('#ps-setup-password', (e) => e.type)) === 'password' && (await eye(page, 'ps-setup-password')) === '#ps-icon-eye');
   n = await count();
   await pw.tap(page, '#ps-setup-connect');
   got = await sentAfter(n);
