@@ -122,15 +122,15 @@ partition table, and it exists to put a verified golden back, for nothing else.
 ```
 ╔══════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                  ║
-║   PENDING DUMP.  No flash dump has been taken from this unit yet.                ║
+║   FILLED FROM THE DUMP, 2026-09-11. Three reads of the whole chip agreed byte    ║
+║   for byte; every value below comes out of that image, not out of anybody's      ║
+║   assumption. The image is                                                       ║
 ║                                                                                  ║
-║   Every value below marked  <PENDING DUMP>  is unknown today and is filled in    ║
-║   from the partition table inside the first verified dump. Until then this       ║
-║   section is a TEMPLATE. It cannot be executed, and tools/fw/preflight.sh        ║
-║   check 6 refuses every flash while a single placeholder remains.                ║
+║     sha256 a97c06061233bd98de7df5524c2365342812f40eba12e8d7c6a510e1b6340911      ║
 ║                                                                                  ║
-║   Do not guess a value to make a command runnable. A guessed offset written to   ║
-║   flash is how a recoverable device becomes an unrecoverable one.                ║
+║   Every number here was wrong before that read. Do not guess a value to make a   ║
+║   command runnable: a guessed offset written to flash is how a recoverable       ║
+║   device becomes an unrecoverable one.                                           ║
 ║                                                                                  ║
 ╚══════════════════════════════════════════════════════════════════════════════════╝
 ```
@@ -140,10 +140,13 @@ What IS known today, and where it was established:
 | Fact | Value | Source |
 |---|---|---|
 | Product | Panda Status **P2** | device's own served page title and `settings.fw_version`, `firmware/SAFETY.md` |
-| Chip family | ESP32-C3 | vendor spec page lists ESP32-C3-MINI, `backups/stock-capture-runsheet.md`. **Not yet confirmed off silicon.** |
-| Flash size | **`<PENDING DUMP>`** | nothing in this repo establishes it; `flash-id` at the bench |
-| Partition table | **`<PENDING DUMP>`** | parsed from the dump at offset 0x8000 by `tools/fw/flashimage.py` |
-| Stock app's IDF version | **`<PENDING DUMP>`** | `esp_app_desc` in the dump, printed by `preflight.sh` |
+| Chip family | ESP32-C3, revision v1.1, QFN32 | read off the silicon over USB, 2026-09-11 |
+| Flash size | **4 MB**, 4,194,304 bytes, embedded XMC | `flash_id` on the unit, and the image is that long |
+| Partition table | five entries, below | parsed from the dump at 0x8000 by `tools/fw/flashimage.py`; md5 ok |
+| Stock app | `panda_status_p2` version 1, built 15 Apr 2026, build `3ddca3952f8fe4e1` | `esp_app_desc` in the dump |
+| Stock app's IDF version | **v5.3.1-dirty** | `esp_app_desc` in the dump |
+| Second app slot | **empty**, the factory wrote only `app0` | the dump: no 0xE9 at 0x200000 |
+| Animations | **not a separate partition, and not raw GIFs anywhere in the 4 MB** | the dump: five partitions, and no `GIF8` signature at any offset |
 | Backup root | `private/backups/` in the checkout, or `PS_BACKUPS_DIR` | `docs/PLAN.md`, Phase 0 |
 
 ## B.1 What a complete backup set looks like
@@ -198,9 +201,9 @@ The clone is running and you want the factory application back in the boot slot.
 stock app out of the agreed dump and send it the way any update is sent:
 
 ```
-cd /Users/jeremykenedy/backups/PandaStatus/stock
+cd private/backups/stock
 python3 ~/sites/PandaStatus/tools/fw/flashimage.py inspect GOLDEN-<ts>-full-<size>.bin      # which slot held the stock app
-python3 ~/sites/PandaStatus/tools/fw/flashimage.py extract GOLDEN-<ts>-full-<size>.bin <PENDING DUMP: stock app slot name> stock-app.bin
+python3 ~/sites/PandaStatus/tools/fw/flashimage.py extract GOLDEN-<ts>-full-4MB.bin app0 stock-app.bin
 ~/sites/PandaStatus/tools/fw/ota-install.sh <host> stock-app.bin
 ```
 
@@ -213,15 +216,17 @@ script reports NOT LANDED for a restore that did land. INFERENCE until seen once
 happens, open the page; the title reads "Panda Status P2" and `settings.fw_version` reads
 `V1.0.0`, and that is the verification.
 
-This writes one app slot. NVS keeps the network and the printer binding; the images keep
-the animations; the clone stays in the other slot as the rollback target.
+This writes one app slot. NVS keeps the network and the printer binding, and the clone
+stays in the other slot as the rollback target. There is nothing else to keep: this
+hardware has no animations partition, so whatever the stage animations are, they travel
+inside the app image itself.
 
 ## B.5 App only, over USB: one slot, one offset from the dump
 
 The device will not boot, so it cannot serve `/ota`:
 
 ```
-~/sites/PandaStatus/tools/fw/usb-app-write.sh /Users/jeremykenedy/backups/PandaStatus/stock/stock-app.bin --port <PORT>
+tools/fw/usb-app-write.sh private/backups/stock/stock-app.bin --port <PORT>
 ```
 
 The script runs the gate, checks chip, flash size and MAC, reads the slot offsets out of the
@@ -234,9 +239,11 @@ The offsets, once the dump exists:
 
 | Slot | Offset | Size |
 |---|---|---|
-| `<PENDING DUMP: first app slot>` | `<PENDING DUMP>` | `<PENDING DUMP>` |
-| `<PENDING DUMP: second app slot, if any>` | `<PENDING DUMP>` | `<PENDING DUMP>` |
-| otadata | `<PENDING DUMP>` | `<PENDING DUMP>` |
+| `app0` (holds the stock app) | `0x10000` | `0x1f0000`, 1984 KiB |
+| `app1` (empty on a factory unit) | `0x200000` | `0x1f0000`, 1984 KiB |
+| `otadata` | `0xc000` | `0x2000` |
+| `nvs` | `0x9000` | `0x3000` |
+| `coredump` | `0x3f0000` | `0x1000` |
 
 ## B.6 The whole image: the only restore that writes the bootloader and the table
 
@@ -245,7 +252,7 @@ write in this project that touches 0x0 and 0x8000, and it exists only to put a v
 golden back.
 
 ```
-cd /Users/jeremykenedy/backups/PandaStatus/stock
+cd private/backups/stock
 
 # 1. The gate, then the hash of the exact file about to be written, now.
 make -C ~/sites/PandaStatus preflight
@@ -254,7 +261,7 @@ shasum -a 256 -c GOLDEN-<ts>-full-<size>.sha256
 # 2. Write it. The flash size is the one in RESTORE-THIS-UNIT.txt and the one flash-id reports.
 python3 -m esptool --chip esp32c3 --port <PORT> -b 460800 \
     --before default_reset --after hard_reset \
-    write-flash --flash-size <PENDING DUMP: 4MB / 8MB / 16MB> \
+    write-flash --flash-size 4MB \
     0x0 GOLDEN-<ts>-full-<size>.bin
 ```
 
@@ -265,7 +272,7 @@ help, you have an older version; both spellings are accepted.
 Then read it back. A write that completes without error is not a verified restore:
 
 ```
-python3 -m esptool --chip esp32c3 --port <PORT> -b 460800 read-flash 0x0 <PENDING DUMP: size in bytes> /tmp/readback.bin
+python3 -m esptool --chip esp32c3 --port <PORT> -b 460800 read-flash 0x0 4194304 /tmp/readback.bin
 shasum -a 256 /tmp/readback.bin GOLDEN-<ts>-full-<size>.bin      # identical
 ```
 

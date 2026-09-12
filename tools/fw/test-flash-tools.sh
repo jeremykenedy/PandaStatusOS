@@ -179,7 +179,28 @@ refuse "only one read exists" 2 'rm "$T/backups/stock/GOLDEN-20260101-000002-ful
 refuse "the two reads differ by one byte" 2 'chmod 644 "$T/backups/stock/GOLDEN-20260101-000002-full-4MB.bin"; printf "x" | dd of="$T/backups/stock/GOLDEN-20260101-000002-full-4MB.bin" bs=1 seek=500000 conv=notrunc 2>/dev/null; ( cd "$T/backups/stock" && shasum -a 256 GOLDEN-20260101-000002-full-4MB.bin > GOLDEN-20260101-000002-full-4MB.sha256 )'
 refuse "a file no longer matches its own .sha256" 1 'echo "0000000000000000000000000000000000000000000000000000000000000000  x" > "$T/backups/stock/GOLDEN-20260101-000002-full-4MB.sha256"'
 refuse "no .sha256 beside a file" 1 'rm "$T/backups/stock/GOLDEN-20260101-000001-full-4MB.sha256"'
-refuse "an app slot holds no image" 3 'chmod 644 "$T/backups/stock/"*.bin; python3 -c "import sys; p=sys.argv[1]; b=bytearray(open(p,\"rb\").read()); b[0x1a0000:0x1a0000+0x1000]=b\"\\xff\"*0x1000; open(p,\"wb\").write(b)" "$T/backups/stock/GOLDEN-20260101-000001-full-4MB.bin"; cp "$T/backups/stock/GOLDEN-20260101-000001-full-4MB.bin" "$T/backups/stock/GOLDEN-20260101-000002-full-4MB.bin"; ( cd "$T/backups/stock" && for f in GOLDEN-*.bin; do shasum -a 256 "$f" > "${f%.bin}.sha256"; done )'
+# blank_slots <offset> [<offset>...]: erase those slots in both stock reads, re-hash them, and
+# redo the off-machine copy, because changing the image changes the sha256 that check 4 records.
+blank_slots() {
+    chmod 644 "$T/backups/stock/"*.bin
+    for off in "$@"; do
+      python3 -c "import sys; p=sys.argv[1]; o=int(sys.argv[2],16); b=bytearray(open(p,'rb').read()); b[o:o+0x1000]=b'\xff'*0x1000; open(p,'wb').write(b)" \
+        "$T/backups/stock/GOLDEN-20260101-000001-full-4MB.bin" "$off"
+    done
+    cp "$T/backups/stock/GOLDEN-20260101-000001-full-4MB.bin" "$T/backups/stock/GOLDEN-20260101-000002-full-4MB.bin"
+    ( cd "$T/backups/stock" && for f in GOLDEN-*.bin; do shasum -a 256 "$f" > "${f%.bin}.sha256"; done )
+    rm -rf "$T/off2"; mkdir -p "$T/off2"; rm -f "$T/backups/stock/OFFMACHINE.tsv"
+    bash "$HERE/golden.sh" copy "$T/backups/stock/GOLDEN-20260101-000001-full-4MB.bin" "$T/off2" >/dev/null 2>&1
+}
+# A factory unit ships with one slot written and the other erased, which is what the first real
+# dump showed. The gate has to accept that shape, and has to keep refusing a dump with no app in
+# it at all. Both directions are asserted, because relaxing a safety check without pinning what
+# it still refuses is how a check stops being one.
+setup_positive; blank_slots 0x1a0000
+bash "$HERE/preflight.sh" > "$T/p1.log" 2>&1
+t "preflight accepts a factory-shaped dump: one app slot written, one erased" "$?" "$(cat "$T/p1.log")"
+t "and says so rather than passing quietly" "$(command grep -q 'slot(s) empty' "$T/p1.log"; echo $?)"
+refuse "no app slot holds an image at all" 3 'blank_slots 0x20000 0x1a0000'
 refuse "no off-machine record" 4 'rm "$T/backups/stock/OFFMACHINE.tsv"'
 refuse "the off-machine copy is reachable and differs" 4 'chmod 644 "$T/off2/"*.bin; printf "x" | dd of="$T/off2/GOLDEN-20260101-000001-full-4MB.bin" bs=1 seek=700000 conv=notrunc 2>/dev/null'
 refuse "fourteen animation hashes" 5 'python3 -c "import sys; p=sys.argv[1]; l=open(p).read().splitlines(True); open(p,\"w\").write(\"\".join(l[:14]))" "$T/backups/stock/ANIMATIONS.sha256"'

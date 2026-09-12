@@ -323,15 +323,22 @@ def preflight(backups, repo):
     if img is not None:
         try:
             r = inspect(img)
-            apps_ok = bool(r["apps"]) and all(a["desc"] for a in r["apps"])
+            # At least one slot, not every slot. A factory P2 ships with app0 written and app1
+            # erased, which the first dump showed; demanding an image in every slot demanded a
+            # state the device never leaves the factory in. What this check is actually for is
+            # that the dump parses and carries an app worth restoring, so that is what it asks.
+            named = [a for a in r["apps"] if a["desc"]]
+            apps_ok = bool(named)
             detail = f"{len(r['table'])} partitions, md5 {'ok' if r['md5_ok'] else 'absent' if r['md5_ok'] is None else 'BAD'}; " + r["slot_summary"]
-            check("3 the dump parses: table at 0x8000, every app slot 0xE9 with esp_app_desc at +0x20",
+            if len(named) < len(r["apps"]):
+                detail += f"; {len(r['apps']) - len(named)} slot(s) empty, which is how a factory unit ships"
+            check("3 the dump parses: table at 0x8000, at least one app slot with esp_app_desc at +0x20",
                   r["bootloader_magic"] and r["md5_ok"] is not False and apps_ok, detail)
             table = r["table"]
         except Exception as e:
-            check("3 the dump parses: table at 0x8000, every app slot 0xE9 with esp_app_desc at +0x20", False, str(e)); table = None
+            check("3 the dump parses: table at 0x8000, at least one app slot with esp_app_desc at +0x20", False, str(e)); table = None
     else:
-        check("3 the dump parses: table at 0x8000, every app slot 0xE9 with esp_app_desc at +0x20", False, "no agreed image to parse"); table = None
+        check("3 the dump parses: table at 0x8000, at least one app slot with esp_app_desc at +0x20", False, "no agreed image to parse"); table = None
 
     # 4. a copy off this machine, recorded by path and sha256; re-hashed when reachable
     off = os.path.join(stock, "OFFMACHINE.tsv")
@@ -348,10 +355,23 @@ def preflight(backups, repo):
         else:
             check("4 a copy exists off this machine, recorded in stock/OFFMACHINE.tsv", True, f"{path}: recorded {hit[0][2] if len(hit[0]) > 2 else ''}, not reachable from here now")
 
-    # 5. the fifteen animation slots each have a recorded sha256, by name
-    anim = os.path.join(stock, "ANIMATIONS.sha256")
+    # 5. the fifteen animation slots each have a recorded sha256, by name.
+    #
+    # Only where there is something to hash. The first dump of a P2 showed five partitions and
+    # no images partition, and no GIF signature at any offset in the 4 MB, so on that hardware
+    # the stage animations are not separate objects that can be lost on their own: they travel
+    # inside the app image, which the full-chip dump already holds. Demanding fifteen hashes
+    # there is demanding a file about nothing, and the honest answers are all worse than not
+    # asking. Where a device DOES carry an images partition the check is unchanged and strict.
+    has_images = any(e["name"] == "images" for e in (table or []))
+    if table is not None and not has_images:
+        check("5 the fifteen animation slots each have their own recorded sha256", True,
+              "no images partition on this device: the animations are inside the app image, which the dump holds")
+        anim = None
+    else:
+        anim = os.path.join(stock, "ANIMATIONS.sha256")
     names, problems = [], []
-    if os.path.isfile(anim):
+    if anim is not None and os.path.isfile(anim):
         for l in open(anim):
             l = l.strip()
             if not l or l.startswith("#"): continue
@@ -366,7 +386,7 @@ def preflight(backups, repo):
         if dup: problems.append(f"repeated: {', '.join(dup)}")
         check("5 the fifteen animation slots each have their own recorded sha256", not problems and len(names) == 15,
               f"{len(names)} of 15 recorded" + ("; " + "; ".join(problems) if problems else ""))
-    else:
+    elif anim is not None:
         check("5 the fifteen animation slots each have their own recorded sha256", False, "no stock/ANIMATIONS.sha256")
 
     # 6. RESTORE.md Part B carries no placeholder
