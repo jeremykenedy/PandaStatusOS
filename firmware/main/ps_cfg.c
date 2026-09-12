@@ -121,11 +121,12 @@ void ps_cfg_factory_defaults(ps_cfg_t *c)
     memset(c, 0, sizeof(*c));
     c->magic = PS_CFG_MAGIC;
     c->features = 0;                                   /* parity */
-    /* The factory's default hostname and hotspot name are unknown until the bench session
-     * reads them (JEREMY-QUEUE item 3). Under the parity rule both defaults must match the
-     * factory; these are placeholders until then, and the hotspot name is deliberately not
-     * renamed with the project (D-027). */
-    set_str(c->hostname, sizeof c->hostname, "pandastatusos");
+    /* The hostname is this project's choice, not a parity guess: "status", so a unit answers
+     * to the name "status" on the network it joins (D-046). The factory's own default hostname
+     * is still unread, and the hotspot name below still waits for the bench session, because
+     * what the factory calls its own hotspot is a parity fact rather than a branding one
+     * (D-027). Anyone running more than one unit renames them on the Network page. */
+    set_str(c->hostname, sizeof c->hostname, "status");
     set_str(c->ap_ssid, sizeof c->ap_ssid, "PandaStatus");
     c->ap_ip[0] = 192; c->ap_ip[1] = 168; c->ap_ip[2] = 4; c->ap_ip[3] = 1;
     c->ap_on = 1;

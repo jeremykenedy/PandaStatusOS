@@ -23,7 +23,7 @@ this table with it.
 | `wifi_password` | char[65] | up to 64 bytes | empty | v1 | `wifi.password` |
 | `ap_ssid` | char[33] | up to 32 bytes | `PandaStatus`, a placeholder: the factory's hotspot name is a bench-session fact (D-027) | v1 | `ap.ssid` |
 | `ap_password` | char[65] | up to 64 bytes; under 8 means an open hotspot | empty | v1 | `ap.password` |
-| `hostname` | char[33] | up to 32 bytes | `pandastatusos`, a placeholder: the factory's default hostname is a bench-session fact (D-027) | v1 | `sta.hostname` |
+| `hostname` | char[33] | up to 32 bytes | `status`. The maintainer's choice, not a parity guess; a name alone does not resolve, see D-046 | v1 | `sta.hostname` |
 | `printer_name` | char[33] | up to 32 bytes | empty | v1 | `printer.name` |
 | `printer_sn` | char[33] | up to 32 bytes | empty | v1 | `printer.sn` |
 | `printer_access_code` | char[17] | up to 16 bytes | empty | v1 | `printer.access_code` |

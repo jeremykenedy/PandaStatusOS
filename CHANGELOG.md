@@ -12,6 +12,10 @@ Everything so far. No release has been made and no device has been flashed.
   in every string table, filled in by the page, never translated.
 - The hotspot's default name is a placeholder pending the bench session; the factory's
   own name is a parity fact, not a branding choice.
+- A device with no configuration calls itself `status` (D-046). That is the DHCP client
+  hostname, not an address: nothing in the firmware answers multicast DNS, so `status.local`
+  does not resolve yet and the documents say so instead of promising a name that does not
+  answer.
 
 ### Features, each behind a switch that defaults off
 

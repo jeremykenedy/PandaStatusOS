@@ -351,11 +351,19 @@ is the vendor's and is not redistributed here; the copy you took is the only one
 | 2 | Join it and open `http://192.168.4.1`. |
 | 3 | Pick a language, choose your Wi-Fi, enter its password. |
 | 4 | Bind the printer on the Printer page: serial number, address, and its LAN mode access code. |
-| 5 | Reach it afterwards at its address on your network. |
+| 5 | Reach it afterwards at the address your router gave it. |
 
-The hotspot's name and the default hostname are **placeholders** until a stock unit is
-read at the bench: what the factory calls its own hotspot is a parity fact, not a branding
-choice, and this project will not guess it (see [docs/DECISIONS.md](docs/DECISIONS.md)).
+A device with no configuration calls itself `status`, and you rename it on the Network
+page if you run more than one. **That name is not an address yet.** It is the DHCP client
+hostname, so whether it resolves at all is your router's business, under whatever domain
+your router uses. `status.local` is multicast DNS, and this firmware does not answer
+multicast DNS: there is no mDNS responder in it today. Until there is, reach the device at
+the address your router gave it, or at `192.168.4.1` on its own hotspot before it has
+joined a network.
+
+The hotspot's name is still a **placeholder** until a stock unit is read at the bench: what
+the factory calls its own hotspot is a parity fact, not a branding choice, and this project
+will not guess it (D-027, D-046 in [docs/DECISIONS.md](docs/DECISIONS.md)).
 
 ## Settings Migration
 

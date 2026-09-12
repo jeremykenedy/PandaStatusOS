@@ -1193,4 +1193,38 @@ client reports: they become more blink counts in the same table.
 
 ---
 
+## D-046 The default hostname is "status", and the name alone does not resolve yet
+
+**Date** 2026-09-11 · **Reversal** cheap (one literal, six assertions, three documents)
+
+**Decided.** A device with no stored configuration calls itself `status`. The maintainer
+chose the name; it is not a parity guess, and the factory's own default hostname is still
+unread. The hotspot name stays the placeholder it was (D-027), because what the factory
+calls its own hotspot is a parity fact and this project will not guess it. Anyone running
+more than one unit renames the others on the Network page, which is how the maintainer's
+own bench unit came to answer to something else.
+
+**The part that is not done.** A hostname is not an address. `esp_netif_set_hostname` sets
+the DHCP client hostname, which is what a router may publish in its own DNS under its own
+domain. It does not answer multicast DNS, and `.local` is multicast DNS: nothing in this
+firmware calls `mdns_init`, so `http://status.local/` does not resolve from a Mac today.
+What works is the address the router hands out, and the hotspot's own `192.168.4.1` before
+a network is joined. The documents say exactly that rather than promising a name that does
+not answer.
+
+**INFERENCE, not fact.** The factory application probably does answer multicast DNS: the
+maintainer reaches his stock unit by a `.local` name from macOS, and nothing but multicast
+DNS resolves `.local` there. That makes an mDNS responder parity work rather than a feature
+under Rule 5, and it is queued as its own change with its own evidence, because it adds a
+managed component and a default behaviour on an inference.
+
+**Alternatives.** `pandastatusos`, the old placeholder, which reads as a project name
+rather than a device and is long to type; the product name, which is the factory's; a name
+carrying part of the MAC, which is unguessable and so no better than the address.
+
+**What would change it.** The bench session reading the factory's own default hostname. If
+the factory ships a different one, parity decides and this becomes the renamed case.
+
+---
+
 *Entries continue below as the run proceeds.*
