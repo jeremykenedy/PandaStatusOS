@@ -12,10 +12,19 @@ Everything so far. No release has been made and no device has been flashed.
   in every string table, filled in by the page, never translated.
 - The hotspot's default name is a placeholder pending the bench session; the factory's
   own name is a parity fact, not a branding choice.
-- A device with no configuration calls itself `status` (D-046). That is the DHCP client
-  hostname, not an address: nothing in the firmware answers multicast DNS, so `status.local`
-  does not resolve yet and the documents say so instead of promising a name that does not
-  answer.
+- A device with no configuration calls itself `status` and advertises itself over multicast
+  DNS, so `http://status.local` reaches it (D-046, D-047). A name typed with `.local` on the
+  end has it stripped, because the name is one DNS label and the domain is the responder's to
+  append; the sanitiser runs on the way in and again on the way out, and is host-tested.
+- The first run works the way the sibling project's does (D-047). The hotspot names itself from
+  the device's own MAC and keeps the name, so two units are never the same network. It carries
+  a password by default rather than standing open. Joining it opens the setup page by itself:
+  the device answers DNS for its own hotspot, so a phone's connectivity check is redirected into
+  the 302 that was already there, and the captive sheet gets seven kilobytes of plain HTML it
+  can actually render instead of the megabyte application, with the full interface one link away.
+- Two defects in that same path, fixed with it: the scan-done handler put sixteen scan records
+  on the event task's small stack, which overflows it, and a scan in APSTA with the default dwell
+  dropped the WebSocket of the page doing the scanning.
 
 ### Features, each behind a switch that defaults off
 

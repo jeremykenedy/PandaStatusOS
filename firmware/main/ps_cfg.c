@@ -127,7 +127,15 @@ void ps_cfg_factory_defaults(ps_cfg_t *c)
      * what the factory calls its own hotspot is a parity fact rather than a branding one
      * (D-027). Anyone running more than one unit renames them on the Network page. */
     set_str(c->hostname, sizeof c->hostname, "status");
-    set_str(c->ap_ssid, sizeof c->ap_ssid, "PandaStatus");
+    /* The hotspot name is deliberately left EMPTY here. ps_wifi_start() builds it from this
+     * unit's own MAC on first boot and stores it, so two devices are never the same network
+     * and the name needs no typing (D-047). A name already stored is never rebuilt. */
+    c->ap_ssid[0] = 0;
+    /* The hotspot carries a password by default rather than standing open. Under eight
+     * characters the radio cannot do WPA2 at all and would fall back to an open network, so
+     * the default is nine. It is printed in the README and in the setup page, and it is
+     * meant to be changed (D-047). */
+    set_str(c->ap_password, sizeof c->ap_password, "987654321");
     c->ap_ip[0] = 192; c->ap_ip[1] = 168; c->ap_ip[2] = 4; c->ap_ip[3] = 1;
     c->ap_on = 1;
     set_str(c->language, sizeof c->language, "en");

@@ -60,6 +60,11 @@ int main(void)
     t("load with no blob returns 0", ps_cfg_load(&c) == 0, 0);
     t("  and leaves the factory magic", c.magic == PS_CFG_MAGIC, c.magic);
     t("  and the factory hostname", !strcmp(c.hostname, "status"), 0);
+    /* empty on purpose: the hotspot's name is built from this unit's MAC on first boot, so a
+       compiled-in name would be the same on every device (D-047) */
+    t("  the hotspot name is empty, to be derived from the MAC", c.ap_ssid[0] == 0, 0);
+    t("  the hotspot carries a password by default", !strcmp(c.ap_password, "987654321"), 0);
+    t("  long enough for WPA2, so the hotspot is never open by default", strlen(c.ap_password) >= 8, 0);
     t("  and H2D at 50%", c.current_mode == PS_MODE_H2D && c.mode[1].brightness == 50, c.mode[1].brightness);
     t("  and every feature bit off", c.features == 0, c.features);
     t("  every nvs handle closed", opened == 0, opened);

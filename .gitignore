@@ -25,6 +25,9 @@ firmware/build/
 firmware/sdkconfig
 firmware/sdkconfig.old
 firmware/dependencies.lock
+# The component manager's download area. Third-party source, fetched by the build from the
+# version idf_component.yml asks for, never committed and never vendored by hand.
+firmware/managed_components/
 sdkconfig.old
 
 # The served page is BUILT from tools/ui/ by tools/ui/build/build.py and committed.

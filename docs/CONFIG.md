@@ -21,9 +21,9 @@ this table with it.
 | `features` | u32 bitfield | any | 0, every flag off | v1 | [FEATURES.md](FEATURES.md), through `POST /api/features` |
 | `wifi_ssid` | char[33] | up to 32 bytes | empty | v1 | `wifi.ssid` |
 | `wifi_password` | char[65] | up to 64 bytes | empty | v1 | `wifi.password` |
-| `ap_ssid` | char[33] | up to 32 bytes | `PandaStatus`, a placeholder: the factory's hotspot name is a bench-session fact (D-027) | v1 | `ap.ssid` |
-| `ap_password` | char[65] | up to 64 bytes; under 8 means an open hotspot | empty | v1 | `ap.password` |
-| `hostname` | char[33] | up to 32 bytes | `status`. The maintainer's choice, not a parity guess; a name alone does not resolve, see D-046 | v1 | `sta.hostname` |
+| `ap_ssid` | char[33] | up to 32 bytes | empty, then `Panda_Status_` and the six MAC bytes, built on first boot and stored (D-047) | v1 | `ap.ssid` |
+| `ap_password` | char[65] | up to 64 bytes; under 8 means an open hotspot | `987654321`, published and meant to be changed (D-047) | v1 | `ap.password` |
+| `hostname` | char[33] | up to 32 bytes | `status`, advertised over multicast DNS as `status.local`; reduced to one DNS label on the way in and out (D-046, D-047) | v1 | `sta.hostname` |
 | `printer_name` | char[33] | up to 32 bytes | empty | v1 | `printer.name` |
 | `printer_sn` | char[33] | up to 32 bytes | empty | v1 | `printer.sn` |
 | `printer_access_code` | char[17] | up to 16 bytes | empty | v1 | `printer.access_code` |

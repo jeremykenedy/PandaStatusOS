@@ -347,23 +347,35 @@ is the vendor's and is not redistributed here; the copy you took is the only one
 
 | Step | What to do |
 | :---: | --- |
-| 1 | Power the device. With no Wi-Fi stored it raises its own hotspot and serves the setup page. |
-| 2 | Join it and open `http://192.168.4.1`. |
-| 3 | Pick a language, choose your Wi-Fi, enter its password. |
-| 4 | Bind the printer on the Printer page: serial number, address, and its LAN mode access code. |
-| 5 | Reach it afterwards at the address your router gave it. |
+| 1 | Power the device. With no Wi-Fi stored it raises its own hotspot. |
+| 2 | Join the network called `Panda_Status_` followed by the device's MAC. The password is `987654321`. |
+| 3 | The setup page opens by itself. If it does not, open `http://192.168.4.1`. |
+| 4 | Pick your Wi-Fi, type its password, join. The page tells you the address it landed on. |
+| 5 | Open the full interface at `http://status.local` and bind the printer on the Printer page: serial number, address, and its LAN mode access code. |
 
-A device with no configuration calls itself `status`, and you rename it on the Network
-page if you run more than one. **That name is not an address yet.** It is the DHCP client
-hostname, so whether it resolves at all is your router's business, under whatever domain
-your router uses. `status.local` is multicast DNS, and this firmware does not answer
-multicast DNS: there is no mDNS responder in it today. Until there is, reach the device at
-the address your router gave it, or at `192.168.4.1` on its own hotspot before it has
-joined a network.
+**The hotspot names itself after the device.** A unit with nothing stored builds its hotspot
+name from its own MAC on first boot and keeps it, so two units are never the same network and
+the name needs no typing. Rename it, and set your own password, on the Network page. The
+default password is in this README and in the setup page, which is to say it is not a secret:
+change it if the hotspot is going to stay up.
 
-The hotspot's name is still a **placeholder** until a stock unit is read at the bench: what
-the factory calls its own hotspot is a parity fact, not a branding choice, and this project
-will not guess it (D-027, D-046 in [docs/DECISIONS.md](docs/DECISIONS.md)).
+**Joining the hotspot opens the setup page.** The device answers DNS for its own hotspot and
+hands back its own address for every name, so your phone's connectivity check lands on the
+device, is redirected, and the captive sheet opens. The page a sheet gets is seven kilobytes of
+plain HTML, because a captive window cannot render the full interface: scan, pick, type, join.
+The full interface is one link away on that page, and is what you get once the device is on
+your network.
+
+**Afterwards it answers to `status.local`.** A device with no configuration calls itself
+`status` and advertises itself over multicast DNS, so `http://status.local` reaches it. Rename
+it on the Network page if you run more than one. A name typed with `.local` on the end has it
+stripped, because the name is one label and the `.local` is the domain the responder appends;
+without that, a device named `status2.local` would answer only at `status2.local.local`. The
+address your router gave it always works too.
+
+The hotspot's **name pattern and default password are this project's own**, matching its
+sibling, not a guess at the factory's: what the factory calls its own hotspot is a parity fact
+and is still unread (D-027, D-046, D-047 in [docs/DECISIONS.md](docs/DECISIONS.md)).
 
 ## Settings Migration
 

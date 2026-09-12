@@ -1225,6 +1225,71 @@ carrying part of the MAC, which is unguessable and so no better than the address
 **What would change it.** The bench session reading the factory's own default hostname. If
 the factory ships a different one, parity decides and this becomes the renamed case.
 
+**Closed the same day by D-047**, which adds the responder. `status.local` resolves.
+
+---
+
+## D-047 The hotspot names itself from its own MAC, carries a password, and opens its own page
+
+**Date** 2026-09-11 · **Reversal** cheap for the names and the password, moderate for the
+portal (one module, one embedded page, one dependency)
+
+**Decided, by the maintainer, after setting one up and finding there was nothing to join.**
+The first-run experience is the sibling project's, which is his own work and proven on real
+hardware:
+
+- **The hotspot names itself.** A device with no stored hotspot name builds one from its own
+  station MAC on first boot and saves it: the prefix, then the six bytes as uppercase hex with
+  no separators. Two units on a bench are therefore never the same network, and the name needs
+  no typing. A name already stored, derived or typed, is never rebuilt.
+- **The hotspot carries a password**, nine characters, printed in the README and on the setup
+  page and meant to be changed. Under eight the radio cannot do WPA2 at all and silently falls
+  back to an open network, which is why the default is not shorter and why the page refuses
+  one to seven characters rather than accepting a setting that quietly disables encryption.
+- **Joining it opens the setup page.** A phone decides it is behind a portal by fetching a
+  known URL and getting something unexpected, and each platform uses a different host, so the
+  device answers DNS for its own hotspot and hands back its own address for every name. The
+  probes then arrive at a path the firmware does not serve and meet the 302 that was already
+  there. That redirect is what opens the sheet.
+- **The sheet gets a different page.** Seven kilobytes of plain HTML over the same WebSocket:
+  scan, pick, type, join, with the reveal on the password field and the full interface one link
+  away behind `?full=1`. The application page is over a megabyte with a typeface and 25
+  languages in it, and a captive WebView renders that as a blank sheet.
+- **A multicast responder**, so the hostname from D-046 is finally an address: `status.local`.
+  One service, `_http._tcp` on port 80.
+
+**Two defects in the same path, found by reading the sibling's comments.** The scan-done
+handler put sixteen `wifi_ap_record_t` on the event task's small stack, nearly two kilobytes,
+which overflows it and panics the device; the first thing a new owner does is scan. They are
+heap-allocated now. And a scan in APSTA with the default dwell takes the radio off the
+hotspot's channel for over a second a sweep, which drops the WebSocket of the very page doing
+the scanning; the dwell is bounded and the hotspot's own channel gets a longer slice.
+
+**What this does not change.** The wildcard's 302 still answers every client, not only the
+hotspot's. That is parity, not a portal artifact: the factory answers 302 to any path it does
+not serve, and every gated route leans on it to look absent while its switch is off. Narrowing
+it to hotspot clients would have broken both.
+
+**One thing deliberately not copied.** The sibling hardcodes the portal's address and subnet as
+compile-time constants, so changing the hotspot's address breaks the DNS answer, the redirect
+and the is-this-client-on-the-hotspot test all at once, silently. Here all three read the live
+configuration every time.
+
+**Alternatives.** A fixed hotspot name, which collides the moment there are two units; an open
+hotspot, which puts the Wi-Fi password of the owner's house on an open network during setup;
+answering the platform probe URLs by name, which is a list that changes without notice and
+which the 302 already covers; serving the application to the sheet, which is the blank screen
+this exists to avoid.
+
+**Why a default behaviour and not a switch behind a flag.** Rule 5 puts features behind
+switches that default off. A captive portal that defaults off is not a feature, it is dead
+code, and the maintainer asked for this as the out-of-the-box experience in those words. The
+rule's purpose is that a clone must not surprise someone expecting the factory; a hotspot that
+opens its own setup page is what the factory does, only working.
+
+**What would change it.** The bench session reading the factory's own hotspot name and
+password. Those are parity facts and would replace the prefix and the nine characters here.
+
 ---
 
 *Entries continue below as the run proceeds.*

@@ -340,6 +340,22 @@ void ps_printer_scan(void);
 void ps_printer_discover(void);       /* start a scan; finds nothing until a mechanism is documented */
 void ps_printer_moved_maybe(void);    /* C7: count a transport failure and start a rebind scan at the threshold */
 
+/* ---- The captive portal, in ps_portal.c: the hotspot opens its own setup page. ---- */
+void ps_portal_start(void);                             /* the DNS responder for the hotspot */
+bool ps_portal_addr_on_ap(uint32_t addr_host_order);    /* is this address on the hotspot's /24? */
+void ps_wifi_apply_hostname(void);                      /* re-apply the name and the responder */
+
+/* ---- The two names a device answers to. Both pure, in ps_netname.c, host-tested. ---- */
+/* The hotspot's name when nothing is stored: this prefix and the six MAC bytes, uppercase
+ * hex, no separators. Derived once on first boot and then stored, so it never moves. */
+#define PS_AP_SSID_PREFIX      "Panda_Status_"
+#define PS_HOSTNAME_LABEL_MAX  63                 /* one DNS label, and .local is the domain */
+void ps_ap_ssid_from_mac(char *out, size_t n, const uint8_t mac[6]);
+/* Reduces whatever was typed to one DNS label in place: trailing dots and blanks go, every
+ * trailing ".local" goes, anything outside [A-Za-z0-9-] becomes a hyphen, leading and
+ * trailing hyphens go, and the result is cut to 63 bytes. */
+void ps_hostname_sanitise(char *s, size_t n);
+
 /* ---- C8: why it is not working, blinked on the bar. Both pure, in ps_diag.c, host-tested. ---- */
 typedef struct { bool active; ps_rgba_t colour; uint8_t blinks; } ps_diag_t;
 #define PS_DIAG_BRIGHT   60            /* a diagnostic is for reading across a room, not for matching the mode */
@@ -377,6 +393,8 @@ int ps_api_preview_post(httpd_req_t *req);
 int ps_preview_apply(const char *json, size_t len);   /* the pin from its JSON, whole or refused; 0 on success */
 char *ps_preview_json(void);                          /* the pin as the page reads it; cJSON_free() it */
 int ps_http_redirect_portal(httpd_req_t *req);        /* the wildcard's answer, for a route that must look absent */
+int  ps_portal_page(httpd_req_t *req);                /* esp_err_t: the small setup page a captive sheet can render */
+bool ps_portal_req_from_ap(httpd_req_t *req);         /* is this client on the hotspot rather than the house network? */
 int ps_api_restart_post(httpd_req_t *req);            /* C4: POST /api/restart, a plain restart; a 302 while bit 17 is off */
 int ps_api_config_get(httpd_req_t *req);              /* C3: GET/POST /api/config, the settings as one document; a 302 while bit 16 is off */
 int ps_api_config_post(httpd_req_t *req);

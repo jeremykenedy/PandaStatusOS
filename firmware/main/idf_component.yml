@@ -1,0 +1,5 @@
+# The multicast responder, so the hostname is an address: status.local reaches the device.
+# Nothing else here is a managed component; the rest of the build is the IDF's own.
+dependencies:
+  idf: ">=5.3"
+  espressif/mdns: "^1.2.0"

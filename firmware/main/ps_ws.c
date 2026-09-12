@@ -114,6 +114,16 @@ const char *ps_build_id(void)
 /* ---- HTTP ---- */
 static esp_err_t page_get(httpd_req_t *req)
 {
+    /* A client on the hotspot is almost always a captive sheet, and a captive sheet cannot
+       render this page: it is over a megabyte, with a typeface and 25 languages in it. Such a
+       client gets the small setup page instead. "?full=1" is the way past that for anything
+       that can render the real thing, and the setup page links to it. A client on the network
+       the device joined always gets the application. */
+    if (ps_portal_req_from_ap(req)) {
+        char q[64];
+        bool full = (httpd_req_get_url_query_str(req, q, sizeof q) == ESP_OK) && strstr(q, "full=1");
+        if (!full) return ps_portal_page(req);
+    }
     httpd_resp_set_type(req, "text/html; charset=utf-8");
     httpd_resp_set_hdr(req, "Content-Encoding", "gzip");
     httpd_resp_set_hdr(req, "Cache-Control", "no-cache");
@@ -228,6 +238,10 @@ int ps_ws_start(void)
     httpd_uri_t cf_g   = { .uri = "/api/config",   .method = HTTP_GET,  .handler = ps_api_config_get };     /* C3; answers 302 while its bit is off */
     httpd_uri_t cf_p   = { .uri = "/api/config",   .method = HTTP_POST, .handler = ps_api_config_post };
     httpd_uri_t rs_p   = { .uri = "/api/restart",  .method = HTTP_POST, .handler = ps_api_restart_post };   /* C4; answers 302 while its bit is off */
+    /* The wildcard answers every client, not only the hotspot's. That is parity: the factory
+       answers 302 to any path it does not serve, and every gated route leans on it to look
+       absent while its switch is off. It is also what makes a phone's captive probe open the
+       setup page, once ps_portal.c is answering DNS for the hotspot. Do not narrow it. */
     httpd_uri_t any_g  = { .uri = "/*",   .method = HTTP_GET,  .handler = redirect_portal };
     httpd_uri_t any_p  = { .uri = "/*",   .method = HTTP_POST, .handler = redirect_portal };
     httpd_uri_t any_h  = { .uri = "/*",   .method = HTTP_HEAD, .handler = redirect_portal };
