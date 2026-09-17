@@ -18,6 +18,35 @@ advertised, no socket is opened and nothing on the page mentions it.
 | vent state on the bar | vent to status | open, closed, sealing, moving, as a colour or a layer over the base effect |
 | policy visible without a browser | vent to status | when the vent is overriding its policy (material-aware sealing), the bar says so |
 | chamber temperature as a ramp | vent to status | the vent already reads it; the bar shows it as a colour ramp between two configurable ends |
+| the vent's colours, copied | vent to status | the three bar-state colours the vent is set to, written into this device's own three, so a pair on one bench matches without being set up twice |
+| the vent's effect, copied | vent to status | the effect a vent bar state runs, written into the matching state here, with its colours, its timing and its direction |
+
+### Copying, and why it is a copy rather than a follow
+
+Jeremy, 2026-09-17. Two of the rows above are not a live feed. They are **one-time
+copies**, run when somebody asks for them, and each is its own switch:
+
+  - **Sync colours from the vent.** Reads the vent's three bar-state colours and writes
+    them into this device's three, for the mode being edited.
+  - **Sync the effect from the vent.** Reads the effect on one vent bar state and writes
+    it into the matching state here: the effect id, its four colours, its speed, its
+    direction and its band width.
+
+They are copies, not a subscription, because a subscription makes one device the owner of
+the other's settings and there is no good answer to what happens when both are edited. A
+copy has an obvious meaning, an obvious moment, and an obvious undo: copy again, or set it
+back by hand. The page says what it is about to overwrite before it does it.
+
+**The reverse is a later job on the vent's side.** Status to vent, same two operations, is
+built into PandaVentOS after these land, so the same contract is exercised from both ends
+before either is called done. Nothing here assumes the vent can already be asked; the vent
+gains a route for this and this device gains one too, and the direction of any one copy is
+whichever end the person pressed.
+
+An effect copied from a vent may name an effect id this device's feature bits do not allow.
+That is refused with the reason, not silently downgraded to something else: a bar quietly
+showing a different effect from the one that was copied is worse than a copy that did not
+happen.
 | vent errors on the bar | vent to status | an error on the vent surfaces as the bar's error state |
 | status drives the vent | status to vent | open, close, and the policy toggle, from the PandaStatusOS page, so control lives in one place |
 | shared printer state | either way | one device polls the printer's MQTT and pushes what it reads to the other, halving the load on the printer |
