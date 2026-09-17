@@ -85,7 +85,7 @@ PREFIXES = {
 # Values, not copy. The renderer writes these, or they are proper nouns.
 DATA = re.compile(r'^(v?\d|[\d.,%°·\s/+-]+$|#[0-9A-Fa-f]{3,8}$|rtsps?://|__[A-Z]+__$)')
 LITERAL = {
-    'PandaVentOS', 'PandaVentOS v1.1.0', 'example-iot', 'My Printer', '.local',
+    'PandaStatusOS', 'PandaStatusOS v1.0.0', 'example-iot', 'My Printer', '.local',
     'PLA', 'PLA Basic', 'PETG HF', 'PLA Silk', 'Panda Vent', 'v1.1.0', '1080p',
     'Wi-Fi',
     'Storage Lid 5x5 0.2mm layer, 2 walls, 15% infill', 'layer 41 of 58',

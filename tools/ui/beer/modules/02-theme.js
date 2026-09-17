@@ -1,5 +1,5 @@
 /* =====================================================================
-   PandaVentOS web UI — MODULE 2: theme + client-only chrome
+   PandaStatusOS web UI — MODULE 2: theme + client-only chrome
    ---------------------------------------------------------------------
    The parts of the page that never talk to the device: the light/dark
    preference and the three-way control that sets it, the top-bar theme

@@ -44,6 +44,30 @@ for p in sorted(PAGES):
 # list from the markup alone would drop it and the page would print the raw
 # key the first time somebody turned the switch off.
 JS_ONLY = {
+    # the top bar's chip, which has room for four words and not for the banner's sentence
+    'ui_waiting_short': 'Waiting for the device',
+    # The fifteen stage slots (ps_cfg.c ps_gif_slot_names) and the job strip's own
+    # words. They are chosen by a number the device sends on /api/print, so no page
+    # file mentions them and deriving the list from markup alone would drop every one.
+    'ui_bed': 'Bed',
+    'ui_chamber': 'Chamber',
+    'ui_no_job': 'Nothing printing',
+    'ui_nozzle': 'Nozzle',
+    'ui_stage_bed_heating': 'Heating the bed',
+    'ui_stage_bed_leveling': 'Levelling the bed',
+    'ui_stage_calibrating_flow': 'Calibrating flow',
+    'ui_stage_filament_check_location': 'Checking the filament',
+    'ui_stage_filament_cut': 'Cutting the filament',
+    'ui_stage_filament_pull_back_cur': 'Retracting the filament',
+    'ui_stage_filament_purge_old': 'Purging the old filament',
+    'ui_stage_filament_push_new': 'Loading the filament',
+    'ui_stage_homing': 'Homing',
+    'ui_stage_nozzle_cleaning': 'Cleaning the nozzle',
+    'ui_stage_nozzle_heating': 'Heating the nozzle',
+    'ui_stage_printing': 'Printing',
+    'ui_stage_printing_ok': 'Printing',
+    'ui_stage_standby': 'Standby',
+    'ui_stage_xy_mesh_mode_sweep': 'Sweeping the mesh',
     'ui_ap_note_off': 'Only appears when the vent cannot join the network it knows about.',
     # Set from JS when the password is revealed (the shown state's title).
     'ui_hide_the_password': 'Hide the password',

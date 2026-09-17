@@ -1,5 +1,5 @@
 /* =====================================================================
-   PandaVentOS web UI — MODULE 9: Camera card, inbound side
+   PandaStatusOS web UI — MODULE 9: Camera card, inbound side
    ---------------------------------------------------------------------
    The camera card's one control and its one client-only widget:
 

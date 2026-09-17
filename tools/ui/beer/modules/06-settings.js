@@ -1,5 +1,5 @@
 /* =====================================================================
-   PandaVentOS web UI — MODULE 6: Settings card inbound + the first-use
+   PandaStatusOS web UI — MODULE 6: Settings card inbound + the first-use
    language page
    ---------------------------------------------------------------------
    Written from private/SPEC/handler-contract.md §5.2 (every row of the

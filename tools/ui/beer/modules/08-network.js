@@ -1,5 +1,5 @@
 /* =====================================================================
-   PandaVentOS web UI — MODULE 8: Wi-Fi (station) card, Hotspot card
+   PandaStatusOS web UI — MODULE 8: Wi-Fi (station) card, Hotspot card
    and the setup Wi-Fi page — the inbound side
    ---------------------------------------------------------------------
    Everything the person does on these three surfaces: scan, join, save

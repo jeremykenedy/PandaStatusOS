@@ -1,5 +1,5 @@
 /* =====================================================================
-   PandaVentOS web UI — MODULE 1: message router and rendering substrate
+   PandaStatusOS web UI — MODULE 1: message router and rendering substrate
    ---------------------------------------------------------------------
    One cohesive classic <script> body. It owns the socket, the merged
    state document, the i18n runtime, navigation, the response UI (dialog
@@ -662,21 +662,21 @@ function render_chrome() {
 
   /* Top bar name */
   var name = s.device_name;
-  setText('ps-top-name', (name && name.length) ? name : 'PandaVentOS');
+  setText('ps-top-name', (name && name.length) ? name : 'PandaStatusOS');
 
   /* Dot, state, percent, progress */
   var dot = byId('ps-top-dot');
   var st = vp.device_state;
   if (!g_have_first_state) {
     if (dot) dot.setAttribute('class', 'ux_top_dot');
-    setText('ps-top-state', tr('waiting_for_device', "Waiting for the device. These controls are showing placeholders until it answers, so they are inactive for a moment."));
+    setText('ps-top-state', tr('ui_waiting_short', 'Waiting for the device'));
     setHidden('ps-top-pct', true);
     setHidden('ps-top-prog', true);
     setHidden('ps-top-prog-fill', true);
   } else {
     var cls = (isNum(st) && st >= 0 && st <= 5) ? TOP_DOT_CLASS[st] : 'is-idle';
     if (dot) dot.setAttribute('class', 'ux_top_dot ' + cls);
-    setText('ps-top-state', device_state_name(st) || tr('waiting_for_device', "Waiting for the device. These controls are showing placeholders until it answers, so they are inactive for a moment."));
+    setText('ps-top-state', device_state_name(st) || tr('ui_waiting_short', 'Waiting for the device'));
 
     var pct = vp.print_percent;
     var running = isNum(st) && (st === 1 || st === 2 || st === 3);
@@ -701,10 +701,10 @@ function render_chrome() {
   if (s.os_version) setText('ps-version-num', 'v' + s.os_version);
   else if (s.fw_version) setText('ps-version-num', s.fw_version);
   var vname = document.querySelector('#ps-version-badge .ux_version_name');
-  if (vname) vname.textContent = s.os_name || 'PandaVentOS';
+  if (vname) vname.textContent = s.os_name || 'PandaStatusOS';
   var badge = byId('ps-version-badge');
   if (badge && (s.os_name || s.os_version)) {
-    badge.setAttribute('title', (s.os_name || 'PandaVentOS') + (s.os_version ? ' ' + s.os_version : ''));
+    badge.setAttribute('title', (s.os_name || 'PandaStatusOS') + (s.os_version ? ' ' + s.os_version : ''));
   }
 
   /* Config-save-failed banner. It cannot be dismissed: the fault is still
@@ -727,7 +727,6 @@ function render_status() {
   var printer = g_state.printer || {};
   var st = printer.status || printer;
 
-  render_job_strip(printer, st);
   render_lighting_now();
   render_kv_printer(st, printer, printer);
   render_trays(st);
@@ -756,32 +755,6 @@ function render_lighting_now() {
 }
 
 /* 1.1 Airflow dial + vent mode */
-function render_job_strip(vp, st) {
-  var name = st.job_name;
-  setText('ps-job-name', (name && name.length) ? name : tr('status_no_job', 'No job'));
-
-  var pct = vp.print_percent;
-  setText('ps-job-pct', isNum(pct) ? fmtPct(pct) : '');
-  var fill = byId('ps-job-fill');
-  if (fill) { fill.value = isNum(pct) ? pct : 0; fill.style.width = (isNum(pct) ? pct : 0) + '%'; }
-
-  var meta = byId('ps-job-meta');
-  if (meta) {
-    meta.innerHTML = '';
-    if (isNum(st.layer_num)) {
-      var layerTxt = isNum(st.layer_total)
-        ? tr('status_layer', 'layer') + ' ' + st.layer_num + ' ' + tr('status_of', 'of') + ' ' + st.layer_total
-        : tr('status_layer', 'layer') + ' ' + st.layer_num;
-      meta.appendChild(valueSpan(layerTxt));
-    }
-    if (isNum(st.remain_min)) {
-      meta.appendChild(valueSpan(fmtRemain(st.remain_min) + ' ' + tr('status_left', 'left')));
-    }
-    if (isNum(st.spd_lvl) && SPEED_WORDS[st.spd_lvl]) {
-      meta.appendChild(valueSpan(tr('speed_word_' + st.spd_lvl, SPEED_WORDS[st.spd_lvl])));
-    }
-  }
-}
 
 /* 1.3 Lighting-now key/values */
 function effect_name(fxId, which) {

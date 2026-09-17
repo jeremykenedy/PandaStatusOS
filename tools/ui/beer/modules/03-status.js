@@ -1,5 +1,5 @@
 /* =====================================================================
-   PandaVentOS web UI — MODULE 3: Dashboard / Status card inbound
+   PandaStatusOS web UI — MODULE 3: Dashboard / Status card inbound
    + printer-control inbound
    ---------------------------------------------------------------------
    The user's side of the Status card. Module 1 (core.js) draws every

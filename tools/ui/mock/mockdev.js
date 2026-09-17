@@ -668,6 +668,36 @@ async function handleHttp(req, res) {
                    uptime_s: Math.floor((Date.now() - t0) / 1000), heap_free: 180000, flash_size: 4194304, leds: 16, mode: (STATE.settings && STATE.settings.current_mode) || 0, features: bits, config_layout: 'PS04' };
     res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }); return res.end(JSON.stringify(info));
   }
+  if (p === '/api/print' && knobFlag('PS_CLONE')) {
+    // The clone's own: what the printer is doing. The factory's document does not carry a
+    // percentage, so this is a route rather than a seventh root (ps_api.c ps_api_print_get).
+    //
+    // percent is -1 until a report has arrived and each temperature is PS_TEMP_NONE (-1000)
+    // until one has, so the page can tell "not printing" from "printing at 0%". The mock is
+    // as unkind as the hardware: with no knob set it reports exactly that, a bound printer
+    // that has said nothing.
+    //
+    //   PS_PRINT_PERCENT   0..100, or -1        PS_PRINT_STAGE   0..14
+    //   PS_PRINT_NOZZLE / PS_PRINT_BED / PS_PRINT_CHAMBER   degrees, or -1000
+    //   PS_PRINT_WALK=1    the percentage climbs one point a second, so a harness can watch
+    //                      a bar move without pretending time passed
+    if (req.method !== 'GET') { res.writeHead(405); return res.end(); }
+    let pct = Number(knob('PS_PRINT_PERCENT', -1));
+    if (knobFlag('PS_PRINT_WALK')) pct = Math.min(100, Math.floor((Date.now() - t0) / 1000));
+    const doc = {
+      percent: pct,
+      stage: Number(knob('PS_PRINT_STAGE', 0)),
+      printing: pct >= 0,
+      printer_state: (STATE.printer && STATE.printer.state) || 1,
+      temp: {
+        nozzle:  Number(knob('PS_PRINT_NOZZLE', -1000)),
+        bed:     Number(knob('PS_PRINT_BED', -1000)),
+        chamber: Number(knob('PS_PRINT_CHAMBER', -1000)),
+      },
+    };
+    res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
+    return res.end(JSON.stringify(doc));
+  }
   if (p === '/api/state' && knobFlag('PS_CLONE')) {
     // C2: the six-root document the socket pushes on connect, as JSON over HTTP
     if (req.method !== 'GET') { res.writeHead(405); return res.end(); }

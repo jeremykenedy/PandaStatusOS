@@ -1,5 +1,5 @@
 /* =====================================================================
-   PandaVentOS web UI - MODULE 10: Logs card inbound + uploaded animation
+   PandaStatusOS web UI - MODULE 10: Logs card inbound + uploaded animation
    ---------------------------------------------------------------------
    Written from private/SPEC/handler-contract.md sections 0.1, 0.4, 0.6,
    11.1, 11.2 and 12, private/SPEC/websocket-protocol.md sections 1, 2.8

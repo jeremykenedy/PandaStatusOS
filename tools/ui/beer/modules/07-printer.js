@@ -1,5 +1,5 @@
 /* =====================================================================
-   PandaVentOS web UI — MODULE 7: Printer card, inbound side
+   PandaStatusOS web UI — MODULE 7: Printer card, inbound side
    ---------------------------------------------------------------------
    The user's half of the Printer card: the scan button, the printer
    picker, the bind / unbind button and the card's help note. Module 1
