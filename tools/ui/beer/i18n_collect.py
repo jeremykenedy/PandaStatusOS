@@ -44,6 +44,32 @@ for p in sorted(PAGES):
 # list from the markup alone would drop it and the page would print the raw
 # key the first time somebody turned the switch off.
 JS_ONLY = {
+    # the twenty-four effect names. The list is built from PS_FX ids at run time, so no
+    # page file names them and deriving from markup alone would drop every one.
+    'ui_fx_0': 'Solid',
+    'ui_fx_1': 'Breathing',
+    'ui_fx_10': 'Marquee inward',
+    'ui_fx_11': 'Fill outward',
+    'ui_fx_12': 'Fill inward',
+    'ui_fx_13': 'Bounce outward',
+    'ui_fx_14': 'Bounce inward',
+    'ui_fx_15': 'Fill and empty outward',
+    'ui_fx_16': 'Fill and empty inward',
+    'ui_fx_17': 'Progress bar',
+    'ui_fx_18': 'Progress, animated',
+    'ui_fx_19': 'Barber pole',
+    'ui_fx_2': 'Strobe',
+    'ui_fx_20': 'Temperature gradient',
+    'ui_fx_21': 'Progress colour ramp',
+    'ui_fx_22': 'Colour stops',
+    'ui_fx_23': 'Colour stops, scrolling',
+    'ui_fx_3': 'Wave',
+    'ui_fx_4': 'Marquee',
+    'ui_fx_5': 'Hue cycle',
+    'ui_fx_6': 'Rainbow',
+    'ui_fx_7': 'Scanner',
+    'ui_fx_8': 'Bounce',
+    'ui_fx_9': 'Marquee outward',
     # the top bar's chip, which has room for four words and not for the banner's sentence
     'ui_waiting_short': 'Waiting for the device',
     # The fifteen stage slots (ps_cfg.c ps_gif_slot_names) and the job strip's own

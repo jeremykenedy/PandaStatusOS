@@ -73,6 +73,99 @@
     </nav>
   </article>
 
+  <!-- ══════════════════════════════════════════════════════════════════
+       PER STATE EFFECTS
+       Beyond parity, and off on a new device. One state is edited at a time:
+       the row of three chooses which, and every card below it edits that one.
+       Splitting it that way is the only arrangement that fits three states
+       times nine controls on a phone without becoming a wall.
+       ══════════════════════════════════════════════════════════════ -->
+  <article class="no-padding span-all" id="ps-fx-card" hidden>
+    <h6 class="card-title padding no-padding-bottom" data-str="ui_per_state_effects">Per state effects</h6>
+    <div class="small-text padding no-padding-top" data-str="ui_effects_help">The effect each bar state shows. Progress, the animated progress and the barber pole all draw the print percentage, so they need a printer bound and a print running to show anything.</div>
+
+    <div class="grid no-space padding" id="ps-fx-state-row" role="radiogroup"
+         aria-label="Which state" data-str-aria="ui_which_state">
+      <div class="s12 m4 padding">
+        <button class="border fill vertical responsive is-active" id="ps-fx-state-0" role="radio" aria-checked="true">
+          <svg class="i"><use href="#i-status"/></svg>
+          <span data-str="ui_printer_state_0">Idle</span>
+        </button>
+      </div>
+      <div class="s12 m4 padding">
+        <button class="border vertical responsive" id="ps-fx-state-1" role="radio" aria-checked="false">
+          <svg class="i"><use href="#i-printer"/></svg>
+          <span data-str="ui_printer_state_2">Printing</span>
+        </button>
+      </div>
+      <div class="s12 m4 padding">
+        <button class="border vertical responsive" id="ps-fx-state-2" role="radio" aria-checked="false">
+          <svg class="i"><use href="#i-warning"/></svg>
+          <span data-str="ui_printer_state_5">Error</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="padding">
+      <div class="field label suffix border">
+        <select id="ps-fx-effect"></select>
+        <label for="ps-fx-effect" data-str="ui_the_effect">The effect</label>
+        <svg class="i"><use href="#i-caret"/></svg>
+      </div>
+    </div>
+  </article>
+
+  <!-- ── The colours the chosen effect draws with ─────────────────── -->
+  <article class="span-all" id="ps-fxc-card" hidden>
+    <h6 class="card-title" data-str="status_colour">Colour</h6>
+    <div class="small-text" data-str="ui_bg_help">What the unlit part of the bar shows. The barber pole alternates between the primary and this.</div>
+    <nav class="swatch-row">
+      <span class="max small-text" id="lbl-fxc-0" data-str="ui_primary_colour">Primary colour</span>
+      <div class="swatch-slot">
+        <button aria-labelledby="lbl-fxc-0" class="swatch responsive small-round is-unset" id="ps-fxc-0"></button>
+      </div>
+    </nav>
+    <nav class="swatch-row">
+      <span class="max small-text" id="lbl-fxc-2" data-str="ui_bg_printing">Background while printing</span>
+      <div class="swatch-slot">
+        <button aria-labelledby="lbl-fxc-2" class="swatch responsive small-round is-unset" id="ps-fxc-2"></button>
+      </div>
+    </nav>
+    <nav class="swatch-row">
+      <span class="max small-text" id="lbl-fxc-3" data-str="ui_bg_idle">Background while idle</span>
+      <div class="swatch-slot">
+        <button aria-labelledby="lbl-fxc-3" class="swatch responsive small-round is-unset" id="ps-fxc-3"></button>
+      </div>
+    </nav>
+  </article>
+
+  <!-- ── The pole's band width. Only the barber reads it. ─────────── -->
+  <article class="span-all" id="ps-fxb-card" hidden>
+    <h6 class="card-title" data-str="ui_band_width">Band width</h6>
+    <div class="small-text" data-str="ui_band_help">How wide each stripe of the pole is, in LEDs. Zero lets the device choose.</div>
+    <nav><span class="max"></span><span class="small-text" id="ps-fxb-band-value"></span></nav>
+    <label class="slider">
+      <input type="range" aria-label="Band width" data-str-aria="ui_band_width"
+             id="ps-fxb-band" min="0" max="32" step="1" value="0"><span></span>
+    </label>
+  </article>
+
+  <!-- ── How the effect runs ──────────────────────────────────────── -->
+  <article class="span-all" id="ps-fxp-card" hidden>
+    <h6 class="card-title" data-str="status_speed">Speed</h6>
+    <nav><span class="max"></span><span class="small-text" id="ps-fxp-speed-value"></span></nav>
+    <label class="slider">
+      <input type="range" aria-label="Speed" data-str-aria="status_speed"
+             id="ps-fxp-speed" min="0" max="100" step="5" value="100"><span></span>
+    </label>
+    <nav class="ps-sw-row">
+      <span class="max small-text" id="lbl-fxp-rev" data-str="ui_reverse">Run this effect backwards</span>
+      <label class="switch">
+        <input type="checkbox" id="ps-fxp-reverse" aria-labelledby="lbl-fxp-rev"><span></span>
+      </label>
+    </nav>
+  </article>
+
   <!-- ── Blocks. One row per segment the device reports, drawn from
           block.blocklist, so a device with none shows none. ──────── -->
   <article class="span-all" id="ps-block-card" hidden>

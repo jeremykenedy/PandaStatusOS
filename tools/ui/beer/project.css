@@ -1271,7 +1271,20 @@ nav.bottom a.active > svg.i {
   border-radius: 1.75rem;
   background-color: transparent;
   transition: background-color var(--speed2, 0.2s), color var(--speed2, 0.2s);
+
+  /* The row is as tall as the icon and nothing else, so the pill drawn on it was a
+     24px lozenge carrying a 28px corner radius: a squashed capsule gripping the icon,
+     with no air above or below it and none between one destination and the next. Beer
+     sizes a rail item to its contents and a bare <svg> is 24px, so the height has to
+     come from here. 2.5rem is Material's own rail-item pill height, and the radius
+     already exceeds half of it, so it stays a full capsule at every width. */
+  min-block-size: 2.5rem;
+  padding-block: 0.375rem;
 }
+
+/* And a little air between the rows, so eight destinations read as eight rather than
+   as one column of touching icons. */
+#ps-nav.left { row-gap: 0.25rem; }
 #ps-nav.left:not(.max) a:not(.button):not(.chip) { justify-content: center; }
 #ps-nav.left.max a:not(.button):not(.chip)     { justify-content: flex-start; }
 
