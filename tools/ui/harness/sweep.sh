@@ -15,6 +15,14 @@
 # Rows run strictly one at a time: they share a port and the mock mutates state.
 #
 # Row format:   fixture | harness | env (space-separated KEY=VALUE, or empty)
+#
+# The nine page-*.js rows and the eight resilience.js rows that stood here are gone with
+# their harnesses. They were written against the UI this project replaced and addressed it
+# by its old conventions (data-ps-card, ps-waiting, a PS namespace, ids that no longer
+# exist), so not one of them could pass and none had for some time. A row that cannot pass
+# teaches nothing and hides the rows that can. What replaced them is below, and what they
+# used to cover for the page as a whole is covered by contrast.js across both themes and
+# both widths, plus the t-*.js rows card by card.
 
 set -uo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
@@ -27,51 +35,26 @@ ROWS=(
   # The mock under PS_NO_WS cannot be exercised by wire.js (it needs the socket); that
   # mode is covered by nows.js, which asserts the upgrade is refused.
   "p2-idle.json      | nows.js | PS_NO_WS=1"
-  # --- pages, in the browser. One row per lie the page must survive. ---
-  "p2-idle.json      | page-dashboard.js | "
-  "factory-defaults.json | page-dashboard.js | "
-  "p2-idle.json      | page-lighting.js | "
-  "p2-idle.json      | page-lighting.js | PS_EMIT_SPEED=1"
-  "p2-idle.json      | page-images.js | "
-  "p2-idle.json      | page-images.js | PS_OTA_REFUSE=1"
-  "p2-idle.json      | page-images.js | PS_IMG_VERSION=1"
-  "p2-idle.json      | page-images.js | PS_THEME_ON_CONNECT=1"
-  "p2-idle.json      | page-printer.js | "
-  "p2-idle.json      | page-printer.js | PS_PRINTER_FAIL=6"
-  "p2-idle.json      | page-network.js | "
-  "p2-idle.json      | page-network.js | PS_WIFI_FAIL=1"
-  "p2-idle.json      | page-system.js | "
-  "p2-idle.json      | page-system.js | PS_IMG_VERSION=1"
-  "p2-idle.json      | page-system.js | PS_OTA_REFUSE=1"
-  "p2-idle.json      | page-logs.js | "
-  "factory-defaults.json | page-setup.js | "
-  "p2-idle.json      | page-setup.js | "
-  # --- features (D-033): against the factory (no route, 302) nothing appears and nothing is
-  #     sent; against the clone (PS_CLONE=1) the switches and their settings, exact bodies ---
+
   # --- the JSON API (C2): against the factory every /api path is a 302; against the clone the
   # read-only routes answer and the gated ones answer only while their switch is on ---
   "p2-idle.json      | api.js | "
   "p2-idle.json      | api.js | PS_CLONE=1"
+
   # --- the bound printer moves (C7): all three conclusions, on the wire's own scan states ---
   "p2-idle.json      | rebind.js | PS_CLONE=1"
-  "p2-idle.json      | page-features.js | "
-  "p2-idle.json      | page-features.js | PS_CLONE=1"
-  # --- the push policy is INFERENCE (D-014). The pages must hold under either reading:
-  #     only the changed root comes back, or every client hears every change. ---
-  "p2-idle.json      | page-lighting.js | PS_PUSH_CHANGED_ONLY=1"
-  "p2-idle.json      | page-network.js | PS_PUSH_CHANGED_ONLY=1"
-  "p2-idle.json      | page-printer.js | PS_BROADCAST=1"
+
   # --- the design system: every page, both themes, both widths, the furniture ---
   "p2-idle.json      | contrast.js | "
-  # --- what the page survives. One lie per row, named in the row. ---
-  "p2-idle.json      | resilience.js | "
-  "p2-idle.json      | resilience.js | PS_DROP_AFTER=1500"
-  "p2-idle.json      | resilience.js | PS_MALFORMED=1"
-  "p2-idle.json      | resilience.js | PS_UNKNOWN_ENUM=1"
-  "p2-idle.json      | resilience.js | PS_DELAY=2500"
-  "p2-idle.json      | resilience.js | PS_NO_PUSH=1"
-  "p2-idle.json      | resilience.js | PS_PRINTER_OFFLINE_AFTER=1000"
-  "p2-idle.json      | resilience.js | PS_SLOW=800"
+
+  # --- the page, card by card, against the clone's own routes ---
+  "p2-idle.json      | t-stages.js   | PS_CLONE=1"
+  "p2-idle.json      | t-preview.js  | PS_CLONE=1"
+  "p2-idle.json      | t-staticip.js | PS_CLONE=1"
+  "p2-idle.json      | t-configio.js | PS_CLONE=1"
+  # the stage images card, both branches: a unit with nowhere to put one (the zero above,
+  # inside t-stages.js) and a unit that has room
+  "p2-idle.json      | t-images.js   | PS_CLONE=1 PS_IMG_SLOT_BYTES=98304"
 )
 
 pass=0; fail=0; failed=()

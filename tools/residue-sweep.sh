@@ -39,6 +39,13 @@ SKIP = {'.githooks/pre-commit', 'tools/test-hook.sh', 'tools/residue-sweep.sh'}
 # No line anywhere is exempt from any check.
 ALLOW = []
 
+# One category has to be able to name what it bans, and the two documents that state the
+# standing rules do exactly that: "No Co-Authored-By. No Generated with." is the rule, not a
+# breach of it. Those two files are exempt from THAT ONE category and from nothing else, the
+# same reason this file and the hook exempt themselves. Any other file carrying a trailer is
+# still a hit, including a commit template, a workflow or a README.
+PER_CATEGORY_SKIP = {'attribution trailers': {'AGENTS.md', 'CLAUDE.md'}}
+
 CHECKS = [
  ("their element IDs",          r'\bid_[a-z][a-zA-Z0-9_]*\b'),
  ("their CSS class names",      r'\bc_[a-z][a-zA-Z0-9_]*\b'),
@@ -178,6 +185,8 @@ for name, pat in CHECKS:
             if not re.search(pat, line):
                 continue
             if any(a in line for a in ALLOW):
+                continue
+            if f in PER_CATEGORY_SKIP.get(name, ()):
                 continue
             if name == "CJK source text" and is_translation(f, line):
                 continue

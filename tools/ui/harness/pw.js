@@ -86,7 +86,7 @@ async function open(browser, opts) {
   page.on('console', (m) => { if (m.type() === 'error') (m.text().startsWith('Failed to load resource') ? netErrors : errors).push('console: ' + m.text()); });
   await page.goto(`${BASE}/${opts.hash || ''}`);
   if (opts.waitForState !== false) {
-    await page.waitForFunction(() => !document.body.classList.contains('ps-waiting'), null, { timeout: 5000 });
+    await page.waitForFunction(() => !document.body.classList.contains('is-waiting'), null, { timeout: 5000 });
   }
   return { ctx, page, errors, netErrors, theme, width };
 }
@@ -94,7 +94,7 @@ async function open(browser, opts) {
 // Wait until the page's merged state satisfies a predicate. The predicate runs in the
 // page and gets PS.state.
 async function waitState(page, fnBody, ms = 2000) {
-  return page.waitForFunction((body) => new Function('s', body)(PS.state), fnBody, { timeout: ms, polling: 25 })
+  return page.waitForFunction((body) => new Function('s', body)(window.g_state), fnBody, { timeout: ms, polling: 25 })
     .then(() => true).catch(() => false);
 }
 
@@ -116,7 +116,7 @@ const eye = (page, field) => page.$eval(eyeSel(field) + ' use', (el) => el.getAt
 const pressed = (page, field) => page.$eval(eyeSel(field), (el) => el.getAttribute('aria-pressed'));
 
 async function waitCard(page, name, ms = 2000) {
-  return page.waitForFunction((n) => { const all = [...document.querySelectorAll('article[data-ps-card]')]; return all.length > 1 && all.every((a) => a.hidden === (a.id !== 'ps-card-' + n)); }, name, { timeout: ms, polling: 25 })
+  return page.waitForFunction((n) => { const all = [...document.querySelectorAll('[data-card]')]; return all.length > 1 && all.every((a) => a.classList.contains('active') === (a.id === 'ps-card-' + n)); }, name, { timeout: ms, polling: 25 })
     .then(() => true).catch(() => false);
 }
 

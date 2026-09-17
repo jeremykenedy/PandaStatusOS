@@ -95,7 +95,25 @@ SENS_ASSIGN='(password|passwd|psk|pwd|secret|token|api[_-]?key|access[_-]?code|s
 # not a value. A QUOTED word is still a value and is still scanned.
 # Such an unquoted path value is blanked before the line is scanned, so the rest of the
 # line is still read. A quoted dotted value ("a.b.c") is still a value and still matches.
-PATH_ASSIGN='s/((password|passwd|psk|pwd|secret|token|api[_-]?key|access[_-]?code|ssid|serial)["'"'"'`]?[[:space:]]*[:=][[:space:]]*)[A-Za-z_$][A-Za-z0-9_$]*(\.[A-Za-z_$][A-Za-z0-9_$]*)*/\1()/g'
+# A value is only treated as a reference rather than a secret when it LOOKS like one: a
+# dotted path (STATE.wifi.ssid) or a call (String(m.password)). A BARE identifier is not
+# enough and must never be, because a password made of letters and digits is a bare
+# identifier too: this rule used to end in * rather than +, so `wifi_password = hunter2swordfish`
+# scrubbed to `wifi_password = ()` and sailed through. Its own suite said so in six places.
+# A field handed its own variable of the same name -- `{ ssid: ssid, password: password }`,
+# which is how a frame is built from locals -- is a reference by construction: a value
+# spelled exactly like the field it is assigned to cannot be a credential. Blanked first,
+# and only for that exact spelling, so `password: password1` is still a value.
+# One expression per word, not one with a backreference: \1 in a PATTERN is a GNU
+# extension that BSD sed does not honour, and this hook has to be right on both. Nine short
+# literal substitutions cost nothing and behave the same everywhere.
+SHORTHAND_ASSIGN=''
+for _w in password passwd psk pwd secret token api_key api-key access_code access-code ssid serial; do
+    SHORTHAND_ASSIGN="$SHORTHAND_ASSIGN;s/($_w)([[:space:]]*[:=][[:space:]]*)$_w([,;[:space:]}]|\$)/\1\2()\3/g"
+done
+SHORTHAND_ASSIGN="${SHORTHAND_ASSIGN#;}"
+
+PATH_ASSIGN='s/((password|passwd|psk|pwd|secret|token|api[_-]?key|access[_-]?code|ssid|serial)["'"'"'`]?[[:space:]]*[:=][[:space:]]*)([A-Za-z_$][A-Za-z0-9_$]*(\.[A-Za-z_$][A-Za-z0-9_$]*)+|[A-Za-z_$][A-Za-z0-9_$]*[[:space:]]*\()/\1()/g'
 
 # A quoted token that is one of this project's own translation keys is a key, not a secret,
 # and it is not part of one. Four shapes kept tripping the assignment scan and none is a leak:
@@ -110,14 +128,46 @@ PATH_ASSIGN='s/((password|passwd|psk|pwd|secret|token|api[_-]?key|access[_-]?cod
 # lookup rather than a guess: every quoted key from the English table is blanked before the
 # line is scanned, and everything else on the line is still read. Nothing can hide behind
 # this, because the table is derived by the build from the markup, and the markup is scanned.
+# HOW, and why not as one regular expression. This was a single sed program built by
+# alternating every key with a pipe. At five hundred keys that program is eleven kilobytes,
+# and BSD sed does not compile it: it failed with "unterminated substitute pattern" on every
+# line of every file. The failure was invisible and it was FAIL-OPEN. `line="$(... | sed ...)"`
+# assigns the empty string when sed dies, so every scanned line became empty, nothing matched,
+# and the hook passed everything. Its own suite caught it: twenty-three blocking cases, every
+# one of them, reported PASS. A guard that fails open is worse than no guard, because the
+# commit that goes through looks checked.
+#
+# So the lookup is a hash in one awk, which has no program-size limit to hit, and the scrub
+# is written to fail CLOSED: if awk is missing or errors, the UNSCRUBBED line is scanned.
+# That costs false positives and never costs a catch.
+# mktemp's two dialects disagree: BSD takes -t as a bare prefix, GNU demands X's and dies
+# with "too few X's in template" on a bare one. A full template works on both, and getting
+# this wrong emptied the key list, which turned every line of every translation table into
+# a false block. So it is written the way that works on both, and if the list comes out
+# empty while the table exists, the hook says so instead of quietly scanning unscrubbed.
 KEY_TABLE="$REPO_ROOT/tools/ui/i18n/en.json"
-KEY_ALT=""
-[ -f "$KEY_TABLE" ] && KEY_ALT="$(sed -n 's/^[[:space:]]*"\([a-z][a-z0-9_]*\)"[[:space:]]*:.*/\1/p' "$KEY_TABLE" | paste -sd'|' -)"
-if [ -n "$KEY_ALT" ]; then
-    KEY_ASSIGN="s/[\"'\`]($KEY_ALT)[\"'\`]/()/g"
-else
-    KEY_ASSIGN='s/^$//'
+KEY_LIST="$(mktemp "${TMPDIR:-/tmp}/pskeys.XXXXXX")"
+trap 'rm -f "$KEY_LIST"' EXIT
+[ -f "$KEY_TABLE" ] && sed -n 's/^[[:space:]]*"\([a-z][a-z0-9_]*\)"[[:space:]]*:.*/\1/p' "$KEY_TABLE" > "$KEY_LIST"
+if [ -f "$KEY_TABLE" ] && [ ! -s "$KEY_LIST" ]; then
+    warn "the translation key list came out empty; every table line will be scanned unscrubbed"
 fi
+
+# stdin -> stdout: every quoted token that is one of our translation keys becomes ().
+scrub_keys() {
+    if [ ! -s "$KEY_LIST" ]; then cat; return; fi
+    awk -v kf="$KEY_LIST" '
+      BEGIN { while ((getline k < kf) > 0) if (k != "") key[k] = 1 }
+      {
+        out = ""
+        while (match($0, /["'"'"'`][a-z][a-z0-9_]*["'"'"'`]/)) {
+            tok = substr($0, RSTART + 1, RLENGTH - 2)
+            out = out substr($0, 1, RSTART - 1) ((tok in key) ? "()" : substr($0, RSTART, RLENGTH))
+            $0 = substr($0, RSTART + RLENGTH)
+        }
+        print out $0
+      }' 2>/dev/null || cat
+}
 
 # Is this staged file a gzip member? Magic bytes first, so a gzip under a name that
 # does not say .gz is still caught; extension as a second trigger.
@@ -158,7 +208,10 @@ scan_pattern() {
         for view in $(views_for "$file"); do
             [ "$view" = "gz" ] && where="$file (inside gzip)" || where="$file"
             while IFS= read -r line; do
-                line="$(printf '%s' "$line" | sed -E "$PATH_ASSIGN" | sed -E "$KEY_ASSIGN")"
+                # Fail closed: a scrub that produces nothing from a non-empty line is a
+                # scrub that broke, and the line is scanned as it came instead.
+                scrubbed="$(printf '%s' "$line" | sed -E "$SHORTHAND_ASSIGN" 2>/dev/null | sed -E "$PATH_ASSIGN" 2>/dev/null | scrub_keys)"
+                [ -n "$line" ] && [ -z "$scrubbed" ] || line="$scrubbed"
                 printf '%s' "$line" | grep -Eq "$ALLOW_PATTERNS" && continue
                 # Documentation that only NAMES fields, never assigns them. Requires a
                 # backtick (so it is a code span) AND no credential assignment anywhere

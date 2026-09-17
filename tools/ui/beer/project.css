@@ -190,7 +190,8 @@ svg.sprite { display: none; }
   /* pre-line, not normal: the two-line state labels break where their own
      translation says to. It used to be a hard <br> in the markup, which put
      the break where ENGLISH wanted it and left every other language to wrap
-     wherever it landed. Every rgb_btn2 translation carries its own newline. */
+     wherever it landed. Each of those labels carries its own newline, in its own
+     language, in the string table. */
   white-space: pre-line;
 }
 

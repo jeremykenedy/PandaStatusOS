@@ -862,7 +862,7 @@ var NVS_ERRS = {
 function cfg_save_detail(s) {
   var bits = isNum(s.cfg_save_keys) ? s.cfg_save_keys : 0;
   var which = [];
-  if (bits & 1) which.push(tr('card_settings', 'Settings'));
+  if (bits & 1) which.push(tr('ui_settings', 'Settings'));
   var states = [];
   for (var i = 0; i < 6; i++) if (bits & (2 << i)) states.push(device_state_name(i));
   if (states.length) which.push(tr('ui_lighting', 'Lighting') + ' (' + states.join(', ') + ')');
@@ -1235,7 +1235,7 @@ function handle_sta(sta) {
 
   if (state === 3 && (g_prev_sta_state === 2 || g_prev_sta_state === 4)) {
     dialog_open('dlg_conn_ok_title', 'dlg_conn_ok_text', [
-      { key: 'card_printer', fallback: 'Printer', handler: function () { show_card('printer'); } },
+      { key: 'ui_printer', fallback: 'Printer', handler: function () { show_card('printer'); } },
       { key: 'cancel', fallback: 'Cancel' }
     ]);
   } else if (state === 4 && state !== g_prev_sta_state) {
@@ -1312,7 +1312,7 @@ function handle_pctl() {
         toast_show('ui_pctl_needs_dev_mode', 4000, 'The printer refused: it only takes this from a signed app unless Developer Mode (LAN mode) is on.');
       } else {
         var el = byId('ps-toast');
-        if (el) { el.textContent = cmd.reason || tr('response_err', 'Command failed'); el.classList.add('active'); if (g_toast_timer) clearTimeout(g_toast_timer); g_toast_timer = setTimeout(function () { el.classList.remove('active'); }, 4000); }
+        if (el) { el.textContent = cmd.reason || tr('ui_command_failed', 'Command failed'); el.classList.add('active'); if (g_toast_timer) clearTimeout(g_toast_timer); g_toast_timer = setTimeout(function () { el.classList.remove('active'); }, 4000); }
       }
     }
   }
@@ -1377,7 +1377,7 @@ function handle_response(resp) {
       break;
     case 'set_device_name':
       if (ok) toast_show('device_name_saved', 3000);
-      else toast_show('response_err', 3000);
+      else toast_show('ui_command_failed', 3000);
       break;
     case 'ota_fw':
       clear_ota_progress();

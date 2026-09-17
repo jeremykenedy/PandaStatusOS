@@ -172,7 +172,11 @@ int main(void)
         memset(&c, 0xAA, sizeof c);
         t("load of a v3 blob returns 0", ps_cfg_load(&c) == 0, 0);
         t("v3 -> v4: every v3 field survives", !strcmp(c.hostname, "t-host") && c.features == 0x5 && c.state_brightness[1][2] == 66 && c.fx[1].effect == PS_FX_CYLON && c.fx[1].brightness == 33 && c.fx[2].opt == 0x15 && c.fx[2].aux == 7 && c.fx[0].colour[3].g == 8 && c.fx[0].colour[3].a == 6, c.fx[1].effect);
-        t("v3 -> v4: the v4 fields take their defaults", c.temp_lo == 25 && c.temp_hi == 250 && c.temp_src == PS_TEMP_NOZZLE && c.hot_src == PS_TEMP_NOZZLE && c.hot_c == 50 && c.hot_colour.r == 0xFF && c.err_brightness == 50 && c.err_speed == 50, c.temp_lo);
+        /* hot_src is the CHAMBER, not the nozzle. It watched the nozzle at 50 C, and a nozzle
+           is over 50 C for the whole of every print, so with A11's switch on the warning
+           pulsed red over the bar from the first minute of a job to the last. This assert
+           caught that change, which is what it is for. */
+        t("v3 -> v4: the v4 fields take their defaults", c.temp_lo == 25 && c.temp_hi == 250 && c.temp_src == PS_TEMP_NOZZLE && c.hot_src == PS_TEMP_CHAMBER && c.hot_c == 50 && c.hot_colour.r == 0xFF && c.err_brightness == 50 && c.err_speed == 50, c.hot_src);
         t("v3 -> v4: the magic is now v4", c.magic == PS_CFG_MAGIC_V4, (long)c.magic);
         size_t n = 0; nvs_get_blob(1, "cfg", NULL, &n);
         t("v3 -> v4: saved back as a v4 blob of 592 bytes", n == sizeof(ps_cfg_t) && n == 592, (long)n);

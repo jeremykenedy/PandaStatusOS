@@ -149,7 +149,7 @@
 
     /* Which printer this is, before anything about it. On a bench with two of them the
        name is the only row that says WHICH one the rest of the card is describing. */
-    rows.push(kv_li_icon('printer', tr('card_printer', 'Printer'), null,
+    rows.push(kv_li_icon('printer', tr('ui_printer', 'Printer'), null,
       (typeof p.name === 'string' && p.name) ? valueSpan(p.name) : unknownSpan()));
 
     rows.push(kv_li_icon('network', tr('status_link', 'Link'), null,

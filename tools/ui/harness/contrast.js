@@ -120,9 +120,11 @@ async function run(page, label) {
         await run(page, `${tag} ${p}`);
       }
       // the furniture: dialog with two buttons, the toast, the fault banner
-      await page.evaluate(() => { location.hash = '#dashboard'; PS.dialog('Dialog title', 'Dialog body text for the contrast check.', [{ key: 'ps_global_ok' }, { key: 'ps_global_cancel' }]); });
+      /* The page's own helpers, not a PS namespace: that object belonged to the old UI and
+         this one puts dialog_open and toast_show on the window directly. */
+      await page.evaluate(() => { show_card('status'); dialog_open('ui_restart_title', 'ui_restart_text', [{ key: 'ui_ok', fallback: 'OK' }, { key: 'cancel', fallback: 'Cancel' }]); });
       await run(page, `${tag} dialog`);
-      await page.evaluate(() => { document.getElementById('ps-dialog').close(); PS.toast('Toast text for the contrast check.', 60000); document.getElementById('ps-banner-fault').hidden = false; });
+      await page.evaluate(() => { document.getElementById('ps-dialog').close(); toast_show('ui_settings_restored', 60000); });
       await run(page, `${tag} toast and fault banner`);
       await ctx.close();
       // the waiting state: no push, so the banner shows and the content is dimmed (skipped)
