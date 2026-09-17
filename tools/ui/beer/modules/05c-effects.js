@@ -289,6 +289,7 @@
     render_per_state();
     render_layers();
     if (window.render_preview) render_preview();
+    if (window.render_config_io) render_config_io();
     if (window.render_presets) render_presets();
   }
   window.render_effects = render_effects;

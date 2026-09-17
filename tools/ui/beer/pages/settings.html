@@ -82,6 +82,31 @@
     </nav>
   </article>
   <!-- ══════════════════════════════════════════════════════════════════
+       C3: THE SETTINGS FILE
+       Behind its own switch. The download is the device's own route with a
+       Content-Disposition on it, so the browser saves it rather than
+       rendering it; the restore posts the file back whole and the device
+       takes it or refuses it whole.
+       ══════════════════════════════════════════════════════════════ -->
+  <article id="ps-cfg-card" hidden>
+    <h6 class="card-title" data-str="ui_settings_file">Settings file</h6>
+    <div class="small-text" data-str="ui_settings_file_help">Every setting as one file, to keep or to copy onto another unit. No passwords and no access code are in it, so put those back by hand after restoring.</div>
+    <div class="space"></div>
+    <nav class="wrap btn-row">
+      <button class="fill" id="ps-cfg-download">
+        <svg class="i"><use href="#i-disk"/></svg>
+        <span data-str="ui_download_settings">Download</span>
+      </button>
+      <button class="border" id="ps-cfg-restore">
+        <svg class="i"><use href="#i-upload"/></svg>
+        <span data-str="ui_restore_settings">Restore from a file</span>
+        <input type="file" id="ps-cfg-file" accept="application/json,.json">
+      </button>
+    </nav>
+    <div class="small-text" id="ps-cfg-note"></div>
+  </article>
+
+  <!-- ══════════════════════════════════════════════════════════════════
        FEATURES
        Everything this clone does beyond the factory application, one switch
        each, every one off on a new device and off again after a factory
