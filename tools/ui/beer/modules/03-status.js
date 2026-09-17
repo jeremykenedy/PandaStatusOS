@@ -147,8 +147,8 @@ function cal_start() {
 /* switch id -> the light's wire name, and the status field the printer
    reports it back on */
 var LIGHT_SWITCHES = {
-  ps-pctl-chamber-light: { light: 'chamber_light', field: 'printer_light' },
-  ps-pctl-work-light:    { light: 'work_light',    field: 'work_light' }
+  'ps-pctl-chamber-light': { light: 'chamber_light', field: 'printer_light' },
+  'ps-pctl-work-light':    { light: 'work_light',    field: 'work_light' }
 };
 
 /* The settle window. The device does not push state for printer_ctl (P§9):

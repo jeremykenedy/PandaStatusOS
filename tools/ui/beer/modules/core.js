@@ -465,6 +465,16 @@ function deep_merge(dst, src) {
     if (!Object.prototype.hasOwnProperty.call(src, k)) continue;
     if (k === '__proto__' || k === 'constructor' || k === 'prototype') continue;
     var sv = src[k];
+    if (sv && typeof sv === 'object' && !Array.isArray(sv)) {
+      if (!dst[k] || typeof dst[k] !== 'object' || Array.isArray(dst[k])) dst[k] = {};
+      deep_merge(dst[k], sv);
+    } else {
+      /* Arrays and scalars replace. The vent merged one array per entry id, because its
+         device sent a single device-state at a time. This one sends list2 and blocklist
+         whole in every push (ps_state.c root_settings and root_block build both from the
+         config each time), so replacing is what matches the device. */
+      dst[k] = sv;
+    }
   }
 }
 
@@ -483,22 +493,11 @@ function ws_raw_send(obj) {
    top-level key (§1.1). Controls stay inert until the first state document
    lands — the ws_push guard the markup refers to. Our own "please
    send everything" request bypasses it via ws_raw_send. */
-/* Write down what we just told the device.
- *
- * The device does NOT echo a light setting back. It sends the per-state and
- * per-effect bodies once, in the document a client gets on connect, and never
- * again -- measured on 2026-09-04: six light frames in the connect burst,
- * none at all in the fifteen seconds after a write. So between sending a
- * change and the next reconnect, the page is the only thing that knows it.
- *
- * Nothing was recording it. Choose an effect, choose a colour, click another
- * device state and back, and the swatch was the effect's default -- white --
- * because the editor rendered from a model that had never heard about the
- * colour. The same hole was under every other light setting sent this way:
- * a band width, a reverse flag, a brightness ramp.
- *
- * So the model is updated here, at the one place every such change goes out,
- * rather than at each call site. */
+/* This device echoes. apply_settings returns the roots it changed and ps_ws.c:203 pushes
+ * every root back to the sender, so the page does not have to remember what it just sent
+ * and then reconcile. The vent had to: its device sent the light bodies once on connect
+ * and never again, so a swatch that waited for an echo showed the old colour until a
+ * reconnect. Here the echo is the source of truth and the page simply renders it. */
 function ws_push(root, members) {
   if (document.body && document.body.classList.contains('is-waiting')) return;
   var msg = {};

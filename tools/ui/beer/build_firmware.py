@@ -50,6 +50,25 @@ print('spliced the string table (%d bytes)' % len(_tbl))
 
 # ── the clean-room modules ───────────────────────────────────────────────
 _mods = sorted(glob.glob(os.path.join(D, 'modules', '*.js')))
+# Every module is parsed before it is spliced. A syntax error in one classic script stops
+# that script and only that script: the page still loads, the other modules still run, and
+# the controls the broken one owned are simply dead. That is the quietest failure in the
+# whole build, and it shipped once: an element id used as a bare object key became
+# ps-pctl-chamber-light after the id rename, which is not a valid unquoted key, and the
+# status module stopped existing. See docs/LESSONS-FROM-THE-VENT.md.
+import shutil as _sh
+_node = _sh.which('node')
+if _node:
+    _bad = []
+    for _m in _mods:
+        _r = _sp.run([_node, '--check', _m], capture_output=True, text=True)
+        if _r.returncode:
+            _bad.append('%s: %s' % (os.path.basename(_m),
+                                    (_r.stderr or _r.stdout).strip().split(chr(10))[-1][:120]))
+    assert not _bad, 'module(s) do not parse:' + chr(10) + chr(10).join('  ' + b for b in _bad)
+    print('%d module(s) parse' % len(_mods))
+else:
+    print('node not found: module syntax check skipped')
 for _m in _mods:
     js_out.append('<script>%s</script>' % io.open(_m, encoding='utf-8').read())
 print('spliced %d clean module(s): %s' % (len(_mods), [os.path.basename(m) for m in _mods]))

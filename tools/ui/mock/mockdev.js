@@ -1,0 +1,949 @@
+#!/usr/bin/env node
+'use strict';
+/*
+ * Mock Panda Status P2. One process: HTTP serves the page, a WebSocket at /ws speaks the
+ * protocol in docs/protocol-websocket.md, a JSON fixture is the whole device state.
+ *
+ * Every harness runs against this and nothing else. No real device, ever.
+ *
+ * What it reproduces, and where each fact comes from (docs/protocol-websocket.md unless
+ * stated):
+ *   - one WebSocket at /ws, JSON text, one frame may carry several roots
+ *   - connect-time push of exactly six roots in ONE frame: wifi sta ap printer settings
+ *     block (measured; the redacted capture in private/analysis/ has the shape)
+ *   - settings in that push carries list2, current_mode, fw_version, language and NOT
+ *     img_version, which the UI handles but the device did not send. The mock is as
+ *     unkind as the hardware: img_version is absent unless PS_IMG_VERSION is set
+ *   - zero idle traffic. Nothing is sent that a connect or an inbound frame did not cause
+ *   - every inbound frame is a single-root object carrying device_wakeup: 1
+ *   - list2[0].rgb_rgba is bare RRGGBB, list2[1].rgb_rgba is #RRGGBBAA; neither is
+ *     normalised, and a colour written by the client is stored in the format it arrived
+ *   - the three reset commands: rgb_reset (lighting only), reset (a restart, config
+ *     kept), factory_reset (acknowledged, then restart onto factory defaults)
+ *   - the 15 stage GIF slots, the block/blocklist model, all five enums
+ *   - HTTP: GET / is the page, HEAD / and GET /ota are 405, POST /ota is the upload
+ *     with an OTA-Type header and per-type size caps, everything else is a 302
+ *
+ * What is INFERENCE and adjustable by knob, because the bench session has not run:
+ *   - whether a change-triggered push carries all six roots or only the changed one
+ *     (default: all six, PS_PUSH_CHANGED_ONLY=1 for the other)
+ *   - whether a change-triggered push reaches other clients (default: sender only,
+ *     matching the measured connect-time behaviour; PS_BROADCAST=1 for the other)
+ *   - what the device does with rgb_reset while in Music mode. The factory UI never
+ *     sends it there. Default: no-op, no push. PS_RGB_RESET_MUSIC_APPLIES=1 applies it
+ *   - whether rgb_info_speed is echoed back in list2 (observed push had no speed key;
+ *     default: stored, not emitted; PS_EMIT_SPEED=1 emits it)
+ *   - which response type the ap message earns: set_hotspot_ip when ip changed, else set_ap
+ *   - the shape of wifi.list and printer.list entries
+ *   - what a GIF upload's response looks like: {type:"ota_img", ok, gif:<slot>}
+ *
+ * How it lies (all env, all off by default). These exist so a harness can prove the page
+ * survives a device that is slow, silent, gone, or wrong:
+ *   PS_DELAY=ms            connect push arrives late; device is awake
+ *   PS_DEAF=ms             nothing in either direction for N ms after connect
+ *   PS_NOECHO=1            apply writes, never push afterwards
+ *   PS_NO_WS=1             no WebSocket server at all; the upgrade is refused
+ *   PS_NO_PUSH=1           accept the socket, never send the connect push
+ *   PS_DROP_AFTER=ms       terminate every socket N ms after it connects
+ *   PS_MALFORMED=1         after the connect push, send one frame that is not JSON
+ *   PS_UNKNOWN_ENUM=1      connect push carries sta.state=9 and printer.scan=42
+ *   PS_PRINTER_OFFLINE_AFTER=ms   printer.state drops to 2 (connecting) after N ms
+ *   PS_SLOW=ms             every push is delayed by N ms
+ *   PS_STRICT_WAKEUP=1     drop any inbound frame missing device_wakeup: 1
+ *   PS_OTA_REFUSE=1        POST /ota returns 500 and a response with ok:0
+ *   PS_BUILD=<16 hex>      the clone's X-Build header on GET /; unset = the factory, which has none
+ *   PS_BACKUP=<file>       serve that file at GET /backup with X-Flash-Size, as the clone does;
+ *                          unset = the factory's 302. Lets tools/fw/golden.sh be proven here
+ *   PS_BACKUP_TRUNCATE=N   with PS_BACKUP: send only N bytes while X-Flash-Size promises them all
+ *   PS_CLONE=1             the clone's GET/POST /api/features (D-033): feature switches and their
+ *                          settings, defaults off, taken whole or refused whole (400); every accepted
+ *                          POST body is recorded in /__sent as {"api":"/api/features","body":...}.
+ *                          Unset = the factory, which answers 302 like any unknown path
+ *   PS_OTA_LANDS=1         an accepted ota_fw upload takes effect: after PS_OTA_RESTART_MS
+ *                          (default 2000) of 503, GET / serves the page inside the uploaded
+ *                          image with its own X-Build. Unset = the factory's behaviour, which
+ *                          answers 200 whether or not anything landed. tools/fw/ota-install.sh
+ *                          must tell the two apart, so both are here
+ *   PS_WIFI_FAIL=1         a wifi connect ends in sta.state 5 (password error)
+ *   PS_PRINTER_FAIL=n      a printer bind ends in printer.state n (4..7)
+ *   PS_REBOOT_DOWN_MS=ms   after a restart, refuse upgrades for N ms
+ *
+ * Plumbing:
+ *   PS_PORT     default 8199
+ *   PS_STATE    fixture file; relative paths resolve against ./fixtures
+ *   PS_PAGE     page to serve at /; default firmware/main/ui.html at the repo root, and a
+ *               built-in placeholder that opens the socket when that file does not exist
+ *   PS_LOG      if set, every event is appended to this file as JSONL
+ *
+ * Debug endpoints, NOT protocol, present only in the mock:
+ *   GET  /__sent     every frame the device received, in order, with timestamps
+ *   GET  /__pushed   every frame the device sent
+ *   GET  /__state    the current state document; __mock.gif_uploads[slot] is the byte count of
+ *                    the last accepted upload per slot, __mock.gif_sha256[slot] its sha256
+ *   POST /__reset    reload the fixture, clear the logs
+ *   POST /__knob     {"name":"PS_...","value":"..."} set a lie at runtime
+ *
+ * Lessons carried from the sibling project's mock, each of which cost it a night:
+ *   - state is mutated in place, then pushed. Echoing before applying made every write
+ *     look rejected
+ *   - timers live OUTSIDE the state object. A handle inside it made JSON.stringify throw
+ *     inside a try/catch and the mock went silent
+ *   - the mock re-sends only what the device re-sends. Re-sending connect-only bodies on
+ *     every push hid a page bug that only showed on hardware
+ *   - every timer honours the same deaf window, or the slow-device test never tests one
+ *   - no absolute paths. The repo root is found from __dirname
+ */
+
+const http = require('http');
+const fs = require('fs');
+const crypto = require('crypto');
+const zlib = require('zlib');
+const path = require('path');
+
+let WebSocketServer = null;
+try { ({ WebSocketServer } = require('ws')); }
+catch (e) {
+  console.error('mockdev: the "ws" package is not resolvable. Run tools/ui/harness/run.sh, which sets NODE_PATH, or install it under private/uiwork/.');
+  process.exit(2);
+}
+
+const ROOT = path.resolve(__dirname, '..', '..', '..');
+const FIXTURES = path.join(__dirname, 'fixtures');
+const env = (k, d) => (process.env[k] !== undefined && process.env[k] !== '' ? process.env[k] : d);
+const num = (k, d) => Number(env(k, d));
+const flag = (k) => ['1', 'true', 'yes'].includes(String(env(k, '')).toLowerCase());
+
+const KNOBS = {};                      // runtime overrides via /__knob
+const knob = (k, d) => (KNOBS[k] !== undefined ? KNOBS[k] : env(k, d));
+const knobNum = (k, d) => Number(knob(k, d));
+const knobFlag = (k) => ['1', 'true', 'yes'].includes(String(knob(k, '')).toLowerCase());
+
+const PORT = num('PS_PORT', 8199);
+const FIXTURE = (() => { const f = env('PS_STATE', 'p2-idle.json'); return path.isAbsolute(f) ? f : path.join(FIXTURES, f); })();
+const FACTORY = path.join(FIXTURES, 'factory-defaults.json');
+const PAGE = env('PS_PAGE', path.join(ROOT, 'firmware', 'main', 'ui.html'));
+const LOG = env('PS_LOG', '');
+
+// ---------------------------------------------------------------------------------------
+// Protocol facts, as data
+// ---------------------------------------------------------------------------------------
+
+const CONNECT_ROOTS = ['wifi', 'sta', 'ap', 'printer', 'settings', 'block'];
+const SETTINGS_PUSH_KEYS = ['list2', 'current_mode', 'fw_version', 'language'];
+const OUTBOUND_ROOTS = new Set(['settings', 'wifi', 'sta', 'ap', 'printer', 'block']);
+const RESPONSE_TYPES = new Set(['set_hostname', 'set_ap', 'set_hotspot_ip', 'factory_reset', 'ota_fw', 'ota_img']);
+const GIF_SLOTS = ['standby', 'nozzle_heating', 'bed_heating', 'bed_leveling', 'homing', 'nozzle_cleaning',
+  'calibrating_flow', 'xy_mesh_mode_sweep', 'filament_check_location', 'filament_cut',
+  'filament_pull_back_cur', 'filament_push_new', 'filament_purge_old', 'printing_ok', 'printing'];
+const OTA_CAPS = { ota_fw: 0x480000, ota_img: 0x6E0000, gif: 0x180000 };
+const ENUM = {
+  sta_state: { 1: 'nossid', 2: 'connecting', 3: 'connected', 4: 'reconnecting', 5: 'password error' },
+  printer_state: { 1: 'invalid info', 2: 'connecting', 3: 'connected', 4: 'ip err', 5: 'sn err', 6: 'access code', 7: 'unknown err' },
+  printer_scan: { 0: 'idle', 1: 'scanning', 2: 'done', 3: 'ip_change_scanning', 4: 'sn not matched', 5: 'ip not changed', 6: 'new ip applied' },
+  wifi_scan: { 0: 'idle', 1: 'scanning', 2: 'done' },
+};
+
+// ---------------------------------------------------------------------------------------
+// State. Mutated in place. Timers are NOT in here.
+// ---------------------------------------------------------------------------------------
+
+let STATE = null;
+let booting = false;                    // true while a "restart" is in progress
+let LANDED = null;                      // {build, page, until}: the image an ota_fw upload installed (PS_OTA_LANDS)
+let FEAT = null;                        // the clone's feature document (PS_CLONE); null until first asked
+const FEATURE_NAMES = ['state_brightness', 'state_effects', 'effect_colours', 'effect_params', 'effect_ramp', 'fx_progress', 'fx_progress_anim', 'fx_barber', 'fx_hue_ramp', 'fx_temp', 'hot_warning', 'error_flash', 'preview', 'presets', 'stage_effects', 'config_io', 'restart', 'auto_rebind', 'diagnostics'];
+const FX_SELECTABLE = 17;
+// which effect ids the bits allow, as the firmware's ps_fx_allowed(): the seventeen need only the
+// effect switch; the ones that read the print each wait for their own
+const FX_NEEDS = { 17: 'fx_progress', 18: 'fx_progress_anim', 19: 'fx_barber', 20: 'fx_temp', 21: 'fx_hue_ramp', 22: 'presets', 23: 'presets' };
+function fxAllowed(id, features) {
+  if (!Number.isInteger(id) || id < 0 || id >= 24) return false;
+  if (id < FX_SELECTABLE) return !!features.state_effects;
+  return FX_NEEDS[id] ? !!features[FX_NEEDS[id]] : false;
+}
+const fxDefault = (colour) => ({ effect: 0, brightness: 50, speed: 100, bright_end: 0, opt: 0, aux: 0, colours: [colour, colour, '#000000FF', '#000000FF'] });
+function featDefaults() {
+  return { features: { state_brightness: false, state_effects: false, effect_colours: false, effect_params: false, effect_ramp: false, fx_progress: false, fx_progress_anim: false, fx_barber: false, fx_hue_ramp: false, fx_temp: false, hot_warning: false, error_flash: false, preview: false, presets: false, stage_effects: false, config_io: false, restart: false, auto_rebind: false, diagnostics: false },
+           config: { state_brightness: [[50, 50, 50], [50, 50, 50]],
+                     state_effects: [fxDefault('#FFFFFFFF'), fxDefault('#FFFFFFFF'), fxDefault('#FF0000FF')],
+                     temp_gradient: { source: 0, lo: 25, hi: 250 },
+                     hot_warning: { source: 0, threshold: 50, colour: '#FF0000FF' },
+                     error_flash: { colour: '#FF0000FF', brightness: 50, speed: 50 } } };
+}
+const isColour = (s) => typeof s === 'string' && /^#[0-9A-Fa-f]{8}$/.test(s);
+// one stored effect from its JSON: every key optional, any unknown key or bad value refuses (as the firmware does)
+function fxParse(o, cur, features) {
+  if (!o || typeof o !== 'object' || Array.isArray(o)) return null;
+  const out = JSON.parse(JSON.stringify(cur));
+  for (const k of Object.keys(o)) {
+    const v = o[k];
+    if (k === 'colours') { if (!Array.isArray(v) || v.length !== 4 || !v.every(isColour)) return null; out.colours = v.map((s) => s.toUpperCase()); continue; }
+    if (!Number.isInteger(v) || v < 0) return null;
+    if (k === 'effect') { if (v !== cur.effect && !fxAllowed(v, features)) return null; }   // echoing the stored id is never a change to refuse
+    else if (k === 'brightness' || k === 'speed' || k === 'bright_end') { if (v > 100) return null; }
+    else if (k === 'opt') { if (v > 0x1F) return null; }
+    else if (k === 'aux') { if (v > 255) return null; }
+    else return null;
+    out[k] = v;
+  }
+  return out;
+}
+// whole or nothing, as the firmware does: unknown names, non-booleans, bad shapes and out-of-range numbers refuse the document
+function featApply(j) {
+  if (!j || typeof j !== 'object' || Array.isArray(j)) return false;
+  const f = j.features, c = j.config;
+  if (f === undefined && c === undefined) return false;
+  if (f !== undefined && (typeof f !== 'object' || f === null || Array.isArray(f))) return false;
+  if (c !== undefined && (typeof c !== 'object' || c === null || Array.isArray(c))) return false;
+  if (f) for (const k of Object.keys(f)) if (!FEATURE_NAMES.includes(k) || typeof f[k] !== 'boolean') return false;
+  let sb = null, se = null, tg = null, hw = null, ef = null;
+  const after = Object.assign({}, FEAT.features, f || {});          // the bits this document leaves in force
+  if (c) for (const k of Object.keys(c)) {
+    const v = c[k];
+    if (k === 'state_brightness') {
+      if (!Array.isArray(v) || v.length !== 2 || !v.every((r) => Array.isArray(r) && r.length === 3 && r.every((n) => Number.isInteger(n) && n >= 0 && n <= 100))) return false;
+      sb = v.map((r) => r.slice());
+    } else if (k === 'state_effects') {
+      if (!Array.isArray(v) || v.length !== 3) return false;
+      se = v.map((o, i) => fxParse(o, FEAT.config.state_effects[i], after));
+      if (se.some((x) => x === null)) return false;
+    } else if (k === 'temp_gradient') {
+      // A10: every key optional, the source one of three, the degrees 0..500 (as the firmware bounds them)
+      if (!v || typeof v !== 'object' || Array.isArray(v)) return false;
+      const out = Object.assign({}, FEAT.config.temp_gradient);
+      for (const kk of Object.keys(v)) {
+        const n = v[kk];
+        if (!Number.isInteger(n) || n < 0) return false;
+        if (kk === 'source') { if (n > 2) return false; } else if (kk === 'lo' || kk === 'hi') { if (n > 500) return false; } else return false;
+        out[kk] = n;
+      }
+      tg = out;
+    } else if (k === 'hot_warning') {
+      // A11: every key optional; the source one of three, the threshold 0..500, the colour #RRGGBBAA
+      if (!v || typeof v !== 'object' || Array.isArray(v)) return false;
+      const out = Object.assign({}, FEAT.config.hot_warning);
+      for (const kk of Object.keys(v)) {
+        const n = v[kk];
+        if (kk === 'colour') { if (!isColour(n)) return false; out.colour = n.toUpperCase(); continue; }
+        if (!Number.isInteger(n) || n < 0) return false;
+        if (kk === 'source') { if (n > 2) return false; } else if (kk === 'threshold') { if (n > 500) return false; } else return false;
+        out[kk] = n;
+      }
+      hw = out;
+    } else if (k === 'error_flash') {
+      // A12: every key optional; the colour #RRGGBBAA, brightness and speed 0..100
+      if (!v || typeof v !== 'object' || Array.isArray(v)) return false;
+      const out = Object.assign({}, FEAT.config.error_flash);
+      for (const kk of Object.keys(v)) {
+        const n = v[kk];
+        if (kk === 'colour') { if (!isColour(n)) return false; out.colour = n.toUpperCase(); continue; }
+        if (!Number.isInteger(n) || n < 0 || n > 100) return false;
+        if (kk !== 'brightness' && kk !== 'speed') return false;
+        out[kk] = n;
+      }
+      ef = out;
+    } else return false;
+  }
+  if (f) for (const k of Object.keys(f)) FEAT.features[k] = f[k];
+  if (sb) FEAT.config.state_brightness = sb;
+  if (se) FEAT.config.state_effects = se;
+  if (tg) FEAT.config.temp_gradient = tg;
+  if (hw) FEAT.config.hot_warning = hw;
+  if (ef) FEAT.config.error_flash = ef;
+  // a switch going off takes its effects with it (the firmware's rule): a stored id that needed
+  // the bit falls back to solid; the seventeen wait for state_effects to come back
+  for (const e of FEAT.config.state_effects) if (e.effect >= FX_SELECTABLE && !fxAllowed(e.effect, FEAT.features)) e.effect = 0;
+  return true;
+}
+const timers = new Set();               // every pending timer, outside STATE
+const sockets = new Set();
+const SENT = [];                        // frames the device received (the harness reads these)
+let PREVIEW = null;                     // A13: the pinned state, or null
+let PRESETS = { presets: [], max: 8 };  // A14: the named effects
+const SLOT_NAMES = ['standby', 'nozzle_heating', 'bed_heating', 'bed_leveling', 'homing', 'nozzle_cleaning', 'calibrating_flow', 'xy_mesh_mode_sweep', 'filament_check_location', 'filament_cut', 'filament_pull_back_cur', 'filament_push_new', 'filament_purge_old', 'printing_ok', 'printing'];
+function stagesDefault() { return { stages: SLOT_NAMES.map((slot) => Object.assign({ slot, set: false, name: '' }, fxDefault('#FFFFFFFF'))), current: 0 }; }
+let STAGES = stagesDefault();           // B1, B2: the per-stage rows
+// the whole presets list from its JSON, or null; validated under the bits in force
+function presetsParse(v) {
+  if (!Array.isArray(v) || v.length > 8) return null;
+  const out = [], names = new Set();
+  for (const o of v) {
+    if (!o || typeof o !== 'object' || Array.isArray(o)) return null;
+    const { name, ...rest } = o;
+    if (typeof name !== 'string' || name.length < 1 || name.length > 15 || names.has(name)) return null;
+    names.add(name);
+    const fx = fxParse(rest, fxDefault('#FFFFFFFF'), FEAT.features); if (!fx) return null;
+    out.push(Object.assign({ name }, fx));
+  }
+  return out;
+}
+// the whole stage table from its JSON, or null; each object overlays the stored row
+function stagesParse(v) {
+  if (!Array.isArray(v) || v.length !== 15) return null;
+  const out = [];
+  for (let i = 0; i < 15; i++) {
+    const o = v[i]; if (!o || typeof o !== 'object' || Array.isArray(o) || typeof o.set !== 'boolean') return null;
+    const { set, name, slot, ...rest } = o;
+    if (name !== undefined && (typeof name !== 'string' || name.length > 15)) return null;
+    const fx = fxParse(rest, STAGES.stages[i], FEAT.features); if (!fx) return null;
+    delete fx.slot; delete fx.set; delete fx.name;
+    out.push(Object.assign({ slot: SLOT_NAMES[i], set, name: name !== undefined ? name : STAGES.stages[i].name }, fx));
+  }
+  return out;
+}
+const PUSHED = [];                      // frames the device sent
+const t0 = Date.now();
+
+// An app image's identity: esp_app_desc_t at 0x20 (magic 0xABCD5432, ELF sha256 at +144) and the
+// page it carries, the largest gzip member with a <title>. Mirrors tools/fw/flashimage.py.
+function appImageInfo(buf) {
+  if (buf.length < 0x20 + 176 || buf[0] !== 0xE9 || buf.readUInt32LE(0x20) !== 0xABCD5432) return null;
+  const build = buf.subarray(0x20 + 144, 0x20 + 152).toString('hex');
+  let page = null;
+  const magic = Buffer.from([0x1f, 0x8b, 0x08]);
+  for (let i = buf.indexOf(magic); i >= 0; i = buf.indexOf(magic, i + 1)) {
+    try {
+      let p = i + 10; const flg = buf[i + 3];
+      if (flg & 4) p += 2 + buf.readUInt16LE(p);
+      if (flg & 8) p = buf.indexOf(0, p) + 1;
+      if (flg & 16) p = buf.indexOf(0, p) + 1;
+      if (flg & 2) p += 2;
+      const out = zlib.inflateRawSync(buf.subarray(p), { finishFlush: zlib.constants.Z_SYNC_FLUSH });
+      if (out.includes('<title>') && (!page || out.length > page.length)) page = out;
+    } catch (_) { /* not a member */ }
+  }
+  return { build, page };
+}
+
+function loadFixture(file) {
+  const raw = fs.readFileSync(file, 'utf8');
+  const doc = JSON.parse(raw);
+  // deep copy so the fixture on disk is never the object we mutate
+  return JSON.parse(JSON.stringify(doc));
+}
+
+function log(ev) {
+  const rec = Object.assign({ t: Date.now(), rel_ms: Date.now() - t0 }, ev);
+  if (LOG) { try { fs.appendFileSync(LOG, JSON.stringify(rec) + '\n'); } catch (_) { /* logging must never kill the mock */ } }
+  if (process.env.PS_QUIET !== '1') console.log(`[mock ${String(rec.rel_ms).padStart(6)}] ${ev.ev}${ev.detail ? ' ' + ev.detail : ''}`);
+}
+
+function later(ms, fn) {
+  const h = setTimeout(() => { timers.delete(h); try { fn(); } catch (e) { log({ ev: 'timer_error', detail: String(e) }); } }, ms);
+  timers.add(h);
+  return h;
+}
+function clearTimers() { for (const h of timers) clearTimeout(h); timers.clear(); }
+
+// ---------------------------------------------------------------------------------------
+// Building what the device sends
+// ---------------------------------------------------------------------------------------
+
+function settingsPushBody() {
+  const s = STATE.settings;
+  const out = {};
+  for (const k of SETTINGS_PUSH_KEYS) if (s[k] !== undefined) out[k] = s[k];
+  if (knobFlag('PS_IMG_VERSION') && s.img_version !== undefined) out.img_version = s.img_version;
+  // list2: emit brightness and rgb_rgba; emit speed only if the knob says the device does
+  out.list2 = s.list2.map((e) => {
+    const o = { brightness: e.brightness, rgb_rgba: e.rgb_rgba.slice() };
+    if (knobFlag('PS_EMIT_SPEED') && e.speed !== undefined) o.speed = e.speed;
+    return o;
+  });
+  return out;
+}
+
+function rootBody(root) {
+  if (root === 'settings') return settingsPushBody();
+  // shallow copy of the fixture's root as the device reports it
+  return JSON.parse(JSON.stringify(STATE[root]));
+}
+
+function fullDocument() {
+  const doc = {};
+  for (const r of CONNECT_ROOTS) doc[r] = rootBody(r);
+  if (knobFlag('PS_UNKNOWN_ENUM')) { doc.sta.state = 9; doc.printer.scan = 42; }
+  return doc;
+}
+
+function sendRaw(ws, text, meta) {
+  if (!ws || ws.readyState !== 1) return;
+  const delay = knobNum('PS_SLOW', 0);
+  const doSend = () => {
+    if (ws.readyState !== 1) return;
+    ws.send(text);
+    PUSHED.push(Object.assign({ t: Date.now(), rel_ms: Date.now() - t0, text }, meta || {}));
+  };
+  if (delay > 0) later(delay, doSend); else doSend();
+}
+
+function push(ws, doc, why) {
+  sendRaw(ws, JSON.stringify(doc), { why, roots: Object.keys(doc) });
+  log({ ev: 'push', detail: `${why} roots=${Object.keys(doc).join(',')}` });
+}
+
+function pushAfterChange(originWs, changedRoots) {
+  if (knobFlag('PS_NOECHO')) { log({ ev: 'push_suppressed', detail: 'PS_NOECHO' }); return; }
+  const doc = knobFlag('PS_PUSH_CHANGED_ONLY')
+    ? Object.fromEntries(changedRoots.map((r) => [r, rootBody(r)]))
+    : fullDocument();
+  const targets = knobFlag('PS_BROADCAST') ? [...sockets] : [originWs];
+  for (const ws of targets) push(ws, doc, `change:${changedRoots.join('+')}`);
+}
+
+function response(wsOrAll, type, ok, extra) {
+  if (!RESPONSE_TYPES.has(type)) log({ ev: 'warn', detail: `response type ${type} is not in the enum` });
+  const frame = { response: Object.assign({ type, ok: ok ? 1 : 0 }, extra || {}) };
+  const targets = wsOrAll === 'all' ? [...sockets] : [wsOrAll];
+  for (const ws of targets) push(ws, frame, `response:${type}`);
+}
+
+// ---------------------------------------------------------------------------------------
+// Restart. Closes every socket; optionally refuses upgrades for a while.
+// ---------------------------------------------------------------------------------------
+
+function restart(why, afterState) {
+  log({ ev: 'restart', detail: why });
+  booting = true;
+  clearTimers();
+  later(knobNum('PS_RESTART_MS', 150), () => {
+    for (const ws of sockets) { try { ws.close(1001, 'device restarting'); } catch (_) { /* already gone */ } }
+    sockets.clear();
+    if (afterState) STATE = afterState;
+    const down = knobNum('PS_REBOOT_DOWN_MS', 0);
+    later(down, () => { booting = false; log({ ev: 'booted' }); });
+  });
+}
+
+// ---------------------------------------------------------------------------------------
+// Applying an inbound frame. Mutate first, push after.
+// Returns the list of changed roots, or null if nothing should be pushed.
+// ---------------------------------------------------------------------------------------
+
+function clampInt(v, lo, hi) { const n = Number(v); if (!Number.isInteger(n)) return null; return Math.max(lo, Math.min(hi, n)); }
+
+function applySettings(ws, m) {
+  const s = STATE.settings;
+  const mode = s.current_mode;
+
+  if ('rgb_reset' in m) {
+    if (mode === 0 && !knobFlag('PS_RGB_RESET_MUSIC_APPLIES')) {
+      log({ ev: 'rgb_reset_ignored', detail: 'Music mode; INFERENCE, see header' });
+      return null;
+    }
+    // Lighting only. Values are the UI's client-side reset expectations, marked in the
+    // protocol doc as UI values rather than proven compiled-in defaults.
+    s.list2[0].brightness = 50;
+    s.list2[1].brightness = 50;
+    s.list2[1].speed = 100;
+    s.list2[0].rgb_rgba = ['FFFFFF', 'FFFFFF', 'FF0000'];
+    s.list2[1].rgb_rgba = ['#FFFFFFFF', '#FFFFFFFF', '#FF0000FF'];
+    return ['settings'];
+  }
+  if ('reset' in m) { restart('settings.reset'); return null; }
+  if ('factory_reset' in m) {
+    response(ws, 'factory_reset', true);
+    restart('settings.factory_reset', loadFixture(FACTORY));
+    return null;
+  }
+
+  const changed = [];
+  if ('rgb_info_mode' in m && !('rgb_rgba' in m)) {
+    const v = clampInt(m.rgb_info_mode, 0, 1);
+    if (v !== null) { s.current_mode = v; changed.push('settings'); }
+  }
+  if ('rgb_info_brightness' in m) {
+    const v = clampInt(m.rgb_info_brightness, 0, 100);
+    if (v !== null) { s.list2[mode].brightness = v; changed.push('settings'); }
+  }
+  if ('rgb_info_speed' in m) {
+    const v = clampInt(m.rgb_info_speed, 0, 100);
+    if (v !== null) { s.list2[mode].speed = v; changed.push('settings'); }
+  }
+  if ('rgb_rgba' in m && 'rgb_state_index' in m) {
+    const idx = clampInt(m.rgb_state_index, 0, 2);
+    const tgt = 'rgb_info_mode' in m ? clampInt(m.rgb_info_mode, 0, 1) : mode;
+    if (idx !== null && tgt !== null && typeof m.rgb_rgba === 'string') {
+      s.list2[tgt].rgb_rgba[idx] = m.rgb_rgba;     // stored exactly as sent, no normalising
+      changed.push('settings');
+    }
+  }
+  if ('language' in m && typeof m.language === 'string') { s.language = m.language; changed.push('settings'); }
+  // The three dead controls. Handled inbound by the UI, never sent by it. If a frame
+  // carries them, record that the device saw them and store them; whether the real
+  // firmware honours them is unknown and untested.
+  for (const dead of ['on', 'follow', 'printing_ui_type']) {
+    if (dead in m) { s[dead] = m[dead]; log({ ev: 'dead_control_received', detail: dead }); changed.push('settings'); }
+  }
+  return changed.length ? [...new Set(changed)] : null;
+}
+
+function applyWifi(ws, m) {
+  const w = STATE.wifi;
+  if ('scan' in m) {
+    w.scan = 1;
+    later(knobNum('PS_SCAN_MS', 800), () => {
+      if (!sockets.has(ws)) return;
+      w.scan = 2; w.list = STATE.__mock.wifi_scan_results.slice();
+      pushAfterChange(ws, ['wifi']);
+    });
+    return ['wifi'];
+  }
+  if ('ssid' in m) {
+    w.ssid = String(m.ssid); if ('password' in m) w.password = String(m.password);
+    STATE.sta.state = 2;
+    later(knobNum('PS_CONNECT_MS', 700), () => {
+      if (!sockets.has(ws)) return;
+      if (knobFlag('PS_WIFI_FAIL')) { STATE.sta.state = 5; STATE.sta.auth_err_reason = 2; }
+      else { STATE.sta.state = 3; STATE.sta.auth_err_reason = 0; }
+      pushAfterChange(ws, ['sta']);
+    });
+    return ['wifi', 'sta'];
+  }
+  return null;
+}
+
+function applySta(ws, m) {
+  if ('hostname' in m) {
+    STATE.sta.hostname = String(m.hostname);
+    response(ws, 'set_hostname', true);       // the UI then sends settings.reset on OK
+    return null;                              // no state push; the response is the answer
+  }
+  return null;
+}
+
+function applyAp(ws, m) {
+  const a = STATE.ap;
+  if ('on' in m && !('ssid' in m)) { a.on = clampInt(m.on, 0, 1) ?? a.on; return ['ap']; }
+  if ('ssid' in m) {
+    const ipChanged = 'ip' in m && m.ip !== a.ip;
+    a.ssid = String(m.ssid); if ('password' in m) a.password = String(m.password); if ('ip' in m) a.ip = String(m.ip);
+    response(ws, ipChanged ? 'set_hotspot_ip' : 'set_ap', true);   // INFERENCE, see header
+    return null;
+  }
+  return null;
+}
+
+function applyPrinter(ws, m) {
+  const p = STATE.printer;
+  if ('scan' in m) {
+    p.scan = 1;
+    later(knobNum('PS_SCAN_MS', 800), () => {
+      if (!sockets.has(ws)) return;
+      p.scan = 2; p.list = STATE.__mock.printer_scan_results.slice();
+      pushAfterChange(ws, ['printer']);
+    });
+    return ['printer'];
+  }
+  if ('disconnect' in m) { p.state = 1; return ['printer']; }
+  if ('sn' in m || 'ip' in m) {
+    for (const k of ['name', 'sn', 'access_code', 'ip']) if (k in m) p[k] = String(m[k]);
+    p.state = 2;
+    later(knobNum('PS_CONNECT_MS', 700), () => {
+      if (!sockets.has(ws)) return;
+      const fail = knobNum('PS_PRINTER_FAIL', 0);
+      p.state = fail >= 4 && fail <= 7 ? fail : 3;
+      pushAfterChange(ws, ['printer']);
+    });
+    return ['printer'];
+  }
+  return null;
+}
+
+function applyBlock(ws, m) {
+  if (!('blockID' in m) || !('blockrgba' in m)) return null;
+  const id = clampInt(m.blockID, 0, 255); if (id === null) return null;
+  const list = STATE.block.blocklist;
+  const hit = list.find((b) => b.blockID === id);
+  if (hit) hit.blockrgba = String(m.blockrgba); else list.push({ blockID: id, blockrgba: String(m.blockrgba) });
+  return ['block'];
+}
+
+const APPLY = { settings: applySettings, wifi: applyWifi, sta: applySta, ap: applyAp, printer: applyPrinter, block: applyBlock };
+
+function handleInbound(ws, text) {
+  const rec = { t: Date.now(), rel_ms: Date.now() - t0, text };
+  let frame;
+  try { frame = JSON.parse(text); }
+  catch (e) { rec.error = 'not json'; SENT.push(rec); log({ ev: 'inbound_unparsable' }); return; }
+  rec.frame = frame;
+  const roots = Object.keys(frame);
+  rec.roots = roots;
+  if (roots.length !== 1) { rec.error = `expected one root, got ${roots.length}`; SENT.push(rec); log({ ev: 'inbound_multi_root', detail: roots.join(',') }); return; }
+  const root = roots[0]; const body = frame[root];
+  rec.device_wakeup = body && body.device_wakeup === 1;
+  if (!rec.device_wakeup) {
+    rec.warn = 'missing device_wakeup:1';
+    log({ ev: 'inbound_no_wakeup', detail: root });
+    if (knobFlag('PS_STRICT_WAKEUP')) { rec.error = 'dropped: PS_STRICT_WAKEUP'; SENT.push(rec); return; }
+  }
+  SENT.push(rec);
+  if (!OUTBOUND_ROOTS.has(root)) { log({ ev: 'inbound_unknown_root', detail: root }); return; }
+  log({ ev: 'inbound', detail: `${root} ${Object.keys(body).filter((k) => k !== 'device_wakeup').join(',')}` });
+  const changed = APPLY[root](ws, body);
+  if (changed) pushAfterChange(ws, changed);
+}
+
+// ---------------------------------------------------------------------------------------
+// HTTP
+// ---------------------------------------------------------------------------------------
+
+const PLACEHOLDER = `<!doctype html><meta charset="utf-8"><title>mock placeholder</title>
+<p>No built page at ${PAGE}. This placeholder opens the socket so wire harnesses can run.</p>
+<script>window.PS_MOCK_PLACEHOLDER=1;var g=new WebSocket('ws://'+location.host+'/ws');g.onmessage=function(e){window.PS_LAST=e.data};</script>`;
+
+function readBody(req, cap) {
+  return new Promise((resolve) => {
+    const chunks = []; let n = 0; let over = false;
+    req.on('data', (c) => { n += c.length; if (n > cap) { over = true; } else chunks.push(c); });
+    req.on('end', () => resolve({ bytes: n, over, body: Buffer.concat(chunks) }));
+  });
+}
+
+async function handleHttp(req, res) {
+  const u = new URL(req.url, `http://${req.headers.host || 'mock'}`);
+  const p = u.pathname;
+
+  // --- debug, not protocol ---
+  if (p === '/__printer_move' && req.method === 'POST') {
+    // C7, debug only: the bound printer takes a new address and stops answering. With the
+    // switch off the device is left in the error state; with it on the mock runs the same
+    // three-outcome decision the firmware's ps_rebind_decide() makes, through the wire's own
+    // printer.scan states. `sn` names the serial the search finds, defaulting to the bound one.
+    const { body } = await readBody(req, 1 << 12);
+    let j = {}; try { j = JSON.parse(body.toString('utf8') || '{}'); } catch (_) { j = {}; }
+    const newIp = typeof j.ip === 'string' ? j.ip : '';
+    const foundSn = typeof j.sn === 'string' ? j.sn : STATE.printer.sn;
+    STATE.printer.state = 4;                                    // ip err: nothing answers there
+    log({ ev: 'printer_move', detail: `${STATE.printer.ip} -> ${newIp}` });
+    const armed = knobFlag('PS_CLONE') && FEAT && FEAT.features.auto_rebind && !!STATE.printer.sn;
+    if (!armed) { for (const ws of sockets) push(ws, { printer: rootBody('printer') }, 'printer_move'); res.writeHead(200); return res.end('ok'); }
+    STATE.printer.scan = 3;                                     // ip_change_scanning
+    for (const ws of sockets) push(ws, { printer: rootBody('printer') }, 'rebind_scan');
+    later(knobNum('PS_REBIND_MS', 250), () => {
+      // the decision, as ps_rebind_decide() makes it
+      const octets = (s) => { const m = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/.exec(s || ''); return m && m.slice(1).every((n) => Number(n) <= 255) ? m.slice(1).join('.') : null; };
+      const found = octets(newIp);
+      let outcome;
+      if (foundSn !== STATE.printer.sn || !found) outcome = 4;  // sn not matched, or nothing bindable
+      else if (found === STATE.printer.ip) outcome = 5;         // ip not changed
+      else outcome = 6;                                          // new ip applied
+      STATE.printer.scan = outcome;
+      if (outcome === 6) { STATE.printer.ip = found; STATE.printer.state = 3; }
+      log({ ev: 'rebind', detail: `scan ${outcome}` });
+      for (const ws of sockets) push(ws, { printer: rootBody('printer') }, 'rebind');
+    });
+    res.writeHead(200); return res.end('ok');
+  }
+  if (p === '/__sent') { res.writeHead(200, { 'Content-Type': 'application/json' }); return res.end(JSON.stringify(SENT)); }
+  if (p === '/__pushed') { res.writeHead(200, { 'Content-Type': 'application/json' }); return res.end(JSON.stringify(PUSHED)); }
+  if (p === '/__state') { res.writeHead(200, { 'Content-Type': 'application/json' }); return res.end(JSON.stringify(STATE)); }
+  if (p === '/__reset' && req.method === 'POST') { await readBody(req, 1 << 16); STATE = loadFixture(FIXTURE); SENT.length = 0; PUSHED.length = 0; LANDED = null; FEAT = null; PREVIEW = null; PRESETS = { presets: [], max: 8 }; STAGES = stagesDefault(); clearTimers(); log({ ev: 'debug_reset' }); res.writeHead(200); return res.end('ok'); }
+  if (p === '/__knob' && req.method === 'POST') {
+    const { body } = await readBody(req, 1 << 16);
+    try { const k = JSON.parse(body.toString('utf8')); KNOBS[k.name] = k.value; log({ ev: 'knob', detail: `${k.name}=${k.value}` }); res.writeHead(200); return res.end('ok'); }
+    catch (_) { res.writeHead(400); return res.end('bad knob'); }
+  }
+
+  // --- protocol ---
+  if (p === '/') {
+    if (req.method === 'HEAD') { res.writeHead(405); return res.end(); }
+    if (req.method !== 'GET') { res.writeHead(405); return res.end(); }
+    if (LANDED && Date.now() < LANDED.until) { res.writeHead(503); return res.end('restarting'); }
+    const hdr = { 'Content-Type': 'text/html; charset=utf-8' };
+    if (LANDED) { hdr['X-Build'] = LANDED.build; hdr['Content-Length'] = LANDED.page.length; res.writeHead(200, hdr); return res.end(LANDED.page); }
+    let page = PLACEHOLDER;
+    try { page = fs.readFileSync(PAGE, 'utf8'); } catch (_) { /* placeholder */ }
+    if (knob('PS_BUILD', '')) hdr['X-Build'] = String(knob('PS_BUILD', ''));
+    hdr['Content-Length'] = Buffer.byteLength(page);
+    res.writeHead(200, hdr);
+    return res.end(page);
+  }
+  if (p === '/api/info' && knobFlag('PS_CLONE')) {
+    // C2: identification, always answered by a clone; no network name, address, serial or credential
+    if (req.method !== 'GET') { res.writeHead(405); return res.end(); }
+    if (!FEAT) FEAT = featDefaults();
+    let bits = 0; FEATURE_NAMES.forEach((k, i) => { if (FEAT.features[k]) bits |= (1 << (i + 1)); });
+    const info = { product: 'PandaStatusOS', build: LANDED ? LANDED.build : String(knob('PS_BUILD', 'mock')), version: (STATE.settings && STATE.settings.fw_version) || 'V1.0.0', idf: 'v5.3.1',
+                   uptime_s: Math.floor((Date.now() - t0) / 1000), heap_free: 180000, flash_size: 4194304, leds: 16, mode: (STATE.settings && STATE.settings.current_mode) || 0, features: bits, config_layout: 'PS04' };
+    res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }); return res.end(JSON.stringify(info));
+  }
+  if (p === '/api/state' && knobFlag('PS_CLONE')) {
+    // C2: the six-root document the socket pushes on connect, as JSON over HTTP
+    if (req.method !== 'GET') { res.writeHead(405); return res.end(); }
+    const doc = {}; for (const r of ['wifi', 'sta', 'ap', 'printer', 'settings', 'block']) doc[r] = rootBody(r);
+    res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }); return res.end(JSON.stringify(doc));
+  }
+  if (p === '/api/restart' && knobFlag('PS_CLONE') && FEAT && FEAT.features.restart) {
+    // C4: a plain restart, settings kept; the answer leaves first, the sockets close after the restart delay
+    if (req.method !== 'POST') { res.writeHead(405); return res.end(); }
+    const { body } = await readBody(req, 1 << 10);
+    let j = {}; if (body.length) { try { j = JSON.parse(body.toString('utf8')); } catch (_) { j = {}; } }
+    const rec = { t: Date.now(), rel_ms: Date.now() - t0, api: '/api/restart', text: JSON.stringify({ api: '/api/restart', body: j }), frame: j, roots: ['api'] };
+    SENT.push(rec); log({ ev: 'api_restart' });
+    res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }); res.end('{"restarting":true}');
+    restart('api/restart', null);
+    return;
+  }
+  if (p === '/api/config' && knobFlag('PS_CLONE') && FEAT && FEAT.features.config_io) {
+    // C3: the settings as one document; the export leaves the three passwords out, the import is
+    // taken whole or refused whole and then pushed to every socket client
+    const toH2D = (s) => { const h = String(s || '').replace('#', '').toUpperCase(); return '#' + h.slice(0, 6) + (h.length >= 8 ? h.slice(6, 8) : 'FF'); };
+    const exportDoc = () => {
+      let bits = 0; FEATURE_NAMES.forEach((k, i) => { if (FEAT.features[k]) bits |= (1 << (i + 1)); });
+      const modes = (STATE.settings.list2 || []).map((m, i) => ({ brightness: m.brightness, speed: m.speed === undefined ? 100 : m.speed, colours: (m.rgb_rgba || []).map(toH2D) }));
+      return { layout: 'PS04', features: bits, wifi: { ssid: STATE.wifi.ssid }, ap: { ssid: STATE.ap.ssid, ip: STATE.ap.ip, on: STATE.ap.on }, hostname: STATE.sta.hostname,
+               printer: { name: STATE.printer.name, sn: STATE.printer.sn, ip: STATE.printer.ip }, language: STATE.settings.language, mode: STATE.settings.current_mode, modes,
+               blocks: (STATE.block.blocklist || []).map((b) => ({ id: b.blockID, colour: toH2D(b.blockrgba) })),
+               state_brightness: FEAT.config.state_brightness, state_effects: FEAT.config.state_effects, temp_gradient: FEAT.config.temp_gradient, hot_warning: FEAT.config.hot_warning, error_flash: FEAT.config.error_flash,
+               presets: PRESETS.presets, stages: STAGES.stages };
+    };
+    if (req.method === 'GET') { res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store', 'Content-Disposition': 'attachment; filename="pandastatusos-settings.json"' }); return res.end(JSON.stringify(exportDoc())); }
+    if (req.method !== 'POST') { res.writeHead(405); return res.end(); }
+    const { body } = await readBody(req, 1 << 14);
+    const rec = { t: Date.now(), rel_ms: Date.now() - t0, api: '/api/config', text: '' };
+    let j;
+    try { j = JSON.parse(body.toString('utf8')); } catch (_) { rec.error = 'not json'; SENT.push(rec); log({ ev: 'api_refused', detail: 'not json' }); res.writeHead(400); return res.end('refused'); }
+    rec.text = JSON.stringify({ api: '/api/config', body: j }); rec.frame = j; rec.roots = ['api'];
+    const refuse = () => { rec.error = 'refused'; SENT.push(rec); log({ ev: 'api_refused', detail: 'config' }); res.writeHead(400); res.end('refused'); };
+    const TOP = ['layout', 'features', 'wifi', 'ap', 'hostname', 'printer', 'language', 'mode', 'modes', 'blocks', 'state_brightness', 'state_effects', 'temp_gradient', 'hot_warning', 'error_flash', 'presets', 'stages'];
+    const isObj = (o) => o && typeof o === 'object' && !Array.isArray(o);
+    const str = (v, max) => v === undefined || (typeof v === 'string' && v.length <= max);
+    const ipOk = (v) => v === undefined || v === '' || (typeof v === 'string' && /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/.test(v) && v.split('.').every((n) => Number(n) <= 255));
+    if (!isObj(j) || !Object.keys(j).every((k) => TOP.includes(k))) return refuse();
+    if (j.features !== undefined && (!Number.isInteger(j.features) || j.features < 0 || j.features > 0x1FFFE)) return refuse();
+    if (j.wifi !== undefined && (!isObj(j.wifi) || !Object.keys(j.wifi).every((k) => ['ssid', 'password'].includes(k)) || !str(j.wifi.ssid, 32) || !str(j.wifi.password, 64))) return refuse();
+    if (j.ap !== undefined && (!isObj(j.ap) || !Object.keys(j.ap).every((k) => ['ssid', 'password', 'ip', 'on'].includes(k)) || !str(j.ap.ssid, 32) || !str(j.ap.password, 64) || !ipOk(j.ap.ip) || (j.ap.on !== undefined && j.ap.on !== 0 && j.ap.on !== 1))) return refuse();
+    if (!str(j.hostname, 32) || !str(j.language, 7)) return refuse();
+    if (j.printer !== undefined && (!isObj(j.printer) || !Object.keys(j.printer).every((k) => ['name', 'sn', 'ip', 'access_code'].includes(k)) || !str(j.printer.name, 32) || !str(j.printer.sn, 32) || !str(j.printer.access_code, 16) || !ipOk(j.printer.ip))) return refuse();
+    if (j.mode !== undefined && j.mode !== 0 && j.mode !== 1) return refuse();
+    if (j.modes !== undefined && (!Array.isArray(j.modes) || j.modes.length !== 2 || !j.modes.every((m) => isObj(m) && Object.keys(m).every((k) => ['brightness', 'speed', 'colours'].includes(k))
+        && (m.brightness === undefined || (Number.isInteger(m.brightness) && m.brightness >= 0 && m.brightness <= 100)) && (m.speed === undefined || (Number.isInteger(m.speed) && m.speed >= 0 && m.speed <= 100))
+        && (m.colours === undefined || (Array.isArray(m.colours) && m.colours.length === 3 && m.colours.every((c) => /^#?[0-9A-Fa-f]{6}([0-9A-Fa-f]{2})?$/.test(c))))))) return refuse();
+    if (j.blocks !== undefined && (!Array.isArray(j.blocks) || j.blocks.length > 15 || !j.blocks.every((b) => isObj(b) && Number.isInteger(b.id) && b.id >= 0 && b.id <= 255 && /^#?[0-9A-Fa-f]{6}([0-9A-Fa-f]{2})?$/.test(b.colour)))) return refuse();
+    // the feature settings and the switches go through the features route's own validation, on a copy
+    const saved = JSON.parse(JSON.stringify(FEAT));
+    const feats = {}; if (j.features !== undefined) FEATURE_NAMES.forEach((k, i) => { feats[k] = !!(j.features & (1 << (i + 1))); });
+    const cfg = {}; for (const k of ['state_brightness', 'state_effects', 'temp_gradient', 'hot_warning', 'error_flash']) if (j[k] !== undefined) cfg[k] = j[k];
+    const sub = {}; if (Object.keys(feats).length) sub.features = feats; if (Object.keys(cfg).length) sub.config = cfg;
+    if (Object.keys(sub).length && !featApply(sub)) { FEAT = saved; return refuse(); }
+    let presets = null, stages = null;
+    if (j.presets !== undefined) { presets = presetsParse(j.presets); if (!presets) { FEAT = saved; return refuse(); } }
+    if (j.stages !== undefined) { stages = stagesParse(j.stages); if (!stages) { FEAT = saved; return refuse(); } }
+    if (presets) PRESETS = { presets, max: 8 };
+    if (stages) STAGES.stages = stages;
+    if (j.wifi) { if (j.wifi.ssid !== undefined) STATE.wifi.ssid = j.wifi.ssid; if (j.wifi.password !== undefined) STATE.wifi.password = j.wifi.password; }
+    if (j.ap) { for (const k of ['ssid', 'password', 'ip', 'on']) if (j.ap[k] !== undefined) STATE.ap[k] = j.ap[k]; }
+    if (j.hostname !== undefined) STATE.sta.hostname = j.hostname;
+    if (j.printer) { for (const k of ['name', 'sn', 'ip', 'access_code']) if (j.printer[k] !== undefined) STATE.printer[k] = j.printer[k]; }
+    if (j.language !== undefined) STATE.settings.language = j.language;
+    if (j.mode !== undefined) STATE.settings.current_mode = j.mode;
+    if (j.modes) j.modes.forEach((m, i) => { const cur = STATE.settings.list2[i]; if (m.brightness !== undefined) cur.brightness = m.brightness; if (m.speed !== undefined && i === 1) cur.speed = m.speed;
+      if (m.colours) cur.rgb_rgba = m.colours.map((c) => i === 0 ? toH2D(c).slice(1, 7) : toH2D(c)); });
+    if (j.blocks) STATE.block.blocklist = j.blocks.map((b) => ({ blockID: b.id, blockrgba: toH2D(b.colour) }));
+    SENT.push(rec);
+    log({ ev: 'api_config', detail: 'imported' });
+    for (const ws of sockets) push(ws, fullDocument(), 'import');
+    res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }); return res.end(JSON.stringify(exportDoc()));
+  }
+  if (p === '/api/features' && knobFlag('PS_CLONE')) {
+    if (!FEAT) FEAT = featDefaults();
+    const doc = () => JSON.stringify(Object.assign({ build: LANDED ? LANDED.build : String(knob('PS_BUILD', 'mock')) }, FEAT));
+    if (req.method === 'GET') { res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }); return res.end(doc()); }
+    if (req.method !== 'POST') { res.writeHead(405); return res.end(); }
+    const { body } = await readBody(req, 1 << 12);
+    const rec = { t: Date.now(), rel_ms: Date.now() - t0, api: '/api/features', text: '' };
+    let j;
+    try { j = JSON.parse(body.toString('utf8')); } catch (_) { rec.error = 'not json'; SENT.push(rec); log({ ev: 'api_refused', detail: 'not json' }); res.writeHead(400); return res.end('refused'); }
+    rec.text = JSON.stringify({ api: '/api/features', body: j }); rec.frame = j; rec.roots = ['api'];
+    if (!featApply(j)) { rec.error = 'refused'; SENT.push(rec); log({ ev: 'api_refused', detail: rec.text }); res.writeHead(400); return res.end('refused'); }
+    SENT.push(rec);
+    log({ ev: 'api_features', detail: rec.text });
+    res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }); return res.end(doc());
+  }
+  if (p === '/api/preview' && knobFlag('PS_CLONE') && FEAT && FEAT.features.preview) {
+    // A13: a pinned printer state for a number of seconds; with the switch off the route does not
+    // exist (the 302 below, like any unknown path). Nothing is stored.
+    const doc = () => { const active = !!(PREVIEW && Date.now() < PREVIEW.until); return JSON.stringify({ active, state: PREVIEW ? PREVIEW.state : 0, percent: PREVIEW ? PREVIEW.percent : -1, temps: PREVIEW ? PREVIEW.temps : [-1000, -1000, -1000], remaining: active ? Math.ceil((PREVIEW.until - Date.now()) / 1000) : 0, stage: PREVIEW ? PREVIEW.stage : -1 }); };
+    if (req.method === 'GET') { res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }); return res.end(doc()); }
+    if (req.method !== 'POST') { res.writeHead(405); return res.end(); }
+    const { body } = await readBody(req, 512);
+    const rec = { t: Date.now(), rel_ms: Date.now() - t0, api: '/api/preview', text: '' };
+    let j;
+    try { j = JSON.parse(body.toString('utf8')); } catch (_) { rec.error = 'not json'; SENT.push(rec); log({ ev: 'api_refused', detail: 'not json' }); res.writeHead(400); return res.end('refused'); }
+    rec.text = JSON.stringify({ api: '/api/preview', body: j }); rec.frame = j; rec.roots = ['api'];
+    const refuse = () => { rec.error = 'refused'; SENT.push(rec); log({ ev: 'api_refused', detail: rec.text }); res.writeHead(400); res.end('refused'); };
+    if (!j || typeof j !== 'object' || Array.isArray(j)) return refuse();
+    let state = -1, percent = -1, seconds = 30, temps = [-1000, -1000, -1000], stage = -1;
+    for (const k of Object.keys(j)) {
+      const v = j[k];
+      if (k === 'temps') { if (!Array.isArray(v) || v.length !== 3 || !v.every((n) => Number.isInteger(n) && n >= 0 && n <= 500)) return refuse(); temps = v.slice(); continue; }
+      if (!Number.isInteger(v) || v < 0) return refuse();
+      if (k === 'state') { if (v > 2) return refuse(); state = v; }
+      else if (k === 'percent') { if (v > 100) return refuse(); percent = v; }
+      else if (k === 'seconds') { if (v > 600) return refuse(); seconds = v; }
+      else if (k === 'stage') { if (v > 14) return refuse(); stage = v; }   // B3
+      else return refuse();
+    }
+    if (seconds > 0 && state < 0) return refuse();
+    PREVIEW = seconds === 0 ? null : { state, percent, temps, stage, until: Date.now() + seconds * 1000 };
+    SENT.push(rec);
+    log({ ev: 'api_preview', detail: rec.text });
+    res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }); return res.end(doc());
+  }
+  if (p === '/api/presets' && knobFlag('PS_CLONE') && FEAT && FEAT.features.presets) {
+    // A14: the named effects. The whole list at once, or one preset into one state; with the
+    // switch off the route does not exist (the 302 below).
+    const doc = () => JSON.stringify(PRESETS);
+    if (req.method === 'GET') { res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }); return res.end(doc()); }
+    if (req.method !== 'POST') { res.writeHead(405); return res.end(); }
+    const { body } = await readBody(req, 1 << 13);
+    const rec = { t: Date.now(), rel_ms: Date.now() - t0, api: '/api/presets', text: '' };
+    let j;
+    try { j = JSON.parse(body.toString('utf8')); } catch (_) { rec.error = 'not json'; SENT.push(rec); log({ ev: 'api_refused', detail: 'not json' }); res.writeHead(400); return res.end('refused'); }
+    rec.text = JSON.stringify({ api: '/api/presets', body: j }); rec.frame = j; rec.roots = ['api'];
+    const refuse = () => { rec.error = 'refused'; SENT.push(rec); log({ ev: 'api_refused', detail: rec.text }); res.writeHead(400); res.end('refused'); };
+    if (!j || typeof j !== 'object' || Array.isArray(j)) return refuse();
+    const hasList = Object.prototype.hasOwnProperty.call(j, 'presets'), hasApply = Object.prototype.hasOwnProperty.call(j, 'apply');
+    if (hasList === hasApply) return refuse();
+    if (hasList) {
+      const out = presetsParse(j.presets); if (!out) return refuse();
+      PRESETS = { presets: out, max: 8 };
+    } else {
+      const a = j.apply;
+      if (!a || typeof a !== 'object' || typeof a.name !== 'string' || !Number.isInteger(a.state) || a.state < 0 || a.state > 2) return refuse();
+      const found = PRESETS.presets.find((q) => q.name === a.name);
+      if (!found || !fxAllowed(found.effect, FEAT.features)) return refuse();
+      const { name, ...fx } = found; FEAT.config.state_effects[a.state] = JSON.parse(JSON.stringify(fx));
+    }
+    SENT.push(rec);
+    log({ ev: 'api_presets', detail: rec.text });
+    res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }); return res.end(doc());
+  }
+  if (p === '/api/stages' && knobFlag('PS_CLONE') && FEAT && FEAT.features.stage_effects) {
+    // B1, B2: a named effect per stage (a copy with its name), cleared back to inheriting, or the
+    // whole table; with the switch off the route does not exist (the 302 below)
+    const doc = () => JSON.stringify(STAGES);
+    if (req.method === 'GET') { res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }); return res.end(doc()); }
+    if (req.method !== 'POST') { res.writeHead(405); return res.end(); }
+    const { body } = await readBody(req, 1 << 14);
+    const rec = { t: Date.now(), rel_ms: Date.now() - t0, api: '/api/stages', text: '' };
+    let j;
+    try { j = JSON.parse(body.toString('utf8')); } catch (_) { rec.error = 'not json'; SENT.push(rec); log({ ev: 'api_refused', detail: 'not json' }); res.writeHead(400); return res.end('refused'); }
+    rec.text = JSON.stringify({ api: '/api/stages', body: j }); rec.frame = j; rec.roots = ['api'];
+    const refuse = () => { rec.error = 'refused'; SENT.push(rec); log({ ev: 'api_refused', detail: rec.text }); res.writeHead(400); res.end('refused'); };
+    if (!j || typeof j !== 'object' || Array.isArray(j)) return refuse();
+    const keys = ['assign', 'clear', 'stages'].filter((k) => Object.prototype.hasOwnProperty.call(j, k));
+    if (keys.length !== 1) return refuse();
+    const stageOk = (v) => Number.isInteger(v) && v >= 0 && v < 15;
+    if (keys[0] === 'assign') {
+      const a = j.assign; if (!a || typeof a !== 'object' || !stageOk(a.stage) || typeof a.name !== 'string') return refuse();
+      const found = PRESETS.presets.find((q) => q.name === a.name); if (!found || !fxAllowed(found.effect, FEAT.features)) return refuse();
+      const { name, ...fx } = found;
+      STAGES.stages[a.stage] = Object.assign({ slot: SLOT_NAMES[a.stage], set: true, name }, JSON.parse(JSON.stringify(fx)));
+    } else if (keys[0] === 'clear') {
+      const c = j.clear; if (!c || typeof c !== 'object' || !stageOk(c.stage)) return refuse();
+      STAGES.stages[c.stage].set = false; STAGES.stages[c.stage].name = '';
+    } else {
+      const out = stagesParse(j.stages); if (!out) return refuse();
+      STAGES.stages = out;
+    }
+    SENT.push(rec);
+    log({ ev: 'api_stages', detail: rec.text });
+    res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }); return res.end(doc());
+  }
+  if (p === '/backup' && req.method === 'GET' && knob('PS_BACKUP', '')) {
+    // the clone's GET /backup: the whole flash, X-Flash-Size before the body, chunked
+    let img;
+    try { img = fs.readFileSync(String(knob('PS_BACKUP', ''))); } catch (_) { res.writeHead(500); return res.end('no image file'); }
+    const cut = knobNum('PS_BACKUP_TRUNCATE', 0);          // a short read: fewer bytes than the header promises
+    const body = cut > 0 ? img.subarray(0, cut) : img;
+    log({ ev: 'backup', detail: `${body.length}B of ${img.length}B` });
+    res.writeHead(200, { 'Content-Type': 'application/octet-stream', 'X-Flash-Size': String(img.length), 'X-Build': String(LANDED ? LANDED.build : knob('PS_BUILD', 'mock')) });
+    for (let i = 0; i < body.length; i += 4096) res.write(body.subarray(i, i + 4096));
+    return res.end();
+  }
+  if (p === '/ota') {
+    if (req.method !== 'POST') { res.writeHead(405); return res.end(); }
+    const type = String(req.headers['ota-type'] || '');
+    const isGif = GIF_SLOTS.includes(type);
+    const cap = type === 'ota_fw' ? OTA_CAPS.ota_fw : type === 'ota_img' ? OTA_CAPS.ota_img : isGif ? OTA_CAPS.gif : null;
+    if (cap === null) { await readBody(req, 1 << 20); log({ ev: 'ota_unknown_type', detail: type }); res.writeHead(400); return res.end('unknown OTA-Type'); }
+    const { bytes, over, body } = await readBody(req, cap);
+    const rtype = type === 'ota_fw' ? 'ota_fw' : 'ota_img';
+    if (over || knobFlag('PS_OTA_REFUSE')) {
+      log({ ev: 'ota_refused', detail: `${type} ${bytes}B${over ? ' over cap' : ''}` });
+      response('all', rtype, false, isGif ? { gif: type } : undefined);
+      res.writeHead(over ? 413 : 500); return res.end('refused');
+    }
+    log({ ev: 'ota_accepted', detail: `${type} ${bytes}B` });
+    if (type === 'ota_fw' && knobFlag('PS_OTA_LANDS')) {
+      const info = appImageInfo(body);
+      if (info && info.page) { LANDED = { build: info.build, page: info.page, until: Date.now() + knobNum('PS_OTA_RESTART_MS', 2000) }; log({ ev: 'ota_landed', detail: `build ${info.build}` }); }
+      else log({ ev: 'ota_not_an_image', detail: 'PS_OTA_LANDS set but the upload has no esp_app_desc or page; nothing changes' });
+    }
+    if (isGif) { STATE.__mock.gif_uploads[type] = bytes; (STATE.__mock.gif_sha256 = STATE.__mock.gif_sha256 || {})[type] = crypto.createHash('sha256').update(body).digest('hex'); }
+    if (type === 'ota_img') STATE.settings.img_version = STATE.__mock.next_img_version;
+    response('all', rtype, true, isGif ? { gif: type } : undefined);
+    res.writeHead(200); return res.end('ok');
+  }
+  // everything else: captive portal redirect
+  res.writeHead(302, { Location: `http://${req.headers.host || 'mock'}/` });
+  return res.end('captive portal redirect');
+}
+
+// ---------------------------------------------------------------------------------------
+// Sockets
+// ---------------------------------------------------------------------------------------
+
+function onConnection(ws) {
+  if (booting) { log({ ev: 'upgrade_refused', detail: 'booting' }); try { ws.close(1013, 'booting'); } catch (_) {} return; }
+  sockets.add(ws);
+  const deaf = knobNum('PS_DEAF', 0);
+  const delay = Math.max(deaf, knobNum('PS_DELAY', 0));
+  const connectedAt = Date.now();
+  log({ ev: 'connect', detail: `clients=${sockets.size}${deaf ? ` deaf=${deaf}` : ''}${delay ? ` delay=${delay}` : ''}` });
+
+  if (!knobFlag('PS_NO_PUSH')) {
+    later(delay, () => {
+      if (!sockets.has(ws)) return;
+      push(ws, fullDocument(), 'connect');
+      if (knobFlag('PS_MALFORMED')) later(50, () => sendRaw(ws, '{"settings":{"current_mode":', { why: 'malformed' }));
+      if (knobFlag('PS_THEME_ON_CONNECT')) later(60, () => push(ws, { ws_theme: JSON.parse(JSON.stringify(STATE.__mock.ws_theme)) }, 'theme'));
+    });
+  } else log({ ev: 'push_suppressed', detail: 'PS_NO_PUSH' });
+
+  const drop = knobNum('PS_DROP_AFTER', 0);
+  if (drop > 0) later(drop, () => { if (sockets.has(ws)) { log({ ev: 'drop', detail: 'PS_DROP_AFTER' }); ws.terminate(); } });
+
+  const off = knobNum('PS_PRINTER_OFFLINE_AFTER', 0);
+  if (off > 0) later(off, () => { if (sockets.has(ws)) { STATE.printer.state = 2; pushAfterChange(ws, ['printer']); } });
+
+  ws.on('message', (data) => {
+    if (Date.now() - connectedAt < deaf) { log({ ev: 'inbound_dropped', detail: 'deaf' }); return; }
+    handleInbound(ws, data.toString('utf8'));
+  });
+  ws.on('close', () => { sockets.delete(ws); log({ ev: 'close', detail: `clients=${sockets.size}` }); });
+  ws.on('error', () => { sockets.delete(ws); });
+}
+
+// ---------------------------------------------------------------------------------------
+// Main
+// ---------------------------------------------------------------------------------------
+
+function main() {
+  STATE = loadFixture(FIXTURE);
+  if (!STATE.__mock) throw new Error('fixture has no __mock section');
+  const server = http.createServer((req, res) => { handleHttp(req, res).catch((e) => { log({ ev: 'http_error', detail: String(e) }); try { res.writeHead(500); res.end(); } catch (_) {} }); });
+  if (!flag('PS_NO_WS')) {
+    const wss = new WebSocketServer({ server, path: '/ws' });
+    wss.on('connection', onConnection);
+  } else log({ ev: 'no_ws', detail: 'PS_NO_WS: upgrades will be refused' });
+  server.listen(PORT, '127.0.0.1', () => {
+    log({ ev: 'listening', detail: `http://127.0.0.1:${PORT}  fixture=${path.relative(ROOT, FIXTURE)}  page=${fs.existsSync(PAGE) ? path.relative(ROOT, PAGE) : 'placeholder'}` });
+  });
+  const stop = () => { clearTimers(); for (const ws of sockets) { try { ws.terminate(); } catch (_) {} } server.close(() => process.exit(0)); setTimeout(() => process.exit(0), 300); };
+  process.on('SIGINT', stop); process.on('SIGTERM', stop);
+}
+
+main();
