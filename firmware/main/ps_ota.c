@@ -46,6 +46,19 @@ static const esp_partition_t *images_partition(void)
     return esp_partition_find_first((esp_partition_type_t)0x40, (esp_partition_subtype_t)0x00, "images");
 }
 
+/* How many bytes one slot may take on THIS unit, or zero when the flash carries no images
+ * partition at all. The stock table read out of the unit (firmware/partitions.csv) has none:
+ * nvs, otadata, two app slots and a coredump fill the 4 MB exactly. So on this hardware the
+ * honest answer is zero, and the page that asks is expected to say so rather than offer a
+ * file chooser that can only ever be refused. */
+size_t ps_ota_slot_cap(void)
+{
+    const esp_partition_t *img = images_partition();
+    if (!img) return 0;
+    size_t region = (img->size / PS_GIF_SLOTS) & ~(size_t)0xFFF;
+    return region < PS_CAP_GIF ? region : PS_CAP_GIF;
+}
+
 static int slot_index(const char *type)
 {
     for (int i = 0; i < PS_GIF_SLOTS; i++) if (!strcmp(type, ps_gif_slot_names[i])) return i;

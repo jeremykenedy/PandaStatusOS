@@ -707,13 +707,9 @@ function render_chrome() {
 function render_status() {
   /* The vent kept the print it was watching under its own policy root. This device keeps
      the same facts under the printer root, because that is what it emits. */
-  var printer = g_state.printer || {};
-  var st = printer.status || printer;
-
   render_lighting_now();
   /* The Printer card is 01-print.js's: every reading in it arrives on /api/print. */
   if (window.render_print && window.g_last_print) render_print(window.g_last_print);
-  render_anim(st);
 }
 
 /* 1.1 Lighting, as it is right now. Read only: the page that changes any of it is
@@ -807,109 +803,17 @@ function kv_li_icon(icon, label, sub, valueNode) {
 
 function vnode(cond, text) { return cond ? valueSpan(text) : unknownSpan(); }
 
-function render_kv_printer(st, printer, vp) {
-  var host = byId('ps-kv-printer');
-  if (!host) return;
-  host.innerHTML = '';
-  var d = g_state;
+/* Three renderers stood here and are gone: render_kv_printer, render_trays and
+   render_calibrate.
 
-  /* link */
-  var ps = printer.state;
-  host.appendChild(kv_li_icon('network', tr('status_link', 'Link'), null,
-    vnode(!!link_state_name(ps), link_state_name(ps) || '')));
+   render_kv_printer was the vent's Printer list, reading a vent_policy root this device
+   does not have; it had not run since 01-print.js took that card over, and the three rows
+   that came off that root read blank whenever it did. render_trays drew AMS spool chips
+   from a tray model this device never builds, and render_calibrate drove a flap it does not
+   have. Their two cards came off the dashboard in the same pass.
 
-  /* printer state */
-  var dsv = vp.device_state;
-  host.appendChild(kv_li_icon('printer-enclosed', tr('ui_state', 'State'), null,
-    vnode(!!device_state_name(dsv), device_state_name(dsv) || '')));
-
-  /* nozzle temp */
-  host.appendChild(kv_li_icon('nozzle-temp', tr('status_nozzle', 'Nozzle'),
-    nozzle_spec(st),
-    vnode(isNum(st.nozzle_temp), fmtTemp(st.nozzle_temp))));
-
-  /* bed temp */
-  host.appendChild(kv_li_icon('bed-hot', tr('status_bed', 'Bed'), null,
-    vnode(isNum(vp.bed_temp), fmtTemp(vp.bed_temp))));
-
-  /* chamber temp */
-  host.appendChild(kv_li_icon('temp', tr('status_chamber', 'Chamber'), null,
-    vnode(isNum(st.chamber_temp), fmtTemp(st.chamber_temp))));
-
-  /* material now */
-  host.appendChild(kv_li_icon('spool-end', tr('status_material', 'Material'), null,
-    vnode(!!(vp.material && vp.material.length), vp.material)));
-
-  /* fans: all-null -> whole row unknown */
-  var fanVals = [st.fan_part, st.fan_aux, st.fan_chamber];
-  var anyFan = fanVals.some(function (f) { return isNum(f); });
-  var fanNode;
-  if (anyFan) {
-    fanNode = valueSpan(fanVals.map(function (f) { return isNum(f) ? fmtPct(f) : DASH; }).join(' · '));
-  } else { fanNode = unknownSpan(); }
-  host.appendChild(kv_li_icon('fan', tr('status_fans', 'Fans'), null, fanNode));
-
-  /* chamber light */
-  host.appendChild(kv_li_icon('lighting', tr('status_chamber_light', 'Chamber light'), null,
-    vnode(isNum(st.printer_light), st.printer_light ? tr('ui_on', 'On') : tr('ui_off', "off"))));
-
-  /* filament present */
-  host.appendChild(kv_li_icon('spool-end', tr('ui_filament', 'Filament'), null,
-    vnode(isNum(st.filament_in), st.filament_in ? tr('ui_yes', 'Yes') : tr('ui_no', 'No'))));
-
-  /* nozzle spec (dedicated row) */
-  host.appendChild(kv_li_icon('nozzle', tr('ui_kv_nozzle_fitted', 'Nozzle fitted'), null,
-    vnode(!!nozzle_spec(st), nozzle_spec(st))));
-
-  /* door */
-  host.appendChild(kv_li_icon('printer-open', tr('status_door', 'Door'), null,
-    vnode(isNum(st.door_open), st.door_open ? tr('door_open', 'Open') : tr('door_shut', 'Shut'))));
-
-  /* fault code */
-  host.appendChild(kv_li_icon('warning', tr('status_fault_code', 'Fault code'), null,
-    vnode(!!(st.hms_code && st.hms_code.length), st.hms_code)));
-
-  /* fw update */
-  host.appendChild(kv_li_icon('refresh', tr('status_fw_update', "Printer firmware"), null,
-    vnode(isNum(st.fw_update), st.fw_update ? tr('fw_ready', 'Ready') : tr('fw_current', 'Up to date'))));
-
-  /* AMS humidity + temp */
-  var amsParts = [];
-  if (isNum(st.ams_humidity_pct)) amsParts.push(fmtPct(st.ams_humidity_pct));
-  else if (isNum(st.ams_humidity)) amsParts.push(tr('ams_level', 'level') + ' ' + st.ams_humidity);
-  if (isNum(st.ams_temp)) amsParts.push(fmtTemp(st.ams_temp));
-  host.appendChild(kv_li_icon('humidity', tr('ui_kv_ams_humidity', 'AMS humidity'), null,
-    amsParts.length ? valueSpan(amsParts.join(' · ')) : unknownSpan()));
-
-  /* printer wifi */
-  host.appendChild(kv_li_icon('network', tr('ui_kv_printer_signal', 'Printer signal'), null,
-    vnode(!!(st.printer_rssi && st.printer_rssi.length), st.printer_rssi)));
-
-  /* vent wifi: ssid + ip + rssi */
-  var wifi = d.wifi || {}, sta = d.sta || {};
-  var ventParts = [];
-  if (wifi.ssid && wifi.ssid.length) ventParts.push(wifi.ssid);
-  if (sta.ip && sta.ip.length) ventParts.push(sta.ip);
-  if (isNum(st.wifi_rssi)) ventParts.push(st.wifi_rssi + ' dBm');
-  host.appendChild(kv_li_icon('network', tr('ui_kv_vent_network', 'Vent network'), null,
-    ventParts.length ? valueSpan(ventParts.join(' · ')) : unknownSpan()));
-
-  /* uptime */
-  host.appendChild(kv_li_icon('clock', tr('status_uptime', 'Uptime'), null,
-    vnode(isNum(st.uptime_s), isNum(st.uptime_s) ? fmtUptime(st.uptime_s) : '')));
-
-  /* memory */
-  host.appendChild(kv_li_icon('memory', tr('ui_kv_free_memory', 'Free memory'), null,
-    vnode(isNum(st.heap_free), isNum(st.heap_free) ? fmtKB(st.heap_free) : '')));
-}
-
-/* nozzle spec: diameter + kind code. The 4-char kind -> material + flow
-   class decode table is NOT given by the spec (recorded as a gap), so the
-   raw kind code is shown alongside the diameter rather than invented. */
-/* The printer reports its nozzle as a diameter and a 4-character kind code.
-   Decoded here as material (1st letter) + flow class (2nd letter): the
-   fixture's HH01 is the "0.4 mm, hardened steel, high flow" the markup
-   shows. Letters not in the tables fall back to the raw code. */
+   nozzle_kind_text stays: the Printer card still decodes the printer's four character
+   nozzle code with it. */
 var NOZZLE_MATERIAL = { H: 'hardened steel', S: 'stainless steel', C: 'tungsten carbide' };
 var NOZZLE_FLOW = { H: 'high flow', S: 'standard flow' };
 function nozzle_kind_text(kind) {
@@ -922,107 +826,12 @@ function nozzle_kind_text(kind) {
   if (flow) out += ', ' + tr('ui_nozzle_flow_' + k.charAt(1).toLowerCase(), flow);
   return out;
 }
-function nozzle_spec(st) {
-  var parts = [];
-  if (st.nozzle_dia && String(st.nozzle_dia).length) parts.push(st.nozzle_dia + ' mm');
-  var kt = nozzle_kind_text(st.nozzle_kind);
-  if (kt) parts.push(kt);
-  return parts.length ? parts.join(', ') : null;
-}
 
-/* 1.5 AMS trays */
-function render_trays(st) {
-  var wrap = byId('ps-trays');
-  var row = byId('ps-trays-row');
-  var trays = st.trays;
-  if (!Array.isArray(trays) || trays.length === 0) {
-    if (wrap) wrap.hidden = true;
-    if (row) row.innerHTML = '';
-    return;
-  }
-  if (wrap) wrap.hidden = false;
-  if (!row) return;
-  row.innerHTML = '';
-  for (var i = 0; i < trays.length; i++) {
-    var tray = trays[i];
-    if (!tray) continue;
-    var chip = document.createElement('span');
-    chip.className = 'chip border tray-chip';
-    if (tray.i === st.tray_now) chip.classList.add('is-now');
-    var dot = document.createElement('i');
-    dot.className = 'circle small swatch-dot';
-    var hex = hexColour(tray.color);
-    if (hex) dot.style.background = hex;
-    chip.appendChild(dot);
-    var label = tray.type || DASH;
-    if (isNum(tray.remain) && tray.remain >= 0) label += ' ' + tray.remain + '%';
-    chip.appendChild(document.createTextNode(' ' + label));
-    row.appendChild(chip);
-  }
-}
+/* render_anim stood here. It drew an uploaded animation into #ps-kv-anim, a card that
+   belongs to the vent's page and is not on this one, over a route this device does not
+   have. Removed rather than left to no-op, because every string it reached for was still
+   being carried in twenty-four languages for a card nobody can see. */
 
-/* 1.6 Endstop check */
-function render_calibrate(vp) {
-  var cal = vp.calibrate || {};
-  var state = cal.state;
-  var running = (state === 1);
-
-  var btn = byId('ps-btn-cal');
-  if (btn) {
-    btn.disabled = running;
-    var lbl = btn.querySelector('span');
-    if (running) {
-      var stepMap = { 0: tr('ui_cal_step_closing', 'Closing...'), 1: tr('ui_cal_step_opening', 'Opening...'), 2: tr('ui_cal_step_restoring', 'Restoring...') };
-      if (lbl) lbl.textContent = stepMap[cal.step] || tr('ui_cal_running', 'Running...');
-    } else {
-      if (lbl) lbl.textContent = tr('ui_run_the_check', 'Run the check');
-    }
-  }
-
-  var result = byId('ps-cal-result');
-  var showResult = (state === 2 || state === 3);
-  if (result) result.hidden = !showResult;
-
-  var kv = byId('ps-kv-cal');
-  if (kv) {
-    kv.innerHTML = '';
-    if (showResult) {
-      kv.appendChild(kv_li_plain(tr('cal_closed', "At the closed stop"),
-        isNum(cal.closed_mv) ? valueSpan(cal.closed_mv + ' mV · ' + (cal.closed_ok ? tr('cal_in_band', "in range") : tr('cal_off_band', "out of range"))) : unknownSpan()));
-      kv.appendChild(kv_li_plain(tr('cal_open', "At the open stop"),
-        isNum(cal.open_mv) ? valueSpan(cal.open_mv + ' mV · ' + (cal.open_ok ? tr('cal_in_band', "in range") : tr('cal_off_band', "out of range"))) : unknownSpan()));
-      var verdict = (cal.closed_ok && cal.open_ok);
-      kv.appendChild(kv_li_plain(tr('cal_verdict', 'Verdict'),
-        valueSpan(verdict ? tr('cal_ok', "Both endstops read correctly.") : tr('cal_bad', "At least one endstop is off. Check that the vent moves freely and that the sensor cable is seated."))));
-    }
-  }
-}
-
-/* 11.2 Uploaded animation (rendered from status) */
-function render_anim(st) {
-  var anim = st.anim || {};
-  var host = byId('ps-kv-anim');
-  if (host) {
-    host.innerHTML = '';
-    var frames = anim.frames || 0;
-    host.appendChild(kv_li_plain(tr('anim_loaded', 'Loaded'),
-      valueSpan(frames > 0 ? (frames + ' ' + tr('anim_frames', 'frames')) : tr('anim_none', 'Nothing'))));
-    if (frames > 0 && isNum(anim.bytes)) {
-      host.appendChild(kv_li_plain(tr('anim_size', "Memory used"), valueSpan(fmtKB(anim.bytes))));
-    }
-    if (isNum(anim.max_frames)) {
-      host.appendChild(kv_li_plain(tr('anim_room', 'Room for'), valueSpan(anim.max_frames + ' ' + tr('anim_frames', 'frames'))));
-    }
-  }
-  setHidden('ps-btn-anim-clear', !(anim.frames > 0));
-}
-
-/* ---------------------------------------------------------------------
-   9. Behaviour card: vent policy, ring, leds (§2, device push)
-   ------------------------------------------------------------------- */
-
-var g_simple_selected = null;
-var g_last_simple_current = null;
 var g_h2d_selected = null;
 var g_h2d_populated = false;
 
@@ -1119,6 +928,8 @@ var H2D_SUFFIX = {
   rev: 'ps-fx-rev-h2d'
 };
 
+var g_page_build = null;      /* the build id behind this page, asked for once */
+
 function handle_settings() {
   var s = g_state.settings || {};
   setText('ps-settings-fw-ver', s.fw_version || DASH);
@@ -1129,9 +940,25 @@ function handle_settings() {
   var _sta = g_state.sta || {};
   setInputValue('ps-settings-device-name', _sta.hostname || '');
   if (s.language) set_language(s.language);
-  /* img_version is only added once the device knows its own images version, so a blank
-     here is "not reported yet" and says so. */
-  setText('ps-settings-img-ver', s.img_version || DASH);
+  /* The Web app row used to show img_version, the factory's image-pack version. This unit
+     has no images partition at all, so that row was a dash on every page load and said
+     nothing about the web app it was labelled with. It shows the build the page was made
+     from instead, which is what identifies this page. */
+  if (!g_page_build) {
+    g_page_build = 'asked';
+    var x = new XMLHttpRequest();
+    x.open('GET', '/api/info', true);
+    x.timeout = 5000;
+    x.onload = function () {
+      if (x.status !== 200) { g_page_build = null; return; }
+      try { g_page_build = JSON.parse(x.responseText).build || null; } catch (e) { g_page_build = null; }
+      if (g_page_build) setText('ps-settings-img-ver', g_page_build);
+    };
+    x.onerror = function () { g_page_build = null; };
+    x.ontimeout = function () { g_page_build = null; };
+    try { x.send(); } catch (e) { g_page_build = null; }
+  }
+  setText('ps-settings-img-ver', (g_page_build && g_page_build !== 'asked') ? g_page_build : DASH);
   /* Version badge + cfg banner are handled in render_chrome (§0.7). */
 }
 
@@ -1457,12 +1284,20 @@ function handle_pctl() {
   var card = byId('ps-card-pctl');
   if (card) card.hidden = (printer.state !== 3);
 
-  setChecked('ps-pctl-chamber-light', st.printer_light, true);
+  /* A light the printer has never named is unknown, not off. Both rows work the same way:
+     the row appears when the printer reports that light, and the switch then shows what the
+     printer said. A card with neither light is a card with nothing in it, so it goes too. */
+  var clRow = byId('ps-pctl-chamber-light-row');
+  var hasCL = (st.printer_light === 0 || st.printer_light === 1);
+  if (clRow) clRow.hidden = !hasCL;
+  if (hasCL) setChecked('ps-pctl-chamber-light', st.printer_light, true);
 
   var wlRow = byId('ps-pctl-work-light-row');
   var hasWL = (st.work_light === 0 || st.work_light === 1);
   if (wlRow) wlRow.hidden = !hasWL;
   if (hasWL) setChecked('ps-pctl-work-light', st.work_light, true);
+
+  if (card) card.hidden = (printer.state !== 3) || (!hasCL && !hasWL);
 
   setHidden('ps-pctl-locked', !g_pctl_locked);
 
@@ -1549,6 +1384,11 @@ function handle_response(resp) {
       if (ok) dialog_open('dlg_ota_title', 'dlg_ota_text',
         [{ key: 'ui_reload', fallback: 'Reload', handler: function () { location.reload(); } }]);
       else dialog_open('dlg_ota_err_title', 'dlg_ota_err_text', [{ key: 'ui_ok', fallback: 'OK' }]);
+      break;
+    /* A stage image's answer belongs to the card that sent it, and it names
+       its slot in "gif". Nothing here knows what to do with it. */
+    case 'ota_img':
+      if (window.on_ota_img) on_ota_img(resp.gif, ok);
       break;
     case 'ota_unknown':
       dialog_open('dlg_ota_unknown_title', 'dlg_ota_unknown_text', [{ key: 'ui_ok', fallback: 'OK' }]);

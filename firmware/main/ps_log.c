@@ -28,6 +28,9 @@ static char     s_ring[LOG_LINES][LOG_WIDTH];
 static uint16_t s_head;                       /* next slot to write */
 static uint16_t s_count;                      /* how many slots hold a line */
 static vprintf_like_t s_chain;                /* the writer we replaced, still fed */
+/* A line that arrives in pieces waits here for its newline. */
+static char   s_pend[LOG_WIDTH];
+static size_t s_pend_n;
 
 /* The words that mean a value must not survive. A match blanks the REST of the line: the
  * value's own length is a fact about the secret, so even that is not kept. */
@@ -76,14 +79,33 @@ static int log_vprintf(const char *fmt, va_list ap)
     int n = vsnprintf(buf, sizeof buf, fmt, copy);
     va_end(copy);
     if (n > 0) {
-        /* one call can carry several lines */
+        /* One call can carry several lines, and one LINE can arrive in several calls: the
+         * Wi-Fi driver writes its tag and its message separately, which had every one of its
+         * lines broken in two in the ring. A chunk with no newline in it is held until the
+         * newline comes, so what lands in the ring is whole lines. */
         char *start = buf;
         for (char *p = buf; *p; p++) {
             if (*p != '\n') continue;
-            put_line(start, (size_t)(p - start));
+            if (s_pend_n) {
+                size_t take = (size_t)(p - start);
+                if (take > sizeof s_pend - 1 - s_pend_n) take = sizeof s_pend - 1 - s_pend_n;
+                memcpy(s_pend + s_pend_n, start, take);
+                s_pend_n += take;
+                put_line(s_pend, s_pend_n);
+                s_pend_n = 0;
+            } else {
+                put_line(start, (size_t)(p - start));
+            }
             start = p + 1;
         }
-        if (*start) put_line(start, strlen(start));
+        if (*start) {
+            size_t take = strlen(start);
+            if (take > sizeof s_pend - 1 - s_pend_n) take = sizeof s_pend - 1 - s_pend_n;
+            memcpy(s_pend + s_pend_n, start, take);
+            s_pend_n += take;
+            /* A partial line that grows past the buffer is committed rather than dropped. */
+            if (s_pend_n >= sizeof s_pend - 1) { put_line(s_pend, s_pend_n); s_pend_n = 0; }
+        }
     }
     return s_chain ? s_chain(fmt, ap) : vprintf(fmt, ap);
 }

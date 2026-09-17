@@ -169,6 +169,52 @@
         (isNum(v) && v > TEMP_NONE) ? valueSpan(fmtTemp(v)) : unknownSpan()));
     }
 
+    /* Everything below comes from printer.status, which the device fills from the same
+       report the temperatures come from. A member the printer has never sent is absent from
+       that object, and an absent member means the row is left out rather than shown as a
+       dash: the card is what this printer reports, not a form with gaps in it. */
+    var st = p.status || {};
+
+    if (isNum(st.fan_part) || isNum(st.fan_aux) || isNum(st.fan_chamber)) {
+      rows.push(kv_li_icon('fan', tr('status_fans', 'Fans'), null,
+        valueSpan([st.fan_part, st.fan_aux, st.fan_chamber]
+          .map(function (f) { return isNum(f) ? fmtPct(f) : DASH; }).join(' \u00b7 '))));
+    }
+
+    var spec = [];
+    if (st.nozzle_dia) spec.push(st.nozzle_dia + ' mm');
+    var kind = window.nozzle_kind_text ? nozzle_kind_text(st.nozzle_kind) : null;
+    if (kind) spec.push(kind);
+    if (spec.length) rows.push(kv_li_icon('nozzle', tr('ui_kv_nozzle_fitted', 'Nozzle fitted'), null, valueSpan(spec.join(', '))));
+
+    if (isNum(st.filament_in)) {
+      rows.push(kv_li_icon('spool-end', tr('ui_filament', 'Filament'), null,
+        valueSpan(st.filament_in ? tr('ui_yes', 'Yes') : tr('ui_no', 'No'))));
+    }
+
+    if (isNum(st.ams_humidity) || isNum(st.ams_temp)) {
+      var ams = [];
+      if (isNum(st.ams_humidity)) ams.push(tr('ams_level', 'level') + ' ' + st.ams_humidity);
+      if (isNum(st.ams_temp)) ams.push(fmtTemp(st.ams_temp));
+      rows.push(kv_li_icon('humidity', tr('ui_kv_ams_humidity', 'AMS humidity'), null, valueSpan(ams.join(' \u00b7 '))));
+    }
+
+    /* A fault the printer is carrying right now. No fault, no row. */
+    if (st.hms_code) rows.push(kv_li_icon('warning', tr('status_fault_code', 'Fault code'), null, valueSpan(st.hms_code)));
+
+    if (st.printer_rssi) rows.push(kv_li_icon('network', tr('ui_kv_printer_signal', 'Printer signal'), null, valueSpan(st.printer_rssi)));
+
+    /* This device's own side of the same link, on the same card, because the card is about
+       the two of them talking. */
+    var wifi = g_state.wifi || {}, sta = g_state.sta || {};
+    var mine = [];
+    if (wifi.ssid) mine.push(wifi.ssid);
+    if (sta.ip) mine.push(sta.ip);
+    if (isNum(st.wifi_rssi)) mine.push(st.wifi_rssi + ' dBm');
+    if (mine.length) rows.push(kv_li_icon('network', tr('ui_this_device', 'This device'), null, valueSpan(mine.join(' \u00b7 '))));
+
+    if (isNum(st.uptime_s)) rows.push(kv_li_icon('clock', tr('status_uptime', 'Uptime'), null, valueSpan(fmtUptime(st.uptime_s))));
+
     ul.textContent = '';
     for (var j = 0; j < rows.length; j++) ul.appendChild(rows[j]);
   }

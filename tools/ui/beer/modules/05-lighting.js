@@ -111,13 +111,17 @@
     var sig = rows.map(function (r) { return r.blockID; }).join(',');
     if (list.dataset.sig !== sig) {
       list.textContent = '';
-      rows.forEach(function (r) {
+      rows.forEach(function (r, i) {
         var nav = document.createElement('nav');
         nav.className = 'swatch-row';
         var lab = document.createElement('span');
         lab.className = 'max small-text';
         lab.id = 'lbl-block-' + r.blockID;
-        lab.textContent = tr('ui_lights', 'Lights') + ' ' + r.blockID;
+        /* The device's block id is its own bookkeeping and starts at zero, so "Lights 0" was
+           the raw id leaking onto the page. A numbered list a person reads starts at one,
+           and a single segment needs no label at all: the card is already called Lights,
+           and repeating it beside the only swatch just said "Lights Lights". */
+        lab.textContent = rows.length === 1 ? '' : tr('ui_lights', 'Lights') + ' ' + (i + 1);
         var wrap = document.createElement('div');
         wrap.className = 'swatch-slot';
         var btn = document.createElement('button');

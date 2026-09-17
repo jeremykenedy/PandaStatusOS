@@ -7,6 +7,7 @@
 #include "esp_log.h"
 #include "cJSON.h"
 #include "esp_wifi.h"
+#include "esp_timer.h"
 #include "ps.h"
 
 static const char *TAG = "ps_state";
@@ -19,6 +20,13 @@ void ps_state_init(void)
     g_ps.layer_num = g_ps.layer_total = -1;
     g_ps.remain_min = -1;
     g_ps.spd_lvl = -1;
+    g_ps.light_chamber = g_ps.light_work = -1;
+    g_ps.fan_part = g_ps.fan_aux = g_ps.fan_chamber = -1;
+    g_ps.filament_in = -1;
+    g_ps.ams_humidity = -1;
+    g_ps.ams_temp_c = PS_TEMP_NONE;
+    g_ps.gcode_state[0] = g_ps.hms_code[0] = g_ps.printer_rssi[0] = 0;
+    g_ps.nozzle_type[0] = g_ps.nozzle_dia[0] = 0;
     for (int i = 0; i < PS_TEMP_COUNT; i++) g_ps.temp_c[i] = PS_TEMP_NONE;
     ps_cfg_load(&g_ps.cfg);
     ps_presets_load(&g_ps.presets);                   /* A14: the named effects, or an empty list */
@@ -94,6 +102,54 @@ static cJSON *root_printer(void)
                has no discovery either. */
             cJSON_AddStringToObject(e, "sn", g_ps.printer_list[i].sn); cJSON_AddItemToArray(l, e); }
     }
+    /* What the printer says it is doing, as opposed to what it is called. Only the members
+     * the printer has actually reported go in: a light it never mentioned is absent, and the
+     * page draws an absent light as unknown rather than as off. */
+    cJSON *st = cJSON_AddObjectToObject(o, "status");
+    if (g_ps.light_chamber >= 0) cJSON_AddNumberToObject(st, "printer_light", g_ps.light_chamber);
+    /* work_light is read but not published. The printer this device is built against names a
+     * work_light node in its report and has no such lamp: the node is in the report whether
+     * the machine has the light or not, so publishing it put a second switch on the card for
+     * a light that does not exist. One lamp, one switch. */
+    if (g_ps.temp_c[PS_TEMP_NOZZLE]  != PS_TEMP_NONE) cJSON_AddNumberToObject(st, "nozzle_temp", g_ps.temp_c[PS_TEMP_NOZZLE]);
+    if (g_ps.temp_c[PS_TEMP_BED]     != PS_TEMP_NONE) cJSON_AddNumberToObject(st, "bed_temp", g_ps.temp_c[PS_TEMP_BED]);
+    if (g_ps.temp_c[PS_TEMP_CHAMBER] != PS_TEMP_NONE) cJSON_AddNumberToObject(st, "chamber_temp", g_ps.temp_c[PS_TEMP_CHAMBER]);
+    if (g_ps.fan_part    >= 0) cJSON_AddNumberToObject(st, "fan_part", g_ps.fan_part);
+    if (g_ps.fan_aux     >= 0) cJSON_AddNumberToObject(st, "fan_aux", g_ps.fan_aux);
+    if (g_ps.fan_chamber >= 0) cJSON_AddNumberToObject(st, "fan_chamber", g_ps.fan_chamber);
+    if (g_ps.filament_in >= 0) cJSON_AddNumberToObject(st, "filament_in", g_ps.filament_in);
+    if (g_ps.ams_humidity >= 0) cJSON_AddNumberToObject(st, "ams_humidity", g_ps.ams_humidity);
+    if (g_ps.ams_temp_c != PS_TEMP_NONE) cJSON_AddNumberToObject(st, "ams_temp", g_ps.ams_temp_c);
+    /* The page holds the six state words and their translations by number, so the printer's
+     * word is turned into that number here rather than sending a word the page cannot name.
+     * SLICING sits with PREPARE: both are the printer getting ready. */
+    if (g_ps.gcode_state[0]) {
+        const char *g = g_ps.gcode_state; int ds = -1;
+        if      (!strcmp(g, "IDLE"))    ds = 0;
+        else if (!strcmp(g, "PREPARE") || !strcmp(g, "SLICING")) ds = 1;
+        else if (!strcmp(g, "RUNNING")) ds = 2;
+        else if (!strcmp(g, "PAUSE"))   ds = 3;
+        else if (!strcmp(g, "FINISH"))  ds = 4;
+        else if (!strcmp(g, "FAILED"))  ds = 5;
+        if (ds >= 0) cJSON_AddNumberToObject(st, "device_state", ds);
+    }
+    if (g_ps.hms_code[0])     cJSON_AddStringToObject(st, "hms_code", g_ps.hms_code);
+    if (g_ps.printer_rssi[0]) cJSON_AddStringToObject(st, "printer_rssi", g_ps.printer_rssi);
+    if (g_ps.nozzle_dia[0])   cJSON_AddStringToObject(st, "nozzle_dia", g_ps.nozzle_dia);
+    /* The page reads the nozzle as the letter code it has words for: the material letter, and
+     * a flow letter when there is one. The printer names the material in full, so it is the
+     * first letter of that word that carries over, and nothing is invented for flow. */
+    if (g_ps.nozzle_type[0]) {
+        char kind[3] = { 0, 0, 0 };
+        if      (!strncmp(g_ps.nozzle_type, "hardened", 8))  kind[0] = 'H';
+        else if (!strncmp(g_ps.nozzle_type, "stainless", 9)) kind[0] = 'S';
+        if (kind[0]) cJSON_AddStringToObject(st, "nozzle_kind", kind);
+        else cJSON_AddStringToObject(st, "nozzle_kind", g_ps.nozzle_type);
+    }
+    /* This device's own signal belongs on the same card, beside the printer's, because the
+     * card is about the link between the two. It is read where the sta root reads it. */
+    { wifi_ap_record_t ap; if (g_ps.sta_state == PS_STA_CONNECTED && esp_wifi_sta_get_ap_info(&ap) == ESP_OK) cJSON_AddNumberToObject(st, "wifi_rssi", ap.rssi); }
+    cJSON_AddNumberToObject(st, "uptime_s", (double)(esp_timer_get_time() / 1000000));
     return o;
 }
 static cJSON *root_settings(void)
@@ -103,7 +159,12 @@ static cJSON *root_settings(void)
     for (int m = 0; m < 2; m++) {
         cJSON *e = cJSON_CreateObject();
         cJSON_AddNumberToObject(e, "brightness", g_ps.cfg.mode[m].brightness);
-        /* speed is stored, not emitted: the observed push had no speed key (INFERENCE, D-014) */
+        /* Speed goes out too. The factory's observed push had no speed key, and leaving it
+         * out to match meant the page's own Speed row read as a dash forever while the
+         * slider beside it moved a value the device was storing. This is the clone's own
+         * addition, not parity: a page that cannot read back what it just wrote is broken,
+         * and nothing in the factory page reads this key. */
+        cJSON_AddNumberToObject(e, "speed", g_ps.cfg.mode[m].speed);
         cJSON *c = cJSON_AddArrayToObject(e, "rgb_rgba");
         for (int i = 0; i < 3; i++) { char w[10]; ps_rgba_to_wire(g_ps.cfg.mode[m].colour[i], (uint8_t)m, w); cJSON_AddItemToArray(c, cJSON_CreateString(w)); }
         cJSON_AddItemToArray(l2, e);
@@ -262,6 +323,23 @@ static uint32_t apply_printer(cJSON *m, int client)
     return 0;
 }
 
+/* The page asking the printer to switch a light: { light:"chamber_light"|"work_light", on:0|1 }.
+ *
+ * Nothing is stored and no root is marked changed. The command goes to the printer and the
+ * printer's own telemetry is what moves the switch back on the page, so a command the printer
+ * refuses leaves the page showing the truth rather than the request. The page holds the
+ * flipped switch against stale pushes for a few seconds on its own. */
+static uint32_t apply_printer_ctl(cJSON *m, int client)
+{
+    (void)client;
+    const char *light = str(m, "light");
+    if (!light || !has(m, "on")) return 0;
+    int on = num(m, "on", -1);
+    if (on != 0 && on != 1) return 0;
+    ps_printer_light_set(light, on);
+    return 0;
+}
+
 static uint32_t apply_block(cJSON *m, int client)
 {
     (void)client;
@@ -290,6 +368,7 @@ uint32_t ps_state_apply(const char *json, size_t len, int client)
         else if (!strcmp(root->string, "ap")) changed |= apply_ap(root, client);
         else if (!strcmp(root->string, "printer")) changed |= apply_printer(root, client);
         else if (!strcmp(root->string, "block")) changed |= apply_block(root, client);
+        else if (!strcmp(root->string, "printer_ctl")) changed |= apply_printer_ctl(root, client);
         else ESP_LOGW(TAG, "unknown root %s", root->string);
     }
     cJSON_Delete(frame);

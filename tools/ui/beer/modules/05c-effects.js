@@ -133,6 +133,19 @@
     send_fx({ opt: on ? (opt | bit) : (opt & ~bit) });
   }
 
+  /* ---- the settings that are not inside an fx --------------------- */
+
+  function cfg() { return (g_doc && g_doc.config) || {}; }
+
+  /* A1 is stored per mode, and the mode is the lighting module's state, not
+     this one's: read it where it lives rather than keeping a second copy. */
+  function mode_now() {
+    var s = (window.g_state && g_state.settings) || {};
+    return isNum(s.current_mode) ? s.current_mode : 0;
+  }
+
+  function send_cfg(patch) { post({ config: patch }); }
+
   /* ---- painting ------------------------------------------------- */
 
   function fill_effect_list() {
@@ -148,7 +161,7 @@
          a list that changes length as switches move is a list nobody can learn. */
       if (!fx_allowed(id)) {
         o.disabled = true;
-        o.textContent += ' — ' + tr('ui_needs_feature', 'Turned off. Switch it on under Features.');
+        o.textContent += '. ' + tr('ui_needs_feature', 'Turned off. Switch it on under Features.');
       }
       sel.appendChild(o);
     }
@@ -174,17 +187,78 @@
     b.classList.toggle('is-unset', !c);
   }
 
-  function render_effects() {
-    var on = !!feats().state_effects;
-    var card = byId('ps-fx-card');
-    if (card) card.hidden = !on;
-    if (!on) {
-      ['ps-fxc-card', 'ps-fxb-card', 'ps-fxp-card'].forEach(function (id) {
-        var el = byId(id); if (el) el.hidden = true;
-      });
-      return;
-    }
+  function show(id, on) { var el = byId(id); if (el) el.hidden = !on; }
 
+  function set_sel(id, v) {
+    var el = byId(id);
+    if (el && isNum(v) && document.activeElement !== el) el.value = String(v);
+  }
+  function set_num(id, v) {
+    var el = byId(id);
+    if (!el || document.activeElement === el) return;
+    el.value = isNum(v) ? String(v) : '';
+  }
+  function set_range(id, out, v) {
+    var el = byId(id);
+    if (el && isNum(v) && document.activeElement !== el) el.value = String(v);
+    setText(out, isNum(v) ? fmtPct(v) : DASH);
+  }
+
+  /* A5, A1: both are per state, so both are painted from the state the row
+     above has selected. */
+  function render_per_state() {
+    var f = fx_of(g_state) || {};
+
+    show('ps-fxr-card', !!feats().effect_ramp);
+    var rampOn = !!((f.opt || 0) & OPT_RAMP);
+    var ron = byId('ps-fxr-on');
+    if (ron) ron.checked = rampOn;
+    var rend = byId('ps-fxr-end');
+    if (rend) {
+      rend.disabled = !rampOn;
+      if (isNum(f.bright_end) && document.activeElement !== rend) rend.value = String(f.bright_end);
+    }
+    setText('ps-fxr-end-value', rampOn && isNum(f.bright_end) ? fmtPct(f.bright_end) : tr('ui_off', 'off'));
+
+    show('ps-fxs-card', !!feats().state_brightness);
+    var sb = cfg().state_brightness;
+    var row = (Array.isArray(sb) && sb[mode_now()]) || null;
+    var v = (row && isNum(row[g_state])) ? row[g_state] : null;
+    var sbEl = byId('ps-fxs-bright');
+    if (sbEl && v !== null && document.activeElement !== sbEl) sbEl.value = String(v);
+    setText('ps-fxs-value', v === null ? DASH : fmtPct(v));
+  }
+
+  /* A10, A11, A12: one setting each, shared by every state that runs them. */
+  function render_layers() {
+    var c = cfg();
+
+    show('ps-tg-card', !!feats().fx_temp);
+    var tg = c.temp_gradient || {};
+    set_sel('ps-tg-source', tg.source);
+    set_num('ps-tg-lo', tg.lo);
+    set_num('ps-tg-hi', tg.hi);
+
+    show('ps-hw-card', !!feats().hot_warning);
+    var hw = c.hot_warning || {};
+    set_sel('ps-hw-source', hw.source);
+    set_num('ps-hw-threshold', hw.threshold);
+    paint_swatch('ps-hw-colour', hw.colour);
+
+    show('ps-ef-card', !!feats().error_flash);
+    var ef = c.error_flash || {};
+    paint_swatch('ps-ef-colour', ef.colour);
+    set_range('ps-ef-bright', 'ps-ef-bright-value', ef.brightness);
+    set_range('ps-ef-speed', 'ps-ef-speed-value', ef.speed);
+  }
+
+  function render_effects() {
+    var f_ = feats();
+    /* The chooser is shown when anything below it is per state, which is
+       more than the effect list: the brightness and the ramp are too. */
+    show('ps-fxsel-card', !!(f_.state_effects || f_.state_brightness || f_.effect_ramp ||
+                             f_.effect_colours || f_.effect_params));
+    show('ps-fx-card', !!f_.state_effects);
     paint_state_row();
     fill_effect_list();
 
@@ -194,28 +268,35 @@
 
     /* The colour card is for the effects that take colours, and the device only
        honours the backgrounds when effect_colours is on. */
-    var cCard = byId('ps-fxc-card');
-    if (cCard) cCard.hidden = !feats().effect_colours;
+    show('ps-fxc-card', !!f_.effect_colours);
     paint_swatch('ps-fxc-0', cols[0]);
     paint_swatch('ps-fxc-2', cols[2]);
     paint_swatch('ps-fxc-3', cols[3]);
 
     /* The band width is the barber pole's and nothing else's. */
-    var bCard = byId('ps-fxb-card');
-    if (bCard) bCard.hidden = !(id === 19 && feats().effect_params);
+    show('ps-fxb-card', !!(id === 19 && f_.effect_params));
     var band = byId('ps-fxb-band');
     if (band && document.activeElement !== band) band.value = isNum(f.aux) ? f.aux : 0;
     setText('ps-fxb-band-value', isNum(f.aux) && f.aux > 0 ? String(f.aux) : tr('ui_auto', 'Auto'));
 
-    var pCard = byId('ps-fxp-card');
-    if (pCard) pCard.hidden = !feats().effect_params;
+    show('ps-fxp-card', !!f_.effect_params);
     var sp = byId('ps-fxp-speed');
     if (sp && document.activeElement !== sp) sp.value = isNum(f.speed) ? f.speed : 100;
     setText('ps-fxp-speed-value', isNum(f.speed) ? fmtPct(f.speed) : '');
     var rev = byId('ps-fxp-reverse');
     if (rev) rev.checked = !!((f.opt || 0) & OPT_REVERSE);
+
+    render_per_state();
+    render_layers();
+    if (window.render_presets) render_presets();
   }
   window.render_effects = render_effects;
+
+  /* The presets page assigns a preset to the state being edited, and reads the
+     state's effect to save it, so both are published rather than guessed. */
+  window.fx_state_now = function () { return g_state; };
+  window.fx_current = function () { var f = fx_of(g_state); return f ? JSON.parse(JSON.stringify(f)) : null; };
+  window.fx_features = function () { return feats(); };
 
   function refresh(after) {
     get(function (doc) {
@@ -227,6 +308,16 @@
   window.refresh_features = refresh;
 
   /* ---- wiring --------------------------------------------------- */
+
+  function num_field(id, apply) {
+    var el = byId(id);
+    if (!el) return;
+    el.addEventListener('change', function () {
+      var v = el.value === '' ? NaN : Number(el.value);
+      if (!isFinite(v) || v < 0) { render_effects(); return; }
+      apply(Math.round(v));
+    });
+  }
 
   function wire() {
     for (var i = 0; i < 3; i++) {
@@ -283,6 +374,72 @@
 
     var rev = byId('ps-fxp-reverse');
     if (rev) rev.addEventListener('change', function () { set_opt(OPT_REVERSE, rev.checked); });
+
+    /* A5: the switch owns the bit, the slider owns the value. Turning the
+       switch on with no value stored sends the slider's, so the device never
+       has the bit set over a value nobody chose. */
+    var ron = byId('ps-fxr-on');
+    if (ron) ron.addEventListener('change', function () {
+      var f = fx_of(g_state) || {};
+      var opt = f.opt || 0;
+      if (ron.checked) {
+        var end = byId('ps-fxr-end');
+        var v = isNum(f.bright_end) && f.bright_end > 0 ? f.bright_end : Number((end && end.value) || 100);
+        send_fx({ opt: opt | OPT_RAMP, bright_end: v });
+      } else {
+        send_fx({ opt: opt & ~OPT_RAMP });
+      }
+    });
+    var rend = byId('ps-fxr-end');
+    if (rend) {
+      rend.addEventListener('input', function () { setText('ps-fxr-end-value', fmtPct(Number(rend.value))); });
+      rend.addEventListener('change', function () {
+        var f = fx_of(g_state) || {};
+        send_fx({ bright_end: Number(rend.value), opt: (f.opt || 0) | OPT_RAMP });
+      });
+    }
+
+    /* A1: the route takes the whole two by three block, so the stored one is
+       copied and the one cell being changed is written into the copy. */
+    var sbEl = byId('ps-fxs-bright');
+    if (sbEl) {
+      sbEl.addEventListener('input', function () { setText('ps-fxs-value', fmtPct(Number(sbEl.value))); });
+      sbEl.addEventListener('change', function () {
+        var sb = cfg().state_brightness;
+        if (!Array.isArray(sb) || sb.length !== 2) return;
+        var next = JSON.parse(JSON.stringify(sb));
+        next[mode_now()][g_state] = Number(sbEl.value);
+        send_cfg({ state_brightness: next });
+      });
+    }
+
+    var tgs = byId('ps-tg-source');
+    if (tgs) tgs.addEventListener('change', function () { send_cfg({ temp_gradient: { source: Number(tgs.value) } }); });
+    num_field('ps-tg-lo', function (v) { send_cfg({ temp_gradient: { lo: v } }); });
+    num_field('ps-tg-hi', function (v) { send_cfg({ temp_gradient: { hi: v } }); });
+
+    var hws = byId('ps-hw-source');
+    if (hws) hws.addEventListener('change', function () { send_cfg({ hot_warning: { source: Number(hws.value) } }); });
+    num_field('ps-hw-threshold', function (v) { send_cfg({ hot_warning: { threshold: v } }); });
+    var hwc = byId('ps-hw-colour');
+    if (hwc) hwc.addEventListener('click', function () {
+      picker_open(hwc, function (hex) { send_cfg({ hot_warning: { colour: hex + 'FF' } }); });
+    });
+
+    var efc = byId('ps-ef-colour');
+    if (efc) efc.addEventListener('click', function () {
+      picker_open(efc, function (hex) { send_cfg({ error_flash: { colour: hex + 'FF' } }); });
+    });
+    var efb = byId('ps-ef-bright');
+    if (efb) {
+      efb.addEventListener('input', function () { setText('ps-ef-bright-value', fmtPct(Number(efb.value))); });
+      efb.addEventListener('change', function () { send_cfg({ error_flash: { brightness: Number(efb.value) } }); });
+    }
+    var efs = byId('ps-ef-speed');
+    if (efs) {
+      efs.addEventListener('input', function () { setText('ps-ef-speed-value', fmtPct(Number(efs.value))); });
+      efs.addEventListener('change', function () { send_cfg({ error_flash: { speed: Number(efs.value) } }); });
+    }
 
     refresh();
   }

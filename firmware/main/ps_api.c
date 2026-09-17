@@ -606,6 +606,7 @@ int ps_api_info_get(httpd_req_t *req)
     cJSON_AddNumberToObject(doc, "leds", CONFIG_PS_LED_COUNT);
     cJSON_AddNumberToObject(doc, "mode", mode);
     cJSON_AddNumberToObject(doc, "features", (double)feat);
+    cJSON_AddNumberToObject(doc, "image_slot_bytes", (double)ps_ota_slot_cap());   /* 0: this unit has no images partition */
     cJSON_AddStringToObject(doc, "config_layout", "PS04");
     char *s = cJSON_PrintUnformatted(doc);
     cJSON_Delete(doc);

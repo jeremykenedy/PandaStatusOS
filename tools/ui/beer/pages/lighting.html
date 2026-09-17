@@ -80,7 +80,7 @@
        Splitting it that way is the only arrangement that fits three states
        times nine controls on a phone without becoming a wall.
        ══════════════════════════════════════════════════════════════ -->
-  <article class="no-padding span-all" id="ps-fx-card" hidden>
+  <article class="no-padding span-all" id="ps-fxsel-card" hidden>
     <h6 class="card-title padding no-padding-bottom" data-str="ui_per_state_effects">Per state effects</h6>
     <div class="small-text padding no-padding-top" data-str="ui_effects_help">The effect each bar state shows. Progress, the animated progress and the barber pole all draw the print percentage, so they need a printer bound and a print running to show anything.</div>
 
@@ -106,6 +106,11 @@
       </div>
     </div>
 
+  </article>
+
+  <!-- ── Which effect the chosen state shows. Its own switch, because the
+          brightness and the ramp below answer to different ones. ───── -->
+  <article class="no-padding span-all" id="ps-fx-card" hidden>
     <div class="padding">
       <div class="field label suffix border">
         <select id="ps-fx-effect"></select>
@@ -164,6 +169,162 @@
         <input type="checkbox" id="ps-fxp-reverse" aria-labelledby="lbl-fxp-rev"><span></span>
       </label>
     </nav>
+  </article>
+
+
+  <!-- ── A5: where the brightness ends as the effect runs. Off is flat. ── -->
+  <article class="span-all" id="ps-fxr-card" hidden>
+    <h6 class="card-title" data-str="ui_ramp_end">Brightness ramp</h6>
+    <div class="small-text" data-str="ui_ramp_help">Where the brightness ends as the effect runs its length. Off leaves it flat.</div>
+    <nav class="ps-sw-row">
+      <span class="max small-text" id="lbl-fxr-on" data-str="ui_ramp_end">Brightness ramp</span>
+      <label class="switch">
+        <input type="checkbox" id="ps-fxr-on" aria-labelledby="lbl-fxr-on"><span></span>
+      </label>
+    </nav>
+    <nav><span class="max"></span><span class="small-text" id="ps-fxr-end-value"></span></nav>
+    <label class="slider">
+      <input type="range" aria-label="Brightness ramp" data-str-aria="ui_ramp_end"
+             id="ps-fxr-end" min="0" max="100" step="5" value="100"><span></span>
+    </label>
+  </article>
+
+  <!-- ── A1: the brightness this bar state runs at, per mode ─────────── -->
+  <article class="span-all" id="ps-fxs-card" hidden>
+    <h6 class="card-title" data-str="ui_state_brightness">Brightness for this state</h6>
+    <div class="small-text" data-str="ui_state_brightness_help">What this bar state runs at in the mode chosen above.</div>
+    <nav><span class="max"></span><span class="small-text" id="ps-fxs-value"></span></nav>
+    <label class="slider">
+      <input type="range" aria-label="Brightness for this state" data-str-aria="ui_state_brightness"
+             id="ps-fxs-bright" min="0" max="100" step="5" value="100"><span></span>
+    </label>
+  </article>
+
+  <!-- ── A10: one gradient for every state that runs the temperature
+          effect: which reading it follows and the two ends it spans. ── -->
+  <article class="span-all" id="ps-tg-card" hidden>
+    <h6 class="card-title" data-str="ui_temp_gradient">Temperature gradient</h6>
+    <div class="small-text" data-str="ui_temp_gradient_help">The reading the gradient follows, and the two ends it spans.</div>
+    <div class="field label suffix border">
+      <select id="ps-tg-source">
+        <option value="0" data-str="ui_nozzle">Nozzle</option>
+        <option value="1" data-str="ui_bed">Bed</option>
+        <option value="2" data-str="ui_chamber">Chamber</option>
+      </select>
+      <label for="ps-tg-source" data-str="ui_reading">Reading</label>
+      <svg class="i"><use href="#i-caret"/></svg>
+    </div>
+    <div class="field label border suffix">
+      <input type="number" id="ps-tg-lo" min="0" max="500" step="1" inputmode="numeric">
+      <label for="ps-tg-lo" data-str="ui_cold_end">Cold end</label>
+      <span class="small-text" data-str="ui_degrees_c">&#176;C</span>
+    </div>
+    <div class="field label border suffix">
+      <input type="number" id="ps-tg-hi" min="0" max="500" step="1" inputmode="numeric">
+      <label for="ps-tg-hi" data-str="ui_hot_end">Hot end</label>
+      <span class="small-text" data-str="ui_degrees_c">&#176;C</span>
+    </div>
+  </article>
+
+  <!-- ── A11: a colour laid over whatever the bar is doing, once a
+          reading passes its threshold. ────────────────────────────── -->
+  <article class="span-all" id="ps-hw-card" hidden>
+    <h6 class="card-title" data-str="ui_hot_warning">Hot warning</h6>
+    <div class="small-text" data-str="ui_hot_warning_help">A colour laid over the bar once the reading passes the threshold.</div>
+    <div class="field label suffix border">
+      <select id="ps-hw-source">
+        <option value="0" data-str="ui_nozzle">Nozzle</option>
+        <option value="1" data-str="ui_bed">Bed</option>
+        <option value="2" data-str="ui_chamber">Chamber</option>
+      </select>
+      <label for="ps-hw-source" data-str="ui_reading">Reading</label>
+      <svg class="i"><use href="#i-caret"/></svg>
+    </div>
+    <div class="field label border suffix">
+      <input type="number" id="ps-hw-threshold" min="0" max="500" step="1" inputmode="numeric">
+      <label for="ps-hw-threshold" data-str="ui_threshold">Threshold</label>
+      <span class="small-text" data-str="ui_degrees_c">&#176;C</span>
+    </div>
+    <nav class="swatch-row">
+      <span class="max small-text" id="lbl-hw-colour" data-str="status_colour">Colour</span>
+      <div class="swatch-slot">
+        <button aria-labelledby="lbl-hw-colour" class="swatch responsive small-round is-unset" id="ps-hw-colour"></button>
+      </div>
+    </nav>
+  </article>
+
+  <!-- ── A12: what the bar does when the printer reports an error. ──── -->
+  <article class="span-all" id="ps-ef-card" hidden>
+    <h6 class="card-title" data-str="ui_error_flash">Error flash</h6>
+    <div class="small-text" data-str="ui_error_flash_help">What the bar does when the printer reports an error.</div>
+    <nav class="swatch-row">
+      <span class="max small-text" id="lbl-ef-colour" data-str="status_colour">Colour</span>
+      <div class="swatch-slot">
+        <button aria-labelledby="lbl-ef-colour" class="swatch responsive small-round is-unset" id="ps-ef-colour"></button>
+      </div>
+    </nav>
+    <nav><span class="max small-text" data-str="status_brightness">Brightness</span>
+         <span class="small-text" id="ps-ef-bright-value"></span></nav>
+    <label class="slider">
+      <input type="range" aria-label="Brightness" data-str-aria="status_brightness"
+             id="ps-ef-bright" min="0" max="100" step="5" value="100"><span></span>
+    </label>
+    <nav><span class="max small-text" data-str="status_speed">Speed</span>
+         <span class="small-text" id="ps-ef-speed-value"></span></nav>
+    <label class="slider">
+      <input type="range" aria-label="Speed" data-str-aria="status_speed"
+             id="ps-ef-speed" min="0" max="100" step="5" value="100"><span></span>
+    </label>
+  </article>
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       A14: PRESETS
+       A named copy of an effect, stored on the device. The list is the
+       device's answer, never this page's guess: every change posts and
+       repaints from what came back.
+       ══════════════════════════════════════════════════════════════ -->
+  <article class="span-all" id="ps-pre-card" hidden>
+    <h6 class="card-title" data-str="ui_presets">Presets</h6>
+    <div class="small-text" data-str="ui_presets_help">A named copy of an effect. Save the state you are editing, then apply it to another state or to a print stage.</div>
+    <div class="field label border" id="ps-pre-name-field">
+      <input type="text" id="ps-pre-name" maxlength="15" autocomplete="off" spellcheck="false">
+      <label for="ps-pre-name" data-str="ui_preset_name">Name</label>
+    </div>
+    <button class="border responsive" id="ps-pre-save">
+      <svg class="i"><use href="#i-disk"/></svg>
+      <span data-str="ui_save_current">Save the current effect</span>
+    </button>
+    <div class="small-text" id="ps-pre-note"></div>
+    <ul class="list border" id="ps-pre-list"></ul>
+  </article>
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       B1, B2: THE FIFTEEN PRINT STAGES
+       One row per stage the device names, in the device's own order. A row
+       is assigned a preset by name or left inheriting; the stage the
+       printer is in right now carries a mark.
+       ══════════════════════════════════════════════════════════════ -->
+  <article class="span-all" id="ps-stg-card" hidden>
+    <h6 class="card-title" data-str="ui_stages">Print stages</h6>
+    <div class="small-text" data-str="ui_stages_help">An effect per stage of a print. A stage left inheriting shows whatever the printing state shows.</div>
+    <div class="small-text" id="ps-stg-note"></div>
+    <ul class="list border" id="ps-stg-list"></ul>
+  </article>
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       STAGE IMAGES
+       A GIF per stage, uploaded to the device's images partition. The card
+       appears only when the device says it HAS such a partition and how many
+       bytes one slot may take: /api/info carries image_slot_bytes, and on a
+       unit whose flash has no images partition that number is zero and this
+       card says so instead of offering a chooser that can only be refused.
+       ══════════════════════════════════════════════════════════════ -->
+  <article class="span-all" id="ps-img-card" hidden>
+    <h6 class="card-title" data-str="ui_stage_images">Stage images</h6>
+    <div class="small-text" data-str="ui_stage_images_help">A GIF for each stage of a print, played on the bar while that stage runs.</div>
+    <div class="small-text" data-str="ui_each_row_of_the_image_becomes_one_">Each row of the image becomes one frame across the strip. Held in memory, so it is gone after a restart.</div>
+    <div class="small-text" id="ps-img-note"></div>
+    <ul class="list border" id="ps-img-list"></ul>
   </article>
 
   <!-- ── Blocks. One row per segment the device reports, drawn from

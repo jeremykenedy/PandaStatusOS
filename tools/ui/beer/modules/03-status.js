@@ -7,10 +7,6 @@
    the single-key messages the device accepts, paints the one optimistic
    change the spec asks for, and owns the card's client-only behaviour:
 
-     - the vent dial and the airflow pill cycle the vent mode
-       auto -> open -> closed -> auto, and the three named mode buttons
-       pick one outright                       {"vent": {"mode": "..."}}
-     - the endstop check asks first, then      {"calibrate": {"go": 1}}
      - the two printer lights flip at once, then
        {"printer_ctl": {"light": "...", "on": 0|1}}, held for a bounded
        settle until the printer reports the same, or the page gives up;
@@ -24,9 +20,8 @@
    Attestation: written from private/SPEC and Jeremy's markup/CSS/
    harnesses; no vendor source opened.
 
-   Module 1 surface used: ws_push, tr, dialog_open, toast_show,
-   render_vent_modes (the optimistic vent repaint the brief allows), and
-   the read-only g_state. Nothing here opens a socket or renders a push.
+   Module 1 surface used: ws_push, tr, toast_show and the read-only
+   g_state. Nothing here opens a socket or renders a push.
    ===================================================================== */
 
 /* ---------------------------------------------------------------------
@@ -54,91 +49,13 @@ function status_wire(id, event, fn) {
   return el;
 }
 
-/* ---------------------------------------------------------------------
-   1. Vent mode (§1.1, §2.2, P§7.9)
-   ------------------------------------------------------------------- */
+/* Sections 1 and 2 stood here and are gone.
 
-/* The cycle order, and the only three strings that ever leave the page:
-   anything else is refused by the device because it drives a motor. */
-var VENT_MODE_ORDER = ['auto', 'open', 'closed'];
-
-/* The current mode is the device's word for it, from the merged document. */
-function vent_mode_current() {
-  var m = status_printer().vent_mode;
-  return VENT_MODE_ORDER.indexOf(m) >= 0 ? m : 'auto';
-}
-
-function vent_mode_after(mode) {
-  var i = VENT_MODE_ORDER.indexOf(mode);
-  return VENT_MODE_ORDER[(i + 1) % VENT_MODE_ORDER.length];
-}
-
-/* One inbound message per action. The same repaint the push will make
-   (module 1's render_vent_modes) runs first so the chosen button lights
-   under the finger; the dial, the pill text and the flap readout follow
-   from the push the device sends back. */
-function vent_mode_choose(mode) {
-  if (VENT_MODE_ORDER.indexOf(mode) < 0) return;
-  if (!status_device_ready()) return;
-  render_vent_modes({ vent_mode: mode });
-  ws_push('vent', { mode: mode });
-}
-
-function vent_mode_cycle() {
-  vent_cycle_labels_apply();
-  vent_mode_choose(vent_mode_after(vent_mode_current()));
-}
-
-/* The dial's visible content is the flap word ("OPEN") and the pill's is
-   the mode ("Auto mode"); neither says what a press does. The markup gives
-   both a translated title, and that same string is their accessible name.
-   Re-applied on every press, so a language change is picked up. */
-function vent_cycle_labels_apply() {
-  var dial = status_el('ps-hero-dial');
-  if (dial) dial.setAttribute('aria-label', tr('ui_cycle_the_vent_auto_open_closed', 'Cycle the vent: auto, open, closed'));
-  var pill = status_el('ps-af-pill');
-  if (pill) pill.setAttribute('aria-label', tr('ui_cycle_the_vent_mode', 'Cycle the vent mode'));
-}
-
-/* ---------------------------------------------------------------------
-   2. Endstop check (§1.6, P§7.10)
-   ------------------------------------------------------------------- */
-
-function cal_is_running() {
-  var cal = status_printer().calibrate;
-  return !!(cal && cal.state === 1);
-}
-
-function cal_refuse_running() {
-  toast_show(tr('ui_endstop_check_already_running', 'An endstop check is already running.'), 3000);
-}
-
-/* The button moves a mechanism, so it asks first. Module 1 disables the
-   button from the push while a check runs; a press that gets through
-   anyway is refused here rather than queued, because the device would
-   refuse it too (P§7.10) and a second confirm would only confuse. */
-function cal_confirm() {
-  if (!status_device_ready()) return;
-  if (cal_is_running()) { cal_refuse_running(); return; }
-  dialog_open(
-    tr('ui_endstop_check_confirm_title', 'Run the endstop check?'),
-    tr('ui_endstop_check_confirm_text',
-      'The vent will close, then open, then go back to where it was, and the hall reading at each end is reported. It takes about ten seconds.'),
-    [
-      { key: 'cancel', fallback: 'Cancel' },
-      { key: 'ui_run_the_check', fallback: 'Run the check', handler: cal_start }
-    ]);
-}
-
-function cal_start() {
-  if (!status_device_ready()) return;
-  /* The physical button can start a check while the dialog is open. */
-  if (cal_is_running()) { cal_refuse_running(); return; }
-  ws_push('calibrate', { go: 1 });
-  /* The immediate response{type:"calibrate"} is silent; progress, the
-     button's lock and the two readings all arrive in vent_policy.calibrate
-     on the next pushes, and module 1 draws them. Nothing is locked here. */
-}
+   Section 1 was the vent dial and the airflow pill, cycling a flap through auto, open and
+   closed. Section 2 was the endstop check, which drove that flap onto both stops and read a
+   hall sensor. This device has no flap, no hall sensor and no vent root to send either to;
+   both cards came off the dashboard with them. What is left below is the one part of this
+   file that was ever about this device: its two printer lights. */
 
 /* ---------------------------------------------------------------------
    3. Printer lights (§10.3, §12, P§7.11)
@@ -227,16 +144,9 @@ function light_settle_tick() {
    ------------------------------------------------------------------- */
 
 function init_status_card() {
-  status_wire('ps-hero-dial', 'click', vent_mode_cycle);
-  status_wire('ps-af-pill', 'click', vent_mode_cycle);
-  VENT_MODE_ORDER.forEach(function (mode) {
-    status_wire('ps-vent-' + mode, 'click', function () { vent_mode_choose(mode); });
-  });
-  status_wire('ps-btn-cal', 'click', cal_confirm);
   for (var id in LIGHT_SWITCHES) {
     if (Object.prototype.hasOwnProperty.call(LIGHT_SWITCHES, id)) status_wire(id, 'change', light_switch_changed);
   }
-  vent_cycle_labels_apply();
 }
 
 if (document.readyState === 'loading') {

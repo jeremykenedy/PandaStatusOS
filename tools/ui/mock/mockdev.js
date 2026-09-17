@@ -665,7 +665,11 @@ async function handleHttp(req, res) {
     if (!FEAT) FEAT = featDefaults();
     let bits = 0; FEATURE_NAMES.forEach((k, i) => { if (FEAT.features[k]) bits |= (1 << (i + 1)); });
     const info = { product: 'PandaStatusOS', build: LANDED ? LANDED.build : String(knob('PS_BUILD', 'mock')), version: (STATE.settings && STATE.settings.fw_version) || 'V1.0.0', idf: 'v5.3.1',
-                   uptime_s: Math.floor((Date.now() - t0) / 1000), heap_free: 180000, flash_size: 4194304, leds: 16, mode: (STATE.settings && STATE.settings.current_mode) || 0, features: bits, config_layout: 'PS04' };
+                   uptime_s: Math.floor((Date.now() - t0) / 1000), heap_free: 180000, flash_size: 4194304, leds: 16, mode: (STATE.settings && STATE.settings.current_mode) || 0, features: bits, config_layout: 'PS04',
+                   // Bytes one GIF slot may take. Zero is the answer on a unit whose flash carries no
+                   // images partition, which is what the stock table read out of this hardware shows;
+                   // PS_IMG_SLOT_BYTES exists so the other branch can be driven too.
+                   image_slot_bytes: Number(knob('PS_IMG_SLOT_BYTES', 0)) || 0 };
     res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }); return res.end(JSON.stringify(info));
   }
   if (p === '/api/print' && knobFlag('PS_CLONE')) {

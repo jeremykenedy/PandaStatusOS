@@ -285,6 +285,23 @@ typedef struct {
     int16_t  layer_total;              /* print.total_layer_num, -1 until one arrives */
     int32_t  remain_min;               /* print.mc_remaining_time, minutes, -1 until one arrives */
     int8_t   spd_lvl;                  /* print.spd_lvl, 1..4, -1 until one arrives */
+    /* print.lights_report: the printer names each light and its mode. 1 on, 0 off, -1 while
+     * the printer has never mentioned it, which is not the same as off and is not shown as
+     * off. A printer with no work light simply never names one. */
+    int8_t   light_chamber;
+    int8_t   light_work;
+    /* The rest of what the same report says, kept so the Printer card has something to show.
+     * Every one of these is -1 (or an empty string) until the printer has actually sent it,
+     * and an absent key in a partial report leaves the last value alone. */
+    int8_t   fan_part, fan_aux, fan_chamber;     /* percent, 0..100 */
+    int8_t   filament_in;                        /* the external spool sensor */
+    int8_t   ams_humidity;                       /* the AMS's own 1..5 level */
+    int16_t  ams_temp_c;
+    char     gcode_state[12];                    /* IDLE, RUNNING, PAUSE, FINISH, FAILED, PREPARE */
+    char     hms_code[20];                       /* the first fault the printer is reporting */
+    char     printer_rssi[10];                   /* the printer's own signal, as it words it */
+    char     nozzle_type[16];
+    char     nozzle_dia[8];
     /* A13: a pinned printer state the renderer reads instead of the live one while the pin
      * is live (bit 13). Nothing here is stored; the live state is untouched underneath. */
     uint8_t  pin_active;
@@ -378,13 +395,21 @@ void ps_ap_ssid_from_mac(char *out, size_t n, const uint8_t mac[6]);
  * trailing hyphens go, and the result is cut to 63 bytes. */
 void ps_hostname_sanitise(char *s, size_t n);
 
+/* ps_ota.c: the bytes one GIF slot may take on this unit, 0 when there is no images
+ * partition. Plain size_t, no HTTP type, so it belongs here rather than with the routes. */
+size_t ps_ota_slot_cap(void);
+
+/* ps_printer.c: ask the bound printer to switch one of its lights. node is "chamber_light"
+ * or "work_light", on is 0 or 1. Returns 0 when the command was published, -1 when there is
+ * no printer connection to publish it on. The printer answers in its own telemetry, not
+ * here, so nothing is assumed to have worked. */
+int ps_printer_light_set(const char *node, int on);
+
 /* ps_log.c: the last lines the device wrote to itself, kept in RAM so the page can show
  * them. Scrubbed on the way in, never on the way out. */
 void   ps_log_init(void);
 void   ps_log_clear(void);
 size_t ps_log_dump(char *out, size_t n);
-int    ps_api_logs_get(httpd_req_t *req);
-int    ps_api_logs_delete(httpd_req_t *req);
 
 /* ---- C8: why it is not working, blinked on the bar. Both pure, in ps_diag.c, host-tested. ---- */
 typedef struct { bool active; ps_rgba_t colour; uint8_t blinks; } ps_diag_t;
@@ -441,6 +466,8 @@ int ps_api_presets_get(httpd_req_t *req);             /* A14: GET/POST /api/pres
 int ps_api_presets_post(httpd_req_t *req);
 int ps_presets_apply(const char *json, size_t len);   /* the whole list, or one preset into one state; 0 on success */
 char *ps_presets_json(void);                          /* the list as the page reads it; cJSON_free() it */
+int ps_api_logs_get(httpd_req_t *req);                /* the clone's own: GET /api/logs, the RAM ring as text */
+int ps_api_logs_delete(httpd_req_t *req);             /* DELETE /api/logs, empties the ring */
 
 /* ------------------------------------------------------------------ utility ---- */
 void ps_restart(const char *why);

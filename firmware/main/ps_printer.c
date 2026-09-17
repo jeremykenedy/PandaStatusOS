@@ -22,6 +22,7 @@
  * multicast and ps_ssdp.c reads the announcement; discovery is no longer the open hole it
  * was (D-048). */
 #include <string.h>
+#include <stdlib.h>          /* atoi: the printer sends its fan speeds and AMS readings as strings */
 #include <stdio.h>
 #include "esp_log.h"
 #include "esp_timer.h"
@@ -107,12 +108,114 @@ static void apply_report(const char *json, size_t len)
     cJSON *sl = print ? cJSON_GetObjectItemCaseSensitive(print, "spd_lvl") : NULL;
     if (cJSON_IsNumber(sl)) { int v = (int)sl->valuedouble; ps_lock(); g_ps.spd_lvl = (v >= 1 && v <= 4) ? (int8_t)v : -1; ps_unlock(); }
 
+    /* The fans. The printer gives these as strings on a 0..15 scale, which is the scale its
+     * own firmware uses; the page shows percent, so the conversion happens once, here.
+     * INFERENCE on which fan is which: cooling is the part fan, big_fan1 the auxiliary and
+     * big_fan2 the chamber, which is how the vent reads the same three. */
+    {
+        static const char *const FAN_KEYS[3] = { "cooling_fan_speed", "big_fan1_speed", "big_fan2_speed" };
+        int8_t *const FAN_DST[3] = { &g_ps.fan_part, &g_ps.fan_aux, &g_ps.fan_chamber };
+        for (int i = 0; print && i < 3; i++) {
+            cJSON *fv = cJSON_GetObjectItemCaseSensitive(print, FAN_KEYS[i]);
+            int raw = -1;
+            if (cJSON_IsString(fv) && fv->valuestring) raw = atoi(fv->valuestring);
+            else if (cJSON_IsNumber(fv)) raw = (int)fv->valuedouble;
+            if (raw < 0) continue;
+            if (raw > 15) raw = 15;
+            ps_lock(); *FAN_DST[i] = (int8_t)((raw * 100 + 7) / 15); ps_unlock();
+        }
+    }
+
+    /* The strings the card shows as they are: the state word, the first fault, the printer's
+     * own signal, and what nozzle it says is fitted. */
+    {
+        struct { const char *key; char *dst; size_t n; } S[] = {
+            { "gcode_state",   g_ps.gcode_state,  sizeof g_ps.gcode_state },
+            { "wifi_signal",   g_ps.printer_rssi, sizeof g_ps.printer_rssi },
+            { "nozzle_type",   g_ps.nozzle_type,  sizeof g_ps.nozzle_type },
+            { "nozzle_diameter", g_ps.nozzle_dia, sizeof g_ps.nozzle_dia },
+        };
+        for (size_t i = 0; print && i < sizeof S / sizeof S[0]; i++) {
+            cJSON *v = cJSON_GetObjectItemCaseSensitive(print, S[i].key);
+            if (cJSON_IsString(v) && v->valuestring) { ps_lock(); strncpy(S[i].dst, v->valuestring, S[i].n - 1); S[i].dst[S[i].n - 1] = 0; ps_unlock(); }
+            else if (cJSON_IsNumber(v)) { ps_lock(); snprintf(S[i].dst, S[i].n, "%g", v->valuedouble); ps_unlock(); }
+        }
+    }
+
+    /* print.hms is the fault list. An empty array is the printer saying it has no fault, and
+     * that is worth recording: it clears a fault that has been fixed. */
+    cJSON *hms = print ? cJSON_GetObjectItemCaseSensitive(print, "hms") : NULL;
+    if (cJSON_IsArray(hms)) {
+        ps_lock();
+        g_ps.hms_code[0] = 0;
+        cJSON *h0 = cJSON_GetArrayItem(hms, 0);
+        if (h0) {
+            cJSON *attr = cJSON_GetObjectItemCaseSensitive(h0, "attr");
+            cJSON *code = cJSON_GetObjectItemCaseSensitive(h0, "code");
+            if (cJSON_IsNumber(attr) && cJSON_IsNumber(code))
+                snprintf(g_ps.hms_code, sizeof g_ps.hms_code, "%04X_%04X_%04X_%04X",
+                         (unsigned)((uint32_t)attr->valuedouble >> 16) & 0xFFFF, (unsigned)(uint32_t)attr->valuedouble & 0xFFFF,
+                         (unsigned)((uint32_t)code->valuedouble >> 16) & 0xFFFF, (unsigned)(uint32_t)code->valuedouble & 0xFFFF);
+        }
+        ps_unlock();
+    }
+
+    /* The external spool sensor: 1 when there is filament in it. */
+    cJSON *hw = print ? cJSON_GetObjectItemCaseSensitive(print, "hw_switch_state") : NULL;
+    if (cJSON_IsNumber(hw)) { ps_lock(); g_ps.filament_in = hw->valuedouble ? 1 : 0; ps_unlock(); }
+
+    /* The first AMS unit's own readings, when there is one. */
+    cJSON *ams = print ? cJSON_GetObjectItemCaseSensitive(print, "ams") : NULL;
+    cJSON *amsl = ams ? cJSON_GetObjectItemCaseSensitive(ams, "ams") : NULL;
+    cJSON *ams0 = cJSON_IsArray(amsl) ? cJSON_GetArrayItem(amsl, 0) : NULL;
+    if (ams0) {
+        cJSON *hu = cJSON_GetObjectItemCaseSensitive(ams0, "humidity");
+        cJSON *tp = cJSON_GetObjectItemCaseSensitive(ams0, "temp");
+        if (cJSON_IsString(hu)) { int v = atoi(hu->valuestring); ps_lock(); g_ps.ams_humidity = (v >= 1 && v <= 5) ? (int8_t)v : -1; ps_unlock(); }
+        if (cJSON_IsString(tp)) { ps_lock(); g_ps.ams_temp_c = (int16_t)atoi(tp->valuestring); ps_unlock(); }
+    }
+
+    /* print.lights_report is an array of {node, mode}. The printer names only the lights it
+     * has, so a machine with no work light never produces one and the page never offers it.
+     * Any mode that is not "off" counts as on: the work light has a "flashing" mode, and a
+     * flashing light is a light that is on. */
+    cJSON *lr = print ? cJSON_GetObjectItemCaseSensitive(print, "lights_report") : NULL;
+    if (cJSON_IsArray(lr)) {
+        cJSON *e = NULL;
+        cJSON_ArrayForEach(e, lr) {
+            cJSON *node = cJSON_GetObjectItemCaseSensitive(e, "node");
+            cJSON *mode = cJSON_GetObjectItemCaseSensitive(e, "mode");
+            if (!cJSON_IsString(node) || !cJSON_IsString(mode)) continue;
+            int8_t on = (int8_t)(strcmp(mode->valuestring, "off") != 0 ? 1 : 0);
+            ps_lock();
+            if (!strcmp(node->valuestring, "chamber_light")) g_ps.light_chamber = on;
+            else if (!strcmp(node->valuestring, "work_light")) g_ps.light_work = on;
+            ps_unlock();
+        }
+    }
+
     /* INFERENCE: the three temperatures, as the vent reads them from the same report; whole degrees */
     static const char *const TEMP_KEYS[PS_TEMP_COUNT] = { "nozzle_temper", "bed_temper", "chamber_temper" };
     for (int i = 0; print && i < PS_TEMP_COUNT; i++) {
         cJSON *tv = cJSON_GetObjectItemCaseSensitive(print, TEMP_KEYS[i]);
-        if (!cJSON_IsNumber(tv)) continue;
-        int v = (int)(tv->valuedouble + 0.5); if (v < 0) v = 0; if (v > PS_TEMP_MAX) v = PS_TEMP_MAX;
+        double raw;
+        if (cJSON_IsNumber(tv)) raw = tv->valuedouble;
+        /* The chamber is not always where chamber_temper is. A printer whose chamber is its
+         * own unit reports it under device.ctc.info.temp instead, and this unit's printer
+         * sends no chamber_temper at all, which is what left the Chamber row on a dash while
+         * the chamber plainly had a temperature. Both places are read, and neither is
+         * invented: when the printer gives neither, the row still says nothing. */
+        else if (i == PS_TEMP_CHAMBER) {
+            cJSON *dev = cJSON_GetObjectItemCaseSensitive(print, "device");
+            cJSON *ctc = dev ? cJSON_GetObjectItemCaseSensitive(dev, "ctc") : cJSON_GetObjectItemCaseSensitive(print, "ctc");
+            cJSON *inf = ctc ? cJSON_GetObjectItemCaseSensitive(ctc, "info") : NULL;
+            cJSON *t2  = inf ? cJSON_GetObjectItemCaseSensitive(inf, "temp") : NULL;
+            if (cJSON_IsNumber(t2)) raw = t2->valuedouble;
+            else if (cJSON_IsString(t2) && t2->valuestring) raw = atof(t2->valuestring);
+            else continue;
+        }
+        else continue;
+        int v = (int)(raw + 0.5); if (v < 0) v = 0; if (v > PS_TEMP_MAX) v = PS_TEMP_MAX;
         ps_lock(); bool moved = g_ps.temp_c[i] != v; g_ps.temp_c[i] = (int16_t)v; ps_unlock();
         if (moved) ps_effect_notify();
     }
@@ -163,6 +266,30 @@ static void on_mqtt(void *arg, esp_event_base_t base, int32_t id, void *data)
     default:
         break;
     }
+}
+
+/* The printer's own LED command. FACT (the Bambu request topic this client already publishes
+ * pushall on): system.ledctrl, with the node and the mode. The three timing members are part
+ * of the command's shape and are sent as the steady-on values; this device never asks for a
+ * flashing light.
+ *
+ * Nothing is written into g_ps here. The printer reports its lights in its telemetry, and
+ * that report is the only thing that moves the switch: a command that the printer ignores
+ * leaves the page showing what the printer actually did. */
+int ps_printer_light_set(const char *node, int on)
+{
+    if (!node || !s_client || !s_topic_request[0]) return -1;
+    if (strcmp(node, "chamber_light") && strcmp(node, "work_light")) return -1;
+    static unsigned seq = 1;
+    char body[224];
+    int n = snprintf(body, sizeof body,
+        "{\"system\":{\"sequence_id\":\"%u\",\"command\":\"ledctrl\",\"led_node\":\"%s\","
+        "\"led_mode\":\"%s\",\"led_on_time\":500,\"led_off_time\":500,\"loop_times\":0,\"interval_time\":0}}",
+        seq++, node, on ? "on" : "off");
+    if (n <= 0 || n >= (int)sizeof body) return -1;
+    int rc = esp_mqtt_client_publish(s_client, s_topic_request, body, n, 0, 0);
+    ESP_LOGI(TAG, "ledctrl %s %s: %s", node, on ? "on" : "off", rc >= 0 ? "sent" : "not sent");
+    return rc >= 0 ? 0 : -1;
 }
 
 int ps_printer_start(void)

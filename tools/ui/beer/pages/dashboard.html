@@ -39,16 +39,15 @@
     <div class="small-text" data-str="ui_these_write_to_the_printer_so_they">These write to the printer, so they need Developer
       Mode switched on under LAN Only Mode. Everything above only listens.</div>
     <ul class="list border">
-      <li>
+      <!-- Neither switch carries `checked`: a switch that starts on and is only corrected
+           when the printer speaks is a switch that lies for as long as the printer is
+           quiet. Both rows stay away until the printer has actually named that light. -->
+      <li id="ps-pctl-chamber-light-row" hidden>
         <svg class="i"><use href="#i-lighting"/></svg>
-        <div class="max" data-str="status_chamber_light" id="sw_id_pctl_chamber_light">Chamber light</div>
-        <label class="switch"><input type="checkbox" id="ps-pctl-chamber-light" aria-labelledby="sw_id_pctl_chamber_light" checked><span></span></label>
+        <div class="max" data-str="status_chamber_light" id="lbl-pctl-chamber-light">Chamber light</div>
+        <label class="switch"><input type="checkbox" id="ps-pctl-chamber-light" aria-labelledby="lbl-pctl-chamber-light"><span></span></label>
       </li>
-      <li id="ps-pctl-work-light-row">
-        <svg class="i"><use href="#i-brightness"/></svg>
-        <div class="max" data-str="ui_work_light" id="sw_id_pctl_work_light">Work light</div>
-        <label class="switch"><input type="checkbox" id="ps-pctl-work-light" aria-labelledby="sw_id_pctl_work_light"><span></span></label>
-      </li>
+
     </ul>
     <div class="padding">
       <div class="small-text" id="ps-pctl-locked" hidden data-str="ui_the_printer_is_refusing_commands_t">The printer is refusing commands. Turn on
@@ -62,34 +61,9 @@
     <ul class="list border" id="ps-kv-lighting"></ul>
   </article>
 
-  <!-- ── The AMS spools ───────────────────────────────────────────────
-       Their own card. A chip per loaded spool, spread evenly across the
-       card: two by two on a phone, all four in one row from a tablet up.
-       The colour lives in the dot, the loaded spool is marked with a ring.
-       The whole card hides when the printer has no AMS (the renderer sets
-       #ps-trays hidden, and the card follows). -->
-  <article class="no-padding" id="ps-card-filament">
-    <h6 class="card-title" data-str="ui_filament_loaded">Filament Loaded</h6>
-    <div class="padding" id="ps-trays">
-      <nav class="trays-grid" id="ps-trays-row">
-      </nav>
-    </div>
-  </article>
-
-  <!-- ── Endstop check ────────────────────────────────────────────── -->
-  <article id="ps-cal-row">
-    <h6 class="card-title" data-str="cal_label">Endstop check</h6>
-    <div class="small-text" data-str="ui_drives_the_flap_onto_both_stops_an">Drives the flap onto both stops and reports what the
-    hall sensor read at each one. Nothing is stored; this answers "is the sensor seeing the magnet".</div>
-    <div class="space"></div>
-    <button class="fill responsive" id="ps-btn-cal">
-      <svg class="i"><use href="#i-endstop"/></svg>
-      <span data-str="ui_run_the_check">Run the check</span>
-    </button>
-    <div id="ps-cal-result" hidden>
-      <div class="space"></div>
-      <ul class="list border" id="ps-kv-cal"></ul>
-    </div>
-  </article>
+  <!-- Two cards were here and are gone. The AMS spool chips need a model of the
+       printer's trays that this device never builds, and the endstop check drives a flap
+       this device does not have: both came over with the vent's markup and both drew an
+       empty box on every dashboard. A card that can never fill is worse than no card. -->
 
 </section>

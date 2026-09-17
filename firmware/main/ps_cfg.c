@@ -165,7 +165,12 @@ void ps_cfg_factory_defaults(ps_cfg_t *c)
      * temperature to a printing one; the hot warning watches the nozzle past what a hand
      * tolerates, in red; the error flash is red at the parity brightness, at half rate. */
     c->temp_lo = 25; c->temp_hi = 250; c->temp_src = PS_TEMP_NOZZLE;
-    c->hot_src = PS_TEMP_NOZZLE; c->hot_c = 50; c->hot_colour = (ps_rgba_t){ 0xFF, 0, 0, 0xFF };
+    /* A11's default watched the NOZZLE at 50 C. A nozzle is over 50 C for the whole of every
+     * print, so with the switch on the layer pulsed red over the bar from the first minute
+     * of a job to the last, and the effect underneath could not be seen at all. The warning
+     * is about the machine being hot to open, so it watches the chamber; a printer with no
+     * chamber reading never triggers it, which is the right answer for that machine too. */
+    c->hot_src = PS_TEMP_CHAMBER; c->hot_c = 50; c->hot_colour = (ps_rgba_t){ 0xFF, 0, 0, 0xFF };
     c->err_colour = (ps_rgba_t){ 0xFF, 0, 0, 0xFF }; c->err_brightness = 50; c->err_speed = 50;
     memset(c->_pad2, 0, sizeof c->_pad2);
 }
