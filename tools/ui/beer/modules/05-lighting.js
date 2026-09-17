@@ -72,9 +72,14 @@
 
   function paint_slider(id, val, live) {
     var el = byId(id), out = byId(id + '-value');
-    if (el && document.activeElement !== el) el.value = isNum(val) ? val : 0;
+    /* A value the device has not reported is not zero. root_settings emits brightness but
+       not speed ("speed is stored, not emitted": the observed push had no speed key), so
+       painting a missing speed as 0 puts a number on screen that nothing said. The handle
+       is left where it is and the reading stays blank until the device does say. */
+    var known = isNum(val);
+    if (el && known && document.activeElement !== el) el.value = val;
     if (el) el.disabled = !live;
-    if (out) out.textContent = isNum(val) ? fmtPct(val) : '';
+    if (out) out.textContent = known ? fmtPct(val) : DASH;
     var card = byId(id === 'ps-speed' ? 'ps-speed-card' : null);
     if (card) card.classList.toggle('is-inert', !live);
   }

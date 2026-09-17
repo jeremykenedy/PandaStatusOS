@@ -44,6 +44,7 @@ for p in sorted(PAGES):
 # list from the markup alone would drop it and the page would print the raw
 # key the first time somebody turned the switch off.
 JS_ONLY = {
+    'ui_auto': 'Auto',
     # the twenty-four effect names. The list is built from PS_FX ids at run time, so no
     # page file names them and deriving from markup alone would drop every one.
     'ui_fx_0': 'Solid',
