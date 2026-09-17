@@ -630,7 +630,7 @@ function ws_recv(data) {
   if (msg.wifi !== undefined) handle_wifi(msg.wifi);
   if (msg.sta !== undefined) handle_sta(msg.sta);
   if (msg.ap !== undefined) handle_ap();
-  if (msg.printer !== undefined) { handle_printer(msg.printer); handle_camera(); handle_pctl(); }
+  if (msg.printer !== undefined) { handle_printer(msg.printer); handle_pctl(); }
   if (msg.settings !== undefined) {
     handle_settings();
     /* settings carries the bar: current_mode, and list2[mode] with its brightness and its
@@ -660,41 +660,24 @@ function render_chrome() {
   var s = g_state.settings || {};
   var vp = g_state.printer || {};
 
-  /* Top bar name */
-  var name = s.device_name;
-  setText('ps-top-name', (name && name.length) ? name : 'PandaStatusOS');
+  /* The top bar's left is what THIS unit is called, which on a bench with two of them is
+     the useful thing to see. The product name is already centred on the bar, so repeating
+     it here says nothing. The name is sta.hostname (ps_state.c root_sta); the vent kept
+     it under settings.device_name, which this device does not send. */
+  var sta = g_state.sta || {};
+  var name = sta.hostname;
+  setText('ps-top-name', (name && name.length) ? name : '');
 
-  /* Dot, state, percent, progress */
+  /* The chip says what the printer is doing, which arrives on /api/print and not on the
+     socket, so 01-print.js owns it once the device is talking. Before that there is only
+     one thing to say and core says it. */
   var dot = byId('ps-top-dot');
-  var st = vp.device_state;
   if (!g_have_first_state) {
     if (dot) dot.setAttribute('class', 'ux_top_dot');
     setText('ps-top-state', tr('ui_waiting_short', 'Waiting for the device'));
     setHidden('ps-top-pct', true);
     setHidden('ps-top-prog', true);
     setHidden('ps-top-prog-fill', true);
-  } else {
-    var cls = (isNum(st) && st >= 0 && st <= 5) ? TOP_DOT_CLASS[st] : 'is-idle';
-    if (dot) dot.setAttribute('class', 'ux_top_dot ' + cls);
-    setText('ps-top-state', device_state_name(st) || tr('ui_waiting_short', 'Waiting for the device'));
-
-    var pct = vp.print_percent;
-    var running = isNum(st) && (st === 1 || st === 2 || st === 3);
-    if (running && isNum(pct) && pct >= 0) {
-      setText('ps-top-pct', fmtPct(pct));
-      setHidden('ps-top-pct', false);
-    } else {
-      setHidden('ps-top-pct', true);
-    }
-    var prog = byId('ps-top-prog');
-    var fill = byId('ps-top-prog-fill');
-    if (running && isNum(pct) && pct >= 0) {
-      if (prog) { prog.hidden = false; prog.value = pct; }
-      if (fill) { fill.hidden = false; fill.style.width = pct + '%'; }
-    } else {
-      if (prog) prog.hidden = true;
-      if (fill) fill.hidden = true;
-    }
   }
 
   /* Version badge */
@@ -728,30 +711,55 @@ function render_status() {
   var st = printer.status || printer;
 
   render_lighting_now();
-  render_kv_printer(st, printer, printer);
-  render_trays(st);
-  render_calibrate(printer);
+  /* The Printer card is 01-print.js's: every reading in it arrives on /api/print. */
+  if (window.render_print && window.g_last_print) render_print(window.g_last_print);
   render_anim(st);
 }
 
-/* 1.1 The dashboard's read-only summary of the bar: which mode it is in, how bright, and
-   at what speed. The page that changes any of it is Lighting; this only reports. */
+/* 1.1 Lighting, as it is right now. Read only: the page that changes any of it is
+   Lighting. Five static rows stood here with a label and no value element, because the
+   vent rebuilt this list from its own model and that model is gone. Rebuilt from what
+   this device sends, and nothing else: rows for a strip count and an effect it does not
+   report would be dashes forever. */
 function render_lighting_now() {
-  var s = g_state.settings || {};
-  var m = isNum(s.current_mode) ? s.current_mode : 0;
-  var slot = (Array.isArray(s.list2) ? s.list2[m] : null) || {};
+  var ul = byId('ps-kv-lighting');
+  if (!ul) return;
+  var st = g_state.settings || {};
+  var m = isNum(st.current_mode) ? st.current_mode : 0;
+  var slot = (Array.isArray(st.list2) ? st.list2[m] : null) || {};
+  var rows = [];
 
-  setText('ps-light-showing', m === 1 ? tr('ui_h2d', 'H2D') : tr('ui_music', 'Music'));
-  setText('ps-light-effect', isNum(slot.brightness) ? fmtPct(slot.brightness) : DASH);
-  setText('ps-light-speed', (m === 1 && isNum(slot.speed)) ? fmtPct(slot.speed) : DASH);
+  rows.push(kv_li_plain(tr('status_showing', 'Showing'),
+    valueSpan(m === 1 ? tr('ui_h2d', 'H2D') : tr('ui_music', 'Music'))));
 
-  var dot = byId('ps-light-dot');
-  if (dot) {
-    var cols = slot.rgb_rgba;
-    var c = Array.isArray(cols) && typeof cols[0] === 'string' ? cols[0] : '';
-    if (c.charAt(0) !== '#') c = c ? '#' + c : '';
-    dot.style.background = c ? c.slice(0, 7) : '';
+  rows.push(kv_li_plain(tr('status_brightness', 'Brightness'),
+    isNum(slot.brightness) ? valueSpan(fmtPct(slot.brightness)) : unknownSpan()));
+
+  /* Speed is stored per mode and emitted by neither, so it reads unknown rather than
+     zero, and it is only live in H2D anyway. */
+  rows.push(kv_li_plain(tr('status_speed', 'Speed'),
+    (m === 1 && isNum(slot.speed)) ? valueSpan(fmtPct(slot.speed)) : unknownSpan()));
+
+  /* The three state colours as three dots, in the device's own order: idle, printing,
+     error. A dot says more here than three hex strings would. */
+  var cols = slot.rgb_rgba;
+  if (Array.isArray(cols) && cols.length) {
+    var wrap = document.createElement('span');
+    for (var i = 0; i < cols.length && i < 3; i++) {
+      var c = typeof cols[i] === 'string' ? cols[i] : '';
+      if (c.charAt(0) !== '#') c = c ? '#' + c : '';
+      var dot = document.createElement('i');
+      dot.className = 'circle small swatch-dot';
+      if (c) dot.style.background = c.slice(0, 7);
+      wrap.appendChild(dot);
+    }
+    rows.push(kv_li_plain(tr('status_colour', 'Colour'), wrap));
+  } else {
+    rows.push(kv_li_plain(tr('status_colour', 'Colour'), unknownSpan()));
   }
+
+  ul.textContent = '';
+  for (var j = 0; j < rows.length; j++) ul.appendChild(rows[j]);
 }
 
 /* 1.1 Airflow dial + vent mode */
@@ -1113,11 +1121,17 @@ var H2D_SUFFIX = {
 
 function handle_settings() {
   var s = g_state.settings || {};
-  setInputValue('ps-settings-fw-ver', s.fw_version);
-  setInputValue('ps-settings-device-name', s.device_name);
-  setText('ps-settings-printing-ui-type', s.device_name);
+  setText('ps-settings-fw-ver', s.fw_version || DASH);
+  /* This device has ONE name. ps_netname.c: a hostname is one DNS label, sanitised on the
+     way in and again on the way out, and there is no device_name anywhere in the firmware.
+     The vent had a separate friendly name; pretending there are two here would give the
+     owner a field that writes to the same place as the other one. */
+  var _sta = g_state.sta || {};
+  setInputValue('ps-settings-device-name', _sta.hostname || '');
   if (s.language) set_language(s.language);
-  /* ps-settings-img-ver is Panda-Status only; a vent never sends it. */
+  /* img_version is only added once the device knows its own images version, so a blank
+     here is "not reported yet" and says so. */
+  setText('ps-settings-img-ver', s.img_version || DASH);
   /* Version badge + cfg banner are handled in render_chrome (§0.7). */
 }
 
@@ -1379,7 +1393,10 @@ function handle_sta(sta) {
      itself when it should rather than keeping a stale reading. */
   setText('ps-sta-ip', sta.ip);
   var _vst = (g_state.printer && g_state.printer.status) || {};
-  setText('ps-sta-rssi', isNum(_vst.wifi_rssi) ? _vst.wifi_rssi + ' dBm' : '');
+  /* The radio's own reading, which root_sta now carries while there is a link. Absent
+     means no link or no reading, and reads as unknown rather than as a blank. */
+  var _rs = (g_state.sta || {}).rssi;
+  setText('ps-sta-rssi', isNum(_rs) ? _rs + ' dBm' : DASH);
   setInputValue('ps-sta-hostname', sta.hostname);
 
   var state = sta.state;
@@ -1425,47 +1442,6 @@ function handle_ap() {
    15. Camera card (§9, device push)
    ------------------------------------------------------------------- */
 
-function handle_camera() {
-  var st = (g_state.printer && g_state.printer.status) || {};
-  var printer = g_state.printer || {};
-  var linked = (printer.state === 3);
-  var present_cam = linked && (st.cam_present === 1);
-
-  setHidden('ps-cam-none', present_cam);
-  setHidden('ps-cam-ctl', !present_cam);
-
-  /* readout rows */
-  var host = byId('ps-kv-camera');
-  if (host) {
-    host.innerHTML = '';
-    host.appendChild(kv_li_icon('image', tr('cam_resolution', 'Resolution'), null,
-      vnode(!!(st.cam_res && st.cam_res.length), st.cam_res)));
-    host.appendChild(kv_li_icon('video', tr('cam_record', 'Recording'), null,
-      vnode(isNum(st.cam_record), st.cam_record ? tr('ui_on', 'On') : tr('ui_off', "off"))));
-    host.appendChild(kv_li_icon('clock', tr('cam_timelapse', 'Timelapse'), null,
-      vnode(isNum(st.cam_timelapse), st.cam_timelapse ? tr('ui_on', 'On') : tr('ui_off', "off"))));
-    var storeNode;
-    if (isNum(st.cam_free_mb) && isNum(st.cam_total_mb)) storeNode = valueSpan(fmtStorageMB(st.cam_free_mb) + ' / ' + fmtStorageMB(st.cam_total_mb));
-    else if (isNum(st.cam_free_mb)) storeNode = valueSpan(fmtStorageMB(st.cam_free_mb));
-    else storeNode = unknownSpan();
-    host.appendChild(kv_li_icon('disk', tr('cam_storage', 'Storage'), null, storeNode));
-  }
-
-  /* record toggle */
-  setChecked('ps-cam-record', st.cam_record, true);
-
-  /* rtsp */
-  var url = st.cam_rtsp;
-  var usable = !!(url && url.length && url !== 'disable');
-  var note = byId('ps-cam-rtsp-note');
-  if (note) {
-    if (!url || url === '') note.textContent = tr('cam_rtsp_off', "RTSP is turned off on the printer. Turn it on from the printer's own screen, under the camera settings, and the address will appear here.");
-    else if (url === 'disable') note.textContent = tr('ui_cam_rtsp_disabled', "RTSP is switched off on the printer. Turn on LAN Mode Liveview in the printer's camera settings, then the address appears here.");
-    else note.textContent = tr('ui_cam_rtsp_enabled', 'A browser cannot play this stream. Copy the address into VLC or Home Assistant.');
-  }
-  setHidden('ps-cam-rtsp-row', !usable);
-  if (usable) setText('ps-cam-rtsp', url);
-}
 
 /* ---------------------------------------------------------------------
    16. Printer control card (§10, device push)

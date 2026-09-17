@@ -44,6 +44,11 @@ for p in sorted(PAGES):
 # list from the markup alone would drop it and the page would print the raw
 # key the first time somebody turned the switch off.
 JS_ONLY = {
+    'ui_no_logs': 'Nothing logged yet.',
+    # the job strip's own words, chosen from numbers the device sends
+    'ui_layer': 'layer',
+    'ui_left': 'left',
+    'ui_of': 'of',
     # the nineteen feature switches and what each one does. The list is built from the
     # names /api/features returns, so no page file mentions any of them.
     'ui_feat_auto_rebind': 'Find the printer again',

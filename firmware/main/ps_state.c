@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include "esp_log.h"
 #include "cJSON.h"
+#include "esp_wifi.h"
 #include "ps.h"
 
 static const char *TAG = "ps_state";
@@ -15,6 +16,9 @@ void ps_state_init(void)
 {
     memset(&g_ps, 0, sizeof g_ps);
     g_ps.print_percent = -1;                          /* after the memset: no report yet */
+    g_ps.layer_num = g_ps.layer_total = -1;
+    g_ps.remain_min = -1;
+    g_ps.spd_lvl = -1;
     for (int i = 0; i < PS_TEMP_COUNT; i++) g_ps.temp_c[i] = PS_TEMP_NONE;
     ps_cfg_load(&g_ps.cfg);
     ps_presets_load(&g_ps.presets);                   /* A14: the named effects, or an empty list */
@@ -50,6 +54,15 @@ static cJSON *root_sta(void)
     cJSON_AddStringToObject(o, "hostname", g_ps.cfg.hostname);
     cJSON_AddNumberToObject(o, "state", g_ps.sta_state);
     cJSON_AddNumberToObject(o, "auth_err_reason", g_ps.auth_err_reason);
+    /* The signal, when there is a link to have one. An addition of the clone's own: the
+     * factory's document does not carry it, and the socket document is pinned to the
+     * factory's six ROOTS, not to their exact members, so a member the page needs and the
+     * device already knows belongs here rather than on a route of its own. 0 means the
+     * radio gave no reading, which a bar of dBm cannot be confused with. */
+    if (g_ps.sta_state == PS_STA_CONNECTED) {
+        wifi_ap_record_t ap;
+        if (esp_wifi_sta_get_ap_info(&ap) == ESP_OK) cJSON_AddNumberToObject(o, "rssi", ap.rssi);
+    }
     return o;
 }
 static cJSON *root_ap(void)

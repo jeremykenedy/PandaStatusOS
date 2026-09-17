@@ -18,6 +18,7 @@ void ps_restart(const char *why) { ESP_LOGW(TAG, "restart: %s", why); vTaskDelay
 
 void app_main(void)
 {
+    ps_log_init();   /* before anything else: a log that starts late misses the boot */
     s_lock = xSemaphoreCreateRecursiveMutex();
     esp_err_t err = nvs_flash_init();
     if (err == ESP_ERR_NVS_NO_FREE_PAGES || err == ESP_ERR_NVS_NEW_VERSION_FOUND) { ESP_ERROR_CHECK(nvs_flash_erase()); err = nvs_flash_init(); }

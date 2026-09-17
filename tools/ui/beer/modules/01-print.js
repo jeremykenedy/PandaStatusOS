@@ -61,7 +61,10 @@
     /* The strip's headline: what the printer is doing, not what it is called.
        This device does not report a job name, so inventing a blank line where
        one would go is worse than saying the stage. */
-    var head = printing ? stage_name(d.stage) : '';
+    /* The name the printer gave the job, which is what a person recognises. The stage is
+       the fallback, because a running print with no name still has something to say. */
+    var job = d && typeof d.job === 'string' ? d.job : '';
+    var head = printing ? (job || stage_name(d.stage)) : '';
     setText('ps-job-name', head || tr('ui_no_job', 'Nothing printing'));
     setText('ps-job-pct', known ? fmtPct(pct) : '');
 
@@ -72,9 +75,28 @@
     if (meta) {
       meta.innerHTML = '';
       var t = (d && d.temp) || {};
-      var rows = [temp_span('ui_nozzle', 'Nozzle', t.nozzle),
-                  temp_span('ui_bed', 'Bed', t.bed),
-                  temp_span('ui_chamber', 'Chamber', t.chamber)];
+      var rows = [];
+      /* Which printer, first. "Printing, 68%" says nothing about WHERE, and a device that
+         can be re-bound to another printer should never leave that ambiguous. */
+      var pname = (g_state.printer || {}).name;
+      if (printing && typeof pname === 'string' && pname) rows.push(valueSpan(pname));
+      /* The stage, when the name took the headline: otherwise the strip never says what
+         the printer is actually doing right now. */
+      if (printing && job) rows.push(valueSpan(stage_name(d.stage)));
+      if (printing && isNum(d.layer) && d.layer >= 0) {
+        rows.push(valueSpan(isNum(d.layers) && d.layers > 0
+          ? tr('ui_layer', 'layer') + ' ' + d.layer + ' ' + tr('ui_of', 'of') + ' ' + d.layers
+          : tr('ui_layer', 'layer') + ' ' + d.layer));
+      }
+      if (printing && isNum(d.remain_min) && d.remain_min >= 0) {
+        rows.push(valueSpan(fmtRemain(d.remain_min) + ' ' + tr('ui_left', 'left')));
+      }
+      if (printing && isNum(d.speed_level) && SPEED_WORDS[d.speed_level]) {
+        rows.push(valueSpan(tr('speed_word_' + d.speed_level, SPEED_WORDS[d.speed_level])));
+      }
+      rows.push(temp_span('ui_nozzle', 'Nozzle', t.nozzle));
+      rows.push(temp_span('ui_bed', 'Bed', t.bed));
+      rows.push(temp_span('ui_chamber', 'Chamber', t.chamber));
       for (var i = 0; i < rows.length; i++) if (rows[i]) meta.appendChild(rows[i]);
     }
 
@@ -83,9 +105,73 @@
     var prog = byId('ps-top-prog');
     if (prog) { prog.value = known ? pct : 0; prog.hidden = !known; }
 
+    render_chip(d, printing, known, pct);
+    render_printer_card(d);
     g_last = d;
+    window.g_last_print = d;
   }
   window.render_print = render_print;
+
+  /* The chip on the top bar. What the printer is DOING, which is the stage while a print
+     runs and the link's own state otherwise. The vent read a six-value device_state off
+     its own policy root; this device sends printer.state, which is the link (1 unbound
+     through 7 unknown error), and what the print is doing comes from here. */
+  function render_chip(d, printing, known, pct) {
+    if (typeof g_have_first_state !== 'undefined' && !g_have_first_state) return;
+    var link = (g_state.printer || {}).state;
+    var dot = byId('ps-top-dot');
+    var word, cls;
+    if (printing) {
+      word = stage_name(d.stage) || tr('ui_printer_state_2', 'Printing');
+      cls = 'is-run';
+    } else if (isNum(link) && link !== 3) {
+      word = tr('ui_link_state_' + link, 'Printer not connected');
+      cls = (link >= 4) ? 'is-err' : 'is-wait';
+    } else {
+      word = tr('ui_printer_state_0', 'Idle');
+      cls = 'is-idle';
+    }
+    if (dot) dot.setAttribute('class', 'ux_top_dot ' + cls);
+    setText('ps-top-state', word);
+    setHidden('ps-top-pct', !known);
+  }
+
+  /* The Printer card. It was eight static rows with a label and no value element, because
+     the vent rebuilt the list from its own model and that model is gone. Rebuilt here from
+     what this device reports and nothing else: rows for readings it does not have would be
+     eight dashes forever. */
+  function render_printer_card(d) {
+    var ul = byId('ps-kv-printer');
+    if (!ul) return;
+    var p = g_state.printer || {};
+    var t = (d && d.temp) || {};
+    var rows = [];
+
+    /* Which printer this is, before anything about it. On a bench with two of them the
+       name is the only row that says WHICH one the rest of the card is describing. */
+    rows.push(kv_li_icon('printer', tr('card_printer', 'Printer'), null,
+      (typeof p.name === 'string' && p.name) ? valueSpan(p.name) : unknownSpan()));
+
+    rows.push(kv_li_icon('network', tr('status_link', 'Link'), null,
+      isNum(p.state) ? valueSpan(tr('ui_link_state_' + p.state, String(p.state))) : unknownSpan()));
+
+    var stateTxt = d && d.printing ? (stage_name(d.stage) || tr('ui_printer_state_2', 'Printing'))
+                                   : (d ? tr('ui_printer_state_0', 'Idle') : null);
+    rows.push(kv_li_icon('printer-enclosed', tr('ui_state', 'State'), null,
+      stateTxt ? valueSpan(stateTxt) : unknownSpan()));
+
+    var temps = [['nozzle-temp', 'status_nozzle', 'Nozzle', t.nozzle],
+                 ['bed-hot', 'status_bed', 'Bed', t.bed],
+                 ['temp', 'status_chamber', 'Chamber', t.chamber]];
+    for (var i = 0; i < temps.length; i++) {
+      var v = temps[i][3];
+      rows.push(kv_li_icon(temps[i][0], tr(temps[i][1], temps[i][2]), null,
+        (isNum(v) && v > TEMP_NONE) ? valueSpan(fmtTemp(v)) : unknownSpan()));
+    }
+
+    ul.textContent = '';
+    for (var j = 0; j < rows.length; j++) ul.appendChild(rows[j]);
+  }
 
   function interval() {
     if (typeof document.hidden === 'boolean' && document.hidden) return SLOW;

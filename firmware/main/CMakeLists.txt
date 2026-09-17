@@ -1,5 +1,5 @@
 idf_component_register(
-    SRCS "ps_main.c" "ps_cfg.c" "ps_state.c" "ps_ws.c" "ps_wifi.c" "ps_led.c" "ps_effect.c" "ps_printer.c" "ps_ota.c" "ps_backup.c" "ps_api.c" "ps_fx.c" "ps_rebind.c" "ps_diag.c" "ps_netname.c" "ps_portal.c" "ps_ssdp.c"
+    SRCS "ps_main.c" "ps_cfg.c" "ps_state.c" "ps_ws.c" "ps_wifi.c" "ps_led.c" "ps_effect.c" "ps_printer.c" "ps_ota.c" "ps_backup.c" "ps_api.c" "ps_fx.c" "ps_rebind.c" "ps_diag.c" "ps_netname.c" "ps_log.c" "ps_portal.c" "ps_ssdp.c"
     INCLUDE_DIRS "."
     EMBED_FILES "ui.html.gz" "portal.html"
     REQUIRES nvs_flash esp_http_server esp_app_format esp_wifi esp_netif esp_event mqtt app_update esp_partition driver json esp_timer lwip)

@@ -85,6 +85,28 @@ static void apply_report(const char *json, size_t len)
         ps_lock(); bool moved = g_ps.print_percent != v; g_ps.print_percent = (int16_t)v; ps_unlock();
         if (moved) ps_effect_notify();
     }
+    /* INFERENCE, from the same report and read the same way the vent reads them: what the
+     * print is, how far through its layers, how long it has left and which speed profile.
+     * A partial report carries only some of these, so each is taken on its own and a key
+     * that is absent leaves the last value alone rather than clearing it. */
+    cJSON *jn = print ? cJSON_GetObjectItemCaseSensitive(print, "subtask_name") : NULL;
+    if (cJSON_IsString(jn) && jn->valuestring) {
+        ps_lock();
+        bool moved = strncmp(g_ps.job_name, jn->valuestring, sizeof g_ps.job_name - 1) != 0;
+        strncpy(g_ps.job_name, jn->valuestring, sizeof g_ps.job_name - 1);
+        g_ps.job_name[sizeof g_ps.job_name - 1] = 0;
+        ps_unlock();
+        if (moved) ESP_LOGI(TAG, "job name set");   /* the name itself is the owner's, not ours to log */
+    }
+    cJSON *ln = print ? cJSON_GetObjectItemCaseSensitive(print, "layer_num") : NULL;
+    if (cJSON_IsNumber(ln)) { ps_lock(); g_ps.layer_num = (int16_t)ln->valuedouble; ps_unlock(); }
+    cJSON *lt = print ? cJSON_GetObjectItemCaseSensitive(print, "total_layer_num") : NULL;
+    if (cJSON_IsNumber(lt)) { ps_lock(); g_ps.layer_total = (int16_t)lt->valuedouble; ps_unlock(); }
+    cJSON *rm = print ? cJSON_GetObjectItemCaseSensitive(print, "mc_remaining_time") : NULL;
+    if (cJSON_IsNumber(rm)) { int v = (int)rm->valuedouble; ps_lock(); g_ps.remain_min = v < 0 ? -1 : v; ps_unlock(); }
+    cJSON *sl = print ? cJSON_GetObjectItemCaseSensitive(print, "spd_lvl") : NULL;
+    if (cJSON_IsNumber(sl)) { int v = (int)sl->valuedouble; ps_lock(); g_ps.spd_lvl = (v >= 1 && v <= 4) ? (int8_t)v : -1; ps_unlock(); }
+
     /* INFERENCE: the three temperatures, as the vent reads them from the same report; whole degrees */
     static const char *const TEMP_KEYS[PS_TEMP_COUNT] = { "nozzle_temper", "bed_temper", "chamber_temper" };
     for (int i = 0; print && i < PS_TEMP_COUNT; i++) {

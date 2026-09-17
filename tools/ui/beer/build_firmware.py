@@ -74,7 +74,7 @@ for _m in _mods:
 print('spliced %d clean module(s): %s' % (len(_mods), [os.path.basename(m) for m in _mods]))
 
 # ── the page ─────────────────────────────────────────────────────────────
-PAGES = ['dashboard', 'lighting', 'settings', 'printer', 'camera',
+PAGES = ['dashboard', 'lighting', 'settings', 'printer',
          'wifi', 'hotspot', 'logs', 'setup']
 APP = [p for p in PAGES if p != 'setup']
 pages = ('<div id="ps-page-app" data-page class="active">\n'

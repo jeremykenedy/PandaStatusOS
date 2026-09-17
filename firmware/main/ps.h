@@ -276,6 +276,15 @@ typedef struct {
     uint8_t  job_active;               /* INFERENCE: a job is running, preparing or paused; the printing/not-printing crossing for A3's colours */
     int16_t  print_percent;            /* INFERENCE: print.mc_percent from the report, -1 until one arrives; the progress effects' input */
     int16_t  temp_c[PS_TEMP_COUNT];    /* INFERENCE: nozzle_temper, bed_temper, chamber_temper from the report, PS_TEMP_NONE until one arrives */
+    /* What the print IS, beyond how far through it is. The bar never needed these: the
+     * effects read a percentage and a stage and nothing else. The page does, because a
+     * strip that says 37% and nothing else does not say what is printing. All INFERENCE
+     * from the same report the percentage comes from, and each carries its own "none". */
+    char     job_name[64];             /* print.subtask_name, empty until one arrives */
+    int16_t  layer_num;                /* print.layer_num, -1 until one arrives */
+    int16_t  layer_total;              /* print.total_layer_num, -1 until one arrives */
+    int32_t  remain_min;               /* print.mc_remaining_time, minutes, -1 until one arrives */
+    int8_t   spd_lvl;                  /* print.spd_lvl, 1..4, -1 until one arrives */
     /* A13: a pinned printer state the renderer reads instead of the live one while the pin
      * is live (bit 13). Nothing here is stored; the live state is untouched underneath. */
     uint8_t  pin_active;
@@ -368,6 +377,14 @@ void ps_ap_ssid_from_mac(char *out, size_t n, const uint8_t mac[6]);
  * trailing ".local" goes, anything outside [A-Za-z0-9-] becomes a hyphen, leading and
  * trailing hyphens go, and the result is cut to 63 bytes. */
 void ps_hostname_sanitise(char *s, size_t n);
+
+/* ps_log.c: the last lines the device wrote to itself, kept in RAM so the page can show
+ * them. Scrubbed on the way in, never on the way out. */
+void   ps_log_init(void);
+void   ps_log_clear(void);
+size_t ps_log_dump(char *out, size_t n);
+int    ps_api_logs_get(httpd_req_t *req);
+int    ps_api_logs_delete(httpd_req_t *req);
 
 /* ---- C8: why it is not working, blinked on the bar. Both pure, in ps_diag.c, host-tested. ---- */
 typedef struct { bool active; ps_rgba_t colour; uint8_t blinks; } ps_diag_t;

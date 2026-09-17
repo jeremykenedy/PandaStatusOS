@@ -651,6 +651,9 @@ int ps_api_print_get(httpd_req_t *req)
     int noz = g_ps.temp_c[0], bed = g_ps.temp_c[1], cham = g_ps.temp_c[2];
     int stage = g_ps.stage;
     int pstate = g_ps.printer_state;
+    int bar = g_ps.bar_state;
+    char job[64]; memcpy(job, g_ps.job_name, sizeof job);
+    int lnum = g_ps.layer_num, ltot = g_ps.layer_total, rmin = g_ps.remain_min, spd = g_ps.spd_lvl;
     ps_unlock();
     cJSON_AddNumberToObject(o, "percent", pct);
     cJSON_AddNumberToObject(o, "stage", stage);
@@ -663,9 +666,45 @@ int ps_api_print_get(httpd_req_t *req)
         cJSON_AddItemToObject(o, "temp", tmp);
     }
     cJSON_AddNumberToObject(o, "printer_state", pstate);
+    cJSON_AddNumberToObject(o, "bar_state", bar);
+    /* Each of these carries its own "not reported": an empty name, -1 for the numbers. The
+     * page needs to tell "no layer count" from "layer zero", the same way it does for the
+     * percentage and the temperatures. */
+    cJSON_AddStringToObject(o, "job", job);
+    cJSON_AddNumberToObject(o, "layer", lnum);
+    cJSON_AddNumberToObject(o, "layers", ltot);
+    cJSON_AddNumberToObject(o, "remain_min", rmin);
+    cJSON_AddNumberToObject(o, "speed_level", spd);
     char *s = cJSON_PrintUnformatted(o);
     cJSON_Delete(o);
     return send_json(req, s);
+}
+
+/* GET /api/logs: the last lines the device wrote to itself, oldest first, as text.
+ *
+ * Read only and always answered, like /api/info and /api/state: it changes nothing and it
+ * is the page anyone opens when the device is behaving oddly and every possible cause looks
+ * the same from the outside. DELETE clears it.
+ *
+ * What comes back is already scrubbed: ps_log.c redacts on the way IN, so the unredacted
+ * line never reaches RAM and no future route can serve it by accident. */
+int ps_api_logs_get(httpd_req_t *req)
+{
+    static char buf[64 * 160 + 8];
+    size_t n = ps_log_dump(buf, sizeof buf - 1);
+    httpd_resp_set_type(req, "text/plain; charset=utf-8");
+    httpd_resp_set_hdr(req, "Cache-Control", "no-store");
+    httpd_resp_send(req, buf, (ssize_t)n);
+    return ESP_OK;
+}
+
+int ps_api_logs_delete(httpd_req_t *req)
+{
+    ps_log_clear();
+    httpd_resp_set_type(req, "application/json");
+    httpd_resp_set_hdr(req, "Cache-Control", "no-store");
+    httpd_resp_sendstr(req, "{\"cleared\":true}");
+    return ESP_OK;
 }
 
 int ps_api_state_get(httpd_req_t *req)

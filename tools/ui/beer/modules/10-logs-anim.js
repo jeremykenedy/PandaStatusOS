@@ -26,12 +26,39 @@
 
 var g_logs_card_shown = false;
 
+/* The vent asked for its log over the socket, with a root of its own. This device's
+   document is pinned to the factory's six roots, so the log is a route instead
+   (ps_api.c ps_api_logs_get) and asking over the socket would only earn an
+   "unknown root" in the very log being asked for. */
+function logs_fill(text) {
+  var view = document.getElementById('ps-log-view');
+  if (!view) return;
+  var t = (typeof text === 'string') ? text.replace(/\s+$/, '') : '';
+  view.textContent = t || tr('ui_no_logs', 'Nothing logged yet.');
+  /* Newest at the bottom, so the interesting end is the end you land on. */
+  view.scrollTop = view.scrollHeight;
+}
+
 function logs_request() {
-  ws_push('logs', {});
+  var x = new XMLHttpRequest();
+  x.open('GET', '/api/logs', true);
+  x.timeout = 5000;
+  x.onload = function () { if (x.status === 200) logs_fill(x.responseText); };
+  x.onerror = function () {};
+  x.ontimeout = function () {};
+  try { x.send(); } catch (e) {}
 }
 
 function logs_clear_request() {
-  ws_push('logs', { clear: 1 });
+  var x = new XMLHttpRequest();
+  x.open('DELETE', '/api/logs', true);
+  x.timeout = 5000;
+  /* Re-read rather than blanking the view: what the device kept is the truth, and a
+     line written between the click and the clear should still be there. */
+  x.onload = function () { logs_request(); };
+  x.onerror = function () {};
+  x.ontimeout = function () {};
+  try { x.send(); } catch (e) {}
 }
 
 /* A card is open exactly when it wears .active (app.css). Watching that
