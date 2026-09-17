@@ -22,7 +22,50 @@
     "access_code": "<PRINTER_ACCESS_CODE>",
     "ip": "192.0.2.20",
     "state": 3,
-    "scan": 5
+    "scan": 5,
+    "status": {
+      "printer_light": 1,
+      "nozzle_temp": 216,
+      "bed_temp": 60,
+      "chamber_temp": 34,
+      "fan_part": 33,
+      "fan_aux": 47,
+      "fan_chamber": 0,
+      "filament_in": 1,
+      "ams_humidity": 2,
+      "ams_temp": 31,
+      "device_state": 0,
+      "printer_rssi": "-41dBm",
+      "nozzle_dia": "0.4",
+      "nozzle_kind": "HH01",
+      "wifi_rssi": -52,
+      "uptime_s": 4210,
+      "trays": [
+        {
+          "id": 0,
+          "type": "PLA",
+          "sub": "PLA Basic",
+          "remain": 74,
+          "colour": "#10E637FF"
+        },
+        {
+          "id": 1,
+          "type": "PETG",
+          "remain": 12,
+          "colour": "#3B14D5FF"
+        },
+        {
+          "id": 2,
+          "type": "ABS",
+          "colour": "#000000FF"
+        },
+        {
+          "id": 3,
+          "remain": 100
+        }
+      ],
+      "tray_now": 1
+    }
   },
   "settings": {
     "list2": [

@@ -171,8 +171,68 @@ static void apply_report(const char *json, size_t len)
     if (ams0) {
         cJSON *hu = cJSON_GetObjectItemCaseSensitive(ams0, "humidity");
         cJSON *tp = cJSON_GetObjectItemCaseSensitive(ams0, "temp");
+        /* Humidity is a LEVEL, 1 to 5, not a percentage, and there is no published mapping
+         * from one to the other. It is carried as the level the printer gave and drawn as a
+         * level; inventing a percentage from it would be inventing a reading. Bambu has also
+         * dropped this field from a firmware release before, so its absence is normal and
+         * leaves the last value alone rather than clearing it to zero. */
         if (cJSON_IsString(hu)) { int v = atoi(hu->valuestring); ps_lock(); g_ps.ams_humidity = (v >= 1 && v <= 5) ? (int8_t)v : -1; ps_unlock(); }
+        else if (cJSON_IsNumber(hu)) { int v = (int)hu->valuedouble; ps_lock(); g_ps.ams_humidity = (v >= 1 && v <= 5) ? (int8_t)v : -1; ps_unlock(); }
         if (cJSON_IsString(tp)) { ps_lock(); g_ps.ams_temp_c = (int16_t)atoi(tp->valuestring); ps_unlock(); }
+        else if (cJSON_IsNumber(tp)) { ps_lock(); g_ps.ams_temp_c = (int16_t)tp->valuedouble; ps_unlock(); }
+
+        /* The trays. Only the ones the printer actually describes go in the list, so a unit
+         * with two spools reports two rows rather than four with two of them blank. */
+        cJSON *tr = cJSON_GetObjectItemCaseSensitive(ams0, "tray");
+        if (cJSON_IsArray(tr)) {
+            ps_tray_t list[PS_TRAYS_MAX];
+            memset(list, 0, sizeof list);
+            int n = 0;
+            cJSON *e = NULL;
+            cJSON_ArrayForEach(e, tr) {
+                if (n >= PS_TRAYS_MAX || !cJSON_IsObject(e)) break;
+                ps_tray_t t;
+                memset(&t, 0, sizeof t);
+                t.id = (int8_t)n; t.remain = -1;
+                cJSON *v;
+                if ((v = cJSON_GetObjectItemCaseSensitive(e, "id"))) {
+                    if (cJSON_IsString(v)) t.id = (int8_t)atoi(v->valuestring);
+                    else if (cJSON_IsNumber(v)) t.id = (int8_t)v->valuedouble;
+                }
+                if ((v = cJSON_GetObjectItemCaseSensitive(e, "tray_type")) && cJSON_IsString(v))
+                    { strncpy(t.type, v->valuestring, sizeof t.type - 1); }
+                if ((v = cJSON_GetObjectItemCaseSensitive(e, "tray_sub_brands")) && cJSON_IsString(v))
+                    { strncpy(t.sub, v->valuestring, sizeof t.sub - 1); }
+                if ((v = cJSON_GetObjectItemCaseSensitive(e, "remain"))) {
+                    int r = cJSON_IsNumber(v) ? (int)v->valuedouble : (cJSON_IsString(v) ? atoi(v->valuestring) : -1);
+                    t.remain = (r >= 0 && r <= 100) ? (int8_t)r : -1;
+                }
+                /* tray_color is eight hex digits, RRGGBBAA, with no leading hash. An empty
+                 * tray reports all zeros, which is not a colour and is not drawn as one. */
+                if ((v = cJSON_GetObjectItemCaseSensitive(e, "tray_color")) && cJSON_IsString(v) && strlen(v->valuestring) >= 6) {
+                    char wire[10];
+                    snprintf(wire, sizeof wire, "#%.8s", v->valuestring);
+                    if (strlen(v->valuestring) == 6) snprintf(wire, sizeof wire, "#%.6sFF", v->valuestring);
+                    ps_rgba_t c;
+                    if (ps_rgba_from_wire(wire, &c) && (c.r || c.g || c.b)) { t.colour = c; t.has_colour = 1; }
+                }
+                /* A tray with nothing in it at all is not a spool: no type, no colour and no
+                 * remaining is an empty slot, and an empty slot is not drawn. */
+                if (t.type[0] || t.has_colour || t.remain >= 0) list[n++] = t;
+            }
+            ps_lock();
+            memcpy(g_ps.trays, list, sizeof list);
+            g_ps.tray_count = (int8_t)n;
+            ps_unlock();
+        }
+    }
+    /* Which tray is loaded. The printer sends it as a string, and 254 or 255 means none. */
+    if (ams) {
+        cJSON *tn = cJSON_GetObjectItemCaseSensitive(ams, "tray_now");
+        int v = -1;
+        if (cJSON_IsString(tn)) v = atoi(tn->valuestring);
+        else if (cJSON_IsNumber(tn)) v = (int)tn->valuedouble;
+        ps_lock(); g_ps.tray_now = (v >= 0 && v < PS_TRAYS_MAX) ? (int8_t)v : -1; ps_unlock();
     }
 
     /* print.lights_report is an array of {node, mode}. The printer names only the lights it

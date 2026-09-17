@@ -192,12 +192,9 @@
         valueSpan(st.filament_in ? tr('ui_yes', 'Yes') : tr('ui_no', 'No'))));
     }
 
-    if (isNum(st.ams_humidity) || isNum(st.ams_temp)) {
-      var ams = [];
-      if (isNum(st.ams_humidity)) ams.push(tr('ams_level', 'level') + ' ' + st.ams_humidity);
-      if (isNum(st.ams_temp)) ams.push(fmtTemp(st.ams_temp));
-      rows.push(kv_li_icon('humidity', tr('ui_kv_ams_humidity', 'AMS humidity'), null, valueSpan(ams.join(' \u00b7 '))));
-    }
+    /* No AMS row here. The AMS has its own card directly below Lighting now, with the
+       humidity drawn as the level it is, and the same reading twice on one screen is one
+       time too many. */
 
     /* A fault the printer is carrying right now. No fault, no row. */
     if (st.hms_code) rows.push(kv_li_icon('warning', tr('status_fault_code', 'Fault code'), null, valueSpan(st.hms_code)));

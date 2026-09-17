@@ -710,6 +710,8 @@ function render_status() {
   render_lighting_now();
   /* The Printer card is 01-print.js's: every reading in it arrives on /api/print. */
   if (window.render_print && window.g_last_print) render_print(window.g_last_print);
+  /* The AMS card is 04-ams.js's, and it reads the same printer.status the socket pushes. */
+  if (window.render_ams) render_ams();
 }
 
 /* 1.1 Lighting, as it is right now. Read only: the page that changes any of it is

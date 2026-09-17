@@ -1073,20 +1073,49 @@ nav.btn-row { gap: 0.75rem; align-items: center; }
    from a tablet up. Each chip fills its cell so the row reads as an even set
    rather than a huddle at the left. The card hides with its chips when the
    printer reports no AMS (the renderer sets #ps-trays hidden). */
+/* Against the CARD's width, not the viewport's. The media query that stood here gave four
+   columns from 601px of VIEWPORT, so this card sitting in the dashboard's two-column
+   masonry got four columns in half the room and every chip wrapped onto two lines. auto-fit
+   with a floor fits as many as actually go, at any card width, on any page. */
 .trays-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(6.5rem, 1fr));
   gap: 0.5rem;
-}
-@media only screen and (min-width: 601px) {
-  .trays-grid { grid-template-columns: repeat(4, 1fr); }
 }
 .trays-grid > .chip {
   inline-size: 100%;
-  justify-content: center;
+  justify-content: flex-start;
+  gap: 0.4rem;
   margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.trays-grid > .chip > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 [data-card] > article:has(#ps-trays[hidden]) { display: none; }
+
+/* The loaded spool, marked rather than merely listed: a ring in the accent, which is the
+   same signal the swatch rows use for a chosen colour. */
+.trays-grid > .chip.is-now {
+  box-shadow: inset 0 0 0 2px var(--primary);
+  font-weight: 600;
+}
+
+/* ── The humidity level, as a level ───────────────────────────────────────
+   The printer gives one to five and publishes no mapping to a percentage, so
+   this draws five pips and fills the ones the reading reaches. A bar scaled
+   to a percentage would be asserting a conversion nobody has published. */
+.ams-humidity { display: inline-flex; align-items: center; gap: 0.2rem; }
+.ams-pip {
+  inline-size: 0.4rem;
+  block-size: 0.9rem;
+  border-radius: 0.1rem;
+  background: var(--outline-variant);
+}
+.ams-pip.is-on { background: var(--primary); }
+.ams-humidity > .small-text { margin-inline-start: 0.35rem; opacity: 0.8; }
 
 
 /* ── 34  The filament rules ──────────────────────────────────────────────

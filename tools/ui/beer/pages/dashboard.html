@@ -33,6 +33,31 @@
     <ul class="list border" id="ps-kv-printer"></ul>
   </article>
 
+  <!-- ── Lighting, as it is right now ─────────────────────────────── -->
+  <article class="no-padding" id="ps-lighting-row">
+    <h6 class="card-title" data-str="status_lighting">Lighting now</h6>
+    <ul class="list border" id="ps-kv-lighting"></ul>
+  </article>
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       THE AMS
+       One chip per spool the printer describes, and the unit's own two
+       readings above them. The whole card goes away when the printer has
+       described no spools, which is what a machine with no AMS does.
+
+       Humidity is a LEVEL, one to five. The printer publishes no mapping
+       from that to a relative humidity and one owner measured ten percent
+       against a reported five, so it is drawn as the level it is. A
+       percentage here would be a number this project made up.
+       ══════════════════════════════════════════════════════════════ -->
+  <article class="no-padding" id="ps-card-ams">
+    <h6 class="card-title" data-str="ui_ams">AMS</h6>
+    <ul class="list border" id="ps-ams-kv"></ul>
+    <div class="padding" id="ps-trays" hidden>
+      <nav class="trays-grid" id="ps-trays-row"></nav>
+    </div>
+  </article>
+
   <!-- ── Reaching back to the printer ─────────────────────────────── -->
   <article class="no-padding" id="ps-card-pctl">
     <h6 class="card-title" data-str="pctl_title">Printer controls</h6>
@@ -55,11 +80,6 @@
     </div>
   </article>
 
-  <!-- ── Lighting, as it is right now ─────────────────────────────── -->
-  <article class="no-padding" id="ps-lighting-row">
-    <h6 class="card-title" data-str="status_lighting">Lighting now</h6>
-    <ul class="list border" id="ps-kv-lighting"></ul>
-  </article>
 
   <!-- Two cards were here and are gone. The AMS spool chips need a model of the
        printer's trays that this device never builds, and the endstop check drives a flap

@@ -25,6 +25,8 @@ void ps_state_init(void)
     g_ps.filament_in = -1;
     g_ps.ams_humidity = -1;
     g_ps.ams_temp_c = PS_TEMP_NONE;
+    g_ps.tray_count = 0; g_ps.tray_now = -1;
+    memset(g_ps.trays, 0, sizeof g_ps.trays);
     g_ps.gcode_state[0] = g_ps.hms_code[0] = g_ps.printer_rssi[0] = 0;
     g_ps.nozzle_type[0] = g_ps.nozzle_dia[0] = 0;
     for (int i = 0; i < PS_TEMP_COUNT; i++) g_ps.temp_c[i] = PS_TEMP_NONE;
@@ -121,6 +123,22 @@ static cJSON *root_printer(void)
     if (g_ps.filament_in >= 0) cJSON_AddNumberToObject(st, "filament_in", g_ps.filament_in);
     if (g_ps.ams_humidity >= 0) cJSON_AddNumberToObject(st, "ams_humidity", g_ps.ams_humidity);
     if (g_ps.ams_temp_c != PS_TEMP_NONE) cJSON_AddNumberToObject(st, "ams_temp", g_ps.ams_temp_c);
+    /* The spools. Absent entirely when the printer has described none, so a machine with no
+     * AMS produces no key and the page draws no card rather than an empty one. */
+    if (g_ps.tray_count > 0) {
+        cJSON *tr = cJSON_AddArrayToObject(st, "trays");
+        for (int i = 0; i < g_ps.tray_count && i < PS_TRAYS_MAX; i++) {
+            const ps_tray_t *t = &g_ps.trays[i];
+            cJSON *o = cJSON_CreateObject();
+            cJSON_AddNumberToObject(o, "id", t->id);
+            if (t->type[0]) cJSON_AddStringToObject(o, "type", t->type);
+            if (t->sub[0])  cJSON_AddStringToObject(o, "sub", t->sub);
+            if (t->remain >= 0) cJSON_AddNumberToObject(o, "remain", t->remain);
+            if (t->has_colour) { char w[10]; ps_rgba_to_wire(t->colour, PS_MODE_H2D, w); cJSON_AddStringToObject(o, "colour", w); }
+            cJSON_AddItemToArray(tr, o);
+        }
+        if (g_ps.tray_now >= 0) cJSON_AddNumberToObject(st, "tray_now", g_ps.tray_now);
+    }
     /* The page holds the six state words and their translations by number, so the printer's
      * word is turned into that number here rather than sending a word the page cannot name.
      * SLICING sits with PREPARE: both are the printer getting ready. */

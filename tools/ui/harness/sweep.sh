@@ -48,6 +48,7 @@ ROWS=(
   "p2-idle.json      | contrast.js | "
 
   # --- the page, card by card, against the clone's own routes ---
+  "p2-idle.json      | t-ams.js      | PS_CLONE=1"
   "p2-idle.json      | t-stages.js   | PS_CLONE=1"
   "p2-idle.json      | t-preview.js  | PS_CLONE=1"
   "p2-idle.json      | t-staticip.js | PS_CLONE=1"

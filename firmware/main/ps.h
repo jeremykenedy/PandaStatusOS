@@ -278,6 +278,18 @@ enum ps_rebind { PS_REBIND_NO_MATCH = PS_PSCAN_SN_MISMATCH, PS_REBIND_UNCHANGED 
 int ps_rebind_decide(const char *bound_sn, const uint8_t bound_ip[4], const ps_printer_hit_t *hits, int n, uint8_t out_ip[4]);
 #define PS_REBIND_AFTER_FAILS 3        /* consecutive transport failures before a rebind scan is worth running */
 
+/* One AMS tray, as print.ams.ams[].tray[] describes it. Kept in the live state only, never
+ * stored: it is what the printer is doing, not a setting. */
+#define PS_TRAYS_MAX 4
+typedef struct {
+    int8_t    id;              /* the tray's own index, 0..3 */
+    int8_t    remain;          /* percent left, -1 when the printer does not say */
+    uint8_t   has_colour;
+    ps_rgba_t colour;
+    char      type[12];        /* PLA, PETG, ABS ... */
+    char      sub[20];         /* the variant, when there is one */
+} ps_tray_t;
+
 typedef struct {
     ps_cfg_t cfg;                      /* the stored part */
     /* sta */
@@ -318,6 +330,13 @@ typedef struct {
     int8_t   filament_in;                        /* the external spool sensor */
     int8_t   ams_humidity;                       /* the AMS's own 1..5 level */
     int16_t  ams_temp_c;
+    /* The first AMS unit's four trays, as the printer reports them. A tray it does not
+     * describe is not in the list at all; a field it leaves out of a tray it does describe
+     * is empty, and the page draws empty as unknown rather than as zero. tray_now is the
+     * one loaded, -1 when the printer names none. */
+    ps_tray_t trays[PS_TRAYS_MAX];
+    int8_t   tray_count;
+    int8_t   tray_now;
     char     gcode_state[12];                    /* IDLE, RUNNING, PAUSE, FINISH, FAILED, PREPARE */
     char     hms_code[20];                       /* the first fault the printer is reporting */
     char     printer_rssi[10];                   /* the printer's own signal, as it words it */
