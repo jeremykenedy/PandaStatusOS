@@ -202,3 +202,21 @@ vent is never touched during that work.
    behind the flag, with harnesses and screenshots.
 4. Vent side, in its own repository, against a mock status.
 5. Shared printer state and backups, last, because they carry the most consequence.
+
+## Where it lives on the page
+
+The vent is bound the way the printer is bound, on the same page and in the same shape:
+a card headed "Bind a vent", with a search that finds vents on the network, a name, an
+address and an Unbind. It sits under the existing "Bind to a printer" card, so the two
+bindings this device has are read top to bottom in one place.
+
+That page stops being called **Printer** and becomes **Bindings** when the vent card
+lands, because by then it holds two of them and neither name covers the other. The nav
+entry, both navs, the card title and the page's translation key all move together; the
+card id stays `ps-card-printer` so the router and every harness that names it keep
+working, which is the usual trade: the name a person reads changes, the name the code
+uses does not.
+
+The two copy switches agreed above (colours vent to status, effect vent to status) live
+inside the vent card, not on the Lighting page: they are part of what being bound to a
+vent means, and a person who has not bound one should not be offered them.
