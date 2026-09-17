@@ -45,7 +45,13 @@ static const struct { const char *name; uint32_t bit; } FEATURES[] = {
     { "restart",          PS_FEAT_RESTART },
     { "auto_rebind",      PS_FEAT_AUTO_REBIND },
     { "diagnostics",      PS_FEAT_DIAGNOSTICS },
+    { "static_ip",        PS_FEAT_STATIC_IP },
 };
+
+/* Both defined beside the config document further down; declared here because the features
+ * document needs them and sits above it. */
+static void ip_to_str(const uint8_t ip[4], char *out, size_t n);
+static bool ip_from_str(const char *s, uint8_t out[4]);
 
 static cJSON *fx_json(const ps_fx_cfg_t *f)
 {
@@ -115,6 +121,16 @@ char *ps_features_json(void)
     { char w[10]; ps_rgba_to_wire(g_ps.cfg.err_colour, PS_MODE_H2D, w); cJSON_AddStringToObject(ef, "colour", w); }
     cJSON_AddNumberToObject(ef, "brightness", g_ps.cfg.err_brightness);
     cJSON_AddNumberToObject(ef, "speed", g_ps.cfg.err_speed);
+    /* C9: the fixed address. Always in the document, switch or no switch, so the page can
+     * show what is stored before the switch is turned on and a person is not typing into a
+     * form they cannot see. An unset field is an empty string, not 0.0.0.0. */
+    cJSON *si = cJSON_AddObjectToObject(cfg, "static_ip");
+    { char b[16];
+      cJSON_AddNumberToObject(si, "on", g_ps.netcfg.on);
+      ip_to_str(g_ps.netcfg.ip,   b, sizeof b); cJSON_AddStringToObject(si, "ip", b);
+      ip_to_str(g_ps.netcfg.mask, b, sizeof b); cJSON_AddStringToObject(si, "mask", b);
+      ip_to_str(g_ps.netcfg.gw,   b, sizeof b); cJSON_AddStringToObject(si, "gw", b);
+      ip_to_str(g_ps.netcfg.dns,  b, sizeof b); cJSON_AddStringToObject(si, "dns", b); }
     ps_unlock();
     char *s = cJSON_PrintUnformatted(doc);
     cJSON_Delete(doc);
@@ -144,6 +160,7 @@ int ps_features_apply(const char *json, size_t len)
     int tg_src, tg_lo, tg_hi; bool have_tg = false;
     int hw_src, hw_c; ps_rgba_t hw_colour; bool have_hw = false;
     int ef_brightness, ef_speed; ps_rgba_t ef_colour; bool have_ef = false;
+    ps_netcfg_t si; bool have_si = false;
     ps_lock();
     uint32_t after = (g_ps.cfg.features | set) & ~clear;               /* the bits this document leaves in force */
     tg_src = g_ps.cfg.temp_src; tg_lo = g_ps.cfg.temp_lo; tg_hi = g_ps.cfg.temp_hi;   /* partial objects overlay the stored values */
@@ -204,6 +221,30 @@ int ps_features_apply(const char *json, size_t len)
                     else { cJSON_Delete(root); return -1; }
                 }
                 have_ef = true;
+            } else if (it->string && !strcmp(it->string, "static_ip")) {
+                if (!cJSON_IsObject(it)) { cJSON_Delete(root); return -1; }
+                ps_lock(); si = g_ps.netcfg; ps_unlock();          /* a partial object overlays what is stored */
+                for (cJSON *k = it->child; k; k = k->next) {
+                    if (!k->string) { cJSON_Delete(root); return -1; }
+                    if (!strcmp(k->string, "on")) {
+                        if (cJSON_IsBool(k)) si.on = cJSON_IsTrue(k) ? 1 : 0;
+                        else if (cJSON_IsNumber(k) && (k->valuedouble == 0 || k->valuedouble == 1)) si.on = (uint8_t)k->valuedouble;
+                        else { cJSON_Delete(root); return -1; }
+                        continue;
+                    }
+                    uint8_t *dst = NULL;
+                    if      (!strcmp(k->string, "ip"))   dst = si.ip;
+                    else if (!strcmp(k->string, "mask")) dst = si.mask;
+                    else if (!strcmp(k->string, "gw"))   dst = si.gw;
+                    else if (!strcmp(k->string, "dns"))  dst = si.dns;
+                    else { cJSON_Delete(root); return -1; }
+                    if (!cJSON_IsString(k)) { cJSON_Delete(root); return -1; }
+                    /* An empty string clears the field, which is how a gateway or a DNS
+                     * server is taken back out without the switch going off. */
+                    if (!k->valuestring[0]) { memset(dst, 0, 4); continue; }
+                    if (!ip_from_str(k->valuestring, dst)) { cJSON_Delete(root); return -1; }
+                }
+                have_si = true;
             } else { cJSON_Delete(root); return -1; }         /* an unknown setting is refused, not ignored */
         }
     }
@@ -225,6 +266,14 @@ int ps_features_apply(const char *json, size_t len)
     if (have_ef && (g_ps.cfg.err_brightness != ef_brightness || g_ps.cfg.err_speed != ef_speed || memcmp(&g_ps.cfg.err_colour, &ef_colour, sizeof ef_colour) != 0)) {
         g_ps.cfg.err_brightness = (uint8_t)ef_brightness; g_ps.cfg.err_speed = (uint8_t)ef_speed; g_ps.cfg.err_colour = ef_colour; changed = true;
     }
+    /* C9: stored whether the switch is on or not, so turning it off does not lose the
+     * address, and the interface is told either way. The change lands on the next
+     * association; the page says so rather than pretending the device has moved. */
+    bool net_moved = false;
+    if (have_si) {
+        ps_netcfg_clamp(&si);
+        if (memcmp(&g_ps.netcfg, &si, sizeof si) != 0) { g_ps.netcfg = si; net_moved = true; changed = true; }
+    }
     /* a switch going off takes its effects with it: a stored id that needed the bit falls back to
      * solid, so what is stored is always something the bits in force can render, and the next
      * whole-table POST from the page is not refused for carrying it. The seventeen that come with
@@ -232,7 +281,11 @@ int ps_features_apply(const char *json, size_t len)
     for (int s = 0; s < 3; s++)
         if (g_ps.cfg.fx[s].effect >= PS_FX_SELECTABLE && !ps_fx_allowed(g_ps.cfg.features, g_ps.cfg.fx[s].effect)) { g_ps.cfg.fx[s].effect = PS_FX_STATIC; changed = true; }
     if (changed) ps_cfg_save(&g_ps.cfg);
+    bool net_apply = net_moved || ((set | clear) & PS_FEAT_STATIC_IP);
+    ps_netcfg_t saved = g_ps.netcfg;
     ps_unlock();
+    if (net_moved) ps_netcfg_save(&saved);
+    if (net_apply) ps_wifi_apply_netcfg();
     if (changed) { ps_effect_notify(); ESP_LOGI(TAG, "features 0x%08x", (unsigned)g_ps.cfg.features); }
     return 0;
 }

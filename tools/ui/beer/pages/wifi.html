@@ -1,6 +1,6 @@
 <!-- ══════════════════════════════════════════════════════════════════════
      WI-FI
-     The network the vent is on, the address you reach it at, and the name
+     The network this device is on, the address you reach it at, and the name
      it answers to.
      ══════════════════════════════════════════════════════════════════ -->
 <section id="ps-card-sta" data-card>
@@ -40,8 +40,51 @@
       </div>
       <button class="note-btn" id="ps-note-hostname" aria-labelledby="lbl_hostname" aria-haspopup="dialog">i</button>
     </nav>
-    <div class="small-text" data-str="ui_hostname_help">Adding .local to this name reaches the vent from any device on the network.</div>
+    <div class="small-text" data-str="ui_hostname_help">Adding .local to this name reaches this device from anything on the network.</div>
     <button class="fill responsive" id="ps-btn-set-hostname" data-str="ui_save_host_name">Save host name</button>
+  </article>
+
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       C9: A FIXED ADDRESS
+       Off on a new device, like every other addition. The card appears only
+       when its switch is on under Features, and it holds what is stored
+       whether the switch inside it is on or not, so turning the fixed
+       address off and on again does not lose what was typed.
+       ══════════════════════════════════════════════════════════════ -->
+  <article class="card-divided" id="ps-sip-card" hidden>
+    <h6 class="card-title" data-str="ui_feat_static_ip">Fixed address</h6>
+    <div class="small-text" data-str="ui_fixed_address_help">Pick an address your router will not hand to anything else. It takes effect the next time this device joins the network.</div>
+
+    <nav class="ps-sw-row">
+      <span class="max small-text" id="lbl-sip-on" data-str="ui_use_a_fixed_address">Use a fixed address</span>
+      <label class="switch">
+        <input type="checkbox" id="ps-sip-on" aria-labelledby="lbl-sip-on"><span></span>
+      </label>
+    </nav>
+
+    <div class="field label border">
+      <input type="text" id="ps-sip-ip" maxlength="15" inputmode="decimal" autocomplete="off" spellcheck="false" placeholder=" ">
+      <label for="ps-sip-ip" data-str="ui_ip_address">IP address</label>
+    </div>
+    <div class="field label border">
+      <input type="text" id="ps-sip-mask" maxlength="15" inputmode="decimal" autocomplete="off" spellcheck="false" placeholder=" ">
+      <label for="ps-sip-mask" data-str="ui_subnet_mask">Subnet mask</label>
+    </div>
+    <div class="field label border">
+      <input type="text" id="ps-sip-gw" maxlength="15" inputmode="decimal" autocomplete="off" spellcheck="false" placeholder=" ">
+      <label for="ps-sip-gw" data-str="ui_gateway">Gateway</label>
+    </div>
+    <div class="field label border">
+      <input type="text" id="ps-sip-dns" maxlength="15" inputmode="decimal" autocomplete="off" spellcheck="false" placeholder=" ">
+      <label for="ps-sip-dns" data-str="ui_dns_server">DNS server</label>
+    </div>
+    <div class="small-text" data-str="ui_optional">Optional</div>
+    <div class="small-text" id="ps-sip-note"></div>
+    <button class="fill responsive" id="ps-sip-save">
+      <svg class="i"><use href="#i-disk"/></svg>
+      <span data-str="ui_save">Save</span>
+    </button>
   </article>
 
 </section>

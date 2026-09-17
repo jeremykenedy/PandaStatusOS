@@ -313,6 +313,50 @@ void ps_presets_clamp(ps_presets_t *s)
         if (f->bright_end > 100) f->bright_end = 100;
     }
 }
+/* ---- C9: the fixed address. Same shape as the two blobs below it: magic first, size
+ * corroborates, an unrecognised blob is an empty one rather than a failed boot. ---- */
+void ps_netcfg_clamp(ps_netcfg_t *s)
+{
+    s->magic = PS_NETCFG_MAGIC;
+    s->on = s->on ? 1 : 0;
+    /* An address of all zeros is not an address. Turning the switch on without one would
+     * take the interface off DHCP and give it nothing, which is a device nobody can reach,
+     * so the switch is held off until there is something to apply. */
+    bool have = s->ip[0] || s->ip[1] || s->ip[2] || s->ip[3];
+    if (!have) s->on = 0;
+    /* A mask of zero is the one field a person is most likely to leave blank; /24 is what
+     * the network this device ships onto almost always is, and a wrong mask is a device that
+     * answers nothing. Stated rather than guessed at every use. */
+    if (!(s->mask[0] || s->mask[1] || s->mask[2] || s->mask[3])) { s->mask[0] = 255; s->mask[1] = 255; s->mask[2] = 255; s->mask[3] = 0; }
+}
+
+int ps_netcfg_load(ps_netcfg_t *s)
+{
+    memset(s, 0, sizeof *s); s->magic = PS_NETCFG_MAGIC;
+    nvs_handle_t h;
+    if (nvs_open(PS_CFG_NVS_NS, NVS_READONLY, &h) != ESP_OK) return 0;
+    ps_netcfg_t stored; size_t size = sizeof stored;
+    esp_err_t err = nvs_get_blob(h, PS_NETCFG_NVS_KEY, &stored, &size);
+    nvs_close(h);
+    if (err != ESP_OK) return 0;
+    if (size != sizeof stored || stored.magic != PS_NETCFG_MAGIC) { ESP_LOGW(TAG, "netcfg blob not recognised, DHCP"); return 0; }
+    memcpy(s, &stored, sizeof *s);
+    ps_netcfg_clamp(s);
+    return 0;
+}
+
+int ps_netcfg_save(const ps_netcfg_t *s)
+{
+    nvs_handle_t h;
+    esp_err_t err = nvs_open(PS_CFG_NVS_NS, NVS_READWRITE, &h);
+    if (err != ESP_OK) { ESP_LOGE(TAG, "nvs_open: %d", (int)err); return -1; }
+    err = nvs_set_blob(h, PS_NETCFG_NVS_KEY, s, sizeof *s);
+    if (err == ESP_OK) err = nvs_commit(h);
+    nvs_close(h);
+    if (err != ESP_OK) { ESP_LOGE(TAG, "netcfg save: %d", (int)err); return -1; }
+    return 0;
+}
+
 int ps_presets_load(ps_presets_t *s)
 {
     memset(s, 0, sizeof *s); s->magic = PS_PRESETS_MAGIC;

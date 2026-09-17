@@ -62,6 +62,7 @@ extern const char *const ps_gif_slot_names[PS_GIF_SLOTS];
 #define PS_FEAT_RESTART           (1u << 17)  /* C4: a plain restart, named what it is, on its own route */
 #define PS_FEAT_AUTO_REBIND       (1u << 18)  /* C7: after the bound printer moves, find it again by serial */
 #define PS_FEAT_DIAGNOSTICS       (1u << 19)  /* C8: why it is not working, blinked on the bar */
+#define PS_FEAT_STATIC_IP         (1u << 20)  /* C9: a fixed address on the house network instead of DHCP */
 #define PS_FEAT_KNOWN             0xFFFFEu    /* every switch bit defined above, bit 0 (the bridge) excluded */
 
 /* which of the printer's temperatures a feature follows (INFERENCE: the report's
@@ -212,6 +213,26 @@ void ps_presets_clamp(ps_presets_t *s);
 
 /* B1, B2: an effect per print stage, in its own blob. A row that is not set inherits the bar
  * state's effect; a set row is a state_effects entry with the name it was assigned from. */
+/* C9: the fixed address, its own blob under the same namespace with its own magic and size,
+ * so ps_cfg_t does not move and needs no fifth migration arm. Every field is stored whether
+ * the switch is on or not, so turning it off and on again does not lose what was typed. */
+#define PS_NETCFG_NVS_KEY  "netcfg"
+#define PS_NETCFG_MAGIC    0x50534e31u   /* 'P' 'S' 'N' '1' */
+typedef struct {
+    uint32_t magic;
+    uint8_t  on;                 /* use these instead of DHCP */
+    uint8_t  _pad[3];
+    uint8_t  ip[4], mask[4], gw[4], dns[4];
+} ps_netcfg_t;                                                                        /* 24 bytes */
+
+int  ps_netcfg_load(ps_netcfg_t *s);     /* the stored address, or an empty one; never fails the boot */
+int  ps_netcfg_save(const ps_netcfg_t *s);
+void ps_netcfg_clamp(ps_netcfg_t *s);
+/* Hand the running STA interface the stored address, or put it back on DHCP. Called once the
+ * interface exists and again whenever the setting changes; the change takes effect on the
+ * next association, which the caller triggers. */
+void ps_wifi_apply_netcfg(void);
+
 #define PS_STAGES_NVS_KEY  "stages"
 #define PS_STAGES_MAGIC    0x50535331u   /* 'P' 'S' 'S' '1' */
 typedef struct { uint8_t set; uint8_t _pad[3]; char name[PS_PRESET_NAME]; ps_fx_cfg_t fx; } ps_stage_row_t;   /* 44 bytes */
@@ -311,6 +332,7 @@ typedef struct {
     int64_t  pin_until_us;             /* esp_timer time the pin expires */
     ps_presets_t presets;              /* A14: the named effects, loaded at boot */
     ps_stages_t  stages;               /* B1, B2: the per-stage rows, loaded at boot */
+    ps_netcfg_t  netcfg;               /* C9: the fixed address, loaded at boot */
     uint8_t  stage;                    /* INFERENCE: the current print stage as a display slot 0..14 (ps_stage_from_report) */
     int16_t  stg_cur;                  /* INFERENCE: print.stg_cur from the report, -1 until one arrives */
     int8_t   pin_stage;                /* B3: the pinned stage while the pin is live, -1 for none */

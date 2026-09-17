@@ -162,6 +162,47 @@ static void on_wifi(void *arg, esp_event_base_t base, int32_t id, void *data)
     }
 }
 
+/* C9: put the STA interface on the stored fixed address, or back on DHCP.
+ *
+ * Both directions matter. Turning the switch off has to start the DHCP client again, or the
+ * device keeps the address it was given and nothing on the page says why. The setting takes
+ * effect on the next association, which is what ps_wifi_connect does right after this.
+ *
+ * A DNS server of all zeros is not written: the field is optional, and writing a zero would
+ * leave the resolver pointed at nothing instead of at the gateway. */
+void ps_wifi_apply_netcfg(void)
+{
+    if (!s_sta) return;
+    ps_lock();
+    bool on = (g_ps.cfg.features & PS_FEAT_STATIC_IP) && g_ps.netcfg.on;
+    ps_netcfg_t n = g_ps.netcfg;
+    ps_unlock();
+
+    if (!on) {
+        esp_netif_dhcpc_start(s_sta);        /* already running: ESP_ERR_ESP_NETIF_DHCP_ALREADY_STARTED, which is fine */
+        ESP_LOGI(TAG, "address: DHCP");
+        return;
+    }
+
+    esp_netif_dhcpc_stop(s_sta);
+    esp_netif_ip_info_t info;
+    memset(&info, 0, sizeof info);
+    info.ip.addr      = ESP_IP4TOADDR(n.ip[0], n.ip[1], n.ip[2], n.ip[3]);
+    info.netmask.addr = ESP_IP4TOADDR(n.mask[0], n.mask[1], n.mask[2], n.mask[3]);
+    info.gw.addr      = ESP_IP4TOADDR(n.gw[0], n.gw[1], n.gw[2], n.gw[3]);
+    esp_err_t e = esp_netif_set_ip_info(s_sta, &info);
+    if (e != ESP_OK) { ESP_LOGE(TAG, "set_ip_info: %d", (int)e); return; }
+
+    if (n.dns[0] || n.dns[1] || n.dns[2] || n.dns[3]) {
+        esp_netif_dns_info_t d;
+        memset(&d, 0, sizeof d);
+        d.ip.type = ESP_IPADDR_TYPE_V4;
+        d.ip.u_addr.ip4.addr = ESP_IP4TOADDR(n.dns[0], n.dns[1], n.dns[2], n.dns[3]);
+        esp_netif_set_dns_info(s_sta, ESP_NETIF_DNS_MAIN, &d);
+    }
+    ESP_LOGI(TAG, "address: fixed");
+}
+
 int ps_wifi_start(void)
 {
     ESP_ERROR_CHECK(esp_netif_init());
@@ -185,6 +226,7 @@ int ps_wifi_start(void)
     ps_unlock();
     ESP_ERROR_CHECK(esp_wifi_start());
     s_started = true;
+    ps_wifi_apply_netcfg();      /* C9: the boot association is the first one, so it counts too */
     hostname_apply();
     ESP_LOGI(TAG, "started, hotspot %s", g_ps.cfg.ap_on ? "on" : "off");
     return 0;
@@ -212,6 +254,7 @@ void ps_wifi_connect(const char *ssid, const char *password)
 {
     if (!s_started) return;
     sta_config_apply(ssid, password);
+    ps_wifi_apply_netcfg();                /* C9: before the association, so it is the one that takes */
     esp_wifi_disconnect();
     esp_wifi_connect();
     ESP_LOGI(TAG, "connecting");
