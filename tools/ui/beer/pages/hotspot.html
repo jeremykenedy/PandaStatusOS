@@ -1,0 +1,49 @@
+<!-- ══════════════════════════════════════════════════════════════════════
+     HOTSPOT
+     The vent's own access point. It is how you reach the device before it
+     has ever joined a network, and how you get back in if the network it
+     knows about disappears, so it is never turned off entirely.
+     ══════════════════════════════════════════════════════════════════ -->
+<section id="ps-card-ap" data-card>
+
+  <article class="no-padding span-all">
+    <h6 class="card-title" id="lbl_ap_card" data-str="ui_the_vent_s_own_network">The vent's own network</h6>
+    <div class="small-text" data-str="ui_connect_to_this_from_a_phone_or_la">Connect to this from a phone or laptop when the vent
+      is not on your Wi-Fi, then open the address below.</div>
+    <ul class="list border">
+      <li>
+        <svg class="i"><use href="#i-hotspot"/></svg>
+        <div class="max">
+          <div data-str="ui_hotspot_on" id="sw_id_btn_ap_on">Hotspot on</div>
+          <div class="small-text" id="ps-label-ap-note" data-str="ui_ap_note_on">Always on, so you can always reach the vent. Changing the name, the password or this switch drops you if you are connected through it.</div>
+        </div>
+        <label class="switch"><input type="checkbox" id="ps-btn-ap-on" aria-labelledby="sw_id_btn_ap_on" checked><span></span></label>
+      </li>
+    </ul>
+
+    <div class="padding" id="ps-card-ap-switch">
+      <div class="field label border">
+        <input type="text" id="ps-ap-ssid" maxlength="32" value="" placeholder=" ">
+        <label for="ps-ap-ssid" data-str="ui_network_name">Network name</label>
+      </div>
+
+      <div class="field label suffix border">
+        <input type="password" id="ps-password-ap" maxlength="63" value="" placeholder=" ">
+        <label for="ps-password-ap" data-str="ui_password">Password</label>
+        <a id="ps-btn-password-ap" title="Show the password" data-str-title="ui_show_the_password" tabindex="0" role="button"><svg class="i" id="ps-img-password-ap"><use href="#i-eye"/></svg></a>
+      </div>
+
+      <div class="field label border">
+        <input type="text" id="ps-ap-ip" maxlength="15" value="" placeholder=" ">
+        <label for="ps-ap-ip" id="lbl_ap_ip" data-str="ui_address">Address</label>
+      </div>
+      <nav>
+        <span class="max small-text" data-str="ui_leave_this_alone_unless_it_clashes">Leave this alone unless it clashes with something on your network.</span>
+        <button class="note-btn" id="ps-note-ap-ip" aria-labelledby="lbl_ap_card lbl_ap_ip" aria-haspopup="dialog">i</button>
+      </nav>
+
+      <button class="fill responsive" id="ps-btn-ap-confirm" data-str="ui_save">Save</button>
+    </div>
+  </article>
+
+</section>

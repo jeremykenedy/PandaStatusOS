@@ -1,0 +1,25 @@
+<!-- ══════════════════════════════════════════════════════════════════════
+     LOGS
+     The device's own 64-line ring buffer, verbatim. This is the page you
+     open when the vent is behaving oddly and every possible cause looks the
+     same from the outside.
+     ══════════════════════════════════════════════════════════════════ -->
+<section id="ps-card-logs" data-card>
+
+  <article class="span-all">
+    <h6 class="card-title" data-str="status_logs_label">The last lines the device wrote to itself</h6>
+<pre class="log" id="ps-log-view"></pre>
+
+    <nav class="wrap btn-row">
+      <button class="fill" id="ps-btn-logs-refresh">
+        <svg class="i"><use href="#i-refresh"/></svg>
+        <span data-str="status_logs_refresh">Refresh</span>
+      </button>
+      <button class="border" id="ps-btn-logs-clear">
+        <svg class="i"><use href="#i-delete"/></svg>
+        <span data-str="ui_clear">Clear</span>
+      </button>
+    </nav>
+  </article>
+
+</section>

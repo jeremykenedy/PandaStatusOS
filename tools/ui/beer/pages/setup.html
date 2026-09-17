@@ -1,0 +1,96 @@
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     SETUP · three pages, seen once, before the vent has a network
+     They are the first thing a new owner meets, and they were the worst
+     part of the old app: white text on a near-white surface, which is to
+     say they were not there at all.
+     ══════════════════════════════════════════════════════════════════ -->
+
+<!-- ── 1 of 3 · Language ────────────────────────────────────────────── -->
+<section id="ps-page-language" data-page>
+  <!-- The greeting cycles through the languages on a timer, so it says
+       hello in whichever one you might be looking for. The chevron below
+       it points at the list. -->
+  <svg width="180" height="80" class="hello" aria-hidden="true">
+    <text id="ps-text-hello" x="50%" y="34%" dy=".3em" text-anchor="middle"
+          font-size="30" fill="currentColor" stroke="none">Hello</text>
+    <g id="group_hello_path" transform="translate(82, 56)">
+      <path d="M 0 0 L 8 8 L 16 0" fill="none" stroke="currentColor" stroke-width="2"/>
+    </g>
+  </svg>
+  <div class="small-text" data-str="ui_choose_a_language_then_next">Choose a language, then Next.</div>
+  <div class="space"></div>
+
+  <article class="no-padding">
+    <ul class="list border" id="ps-language-buttons">
+    </ul>
+  </article>
+
+  <!-- The other two steps put their action inside the card with a spacer
+       above it; this one sits outside, and had nothing between it and the
+       language list at all. -->
+  <div class="space"></div>
+  <button class="fill responsive" id="ps-btn-lang-next" data-str="lang_next">Next</button>
+</section>
+
+<!-- ── 2 of 3 · Wi-Fi ───────────────────────────────────────────────── -->
+<section id="ps-page-wifi" data-page>
+  <h5>Wi-Fi</h5>
+  <div class="small-text" data-str="ui_put_the_vent_on_the_same_network_a">Put the vent on the same network as the printer.</div>
+  <div class="space"></div>
+
+  <article>
+    <nav>
+      <div class="field label suffix border max">
+        <select id="ps-wifi-ssid"><option selected>example-iot</option></select>
+        <label for="ps-wifi-ssid" data-str="ui_network">Network</label>
+        <svg class="i"><use href="#i-caret"/></svg>
+      </div>
+      <button class="circle transparent" id="ps-btn-wifi-scan" title="Scan again" data-str-title="ui_scan_again">
+        <svg class="i" id="ps-img-scan-wifi"><use href="#i-search"/></svg>
+      </button>
+    </nav>
+
+    <div class="field label suffix border">
+      <input type="password" id="ps-password-wifi" maxlength="63" value="0000000000000000" placeholder=" ">
+      <label for="ps-password-wifi" data-str="ui_password">Password</label>
+      <a id="ps-btn-password-wifi" title="Show the password" data-str-title="ui_show_the_password" tabindex="0" role="button"><svg class="i" id="ps-img-password-wifi"><use href="#i-eye"/></svg></a>
+    </div>
+
+    <nav class="wrap">
+      <button class="fill" id="ps-btn-wifi-connect" data-str="connect">Connect</button>
+      <button class="border" id="ps-btn-wifi-back" data-str="back">Back</button>
+    </nav>
+  </article>
+</section>
+
+<!-- ── 3 of 3 · Colour ──────────────────────────────────────────────── -->
+<section id="ps-page-color" data-page>
+  <h5 data-str="ui_lights">Lights</h5>
+  <div class="small-text" data-str="ui_pick_a_colour_for_the_strip_you_ca">Pick a colour for the strip. You can change all of this later, in much more
+    detail, on the Lighting page.</div>
+  <div class="space"></div>
+
+  <article>
+    <div class="grid">
+      <div class="s12 m6">
+        <div class="small-text" data-str="ui_vent_open">Vent open</div>
+        <button class="responsive no-round" style="background:#FFFFFF;height:3rem"></button>
+      </div>
+      <div class="s12 m6">
+        <div class="small-text" data-str="ui_vent_closed">Vent closed</div>
+        <button class="responsive no-round" style="background:#FF3700;height:3rem"></button>
+      </div>
+    </div>
+
+    <div class="space"></div>
+    <div class="small-text" id="lbl_setup_bright" data-str="ui_brightness">Brightness</div>
+    <label class="slider"><input type="range" aria-labelledby="lbl_setup_bright" min="0" max="100" step="5" value="50"><span></span></label>
+
+    <div class="space"></div>
+    <nav class="wrap">
+      <button class="fill" data-str="ui_finish">Finish</button>
+      <button class="border" data-str="back">Back</button>
+    </nav>
+  </article>
+</section>

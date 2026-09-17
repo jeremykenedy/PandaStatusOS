@@ -1,0 +1,189 @@
+<!doctype html>
+<!--
+  Third-party components in this page, and their notices.
+
+  Beer CSS 5.0.3 -- layout, components, Material 3 tokens. MIT.
+    Copyright (c) 2021 Beer css!   https://github.com/beercss/beercss
+  Heroicons -- the interface icons in the sprite. MIT.
+    Copyright (c) Tailwind Labs, Inc.   https://github.com/tailwindlabs/heroicons
+  Roboto 3.015 -- the embedded typeface. SIL Open Font License 1.1.
+    Copyright 2011 The Roboto Project Authors
+    https://github.com/googlefonts/roboto-classic   https://openfontlicense.org
+  iro.js 5.5.2 -- the colour wheel. MPL-2.0. Its own banner is kept intact
+    at the top of its script block below.
+
+  MIT and the OFL both ask that the notice travel with the software. This page
+  IS the software: the device serves one file, and these three are compiled
+  into it. Full licence texts are in firmware/main/vendor/ in the source
+  repository. The rest of this page is MIT, Copyright (c) 2026 Jeremy Kenedy.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PandaStatusOS</title>
+<link rel="icon" type="image/png" href="__FAVICON__">
+<link rel="apple-touch-icon" href="__TOUCH__">
+<style>__FONTS__</style>
+<style>__BEER__</style>
+<style>__THEME__</style>
+<style>__PROJECT__</style>
+</head>
+
+<!-- is-waiting from the first paint: the device has said nothing yet, and
+     the class is what shows the waiting banner and holds the light controls
+     inert until it has. ws_recv takes it off when the first state document
+     lands; nothing ever puts it back, because the page only loads once.
+
+     No theme class here. Auto is the resting state and Auto is no class at
+     all, so a page loaded on a machine set to light paints light from the
+     first frame instead of flashing dark and correcting itself. -->
+<body class="is-waiting">
+<!-- The theme is painted here, before anything else in the body is parsed,
+     because the module that owns it runs at the end of the document and the
+     page had already been painted in the other theme by then: a reload
+     flashed dark before settling on light. Light is the default; `auto`
+     follows the machine. The module below is still the owner of the
+     preference, this only gets the first paint right. -->
+<script>
+  (function () {
+    var pref = 'light';
+    try { var v = localStorage.getItem('ps_theme');
+          if (v === 'auto' || v === 'light' || v === 'dark') pref = v; } catch (e) {}
+    var cls = pref;
+    if (pref === 'auto') {
+      cls = '';
+      try { if (window.matchMedia('(prefers-color-scheme: dark)').matches) cls = 'dark';
+            else cls = 'light'; } catch (e) {}
+    }
+    if (cls) document.body.classList.add(cls);
+  })();
+</script>
+
+__MOCKNOTE__
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     Navigation. Beer's app layout is a grid with named areas, so a rail on
+     the left and a bar along the bottom are the same markup with a
+     different class, and .m .l / .s decide which one a screen gets.
+     ══════════════════════════════════════════════════════════════════ -->
+<nav class="left m l" id="ps-nav">
+  <header>
+    <button class="circle transparent" id="ps-nav-toggle">
+      <svg class="i"><use href="#i-menu"/></svg>
+    </button>
+  </header>
+
+  <a tabindex="0" role="link" class="active" id="ps-btn-status" data-nav="status">
+    <svg class="i"><use href="#i-status"/></svg>
+    <span data-str="ui_dashboard">Dashboard</span>
+  </a>
+  <a tabindex="0" role="link" id="ps-btn-theme" data-nav="theme">
+    <svg class="i"><use href="#i-lighting"/></svg>
+    <span data-str="ui_lighting">Lighting</span>
+  </a>
+  <a tabindex="0" role="link" id="ps-btn-settings" data-nav="settings">
+    <svg class="i"><use href="#i-settings"/></svg>
+    <span data-str="card_settings">Settings</span>
+  </a>
+  <a tabindex="0" role="link" id="ps-btn-printer" data-nav="printer">
+    <svg class="i"><use href="#i-printer"/></svg>
+    <span data-str="card_printer">Printer</span>
+  </a>
+  <a tabindex="0" role="link" id="ps-btn-camera" data-nav="camera">
+    <svg class="i"><use href="#i-image"/></svg>
+    <span data-str="card_camera">Camera</span>
+  </a>
+  <a tabindex="0" role="link" id="ps-btn-sta" data-nav="sta">
+    <svg class="i"><use href="#i-network"/></svg>
+    <span>Wi-Fi</span>
+  </a>
+  <a tabindex="0" role="link" id="ps-btn-ap" data-nav="ap">
+    <svg class="i"><use href="#i-hotspot"/></svg>
+    <span data-str="ui_hotspot">Hotspot</span>
+  </a>
+  <a tabindex="0" role="link" id="ps-btn-logs" data-nav="logs">
+    <svg class="i"><use href="#i-info"/></svg>
+    <span data-str="card_logs">Logs</span>
+  </a>
+</nav>
+
+<nav class="bottom s">
+  <a tabindex="0" role="link" class="active" data-nav="status"><svg class="i"><use href="#i-status"/></svg><span data-str="ui_dashboard">Dashboard</span></a>
+  <a tabindex="0" role="link" data-nav="theme"><svg class="i"><use href="#i-lighting"/></svg><span data-str="ui_lighting">Lighting</span></a>
+  <a tabindex="0" role="link" data-nav="settings"><svg class="i"><use href="#i-settings"/></svg><span data-str="card_settings">Settings</span></a>
+  <a tabindex="0" role="link" data-nav="printer"><svg class="i"><use href="#i-printer"/></svg><span data-str="card_printer">Printer</span></a>
+  <a tabindex="0" role="link" data-nav="camera"><svg class="i"><use href="#i-image"/></svg><span data-str="card_camera">Camera</span></a>
+  <a tabindex="0" role="link" data-nav="sta"><svg class="i"><use href="#i-network"/></svg><span>Wi-Fi</span></a>
+  <a tabindex="0" role="link" data-nav="ap"><svg class="i"><use href="#i-hotspot"/></svg><span data-str="ui_hotspot">Hotspot</span></a>
+  <a tabindex="0" role="link" data-nav="logs"><svg class="i"><use href="#i-info"/></svg><span data-str="card_logs">Logs</span></a>
+</nav>
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     Top bar. The device's own name, the wordmark, and what the printer is
+     doing. The progress line under it is the same number as the chip,
+     said in a way you can read from across the room.
+     ══════════════════════════════════════════════════════════════════ -->
+<header class="fixed surface-container" id="ps-top-bar">
+  <nav class="ux_top_bar_row">
+    <span class="small-text ux_top_name" id="ps-top-name"></span>
+    <span class="max"></span>
+
+    <!-- The product, in the middle. The left of the bar carries whatever
+         the owner named THIS unit, which on a bench with two of them is the
+         useful thing to see; this says what the software is, which the
+         device name stops saying the moment it is renamed.
+
+         Centred on the BAR rather than between its neighbours, so it does
+         not shuffle sideways every time the state pill grows a percentage.
+
+         Two marks, one per theme, both always in the DOM: swapping a src
+         would refetch, and a data: URL that has already been decoded is
+         cheaper to hide than to decode again. -->
+    <span class="ux_top_brand l" id="ps-top-brand">
+      <img class="ux_top_mark ux_mark_light" id="ps-top-mark" alt="" src="__MARKLIGHT__">
+      <img class="ux_top_mark ux_mark_dark" id="ps-top-mark-dark" alt="" src="__MARKDARK__">
+      <span data-no-translate data-str="ui_pandastatusos">PandaStatusOS</span>
+    </span>
+
+    <button class="chip fill" id="ps-top-pill">
+      <svg class="i small" id="ps-top-dot"><use href="#i-printer-enclosed"/></svg>
+      <span id="ps-top-state"></span>
+      <span id="ps-top-pct"></span>
+    </button>
+
+    <!-- The one-tap theme cycle: auto, light, dark. Its icon says which is
+         active, so it is a readout as much as a control. Sits after the
+         pill, on the right, on every width. -->
+    <button class="circle transparent ux_top_theme" id="ps-top-theme"
+            title="Theme" data-str-title="ui_theme">
+      <svg class="i" id="ps-top-theme-icon"><use href="#i-theme"/></svg>
+    </button>
+  </nav>
+  <progress id="ps-top-prog" value="95" max="100"></progress>
+  <span id="ps-top-prog-fill" hidden></span>
+</header>
+
+<main class="responsive max">
+__PAGES__
+</main>
+
+<!-- The release the running firmware came from, under the content on every
+     page. It is a link, because the first thing anyone wants after reading
+     a version is the notes that go with it. -->
+<footer class="ux_version responsive max">
+  <a class="small-text" id="ps-version-badge"
+     href="https://github.com/jeremykenedy/PandaStatusOS/releases" target="_blank" rel="noopener">
+    <span class="ux_version_name" data-no-translate data-str="ui_pandastatusos">PandaStatusOS</span> <span id="ps-version-num"></span>
+  </a>
+</footer>
+
+__GLOBAL__
+
+__SPRITE__
+
+__MOCKUI__
+
+<script type="module">__BEERJS__</script>
+</body>
+</html>

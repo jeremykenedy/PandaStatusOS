@@ -1,0 +1,150 @@
+<!-- ══════════════════════════════════════════════════════════════════════
+     DASHBOARD
+     What the vent is doing, what the printer is doing, and the one control
+     anyone opens this page to use. Every panel is a self-contained card,
+     titled inside, so the page can lay them out as a wall.
+     ══════════════════════════════════════════════════════════════════ -->
+<section id="ps-card-status" data-card>
+
+  <!-- ── The vent ─────────────────────────────────────────────────── -->
+  <!-- The vent card that stood here is gone. This product has no flap, no servo and no
+       airflow to show, and a dashboard that reports hardware the device does not have is
+       worse than one that says nothing. Pairing a Panda Status with a Panda Vent so that
+       one drives the other is a real idea and it is catalogued as a feature behind a flag
+       that defaults off: docs/PANDAVENT-BRIDGE.md and docs/FEATURES.md. Rule 5. -->
+
+  <!-- ── The print ────────────────────────────────────────────────── -->
+  <article class="span-all">
+    <h6 class="card-title" data-str="ui_current_print">Current print</h6>
+    <nav>
+      <span class="max" id="ps-job-name"></span>
+      <span id="ps-job-pct"></span>
+    </nav>
+    <div class="space"></div>
+    <progress id="ps-job-fill" value="0" max="100"></progress>
+    <div class="space"></div>
+    <nav class="small-text" id="ps-job-meta">
+    </nav>
+  </article>
+
+  <!-- ── The printer ──────────────────────────────────────────────── -->
+  <article class="no-padding">
+    <h6 class="card-title" data-str="card_printer">Printer</h6>
+    <ul class="list border" id="ps-kv-printer">
+      <li>
+        <svg class="i"><use href="#i-network"/></svg>
+        <div class="max" data-str="status_link">Link</div>
+      </li>
+      <li>
+        <svg class="i"><use href="#i-printer-enclosed"/></svg>
+        <div class="max" data-str="ui_state">State</div>
+      </li>
+      <li>
+        <svg class="i"><use href="#i-nozzle-temp"/></svg>
+        <div class="max">
+          <div data-str="status_nozzle">Nozzle</div>
+        </div>
+      </li>
+      <li>
+        <svg class="i"><use href="#i-bed-hot"/></svg>
+        <div class="max" data-str="status_bed">Bed</div>
+      </li>
+      <li>
+        <svg class="i"><use href="#i-temp"/></svg>
+        <div class="max" data-str="status_chamber">Chamber</div>
+      </li>
+      <li>
+        <svg class="i"><use href="#i-spool-end"/></svg>
+        <div class="max">
+          <div data-str="ui_filament">Filament</div>
+          <div class="small-text" data-str="ui_loaded">Loaded</div>
+        </div>
+      </li>
+      <li>
+        <svg class="i"><use href="#i-fan"/></svg>
+        <div class="max" data-str="status_fans">Fans</div>
+      </li>
+      <li>
+        <svg class="i"><use href="#i-materials"/></svg>
+        <div class="max">
+          <div data-str="status_ams">AMS</div>
+          <div class="small-text">Humidity and temperature</div>
+        </div>
+      </li>
+      <li>
+        <svg class="i"><use href="#i-printer-open"/></svg>
+        <div class="max" data-str="status_door">Door</div>
+      </li>
+      <li>
+        <svg class="i"><use href="#i-warning"/></svg>
+        <div class="max" data-str="status_fault_code">Fault code</div>
+      </li>
+    </ul>
+  </article>
+
+  <!-- ── Reaching back to the printer ─────────────────────────────── -->
+  <article class="no-padding" id="ps-card-pctl">
+    <h6 class="card-title" data-str="pctl_title">Printer controls</h6>
+    <div class="small-text" data-str="ui_these_write_to_the_printer_so_they">These write to the printer, so they need Developer
+      Mode switched on under LAN Only Mode. Everything above only listens.</div>
+    <ul class="list border">
+      <li>
+        <svg class="i"><use href="#i-lighting"/></svg>
+        <div class="max" data-str="status_chamber_light" id="sw_id_pctl_chamber_light">Chamber light</div>
+        <label class="switch"><input type="checkbox" id="ps-pctl-chamber-light" aria-labelledby="sw_id_pctl_chamber_light" checked><span></span></label>
+      </li>
+      <li id="ps-pctl-work-light-row">
+        <svg class="i"><use href="#i-brightness"/></svg>
+        <div class="max" data-str="ui_work_light" id="sw_id_pctl_work_light">Work light</div>
+        <label class="switch"><input type="checkbox" id="ps-pctl-work-light" aria-labelledby="sw_id_pctl_work_light"><span></span></label>
+      </li>
+    </ul>
+    <div class="padding">
+      <div class="small-text" id="ps-pctl-locked" hidden data-str="ui_the_printer_is_refusing_commands_t">The printer is refusing commands. Turn on
+        Developer Mode, under LAN Only Mode, on the printer's own screen.</div>
+    </div>
+  </article>
+
+  <!-- ── Lighting, as it is right now ─────────────────────────────── -->
+  <article class="no-padding" id="ps-lighting-row">
+    <h6 class="card-title" data-str="status_lighting">Lighting now</h6>
+    <ul class="list border" id="ps-kv-lighting">
+      <li><div class="max" data-str="status_showing">Showing</div></li>
+      <li><div class="max" data-str="status_effect">Effect</div></li>
+      <li><div class="max" data-str="status_colour">Colour</div></li>
+      <li><div class="max" data-str="status_brightness">Brightness</div></li>
+      <li><div class="max" data-str="ui_led_strips">LED strips</div></li>
+    </ul>
+  </article>
+
+  <!-- ── The AMS spools ───────────────────────────────────────────────
+       Their own card. A chip per loaded spool, spread evenly across the
+       card: two by two on a phone, all four in one row from a tablet up.
+       The colour lives in the dot, the loaded spool is marked with a ring.
+       The whole card hides when the printer has no AMS (the renderer sets
+       #ps-trays hidden, and the card follows). -->
+  <article class="no-padding" id="ps-card-filament">
+    <h6 class="card-title" data-str="ui_filament_loaded">Filament Loaded</h6>
+    <div class="padding" id="ps-trays">
+      <nav class="trays-grid" id="ps-trays-row">
+      </nav>
+    </div>
+  </article>
+
+  <!-- ── Endstop check ────────────────────────────────────────────── -->
+  <article id="ps-cal-row">
+    <h6 class="card-title" data-str="cal_label">Endstop check</h6>
+    <div class="small-text" data-str="ui_drives_the_flap_onto_both_stops_an">Drives the flap onto both stops and reports what the
+    hall sensor read at each one. Nothing is stored; this answers "is the sensor seeing the magnet".</div>
+    <div class="space"></div>
+    <button class="fill responsive" id="ps-btn-cal">
+      <svg class="i"><use href="#i-endstop"/></svg>
+      <span data-str="ui_run_the_check">Run the check</span>
+    </button>
+    <div id="ps-cal-result" hidden>
+      <div class="space"></div>
+      <ul class="list border" id="ps-kv-cal"></ul>
+    </div>
+  </article>
+
+</section>

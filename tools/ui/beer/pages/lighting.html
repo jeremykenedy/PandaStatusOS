@@ -1,0 +1,93 @@
+<!-- ══════════════════════════════════════════════════════════════════════
+     LIGHTING
+     Everything this device does with its bar, which is less than the vent
+     does and is laid out the same way. Two modes, three state colours in
+     each, a brightness that is live in both and a speed that is live only
+     in H2D. The blocks below are the printer's own segments.
+     ══════════════════════════════════════════════════════════════════ -->
+<section id="ps-card-theme" data-card>
+
+  <!-- ── Mode ─────────────────────────────────────────────────────── -->
+  <article class="no-padding span-all">
+    <h6 class="card-title padding no-padding-bottom" data-str="ui_mode">Mode</h6>
+    <div class="grid no-space padding" id="ps-mode-row" role="radiogroup" aria-labelledby="lbl-mode-row">
+      <span id="lbl-mode-row" class="hidden" data-str="ui_mode">Mode</span>
+      <div class="s12 m6 padding">
+        <button class="border fill vertical responsive is-active" id="ps-mode-music" role="radio" aria-checked="true">
+          <svg class="i"><use href="#i-speed"/></svg>
+          <span data-str="ui_music">Music</span>
+        </button>
+      </div>
+      <div class="s12 m6 padding">
+        <button class="border vertical responsive" id="ps-mode-h2d" role="radio" aria-checked="false">
+          <svg class="i"><use href="#i-printer"/></svg>
+          <span data-str="ui_h2d">H2D</span>
+        </button>
+      </div>
+    </div>
+  </article>
+
+  <!-- ── Brightness, live in both modes ───────────────────────────── -->
+  <article class="span-all">
+    <h6 class="card-title" data-str="status_brightness">Brightness</h6>
+    <nav><span class="max small-text" id="lbl-brightness" data-str="status_brightness">Brightness</span>
+         <span class="small-text" id="ps-brightness-value"></span></nav>
+    <label class="slider">
+      <input type="range" aria-labelledby="lbl-brightness" id="ps-brightness"
+             min="0" max="100" step="5" value="50"><span></span>
+    </label>
+  </article>
+
+  <!-- ── Speed. The slider is inert in Music, which is the device's own
+          behaviour and not a decision made here. ─────────────────── -->
+  <article class="span-all" id="ps-speed-card">
+    <h6 class="card-title" data-str="status_speed">Speed</h6>
+    <nav><span class="max small-text" id="lbl-speed" data-str="status_speed">Speed</span>
+         <span class="small-text" id="ps-speed-value"></span></nav>
+    <label class="slider">
+      <input type="range" aria-labelledby="lbl-speed" id="ps-speed"
+             min="0" max="100" step="5" value="100"><span></span>
+    </label>
+  </article>
+
+  <!-- ── The three bar states, per mode ───────────────────────────── -->
+  <article class="span-all">
+    <h6 class="card-title" data-str="status_per_state">Per state</h6>
+    <nav class="swatch-row">
+      <span class="max small-text" id="lbl-col-0" data-str="ui_printer_state_0">Idle</span>
+      <div class="swatch-slot">
+        <button aria-labelledby="lbl-col-0" class="swatch responsive small-round is-unset" id="ps-col-0"></button>
+      </div>
+    </nav>
+    <nav class="swatch-row">
+      <span class="max small-text" id="lbl-col-1" data-str="ui_printer_state_2">Printing</span>
+      <div class="swatch-slot">
+        <button aria-labelledby="lbl-col-1" class="swatch responsive small-round is-unset" id="ps-col-1"></button>
+      </div>
+    </nav>
+    <nav class="swatch-row">
+      <span class="max small-text" id="lbl-col-2" data-str="ui_printer_state_5">Error</span>
+      <div class="swatch-slot">
+        <button aria-labelledby="lbl-col-2" class="swatch responsive small-round is-unset" id="ps-col-2"></button>
+      </div>
+    </nav>
+  </article>
+
+  <!-- ── Blocks. One row per segment the device reports, drawn from
+          block.blocklist, so a device with none shows none. ──────── -->
+  <article class="span-all" id="ps-block-card" hidden>
+    <h6 class="card-title" data-str="ui_lights">Lights</h6>
+    <div id="ps-block-list"></div>
+  </article>
+
+  <!-- ── Back to the light defaults. H2D only: the device refuses this
+          in Music, so the button says so by going inert. ─────────── -->
+  <article class="span-all">
+    <h6 class="card-title" data-str="ui_reset_to_default">Reset to default</h6>
+    <button class="border responsive" id="ps-lights-reset">
+      <svg class="i"><use href="#i-restart"/></svg>
+      <span data-str="ui_reset_this_mode_s_settings">Reset this mode's settings</span>
+    </button>
+  </article>
+
+</section>

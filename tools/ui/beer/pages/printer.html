@@ -1,0 +1,47 @@
+<!-- ══════════════════════════════════════════════════════════════════════
+     PRINTER
+     Which printer this vent watches, and how it reaches it. Four fields and
+     one button; the scan fills the first three from the network.
+     ══════════════════════════════════════════════════════════════════ -->
+<section id="ps-card-printer" data-card>
+
+  <article class="card-divided">
+    <nav>
+      <h6 class="card-title max" id="lbl_bind_printer" data-str="ui_bind_to_a_printer">Bind to a printer</h6>
+      <button class="note-btn" id="ps-note-printer" aria-labelledby="lbl_bind_printer" aria-haspopup="dialog">i</button>
+      <button class="circle transparent" id="ps-btn-printer-scan" title="Scan the network" data-str-title="ui_scan_the_network">
+        <svg class="i" id="ps-img-scan-printer"><use href="#i-search"/></svg>
+      </button>
+    </nav>
+    <div class="small-text" data-str="ui_the_vent_finds_bambu_printers_on_t">The vent finds Bambu printers on the same network.
+      Pick yours and it fills in the serial; the access code is on the printer's own screen.</div>
+
+    <div class="field label suffix border">
+      <select id="ps-printer-name"></select>
+      <label for="ps-printer-name" data-str="card_printer">Printer</label>
+      <svg class="i"><use href="#i-caret"/></svg>
+    </div>
+
+    <div class="field label border">
+      <input type="text" id="ps-printer-sn" maxlength="15" value="" placeholder=" ">
+      <label for="ps-printer-sn" data-str="ui_serial_number">Serial number</label>
+    </div>
+
+    <div class="field label border">
+      <input type="text" id="ps-printer-access-code" maxlength="8" value="" placeholder=" ">
+      <label for="ps-printer-access-code" data-str="printer_access_code">Access code</label>
+    </div>
+
+    <div class="field label border">
+      <input type="text" id="ps-printer-ip" maxlength="15" value="" placeholder=" ">
+      <label for="ps-printer-ip" data-str="ui_ip_address">IP address</label>
+    </div>
+
+    <button class="border responsive" id="ps-btn-printer-bind">
+      <svg class="i" id="ps-img-printer-bind"><use href="#i-link-off"/></svg>
+      <span id="ps-timer-printer-bind"></span>
+      <span id="ps-span-printer-bind"></span>
+    </button>
+  </article>
+
+</section>

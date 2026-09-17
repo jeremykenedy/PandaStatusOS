@@ -1,0 +1,189 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   THEME
+
+   Beer CSS ships Material 3's default purple. These are the same M3 role
+   names with the project's own palette in them, generated from one seed
+   green by tools/gen_tokens.py. Nothing else in this file names a colour.
+
+   Beer puts the theme class on <body>, not :root, so these do too.
+   ═══════════════════════════════════════════════════════════════════════ */
+/* The face. Beer's own token leads with Inter, which nothing here embeds:
+   on a machine that happens to have Inter the page looks like one design
+   and on every other machine like another, and the vent cannot fetch the
+   missing one. Roboto is embedded (see fonts.css) so it is the same face
+   everywhere, and it is the face M3's type scale was drawn for. */
+:root,
+body {
+  --font: 'Roboto', 'Helvetica Neue', 'Nimbus Sans', Arial, sans-serif;
+}
+
+/* Dark is the default: this thing lives next to a printer, often dim. */
+:root,
+body.dark {
+  --primary: #A4D1B5;
+  --on-primary: #1E4833;
+  --primary-container: #315B45;
+  --on-primary-container: #C0EED1;
+  --secondary: #B4CCBC;
+  --on-secondary: #304538;
+  --secondary-container: #2B4034;
+  --on-secondary-container: #ADC5B5;
+  --tertiary: #E8FEFF;
+  --on-tertiary: #2D676C;
+  --tertiary-container: #BBF5FA;
+  --on-tertiary-container: #235F63;
+  --error: #FA746F;
+  --on-error: #490006;
+  --error-container: #871F21;
+  --on-error-container: #FF9993;
+  --surface: #0B0F0C;
+  --on-surface: #DEE8DF;
+  --surface-variant: #1F2822;
+  --on-surface-variant: #A4AEA5;
+  --surface-container-lowest: #000000;
+  --surface-container-low: #0F1511;
+  --surface-container: #141B17;
+  --surface-container-high: #1A211C;
+  --surface-container-highest: #1F2822;
+  --surface-dim: #0B0F0C;
+  --surface-bright: #252E28;
+  --inverse-surface: #F7FAF5;
+  --inverse-on-surface: #525652;
+  --inverse-primary: #3E6751;
+  --outline: #6E7870;
+  --outline-variant: #414A44;
+  --scrim: #000000;
+  --shadow: #000000;
+  --on-success: #2A4728;
+  --on-success-container: #CAEDC2;
+  --on-warning: #583A11;
+  --on-warning-container: #FFDEBB;
+  --success: #AED0A7;
+  --success-container: #3C5A39;
+  --warning: #EDBE8A;
+  --warning-container: #6D4C22;
+
+  /* The log's two level colours. --error and --warning are accent roles,
+     drawn to fill a chip or a banner, and neither of them clears 4.5:1 as
+     TEXT on the log's own ground once protanopia and deuteranopia are
+     simulated: the red came back at 4.47 and the amber at 1.87. These two
+     are picked for that one job -- 12px monospace on
+     surface-container-highest -- and clear 4.5 plain and through all three
+     simulations, in this theme and in the light one. */
+  --log-error: #FF8C7A;
+  --log-warn: #FFB200;
+
+  /* The page sits behind the cards, so the two need their own roles: in
+     the dark theme the page is the darkest thing and every card lifts off
+     it, in the light theme the page is the grey and the cards are white.
+     No M3 pair inverts that way, so these two are named for the job. */
+  --page: #070A08;
+  --card: #111813;
+  /* The chrome (top bar + nav) is one shared surface, lifted well clear of
+     the page in the dark theme so it reads as the frame around the content. */
+  --chrome: #1A211C;
+}
+
+/* Light, chosen explicitly. */
+body.light {
+  --primary: #316A4D;
+  --on-primary: #E6FFED;
+  --primary-container: #B4F0CC;
+  --on-primary-container: #225C41;
+  --secondary: #4E6456;
+  --on-secondary: #E6FFED;
+  --secondary-container: #D0E8D7;
+  --on-secondary-container: #415749;
+  --tertiary: #2D676C;
+  --on-tertiary: #E6FDFF;
+  --tertiary-container: #BDF8FD;
+  --on-tertiary-container: #256165;
+  --error: #A83836;
+  --on-error: #FFF7F6;
+  --error-container: #FA746F;
+  --on-error-container: #6E0A12;
+  --surface: #F7FAF5;
+  --on-surface: #2B352F;
+  --surface-variant: #DBE5DC;
+  --on-surface-variant: #58615A;
+  --surface-container-lowest: #FFFFFF;
+  --surface-container-low: #EFF5EE;
+  --surface-container: #E9F0E8;
+  --surface-container-high: #E2EAE2;
+  --surface-container-highest: #DBE5DC;
+  --surface-dim: #D3DDD4;
+  --surface-bright: #F7FAF5;
+  --inverse-surface: #0B0F0C;
+  --inverse-on-surface: #9A9E99;
+  --inverse-primary: #BFFCD7;
+  --outline: #737D76;
+  --outline-variant: #ABB4AC;
+  --scrim: #000000;
+  --shadow: #000000;
+  --on-success: #EAFFE2;
+  --on-success-container: #345A32;
+  --on-warning: #FFF7F3;
+  --on-warning-container: #5F3A03;
+  --success: #42683E;
+  --success-container: #C2EEB9;
+  --warning: #805620;
+  --warning-container: #F7BF7E;
+  --log-error: #9E1500;
+  --log-warn: #704F00;
+  --page: #E9EFE9;
+  --card: #FDFEFC;
+  --chrome: #FFFFFF;
+}
+
+@media (prefers-color-scheme: light) {
+  /* And light by system preference. */
+  body:not(.dark) {
+    --primary: #316A4D;
+    --on-primary: #E6FFED;
+    --primary-container: #B4F0CC;
+    --on-primary-container: #225C41;
+    --secondary: #4E6456;
+    --on-secondary: #E6FFED;
+    --secondary-container: #D0E8D7;
+    --on-secondary-container: #415749;
+    --tertiary: #2D676C;
+    --on-tertiary: #E6FDFF;
+    --tertiary-container: #BDF8FD;
+    --on-tertiary-container: #256165;
+    --error: #A83836;
+    --on-error: #FFF7F6;
+    --error-container: #FA746F;
+    --on-error-container: #6E0A12;
+    --surface: #F7FAF5;
+    --on-surface: #2B352F;
+    --surface-variant: #DBE5DC;
+    --on-surface-variant: #58615A;
+    --surface-container-lowest: #FFFFFF;
+    --surface-container-low: #EFF5EE;
+    --surface-container: #E9F0E8;
+    --surface-container-high: #E2EAE2;
+    --surface-container-highest: #DBE5DC;
+    --surface-dim: #D3DDD4;
+    --surface-bright: #F7FAF5;
+    --inverse-surface: #0B0F0C;
+    --inverse-on-surface: #9A9E99;
+    --inverse-primary: #BFFCD7;
+    --outline: #737D76;
+    --outline-variant: #ABB4AC;
+    --scrim: #000000;
+    --shadow: #000000;
+    --on-success: #EAFFE2;
+    --on-success-container: #345A32;
+    --on-warning: #FFF7F3;
+    --on-warning-container: #5F3A03;
+    --success: #42683E;
+    --success-container: #C2EEB9;
+    --warning: #805620;
+    --warning-container: #F7BF7E;
+    --log-error: #9E1500;
+    --log-warn: #704F00;
+    --page: #E9EFE9;
+    --card: #FDFEFC;
+    --chrome: #FFFFFF;
+  }
+}

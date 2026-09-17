@@ -1,0 +1,21 @@
+
+
+/* ═══════════════════════════════════════════════════════════════════════
+   APP ONLY
+
+   The real page shows one card at a time and one setup page at a time; the
+   mock shows them all at once, so this is the difference between the two
+   and it is not in the mock's copy of the stylesheet.
+
+   data-page and data-card are JS hooks, not style hooks. They are
+   attributes rather than classes so that it is obvious in the markup that
+   something is looking for them, and so that a tidy-up of the class list
+   cannot quietly break navigation.
+   ═══════════════════════════════════════════════════════════════════════ */
+[data-page]:not(.active),
+[data-card]:not(.active) { display: none; }
+
+/* Until the device's first state document lands, nothing on the page is
+   real. The controls are inert (the socket guard sees to that) and this
+   says so rather than showing a confident zero the device never claimed. */
+body.is-waiting .waiting-hide { visibility: hidden; }

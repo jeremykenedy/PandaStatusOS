@@ -1,0 +1,1327 @@
+
+/* ═══════════════════════════════════════════════════════════════════════
+   PROJECT
+
+   Beer CSS gives us every component on these pages except three, and one
+   substitution. This file is all of it — a hundred-odd lines on top of a
+   framework, rather than four thousand instead of one.
+
+     1  Icons        Heroicons where Beer expects a webfont
+     2  Vent dial    the one thing this device is for
+     3  State grid   six printer states, each showing its own colour
+     4  Log view     the device's ring buffer, verbatim
+   ═══════════════════════════════════════════════════════════════════════ */
+
+
+/* ── 1  Icons ───────────────────────────────────────────────────────────
+   Beer draws icons with the Material Symbols webfont, which is hundreds of
+   kilobytes fetched from a CDN. This device has no route to the internet
+   and the project already has a Heroicons sprite, so <svg class="i"> goes
+   wherever Beer's docs say <i>, and takes the same size and the same
+   currentColor.
+
+   A <use> in a different <svg> does not inherit the sprite root's
+   presentation attributes, so without the fill and stroke below every
+   glyph comes out a solid black silhouette.
+
+   stroke-width is deliberately absent: the sprite holds two families on
+   two grids — Heroicons at 1.5 on 24, the printing set at 6 on 96, which
+   is the same optical weight — and each <symbol> carries its own. A CSS
+   stroke-width would beat both and draw one family at a quarter weight.
+   ────────────────────────────────────────────────────────────────────── */
+svg.i {
+  inline-size: 1.5rem;
+  block-size: 1.5rem;
+  flex: 0 0 auto;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+svg.i.small { inline-size: 1.25rem; block-size: 1.25rem; }
+svg.i.large { inline-size: 2rem;    block-size: 2rem; }
+
+/* The sprite itself is never painted. */
+svg.sprite { display: none; }
+
+/* Beer draws the tick inside a checked switch, checkbox and radio with a
+   Material Symbols LIGATURE — content: "check" — which without the font
+   renders as the literal word "check" sitting in the middle of the
+   handle. There is no glyph to substitute at that size, and a switch does
+   not need one: the handle's position and colour already say which way it
+   is set, which is how M3's own switch works when it has no icon. */
+:is(.switch, .checkbox, .radio) > span::before,
+:is(.checkbox, .radio) > span::after {
+  content: "" !important;
+}
+
+
+/* ── 2  The vent dial ───────────────────────────────────────────────────
+   The arc is a BOX WITH TWO COLOURED BORDERS, not an SVG. A 50%-radius box
+   with border-top and border-right coloured is a 180° arc whose mitred
+   ends meet the dim half exactly, and it turns by rotating the box. The
+   SVG version had to compute 2·π·r to find its own half and animate a dash
+   offset to move it.
+
+     rotate(135deg)      closed
+     rotate(-45deg)      open
+     spinning to 315deg  moving
+   ────────────────────────────────────────────────────────────────────── */
+.vent-dial {
+  position: relative;
+  inline-size: 9.5rem;
+  block-size: 9.5rem;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: radial-gradient(circle,
+              color-mix(in srgb, var(--primary) 16%, transparent) 0 45%,
+              transparent 46%);
+}
+
+.vent-dial > .arc {
+  position: absolute;
+  inset: 10%;
+  border: 0.5rem solid color-mix(in srgb, var(--on-surface) 10%, transparent);
+  border-block-start-color: var(--on-surface-variant);
+  border-inline-end-color: var(--on-surface-variant);
+  border-radius: 50%;
+  transform: rotate(135deg);
+  transition: transform 0.35s cubic-bezier(0.2, 0, 0, 1), border-color 0.35s;
+}
+
+/* Which of the three states is showing is NOT decided here. airflow_render()
+   puts is-open and is-moving on #ps-airflow, from the flap's real position
+   and the travel flag, and both of those are facts the device reports. A
+   class on the dial itself would be a second copy of that state, and the two
+   drifted apart the moment the markup carried a resting `open`. */
+#ps-airflow.is-open .vent-dial > .arc {
+  border-block-start-color: var(--primary);
+  border-inline-end-color: var(--primary);
+  transform: rotate(-45deg);
+}
+
+#ps-airflow.is-moving .vent-dial > .arc {
+  border-block-start-color: var(--primary);
+  border-inline-end-color: var(--primary);
+  animation: ux_vent_spin 1.15s linear infinite;
+  transition: none;
+}
+
+@keyframes ux_vent_spin {
+  from { transform: rotate(-45deg); }
+  to   { transform: rotate(315deg); }
+}
+
+/* A spin is the wrong thing to show somebody who asked not to be spun, and
+   "no animation at all" is the wrong thing to show somebody waiting to find
+   out whether their tap did anything. It breathes instead: same message,
+   no rotation. */
+@keyframes ux_vent_breathe {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.45; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vent-dial > .arc,
+  #ps-airflow.is-open .vent-dial > .arc { transition: none; animation: none; }
+  #ps-airflow.is-moving .vent-dial > .arc {
+    animation: ux_vent_breathe 1.6s ease-in-out infinite;
+  }
+}
+
+/* On a phone the dial goes above the words. A 9.5rem dial beside a 24px
+   headline and two lines of explanation does not fit in 360px, and what
+   gives is the explanation, three words to a line. */
+@media only screen and (max-width: 600px) {
+  .vent-row {
+    flex-direction: column;
+    text-align: center;
+  }
+  .vent-row > .max { text-align: center !important; }
+}
+
+/* The dial is smaller there too, because it is the biggest thing on the
+   page and on a phone the page is the size of the dial. */
+@media only screen and (max-width: 600px) {
+  .vent-dial { inline-size: 8rem; block-size: 8rem; }
+}
+
+
+/* ── 3  The printer-state grid ──────────────────────────────────────────
+   Six buttons showing what colour the strip is for each printer state.
+   The COLOUR is the content, so the label sits on its own plate rather
+   than being painted in something that has to stay legible over whatever
+   the user picked. Height is content-driven: these carry a state's name in
+   one of 24 languages, and a stylesheet does not get to decide how long
+   that is.
+   ────────────────────────────────────────────────────────────────────── */
+.state-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  align-items: stretch;
+}
+
+.state-grid > button {
+  min-block-size: 3.5rem;
+  block-size: auto;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.5), 0 0 0 1px rgb(0 0 0 / 0.4);
+}
+
+/* The label sits on a colour the user picked, so it needs its own ground to
+   stay legible. A hard black pill read as a sticker slapped on the swatch;
+   this is a tighter, squarer label chip -- small radius, a hairline of light
+   at its top edge so it reads as raised rather than painted on -- and it
+   stays dark enough to clear 4.5:1 over any swatch (checked by pixels.js). */
+.state-grid > button > span {
+  padding: 0.1875rem 0.5rem;
+  border-radius: 0.375rem;
+  background: rgb(0 0 0 / 0.78);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.25;
+  letter-spacing: 0.01em;
+  text-align: center;
+  /* pre-line, not normal: the two-line state labels break where their own
+     translation says to. It used to be a hard <br> in the markup, which put
+     the break where ENGLISH wanted it and left every other language to wrap
+     wherever it landed. Every rgb_btn2 translation carries its own newline. */
+  white-space: pre-line;
+}
+
+
+/* ── 4  The log view ────────────────────────────────────────────────────
+   The device's own ring buffer, verbatim. Monospaced because the columns
+   line up, pre-wrap because a long line must not need a scrollbar to read.
+   ────────────────────────────────────────────────────────────────────── */
+.log {
+  margin: 0;
+  padding: 0.75rem;
+  /* 20rem left the page short: a screenful of empty window under a log that
+     had more lines to give. It takes the height that is actually there
+     instead, down to a floor on a short window, and the card's own buttons
+     stay in view under it. */
+  block-size: calc(100dvh - 16rem);
+  min-block-size: 12rem;
+  overflow: auto;
+  background: var(--surface-container-highest);
+  border-radius: 0.5rem;
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  font-size: 0.75rem;
+  line-height: 1.55;
+  color: var(--on-surface-variant);
+  white-space: pre-wrap;
+  word-break: break-word;
+  /* Wrapped continuation lines hang past the timestamp column so they read as
+     part of their entry, not as new ones starting at column 0. */
+  padding-inline-start: calc(0.75rem + 11ch);
+  text-indent: -11ch;
+}
+/* The two level colours are their own tokens: --error and --warning are
+   accent roles for filling a chip, and as 12px text on this ground neither
+   of them clears 4.5:1 once colour blindness is simulated. */
+.log .w { color: var(--log-warn); }
+.log .e { color: var(--log-error); }
+
+
+/* ── 5  An unset colour ─────────────────────────────────────────────────
+   Two of the four colour slots are optional. "Not set" and "set to black"
+   are different states and must not look the same, so an unset swatch
+   shows a diagonal hatch. The same hatch marks an unset slider, so the
+   two say the same thing in the same way.
+   ────────────────────────────────────────────────────────────────────── */
+.is-unset {
+  background-color: transparent !important;
+  background-image: repeating-linear-gradient(45deg,
+    color-mix(in srgb, var(--on-surface) 14%, transparent) 0 6px,
+    color-mix(in srgb, var(--on-surface) 4%, transparent) 6px 12px) !important;
+}
+
+
+/* ── 6  Eight destinations in a bottom bar ──────────────────────────────
+   M3's bottom navigation takes three to five destinations, and Beer sizes
+   its items for that: 4rem minimum, laid out with `justify-content:
+   center`. This app has eight, so at 390px they added up to 568px past
+   the edge of the screen and the last three were simply off it.
+
+   The alternative was a "More" sheet, which hides three whole pages of the
+   app behind a tap and a guess. Eight items at 2.75rem fit inside 360px
+   with room, and the icon stays a 24px target inside a 44px one, which is
+   still over the 44px minimum in both directions once the bar's own
+   height is counted.
+   ────────────────────────────────────────────────────────────────────── */
+nav.bottom {
+  justify-content: space-between;
+  padding-inline: 0.25rem;
+  /* Beer's nav gap is 1rem. Seven of those between eight items is 112px of
+     the 360 a small phone has, before any of the items themselves. The
+     items are already spaced by space-between. */
+  gap: 0;
+}
+
+nav.bottom > a {
+  min-inline-size: 2.5rem;
+  flex: 1 1 0;
+  padding-inline: 0;
+}
+
+/* The words go with them. "Dashboard" and "Settings" do not fit in 45px,
+   and eight of them across a phone would be eight ellipses. The label is
+   still in the markup because nav_labels_sync() reads it and turns it into
+   the item's accessible name and its tooltip, so a screen reader still
+   hears "Dashboard" where a sighted user sees the icon. The rail, which
+   has the room, shows the same words for real. */
+nav.bottom > a > span { display: none; }
+
+/* Taking the words away takes the item's height with them: the anchor
+   shrinks to the 24px icon and the tap target goes with it. The bar is
+   tall enough for a 44px one and a thumb needs every pixel of it. */
+nav.bottom > a {
+  min-block-size: 2.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+
+/* ── 7  A colour slot ───────────────────────────────────────────────────
+   A swatch with a clear button over its corner. The clear only exists
+   when there is something to clear, and it has to read against whatever
+   colour the user picked, so it is opaque dark rather than a translucent
+   wash: 45% over a pale swatch measured 3.4:1 through protanopia.
+   ────────────────────────────────────────────────────────────────────── */
+.swatch-slot { position: relative; }
+
+.swatch-slot > .clear {
+  position: absolute;
+  inset: 0.25rem 0.25rem auto auto;
+  background: #141414;
+  color: #fff;
+  border: 1px solid rgb(255 255 255 / 0.6);
+}
+
+/* ── 8  The animation preview ───────────────────────────────────────────
+   One row per frame, one column per pixel, scaled up. Nearest-neighbour,
+   because these ARE pixels and smoothing them is a lie about what the
+   strip will show.
+   ────────────────────────────────────────────────────────────────────── */
+.anim-canvas {
+  inline-size: 100%;
+  block-size: auto;
+  image-rendering: pixelated;
+  border-radius: 0.5rem;
+  background: #000;
+}
+
+
+/* ── 9  The two banners ─────────────────────────────────────────────────
+   Across the top, above everything, for the conditions the whole page
+   depends on. Beer has a snackbar, which is for something that happened;
+   these are for something that IS, so they stay until it is not.
+   ────────────────────────────────────────────────────────────────────── */
+/* `hidden` only sets display:none in the UA stylesheet, so ANY author rule
+   beats it — `.banner { display: flex }` included, which is how the
+   "settings could not be saved" banner came up on a device that had saved
+   everything perfectly well. This cost seven separate fixes in the old
+   stylesheet before it was fixed once, here. */
+[hidden] { display: none !important; }
+
+.banner {
+  position: fixed;
+  inset: 0 0 auto 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+}
+
+/* ── 10  The colour picker's preview ───────────────────────────────────
+   It holds whatever colour is being chosen, so an outline in one
+   direction disappears against half of them. Drawn light over dark AND
+   dark over light, so there is an edge whatever lands inside.
+   ────────────────────────────────────────────────────────────────────── */
+.hsl-preview {
+  block-size: 6rem;
+  border-radius: 0.75rem;
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.55), 0 0 0 1px rgb(0 0 0 / 0.45);
+}
+
+/* Each preset says its own name.
+   A bare row of coloured squares is unreadable to anyone who cannot tell the
+   colours apart, and a title attribute is a hover tooltip -- no help at all on
+   a phone. The name is drawn under the chip, so the swatch is legible without
+   seeing the colour. */
+.swatch-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(4.25rem, 1fr));
+  gap: 0.5rem;
+}
+
+.swatch-row > button {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.25rem;
+  padding: 0;
+  background: none;
+  block-size: auto;
+  box-shadow: none;
+  border-radius: 0.5rem;
+}
+
+.swatch-row > button > .chip {
+  block-size: 2.25rem;
+  border-radius: 0.5rem;
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.55), 0 0 0 1px rgb(0 0 0 / 0.45);
+}
+
+.swatch-row > button > .nm {
+  font-size: 0.6875rem;
+  line-height: 1.15;
+  text-align: center;
+  color: var(--on-surface-variant);
+  overflow-wrap: anywhere;
+}
+
+/* The chosen one is named as well as ringed, for the same reason. */
+.swatch-row > button[aria-pressed="true"] > .chip {
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.55), 0 0 0 2px var(--primary);
+}
+.swatch-row > button[aria-pressed="true"] > .nm {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+
+/* ── 11  The setup greeting ─────────────────────────────────────────────
+   Says hello in a different language every couple of seconds, so someone
+   who does not read English sees their own word before they see the list.
+   ────────────────────────────────────────────────────────────────────── */
+.hello { margin-inline: auto; color: var(--on-surface); }
+
+/* ── 12  The vent's live dot ────────────────────────────────────────────
+   Green when the flap is open, quiet when it is shut, and it takes its
+   colour from the renderer rather than from a class per state.
+   ────────────────────────────────────────────────────────────────────── */
+.vent-dot { background: var(--outline); }
+.vent-dot.is-open { background: var(--primary); }
+
+/* iro.js's own canvas. It sizes itself; this only centres it. */
+.hsl-wheel { display: grid; place-items: center; }
+
+
+/* ── 13  A placeholder under a label ────────────────────────────────────
+   Beer floats a field's label out of the way as soon as the field has
+   something in it, and leaves it sitting in the box when the field is
+   empty. That is M3, and it is right — but a field can be empty and still
+   have a placeholder, and then the label and the placeholder are drawn on
+   top of each other. Two of ours do exactly that: the hot-chamber
+   threshold and the vent-policy temperatures show the factory value as a
+   placeholder so you can see what you are overriding.
+
+   So the placeholder waits its turn: it appears once the label has moved,
+   which is on focus, which is when a hint about what to type is useful.
+   ────────────────────────────────────────────────────────────────────── */
+.field.label > :is(input, textarea)::placeholder {
+  color: transparent;
+  transition: color var(--speed1, 0.15s);
+}
+.field.label > :is(input, textarea):focus::placeholder {
+  color: var(--on-surface-variant);
+}
+
+
+/* The dial is a button, so it needs a button's reset: Beer sizes buttons
+   for a label and this one is a circle with an arc around it. The size is
+   set once, in section 2, where the phone override lives -- restating it
+   here as a min-inline-size held the dial at 9.5rem on a 360px phone and
+   the override looked as though it simply did not work. */
+button.vent-dial {
+  padding: 0;
+  border: none;
+  min-inline-size: 0;
+  /* The dial is a ring, so the ground its hover and focus states paint has to
+     be a ring too. Beer's `no-round` squared it off, which drew a square
+     behind a circle on every hover. */
+  border-radius: 50%;
+}
+/* The word and its "VENT" caption stack, centred, so they sit as one block
+   in the middle of the ring rather than running "OPEN VENT" across it and
+   into the arc. The caption is a quiet second line under the state word. */
+.vent-dial .center-align {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1rem;
+  line-height: 1;
+}
+.vent-word {
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.01em;
+}
+.vent-dial .center-align > .small-text {
+  font-size: 0.625rem;
+  letter-spacing: 0.14em;
+}
+
+/* The dial is 8rem on a phone and OPEN at 24px fills it edge to edge. */
+@media only screen and (max-width: 600px) {
+  .vent-word { font-size: 1.25rem; }
+}
+
+
+/* ── 14  The round "i" buttons ──────────────────────────────────────────
+   Beside a setting whose name is not the whole story. Each opens a short
+   explanation; they are the only documentation the device carries, and
+   there are seventeen of them, so they have to be small enough to sit in
+   a row's trailing slot without competing with the control there.
+   ────────────────────────────────────────────────────────────────────── */
+.note-btn {
+  inline-size: 1.5rem;
+  block-size: 1.5rem;
+  min-inline-size: 1.5rem;
+  padding: 0;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: var(--primary-container);
+  color: var(--on-primary-container);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  line-height: 1;
+}
+.note-btn:hover { filter: brightness(1.1); }
+
+
+/* ── 15  A switch's hit target ──────────────────────────────────────────
+   Beer's switch is an invisible <input> with a <span> painted over it.
+   The span comes second, so it wins the hit test, and a click lands on a
+   decoration rather than on the control: every automated click on a
+   switch waited forever for an element that could not receive it, and a
+   real click only worked because the whole thing is inside a <label>.
+
+   The span draws; the input is the control. Say so.
+   ────────────────────────────────────────────────────────────────────── */
+:is(.switch, .checkbox, .radio) > span { pointer-events: none; }
+
+
+/* ── 16  Which one of a group is chosen ─────────────────────────────────
+   The page puts `is-active` on the chosen member of a radio group and
+   takes it off the others. That is the state; this is what the state
+   LOOKS like, and there are two groups wearing it.
+
+   The vent's three mode buttons take Beer's own `fill`, toggled alongside
+   is-active by the renderer, so the look is the framework's and not a
+   second opinion about what a filled button is.
+
+   The ring list is a list, and Beer has no filled list row, so M3's own
+   answer applies: the chosen row sits on the secondary container and is
+   the only one showing its tick.
+   ────────────────────────────────────────────────────────────────────── */
+#ps-ring-list > li { cursor: pointer; }
+
+#ps-ring-list > li.is-active {
+  background: var(--secondary-container);
+  color: var(--on-secondary-container);
+}
+
+/* Every row carries a tick and only the chosen row shows it, so the mark
+   moves with the selection. visibility rather than display, so the rows
+   keep one width and the text does not shuffle sideways on every tap. */
+#ps-ring-list > li > .ring-tick { visibility: hidden; }
+#ps-ring-list > li.is-active > .ring-tick { visibility: visible; }
+
+
+/* ── 17  A colour that came from the printer ────────────────────────────
+   The AMS reports each spool's own colour and the chip paints it. Black
+   filament is a real colour and it lands on a surface that, in the dark
+   theme, is nearly the same one: the dot disappears and the row reads as
+   an empty slot. Every dot is outlined so the black one is a black dot
+   rather than nothing at all, and the outline is the same on white.
+   ────────────────────────────────────────────────────────────────────── */
+.swatch-dot {
+  border: 1px solid var(--outline);
+  flex: 0 0 auto;
+}
+
+
+/* ── 18  The pointer says what the thing is ─────────────────────────────
+   Beer leaves the cursor to the browser, and the browser's answer for a
+   checkbox, a select and a range is the plain arrow or an I-beam. On a
+   page whose switches are the main way anything gets changed, an arrow
+   over a switch is a switch nobody knows is a switch.
+   ────────────────────────────────────────────────────────────────────── */
+:is(.switch, .checkbox, .radio),
+:is(.switch, .checkbox, .radio) > input,
+select,
+.field > select {
+  cursor: pointer;
+}
+
+/* And it does NOT appear over things that do nothing. Beer's list row is
+   built for a row you can pick, so it offers the hand to everything in it;
+   most of the rows on this page only report a value, and a filament chip is
+   a label with a colour, not a button. A chip that IS a button -- the vent
+   mode pill -- keeps the hand, which is why this names the span. The rows that ARE pickable say so
+   themselves: the ring list below, and any row holding a link or a control. */
+.list > li,
+.list > li > *,
+span.chip {
+  cursor: default;
+}
+/* Beer gives every .chip a ripple layer, so a spool chip lit up under the
+   finger like something that had just been pressed. The chips the device
+   fills in are spans, not buttons, and the ripple comes off them. */
+span.chip::after { content: none !important; }
+.list > li:has(> a),
+.list > li > a,
+.list > li > :is(.switch, .checkbox, .radio),
+.list > li > :is(.switch, .checkbox, .radio) > input,
+.list > li > button,
+.list > li > .field > select {
+  cursor: pointer;
+}
+
+/* A slider is dragged, not clicked, and the hand says so. */
+input[type="range"] { cursor: grab; }
+input[type="range"]:active { cursor: grabbing; }
+
+/* Anything the page has switched off says that instead. */
+:is(button, select, input, .switch, .checkbox, .radio):disabled,
+:is(.switch, .checkbox, .radio):has(> input:disabled),
+:is(.switch, .checkbox, .radio) > input:disabled { cursor: not-allowed; }
+
+
+/* ── 19  The wordmark ───────────────────────────────────────────────────
+   Three marks come off one supplied sheet: the standing panda on a light
+   ground, the same panda on a dark one, and the face, which is the
+   favicon. Both panda marks are in the DOM at all times and one of them
+   is displayed, because a data: URL that has already been decoded is
+   cheaper to hide than a src swap is to decode again.
+
+   The theme class is on <body>, so these read it there. Auto is no class
+   at all, and then prefers-color-scheme decides -- which is the case that
+   has to be written out separately, because "not dark" and "light" are
+   not the same selector.
+   ────────────────────────────────────────────────────────────────────── */
+/* Centred on the BAR, not between its neighbours. Laid out in the flex row
+   it would sit wherever the device name and the state pill left room, and
+   would slide sideways every time the pill grew a percentage. */
+.ux_top_bar_row { position: relative; }
+
+.ux_top_brand {
+  position: absolute;
+  inset-inline-start: 50%;
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.5rem;
+  line-height: 1;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* The owner's name for this unit. Quiet, so the product name carries the
+   bar and the two do not compete at the same weight, and one line however
+   long the name is: two lines here push the bar to 96px on a phone.
+
+   Written against the row rather than the element, because Beer's
+   `:is(nav,.row)>:not(header,footer)` sets white-space:normal and
+   flex:none on every child of a nav, and it scores (0,1,1). */
+.ux_top_bar_row > .ux_top_name {
+  font-size: 0.8125rem;
+  font-weight: 400;
+  min-inline-size: 0;
+  flex: 0 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The wordmark only appears from 600px up (Beer's `m l`), so only there
+   does the name have to stop short of it. On a phone it has the bar. */
+@media only screen and (min-width: 601px) {
+  .ux_top_bar_row > .ux_top_name { max-inline-size: calc(50% - 8rem); }
+}
+
+/* What the printer is doing, as a printer rather than a dot. state_show()
+   REPLACES the element's class list, so the Beer sizing classes cannot
+   live on it: `.ux_top_dot` carries the size as well as the colour. */
+.ux_top_dot {
+  inline-size: 1.125rem;
+  block-size: 1.125rem;
+  flex: 0 0 auto;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  color: var(--on-surface-variant);
+}
+
+.ux_top_dot.is-run  { color: var(--primary); }
+.ux_top_dot.is-wait { color: var(--tertiary); }
+.ux_top_dot.is-err  { color: var(--error); }
+/* Idle is the one state where nothing is happening, and it says so by
+   receding rather than by taking a colour of its own. */
+.ux_top_dot.is-idle { color: var(--on-surface-variant); opacity: 0.55; }
+
+/* The pill goes to Status. On Status there is nowhere to go, so it stops
+   being a control -- and "nothing to do here" is the plain arrow, not the
+   crossed circle, which says "you may not" about something you might
+   otherwise have been allowed to do. */
+#ps-top-pill:disabled { cursor: default; }
+
+/* Beer dims a disabled control, which is right when disabled means "not
+   available to you". Here it means "you are already there", and the pill
+   still has to be readable: at Beer's 0.5 the state text came out at
+   2.74:1 on the Status page, which is the page the app opens on. */
+#ps-top-pill:disabled { opacity: 1; }
+
+.ux_top_mark {
+  inline-size: 1.75rem;
+  block-size: 1.75rem;
+  flex: 0 0 auto;
+}
+
+/* The theme toggle: a compact icon button on the right of the bar. Sized
+   down from Beer's default circle so it sits with the state pill rather
+   than towering over it, and its icon takes the theme's own colour. */
+.ux_top_theme {
+  inline-size: 2.25rem;
+  block-size: 2.25rem;
+  min-inline-size: 2.25rem;
+  padding: 0;
+  flex: 0 0 auto;
+  color: var(--on-surface-variant);
+}
+.ux_top_theme:hover { color: var(--on-surface); background: var(--surface-container-highest); }
+
+.ux_mark_dark  { display: block; }
+.ux_mark_light { display: none; }
+
+body.light .ux_mark_dark  { display: none; }
+body.light .ux_mark_light { display: block; }
+
+@media (prefers-color-scheme: light) {
+  body:not(.dark) .ux_mark_dark  { display: none; }
+  body:not(.dark) .ux_mark_light { display: block; }
+}
+
+body.dark .ux_mark_dark  { display: block; }
+body.dark .ux_mark_light { display: none; }
+
+
+/* ── 20  The release line ───────────────────────────────────────────────
+   Beer's app grid has a `footer` area between main and the bottom bar,
+   so the line needs no positioning of its own: it lands under the content
+   at the content's own left edge on every page. Only the breathing room
+   and the fact that it is quiet are decided here.
+   ────────────────────────────────────────────────────────────────────── */
+footer.ux_version {
+  /* The `responsive` class in the markup caps and centres this footer exactly
+     the way it caps and centres main -- fill the area, cap at 75rem, centre
+     the rest -- so the two share a left edge. All that is left here is the
+     quiet one-line treatment and the side padding matched to main's, so the
+     release line starts where the cards above it do. Hand-rolling the cap
+     with margin-inline:auto instead shrank this grid item to its own text
+     and floated it to the middle of the window. */
+  /* Beer's app footer is a grid, and a grid places a lone item in the middle
+     of the row however the text is aligned; the release line read as centred
+     under the cards. A block box puts it on the text's own edge, and the
+     alignment below decides which one. */
+  display: block;
+  min-block-size: auto;
+  text-align: end;
+  padding: 0.75rem clamp(1rem, 2.5vw, 2rem) 1.25rem;
+  color: var(--on-surface-variant);
+}
+
+/* The name and the number are two elements so the JS can write each one
+   without taking the other out, and the space between them has to survive
+   being laid out: `PandaVentOSv1.1.0` was one collapsed whitespace node. */
+footer.ux_version > a {
+  display: inline-flex;
+  gap: 0.3rem;
+  text-decoration: none;
+}
+footer.ux_version > a:hover { text-decoration: underline; }
+
+
+/* ── 21  The RTSP address ───────────────────────────────────────────────
+   One long unbreakable token. Wrapped, it becomes two lines that each
+   look like a whole address, and somebody copies half of one; it scrolls
+   inside its own box instead.
+   ────────────────────────────────────────────────────────────────────── */
+#ps-cam-rtsp {
+  white-space: nowrap;
+  overflow-x: auto;
+}
+
+
+/* ── 22  Waiting for the first reading ──────────────────────────────────
+   Shown across the top from the first paint until the device's first
+   state document lands, and it has to be ABOVE the fixed top bar rather
+   than under it: the whole point is that it is the first thing seen.
+   ────────────────────────────────────────────────────────────────────── */
+.ux_waiting_note {
+  display: none;
+  position: fixed;
+  inset-block-start: 0;
+  inset-inline: 0;
+  z-index: 200;
+  margin: 0;
+  padding: 0.625rem 1rem;
+  background: var(--surface-container-highest);
+  color: var(--on-surface);
+  border-block-end: 1px solid var(--outline-variant);
+}
+
+body.is-waiting .ux_waiting_note { display: flex; align-items: center; gap: 0.75rem; }
+
+/* And the controls that cannot do anything yet say so by receding, rather
+   than by accepting a tap and dropping it. */
+body.is-waiting :is(#rgb_mode1_panel, #rgb_mode2_panel, #rgb_mode3_panel,
+                    #ps-vent-modes, #ps-ring-list) {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+
+/* ── 23  The empty leading slot in a readout row ────────────────────────
+   Only some readout rows carry an icon: a nozzle, a heated bed, a spool of
+   filament say something the label does not, and an icon beside "Uptime"
+   is decoration that teaches the eye to skip the column. The rows without
+   one still reserve its width, or their labels sit 40px left of the ones
+   above them and the text column zigzags down the card.
+   ────────────────────────────────────────────────────────────────────── */
+.kv-gap {
+  inline-size: 1.5rem;
+  block-size: 1.5rem;
+  flex: 0 0 auto;
+}
+
+
+/* ── 24  A card owns its title ───────────────────────────────────────────
+   Titles used to float between the cards, and a page read as one long
+   column of unrelated furniture. Now every card opens with its own label,
+   set the way a card label is set: small, wide-tracked, quiet. The label
+   is part of the card, so a card can go anywhere in the grid and its name
+   goes with it.
+   ────────────────────────────────────────────────────────────────────── */
+h6.card-title {
+  margin: 0 0 1rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--on-surface-variant);
+}
+
+/* A list card has no padding of its own, so its title brings some -- the
+   same 16px inset a padded card's title gets from the card's own padding,
+   so every title across the app sits the same distance from its card edge,
+   and the same 1rem gap under it. */
+article.no-padding > h6.card-title { padding: 1rem 1rem 0; margin: 0 0 1rem; }
+
+/* A title sharing its row with a note or a scan button is still a title:
+   same gap under it, and the row is centred so the button aligns. */
+nav:has(> h6.card-title) { margin: 0 0 1rem; align-items: center; }
+
+/* The line of explanation under a title, inside the card with it. It keeps
+   a gap below itself; the title's own bottom margin is the gap above. */
+h6.card-title + .small-text,
+nav:has(> h6.card-title) + .small-text { margin-block: 0 1rem; }
+article.no-padding > h6.card-title + .small-text { padding-inline: 1rem; }
+
+
+/* ── 25  The notch in an outlined field ─────────────────────────────────
+   M3's outlined text field cuts a gap in the outline for the floating
+   label. Beer floats the label to the same place but paints no gap, so the
+   label's 12px text is drawn half on the page and half on the 1px outline
+   stroke -- and against the stroke it measured 4.48:1 in dark and 2.82:1
+   in light. It is the field's own name; it has to be readable.
+
+   The gap is painted rather than cut, and the paint has to be whatever is
+   behind the field, which is three different surfaces across the app. So
+   both the field and its label inherit their background from the parent:
+   the field then paints the colour that was already there, which changes
+   nothing, and the label paints the same colour over the stroke, which is
+   the notch.
+   ────────────────────────────────────────────────────────────────────── */
+.field.label.border:not(.fill) { background-color: inherit; }
+
+.field.label.border:not(.fill) >
+  :is(label.active, :focus + label, [placeholder]:not(:placeholder-shown) + label, select + label) {
+  background-color: inherit;
+  padding-inline: 0.25rem;
+  /* Only the strip the WORD occupies is painted. Beer's floated label keeps
+     the field's full width -- 1105px on a desktop card -- so an opaque
+     background on it paints a bar across the whole top of the field and
+     over the first 8px of the value inside it. A notch is the width of the
+     label, so the box is made to shrink to its text. */
+  inline-size: max-content;
+  inset-inline-end: auto;
+  block-size: 1rem;
+  line-height: 1rem;
+  inset-block-start: -0.5rem;
+}
+
+
+
+/* ── 26  A list row that says more than its name ────────────────────────
+   Beer's list row is `white-space: nowrap`, which is right for a row whose
+   label is two words and wrong for one that carries a line of explanation
+   under it: the label column then measures its own unwrapped width, the
+   row grows past the screen and the switch on the right is simply not
+   there on a phone. Only the label column is let out of the rule; the
+   value, the icon and the control keep it.
+   ────────────────────────────────────────────────────────────────────── */
+ul.list > li > .max {
+  white-space: normal;
+  min-inline-size: 0;
+}
+
+
+
+/* ── 27  The dash that stands for a value nobody knows yet ──────────────
+   A status row whose value has not arrived shows an em dash. At value
+   size the dash is a hairline, and antialiasing never paints a single
+   pixel of a hairline at the colour it was given -- on some rasterisers
+   the darkest pixel of this dash lands near half ink, which reads fine
+   as punctuation and fails as text. Bold gives the stroke a full pixel
+   of ink on every renderer, so the dash actually shows the colour the
+   theme chose for it.
+   ────────────────────────────────────────────────────────────────────── */
+.is-unknown { font-weight: 700; }
+
+
+/* ── 28  The page, and the cards that sit on it ─────────────────────────
+   The page is the ground; the cards float on it. Beer paints the body in
+   `surface` and gives `main` 8px of padding, which put every card hard
+   against the rail and the window edge and made the whole app read as one
+   flat sheet. The body takes the darker `--page` role, the content area
+   gets real breathing room, and each card keeps Beer's own rounded, lifted
+   `article` -- so a card reads as a card, off the page behind it.
+   ────────────────────────────────────────────────────────────────────── */
+body { background-color: var(--page); }
+
+main {
+  --_padding: clamp(1rem, 2.5vw, 2rem);
+  background-color: var(--page);
+}
+
+/* Cards carry the raised surface even where Beer's own token would tie them
+   to the page colour, so the lift is the same in both themes. */
+main article { background-color: var(--card); }
+
+
+/* ── 29  A page is a wall of cards ───────────────────────────────────────
+   One phone-wide column, two from tablet up, three on a wide desktop. CSS
+   multi-column is the masonry here: a card is one block that never splits
+   across a column (`break-inside: avoid`), and the columns balance their
+   own heights, so a short card and a tall one sit side by side without a
+   grid track dictating a row. The cards are the section's only children
+   now -- every title moved inside its card -- so nothing but a card ever
+   lands in a column.
+   ────────────────────────────────────────────────────────────────────── */
+[data-card] > article {
+  /* The gap between cards is the bottom margin alone. A top margin is dropped
+     on the first card of the second and third columns but kept on the first,
+     so the left column started a margin lower than the others under a
+     spanning card. */
+  margin-block-start: 0;
+  margin: 0 0 var(--_cardgap, 1rem);
+  break-inside: avoid;
+  /* A column item that can shrink below its content tears a card in two at
+     the column break; forbid it. */
+  overflow: clip;
+}
+[data-card] > article:last-child { margin-block-end: 0; }
+
+@media only screen and (min-width: 840px) {
+  [data-card].active {
+    --_cardgap: 1.25rem;
+    column-count: 2;
+    column-gap: 1.25rem;
+  }
+}
+
+@media only screen and (min-width: 1360px) {
+  [data-card].active { column-count: 3; }
+}
+
+/* A card that is the whole point of its page does not want to be squeezed
+   into a column beside something smaller: the dashboard's vent hero and the
+   lighting editor span every column and sit at the top of the wall. */
+@media only screen and (min-width: 840px) {
+  [data-card].active > article.span-all { column-span: all; margin-block-end: 1.25rem; }
+}
+
+
+/* ── 30  The segmented control ───────────────────────────────────────────
+   Auto / Light / Dark is one control, not three buttons. Beer's left-round /
+   no-round / right-round left three separate outlined pills with gaps, and
+   the selection was a `fill` class that the theme switcher never moved, so
+   the highlight sat on Auto whatever you picked. Here the segments share one
+   pill-shaped track, the chosen one (`is-on`, set by theme_seg_mark) carries
+   the fill, and the switcher moving that class is the whole animation.
+   ────────────────────────────────────────────────────────────────────── */
+nav.segmented {
+  display: inline-flex;
+  gap: 0;
+  padding: 0.25rem;
+  border-radius: 2rem;
+  background: var(--surface-container-highest);
+}
+nav.segmented > button {
+  flex: 1 0 auto;
+  margin: 0;
+  border: none;
+  border-radius: 1.75rem;
+  background: transparent;
+  color: var(--on-surface-variant);
+  box-shadow: none;
+  transition: background var(--speed2, 0.2s), color var(--speed2, 0.2s);
+}
+/* The 0.25rem above is the track's shape, not spacing: the ring of surface
+   the chosen pill sits in. The card-divider rules set padding-block-start on
+   every nav in a divided card, which flattened the top of that ring and left
+   the pill against the track's top edge with 4px of grey showing underneath.
+   The gap above this control comes from its margin alone. */
+.card-divided > nav.segmented { padding-block-start: 0.25rem !important; }
+
+nav.segmented > button.is-on {
+  background: var(--primary-container);
+  color: var(--on-primary-container);
+  font-weight: 600;
+  /* A primary-coloured ring gives the selected segment a 3:1 boundary against
+     the track in both themes (the container fill alone is close to the track),
+     and the drop shadow lifts it as the chosen pill. */
+  box-shadow: inset 0 0 0 1px var(--primary), 0 1px 2px rgb(0 0 0 / 0.18);
+}
+
+
+/* ── 31  Vertical rhythm inside a card ───────────────────────────────────
+   Beer gives a top margin to ul, nav, p and a handful of flow tags, and
+   nothing to a bare .field, .slider or a lone button. A text field followed
+   straight by a Save button then butted against it. So every control-shaped
+   child of a card that follows something gets the same 1rem of air, and the
+   title's own following rule (section 24) is left to it.
+   ────────────────────────────────────────────────────────────────────── */
+main article:not(.no-padding) >
+  :is(.small-text, .field, .slider, nav, .grid, ul, pre, progress, button) +
+  :is(.field, .slider, nav, .grid, button) {
+  margin-block-start: 1rem;
+}
+/* A button group is buttons on one line with room to breathe between them. */
+nav.btn-row { gap: 0.75rem; align-items: center; }
+
+/* Beer gives every .field a top margin of its own. Inside a list row that
+   margin is not shared by the icon, the label or the switch beside it, so the
+   row centres a box that is a margin taller at the top and the control lands
+   below the middle of its own row. */
+/* Beer's flow rule gives a top margin to any .field that follows a sibling,
+   wherever it sits. In a list row the icon, the label and the switch beside it
+   get no such margin, so the row centres a box that is 1rem taller at the top
+   and the control lands below the middle of its own row. The override is
+   marked important because the framework's own selector outranks any
+   reasonable one written here, and the row has to win. */
+[data-card] .list > li > :is(.field, .switch, .slider) {
+  margin-block: 0 !important;
+  align-self: center;
+}
+
+/* Same rule, same reason: a card is spaced by its bottom margin alone. The
+   top margin is dropped on the first card of the second and third columns but
+   kept on the first, so the left column started a margin lower than the others
+   under a spanning card. */
+[data-card] > article { margin-block-start: 0 !important; }
+
+
+/* ── 32  An AMS spool chip ───────────────────────────────────────────────
+   One chip per loaded spool, all the same shape so the row reads as a set
+   rather than as one highlighted thing among plain ones. The colour lives
+   in the dot, which is the only thing that should differ between them. The
+   spool actually loaded is marked with a ring in the theme's own accent,
+   not by recolouring the whole chip.
+   ────────────────────────────────────────────────────────────────────── */
+.tray-chip {
+  gap: 0.4rem;
+  background: var(--surface-container-high);
+  border-color: var(--outline-variant);
+}
+.tray-chip.is-loaded,
+.tray-chip.is-now {
+  border-color: var(--primary);
+  box-shadow: inset 0 0 0 1px var(--primary);
+  color: var(--on-surface);
+}
+
+
+/* ── 33  The filament-loaded chips ───────────────────────────────────────
+   Their own card, spread evenly: two by two on a phone, all four in one row
+   from a tablet up. Each chip fills its cell so the row reads as an even set
+   rather than a huddle at the left. The card hides with its chips when the
+   printer reports no AMS (the renderer sets #ps-trays hidden). */
+.trays-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.5rem;
+}
+@media only screen and (min-width: 601px) {
+  .trays-grid { grid-template-columns: repeat(4, 1fr); }
+}
+.trays-grid > .chip {
+  inline-size: 100%;
+  justify-content: center;
+  margin: 0;
+}
+[data-card] > article:has(#ps-trays[hidden]) { display: none; }
+
+
+/* ── 34  The filament rules ──────────────────────────────────────────────
+   Nine materials, each a name and a vent/seal switch. They were laid into a
+   twelve-column grid, one column each, which crushed nine switches into one
+   unreachable row. A material is a row: stacked on a phone, two columns from
+   a tablet up, the switch centred on the right of each and reachable.  */
+.policy-materials {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.25rem 1.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+@media only screen and (min-width: 601px) {
+  .policy-materials { grid-template-columns: repeat(2, 1fr); }
+}
+.policy-materials > li {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  min-block-size: 2.75rem;
+  list-style: none;
+}
+.policy-materials > li > .max { flex: 1; min-inline-size: 0; }
+
+
+/* ── 35  A switch sits in the middle of its row ──────────────────────────
+   Beer centres a list row's children, but a row that also carries a taller
+   control (the LED-count field) grew, and the switch beside it read as stuck
+   to the top. Pin the trailing controls to the row's centre.  */
+.list > li > :is(.switch, .field) { align-self: center; }
+.list > li > .field { margin-block: 0; }
+
+
+/* ── 36  A full-width action button wants air above it ───────────────────
+   Inside a padding block (the hotspot Save, and its kin) a responsive button
+   that follows a field or a note butted straight against it. Give it the
+   same 1rem every other control gets.  */
+.padding > :is(.field, nav, .small-text, .slider) + button.responsive,
+.padding > :is(.field, nav, .small-text, .slider) + button.fill {
+  margin-block-start: 1rem;
+}
+
+
+/* ── 37  The dial word is set in capitals ────────────────────────────────
+   OPEN, CLOSED, MOVING and now AUTO all read as one style whatever string
+   the translation supplies. */
+.vent-word { text-transform: uppercase; }
+
+
+/* ── 38  The chrome: top bar and nav are one surface ─────────────────────
+   The top bar and the navigation (the left rail, and the bottom bar on a
+   phone) are the frame around the content, so they share one surface -- the
+   `--chrome` role, white in the light theme and lifted clear of the page in
+   the dark one -- and each carries a hairline on the edge that meets the
+   content, so the frame is legible without a heavy line.  */
+#ps-top-bar {
+  background-color: var(--chrome);
+  border-block-end: 1px solid var(--outline-variant);
+}
+#ps-nav.left {
+  background-color: var(--chrome);
+  border-inline-end: 1px solid var(--outline-variant);
+}
+nav.bottom {
+  background-color: var(--chrome);
+  border-block-start: 1px solid var(--outline-variant);
+}
+
+
+/* ── 39  A colour swatch has an edge ──────────────────────────────────────
+   The four colour buttons paint whatever colour they hold. A white or pale
+   one, on the light theme, had no boundary and bled into the card. A hairline
+   drawn both light-over-dark and dark-over-light gives every swatch an edge
+   whatever colour lands inside it, the same trick the picker's preview uses. */
+.swatch {
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.5), 0 0 0 1px rgb(0 0 0 / 0.35);
+}
+
+
+/* ── 40  Consistent separators inside a settings card ────────────────────
+   A form card divides its settings from one another with a hairline, the
+   same on every card that opts in with `card-divided`, so the borders stop
+   feeling random. The line runs the FULL width of the card and carries no
+   radius -- exactly the list-card row dividers -- so it cannot be drawn on
+   the block itself (the block sits inside the card's 1rem padding, and a
+   field also has its own rounded outline). It is a pseudo-element pulled out
+   to the card's edges instead. The title and a lead description sit above
+   the first divider; a label or description that introduces a control stays
+   grouped with it, and so does a control that follows a spacer. The Vent
+   hero is a no-padding card and never opts in, so it keeps its open look.
+
+   Only full-width setting blocks are divided -- fields, labelled rows, sliders,
+   button GROUPS (a nav), the segmented control. A lone action button (Save,
+   Unbind) is not a setting and is not full width, so it takes a plain gap
+   rather than a stub of a line. */
+.card-divided > :is(.field, .slider, nav, .segmented, .grid, .small-text) {
+  position: relative;
+  margin-block-start: 1rem;
+  padding-block-start: 1rem;
+}
+/* A labelled field carries its label floating half a line ABOVE its own box,
+   so the divider drawn at the top of that box's margin cut through the label.
+   Padding does not help -- the label is positioned against the box, not the
+   content -- so the gap has to come from the margin, which is where the line
+   is drawn. */
+.card-divided > .field.label,
+.card-divided > nav:has(> .field.label) { margin-block-start: 1.5rem !important; }
+.card-divided > :is(.field, .slider, nav, .segmented, .grid, .small-text)::before {
+  content: '';
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline: calc(-1 * var(--_padding, 1rem));
+  border-block-start: 1px solid var(--outline-variant);
+}
+/* Intro blocks -- the first child (the title or the title row), the block
+   right after the title, and a block grouped under a label/description/spacer
+   -- get neither the gap nor the line. */
+.card-divided > :first-child,
+.card-divided > h6.card-title + :is(.field, .slider, nav, .segmented, .grid, .small-text),
+.card-divided > nav:has(> h6.card-title) + :is(.field, .slider, nav, .segmented, .grid, .small-text),
+.card-divided > :is(.small-text, .space) + :is(.field, .slider, nav, .segmented, .grid) {
+  /* important because the labelled-field rule above is, and a block with no
+     line above it takes no gap from one. */
+  margin-block-start: 0 !important;
+  padding-block-start: 0;
+}
+.card-divided > :first-child::before,
+.card-divided > h6.card-title + :is(.field, .slider, nav, .segmented, .grid, .small-text)::before,
+.card-divided > nav:has(> h6.card-title) + :is(.field, .slider, nav, .segmented, .grid, .small-text)::before,
+.card-divided > :is(.small-text, .space) + :is(.field, .slider, nav, .segmented, .grid)::before {
+  content: none;
+}
+/* the spacer's own height is not needed once a divider does the separating */
+.card-divided > .space { display: none; }
+
+
+/* ── 41  The current page, marked in the nav ─────────────────────────────
+   Beer paints the active nav item by putting a pill on its `<i>` icon, but
+   every icon here is `<svg class="i">`, so Beer's `> i` selector never
+   matched and no page ever showed as current. Same pill, aimed at the svg:
+   the active page's icon sits in a secondary-container pill in the rail and
+   the bottom bar alike. */
+/* The pill is padding on the icon, and padding on the ACTIVE icon alone made
+   the current item 9.6px taller and its icon 28.8px wider than the other
+   seven: every destination below it jumped each time the page changed. The
+   pill is drawn on every item instead, and a negative margin cancels it from
+   the layout, so the box each icon occupies stays 24x24 whatever is current.
+   Only the paint moves. */
+/* The BOTTOM bar keeps the pill on its icon: it is a row of five, and a
+   full-width shape there would be five slabs side by side. */
+nav.bottom a > svg.i {
+  box-sizing: content-box;
+  padding: 0.3rem 0.9rem;
+  margin: -0.3rem -0.9rem;
+  border-radius: 1rem;
+  background-color: transparent;
+  transition: background-color var(--speed2, 0.2s), color var(--speed2, 0.2s);
+}
+nav.bottom a.active > svg.i {
+  background-color: var(--secondary-container);
+  color: var(--on-secondary-container);
+}
+
+/* ── 41a  The RAIL's shape is the rail's width ────────────────────────────
+   Beer sizes a rail item to its own contents (`inline-size:auto` when the
+   rail is pinned), so hover and active drew a pill as long as the word
+   inside it: "Dashboard" got a wide one, "Wi-Fi" a narrow one, and eight
+   destinations looked like eight different controls. The shape belongs to
+   the ROW, not to the label, so every item is the full width of the rail and
+   they are all the same size whatever they are called.
+
+   Beer also kills the active background outright while the rail is at rest
+   (`nav:is(.left,...):not(.max) a.active{background:none!important}`), which
+   is why these carry !important -- there is no lower-specificity way past a
+   rule that already has it. */
+#ps-nav.left a:not(.button):not(.chip) {
+  box-sizing: border-box;
+  inline-size: 100%;
+  align-self: stretch;
+  border-radius: 1.75rem;
+  background-color: transparent;
+  transition: background-color var(--speed2, 0.2s), color var(--speed2, 0.2s);
+}
+#ps-nav.left:not(.max) a:not(.button):not(.chip) { justify-content: center; }
+#ps-nav.left.max a:not(.button):not(.chip)     { justify-content: flex-start; }
+
+#ps-nav.left a:not(.button):not(.chip):hover {
+  background-color: var(--surface-variant) !important;
+}
+#ps-nav.left a.active:not(.button):not(.chip) {
+  background-color: var(--secondary-container) !important;
+  color: var(--on-secondary-container) !important;
+}
+/* the pill moved to the row, so the icon must stop drawing its own */
+#ps-nav.left a > svg.i {
+  padding: 0;
+  margin: 0;
+  background-color: transparent !important;
+}
+
+/* ── 41c  A minimised rail shows icons, not words ────────────────────────
+   Beer's resting rail stacks a small label under each icon. That is a
+   Material navigation rail, but it is not what "minimised" means here: the
+   whole point of collapsing it is to give the page the width back, and the
+   words are what the expanded rail is for. Icons only until it is pinned. */
+#ps-nav.left:not(.max) a > span { display: none; }
+
+
+/* ── 41b  A shape with nothing in it is not shown ────────────────────────
+   The mode pill and the vent-position line both say what the vent is doing.
+   Before the vent has said anything they have no text, and an empty chip and
+   a lone dot are furniture that still look like an answer. They keep their
+   space -- visibility, not display -- so nothing moves when the first state
+   document fills them in.
+   ────────────────────────────────────────────────────────────────────── */
+#ps-af-pill:has(> #ps-af-pill-text:empty),
+#ps-vent-state:has(> #ps-vent-state-text:empty) { visibility: hidden; }
+
+
+/* ── 42  Hit targets reach 44px without growing their glyph ───────────────
+   The round "i" buttons (24px), the password-reveal eye (24px) and the top
+   bar's theme toggle (36px) are all smaller than the 44px pointer target.
+   A transparent ::before expands the clickable area to 44px while the drawn
+   control keeps its size, so nothing else on the row moves. */
+.note-btn { position: relative; }
+.note-btn::before { content: ''; position: absolute; inset: -0.625rem; border-radius: 50%; }
+
+.ux_top_theme { position: relative; }
+.ux_top_theme::before { content: ''; position: absolute; inset: -0.25rem; }
+
+/* Beer already positions a field's trailing control absolutely against the
+   field. Adding `position: relative` here beat that rule on specificity and
+   dropped the password eye out of the box into the flow, where it landed
+   under its own field and over the one below it. The anchor is already a
+   positioned ancestor, so the hit target needs nothing but the ::before. */
+.field.suffix > a::before { content: ''; position: absolute; inset: -0.625rem; }

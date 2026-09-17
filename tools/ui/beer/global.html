@@ -1,0 +1,78 @@
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     GLOBAL
+     Four things that sit above every page: the two banners, the toast, the
+     generic dialog, and the colour picker. None of them belong to a page,
+     so none of them are in one.
+     ══════════════════════════════════════════════════════════════════ -->
+
+<!-- Shown from the first paint until the device's first state document
+     lands. Every light control is inert until then -- see the ws_push
+     guard -- and a page full of controls that quietly do nothing is worse
+     than a page that says why. -->
+<div class="banner ux_waiting_note" id="ps-waiting-note">
+  <progress class="circle small"></progress>
+  <span class="max" data-str="waiting_for_device">Waiting for the vent to say what it is doing.</span>
+</div>
+
+<!-- Settings that would not save. This is not a toast: it stays until the
+     device says a save succeeded, because a message that vanishes is no
+     use for a condition that persists. -->
+<!-- It carried a close X for a while. It should not: this reports a fault that
+     is still happening, and a banner you can dismiss is one you stop reading.
+     It withdraws itself when the device reports a save that worked, and not
+     before. The second line names what actually failed, because "a save
+     failed" is equally true of a full NVS, a read-only handle and a corrupt
+     page, and those want different answers from whoever is reading it. -->
+<div class="banner error-container" id="ps-cfg-alert" role="alert" hidden>
+  <svg class="i"><use href="#i-warning"/></svg>
+  <div class="max">
+    <div data-str="ui_settings_could_not_be_saved_the_de">Settings could not be saved. The device will forget them on restart.</div>
+    <div class="small-text" id="ps-cfg-alert-detail"></div>
+  </div>
+</div>
+
+<!-- Something happened and you do not need to do anything about it. -->
+<div class="snackbar" id="ps-toast" role="status" aria-live="polite" aria-atomic="true"></div>
+
+<!-- One dialog, reused. The title, the text and the buttons are all filled
+     in by whatever asked for it. -->
+<dialog class="modal" id="ps-dialog">
+  <nav>
+    <h6 class="max" id="ps-dialog-title"></h6>
+    <button class="circle transparent" id="ps-dialog-close" aria-label="Close"><svg class="i"><use href="#i-close"/></svg></button>
+  </nav>
+  <div class="small-text" id="ps-dialog-text"></div>
+  <div class="space"></div>
+  <nav class="right-align no-space" id="ps-dialog-btn"></nav>
+</dialog>
+
+<!-- The colour picker. A preview of what is being chosen, a row of presets
+     for the ones people actually want, and the two ways of typing a colour
+     that anyone knows by heart. -->
+<dialog class="modal" id="ps-color-picker">
+  <!-- iro.js draws the wheel and the value strip into this node. -->
+  <div class="hsl-wheel" id="ps-hsl-picker"></div>
+  <div class="space"></div>
+  <div class="hsl-preview" id="ps-hsl-preview"></div>
+  <div class="space"></div>
+  <div class="swatch-row" id="ps-hsl-presets"></div>
+  <div class="space"></div>
+  <div class="field label border">
+    <input type="text" id="ps-hsl-hex" maxlength="7" placeholder=" ">
+    <label for="ps-hsl-hex" data-str="hex_label">Hex</label>
+  </div>
+  <div class="field label border">
+    <input type="text" id="ps-hsl-hsl" maxlength="20" placeholder=" ">
+    <label for="ps-hsl-hsl" data-str="ui_hue_saturation_lightness">Hue, saturation, lightness</label>
+  </div>
+  <nav class="right-align wrap">
+    <button class="transparent" id="ps-hsl-reset" data-str="reset_default">Reset to default</button>
+    <button class="transparent" id="ps-hsl-cancel" data-str="cancel">Cancel</button>
+    <button class="fill" id="ps-hsl-confirm" data-str="confirm">Use this colour</button>
+  </nav>
+</dialog>
+
+<!-- The firmware upload. Hidden, because a bare file input is the ugliest
+     control the web has and the button beside it says the same thing. -->
+<input type="file" id="ps-file-input" accept=".bin" hidden>

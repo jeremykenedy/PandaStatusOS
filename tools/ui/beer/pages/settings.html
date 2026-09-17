@@ -1,0 +1,90 @@
+<!-- ══════════════════════════════════════════════════════════════════════
+     SETTINGS
+     The device itself: what it is called, what language it speaks, what it
+     looks like, what firmware it runs, and the two buttons that restart or
+     erase it.
+     ══════════════════════════════════════════════════════════════════ -->
+<section id="ps-card-settings" data-card>
+
+  <article class="card-divided">
+    <h6 class="card-title" data-str="ui_appearance">Appearance</h6>
+    <div class="field label suffix border">
+      <select id="ps-settings-lang">
+      </select>
+      <label for="ps-settings-lang" data-str="ui_language">Language</label>
+      <svg class="i"><use href="#i-caret"/></svg>
+    </div>
+
+    <div class="small-text" data-str="ui_theme">Theme</div>
+    <div class="space"></div>
+    <nav class="segmented" id="ps-theme-seg" role="radiogroup" aria-label="Theme">
+      <button id="ps-theme-auto"  role="radio" aria-checked="true"  data-str="appearance_auto">Auto</button>
+      <button id="ps-theme-light" role="radio" aria-checked="false" data-str="appearance_light">Light</button>
+      <button id="ps-theme-dark"  role="radio" aria-checked="false" data-str="appearance_dark">Dark</button>
+    </nav>
+  </article>
+
+  <article class="card-divided">
+    <h6 class="card-title" data-str="ui_this_device">This device</h6>
+    <div class="small-text" data-str="ui_the_name_shown_in_the_bar_above_an">The name shown in the bar above and on your network.</div>
+    <nav>
+      <div class="field label border max">
+        <input type="text" id="ps-settings-device-name" maxlength="31" value="" placeholder=" ">
+        <label for="ps-settings-device-name" id="lbl_device_name" data-str="device_name">Device name</label>
+      </div>
+      <button class="note-btn" id="ps-note-device-name" aria-labelledby="lbl_device_name" aria-haspopup="dialog">i</button>
+    </nav>
+    <nav class="wrap btn-row">
+      <button class="fill" id="ps-btn-device-name-set" data-str="ui_save_name">Save name</button>
+      <button class="border" id="ps-btn-device-name-reset" data-str="ui_reset_to_default">Reset to default</button>
+    </nav>
+  </article>
+
+  <article class="no-padding">
+    <h6 class="card-title" data-str="ui_firmware">Firmware</h6>
+    <ul class="list border">
+      <li>
+        <svg class="i"><use href="#i-info"/></svg>
+        <div class="max" data-str="ui_version">Version</div>
+        <span id="ps-settings-fw-ver"></span>
+      </li>
+      <li>
+        <svg class="i"><use href="#i-image"/></svg>
+        <div class="max">
+          <div data-str="ui_web_app">Web app</div>
+          <div class="small-text" data-str="ui_the_page_you_are_looking_at">The page you are looking at</div>
+        </div>
+        <span id="ps-settings-img-ver"></span>
+      </li>
+      <li>
+        <svg class="i"><use href="#i-printer-enclosed"/></svg>
+        <div class="max" data-str="ui_reports_itself_as">Reports itself as</div>
+        <span id="ps-settings-printing-ui-type"></span>
+      </li>
+    </ul>
+    <div class="padding">
+      <button class="border responsive" id="ps-btn-ota-fw">
+        <svg class="i"><use href="#i-upload"/></svg>
+        <span id="ps-span-status-ota-fw" data-str="ui_choose_a_bin_file">Choose a .bin file</span>
+        <span id="ps-span-progress-ota-fw"></span>
+      </button>
+    </div>
+  </article>
+
+  <article class="card-divided">
+    <h6 class="card-title" data-str="ui_power">Power</h6>
+    <div class="small-text" data-str="ui_a_factory_reset_erases_the_wi_fi_c">A factory reset erases the Wi-Fi credentials, the
+      printer binding and every light setting. It cannot be undone from here.</div>
+    <nav class="wrap btn-row">
+      <button class="border" id="ps-btn-restart">
+        <svg class="i"><use href="#i-restart"/></svg>
+        <span data-str="restart">Restart</span>
+      </button>
+      <button class="error" id="ps-btn-factory">
+        <svg class="i"><use href="#i-factory"/></svg>
+        <span data-str="factory_reset">Factory reset</span>
+      </button>
+    </nav>
+  </article>
+
+</section>

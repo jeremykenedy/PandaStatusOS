@@ -1,0 +1,135 @@
+<!doctype html>
+<!-- The page a captive sheet gets. Plain HTML, no framework, no typeface, no string table:
+     a captive WebView is small and impatient, and the application page is over a megabyte.
+     This does the one job the portal exists for, over the same WebSocket the application
+     uses, and links to the full interface for anything that can render it.
+
+     English only, deliberately: it is three kilobytes and it is the one screen a person sees
+     before the device is on their network. The full page carries all 25 languages.
+     Class and id names follow the project convention, ps- prefixed, never id_ or c_. -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Panda Status setup</title>
+<style>
+:root { color-scheme: light dark; }
+body { margin: 0; padding: 20px 16px 28px; font: 16px/1.45 system-ui, -apple-system, sans-serif;
+       background: #faf9fb; color: #1c1b1f; }
+@media (prefers-color-scheme: dark) { body { background: #141316; color: #e6e1e5; } }
+h1 { margin: 0 0 4px; font-size: 1.25rem; }
+p.ps-sub { margin: 0 0 18px; opacity: .7; font-size: .9rem; }
+label { display: block; margin: 14px 0 5px; font-size: .85rem; opacity: .8; }
+select, input, button { width: 100%; box-sizing: border-box; font: inherit;
+       padding: 11px 12px; border-radius: 10px; border: 1px solid #8b8792; background: transparent; color: inherit; }
+.ps-pw { position: relative; }
+.ps-pw input { padding-right: 46px; }
+.ps-pw button { position: absolute; right: 4px; top: 4px; width: 38px; height: 38px; padding: 0;
+       border: 0; background: transparent; color: inherit; opacity: .65; cursor: pointer; }
+.ps-pw button svg { width: 20px; height: 20px; }
+button.ps-go { margin-top: 18px; background: #6750a4; color: #fff; border: 0; padding: 13px; font-weight: 600; }
+button.ps-go[disabled] { opacity: .5; }
+#ps-say { margin: 16px 0 0; font-size: .9rem; min-height: 1.4em; }
+#ps-say.ps-ok { color: #1b6b3a; } #ps-say.ps-err { color: #b3261e; }
+@media (prefers-color-scheme: dark) { #ps-say.ps-ok { color: #6ddf9a; } #ps-say.ps-err { color: #f2b8b5; } }
+a { color: #6750a4; font-size: .85rem; } @media (prefers-color-scheme: dark) { a { color: #cfbcff; } }
+footer { margin-top: 22px; font-size: .8rem; opacity: .65; }
+</style>
+
+<h1>Set up your Panda Status</h1>
+<p class="ps-sub">Pick the network this device should join. It only sees 2.4 GHz.</p>
+
+<label for="ps-net">Network</label>
+<select id="ps-net"><option value="" disabled selected>Looking for networks...</option></select>
+
+<label for="ps-pass">Password</label>
+<div class="ps-pw">
+  <input type="password" id="ps-pass" autocomplete="off">
+  <button type="button" id="ps-reveal" aria-label="Show the password" aria-pressed="false">
+    <svg id="ps-reveal-icon" viewBox="0 0 96 96" fill="none" stroke="currentColor" stroke-width="6"
+         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M8,48C20,30,34,22,48,22C62,22,76,30,88,48C76,66,62,74,48,74C34,74,20,66,8,48Z"/>
+      <circle cx="48" cy="48" r="13"/>
+      <path id="ps-reveal-slash" d="M16,80L80,16" hidden/>
+    </svg>
+  </button>
+</div>
+
+<button class="ps-go" id="ps-join" disabled>Join this network</button>
+<p id="ps-say" role="status" aria-live="polite"></p>
+<footer><a href="/?full=1">Open the full interface</a></footer>
+
+<script>
+(function () {
+  var sel = document.getElementById('ps-net'), pass = document.getElementById('ps-pass'),
+      go = document.getElementById('ps-join'), say = document.getElementById('ps-say'),
+      eye = document.getElementById('ps-reveal'), slash = document.getElementById('ps-reveal-slash'),
+      ws = null, selfAp = '', picked = false;
+
+  function tell(text, cls) { say.textContent = text; say.className = cls ? 'ps-' + cls : ''; }
+
+  /* The same reveal the full page has, and hidden by default for the same reason. */
+  eye.addEventListener('click', function () {
+    var show = pass.type === 'password';
+    pass.type = show ? 'text' : 'password';
+    eye.setAttribute('aria-pressed', show ? 'true' : 'false');
+    if (show) slash.removeAttribute('hidden'); else slash.setAttribute('hidden', '');
+  });
+
+  sel.addEventListener('change', function () { picked = !!sel.value; go.disabled = !picked; });
+
+  go.addEventListener('click', function () {
+    if (!sel.value || !ws || ws.readyState !== 1) return;
+    go.disabled = true;
+    tell('Joining ' + sel.value + '...');
+    ws.send(JSON.stringify({ wifi: { ssid: sel.value, password: pass.value, device_wakeup: 1 } }));
+  });
+
+  function fill(list) {
+    /* Sorted by signal, and the device's own hotspot left out of it: the hotspot you are
+       connected to is the strongest thing the device can see, so sorting by signal would
+       otherwise offer it the chance to join itself. Nothing is preselected, because the
+       strongest remaining network is often a neighbour's and a preselected list is one
+       mis-tap from joining it. */
+    var seen = {}, out = list.slice().sort(function (a, b) { return b.rssi - a.rssi; });
+    var keep = sel.value;
+    sel.innerHTML = '';
+    var ph = document.createElement('option');
+    ph.value = ''; ph.textContent = 'Choose a network'; ph.disabled = true; ph.selected = !keep;
+    sel.appendChild(ph);
+    var n = 0;
+    for (var i = 0; i < out.length; i++) {
+      var s = out[i].ssid;
+      if (!s || seen[s] || s === selfAp) continue;
+      seen[s] = 1; n++;
+      var o = document.createElement('option');
+      o.value = s; o.textContent = s;
+      if (s === keep) o.selected = true;
+      sel.appendChild(o);
+    }
+    if (!n) { ph.textContent = 'No networks found'; tell('No networks found. The device only sees 2.4 GHz.'); }
+    else if (!picked) tell(n + (n === 1 ? ' network found' : ' networks found') + '. Pick yours.');
+  }
+
+  var STATE = { 2: 'Joining...', 4: 'Reconnecting...' };
+  function onFrame(d) {
+    if (d.ap && d.ap.ssid) selfAp = d.ap.ssid;
+    if (d.wifi && d.wifi.list) fill(d.wifi.list);
+    if (!d.sta || d.sta.state === undefined) return;
+    if (d.sta.state === 3) {
+      tell('Connected. The device is on your network' + (d.sta.ip ? ' at ' + d.sta.ip : '') +
+           '. You can close this and open it there.', 'ok');
+      go.disabled = true;
+    } else if (d.sta.state === 5) {
+      tell('That password was not accepted. Try again.', 'err');
+      go.disabled = !picked;
+    } else if (STATE[d.sta.state]) tell(STATE[d.sta.state]);
+  }
+
+  function open_ws() {
+    ws = new WebSocket('ws://' + location.host + '/ws');
+    ws.onopen = function () { ws.send('{"wifi":{"scan":1,"device_wakeup":1}}'); tell('Looking for networks...'); };
+    ws.onmessage = function (e) { try { onFrame(JSON.parse(e.data)); } catch (x) {} };
+    ws.onclose = function () { setTimeout(open_ws, 1500); };
+  }
+  open_ws();
+})();
+</script>

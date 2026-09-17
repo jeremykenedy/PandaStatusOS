@@ -1,0 +1,47 @@
+name: CI
+
+# Everything here runs on a plain runner with no hardware and no ESP-IDF checkout.
+#
+# What it does NOT run, and why:
+#   - the page harness sweep (tools/ui/harness/sweep.sh). It needs Playwright and a
+#     browser, which live in the gitignored private/uiwork/ and never enter a tracked
+#     package file. Run it locally before a push.
+#   - make test-flash-tools. Its scripts hash with `shasum`, which is how macOS spells
+#     it; the runner's spelling was not verified from here. Run it locally.
+#   - the firmware build. It needs ESP-IDF v5.3.1 and its toolchain; the host tests
+#     below compile the same config, effect, rebind and diagnostic code with plain gcc.
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  checks:
+    name: host tests, hook, residue, page
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Pillow, for the artwork checks
+        run: python3 -m pip install --quiet --disable-pip-version-check pillow
+
+      - name: The committed page is exactly what the build produces
+        run: python3 tools/ui/build/build.py --check
+
+      - name: The committed artwork is exactly what its generators produce
+        run: |
+          python3 tools/art/gen_marks.py --check
+          python3 tools/art/gen_banner.py --check
+          python3 tools/ui/gen_icons.py --check
+          python3 tools/ui/normalize_icons.py --check
+
+      - name: Host tests
+        run: make test-fw
+
+      - name: The pre-commit hook's regression suite
+        run: make test-hook
+
+      - name: The residue sweep
+        run: make residue

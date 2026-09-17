@@ -1,0 +1,43 @@
+menu "PandaStatusOS"
+
+config PS_LED_COUNT
+    int "LED count on the bar (CONFIRMED)"
+    default 25
+    range 1 255
+    help
+        Still not counted. It was 8, and on the hardware 8 lit about a quarter of the bar,
+        so the bar holds roughly 32. Sending data for more LEDs than exist is harmless, the
+        surplus runs off the end of the strip; sending for fewer leaves the rest dark, which
+        is what 8 did. Effects are drawn across this many, so if the true count differs a
+        progress bar fills to slightly the wrong end. Set it to the counted number when
+        someone counts.
+
+config PS_LED_GPIO
+    int "LED data GPIO (CONFIRMED)"
+    default 5
+    help
+        Unknown until the board is traced. Set from the hardware note, not from a guess.
+
+config PS_WS_MAX_CLIENTS
+    int "Concurrent WebSocket clients"
+    default 4
+
+endmenu
+
+config PS_LED_PIN_WALK
+    bool "Walk the candidate LED GPIOs at boot instead of rendering (diagnostic)"
+    default n
+    help
+      The bar's data pin is PROVISIONAL, and a wrong pin looks exactly like a dead strip.
+      With this on, the firmware does nothing but drive each candidate pin in turn, blinking
+      the strip a number of times equal to that pin's position in the list. Whoever is
+      watching counts the blinks and the count names the pin. Never ship this on.
+
+config PS_LED_FANOUT
+    bool "Fan the LED signal out to every safe pin (OBSOLETE)"
+    default n
+    help
+      The bar's data pin has never been established. A wrong pin looks exactly like a dead
+      strip, so this routes the RMT output to every pin the chip can drive without disturbing
+      the flash, the USB or the console, and the bar lights wherever it really is. Turn this
+      off and set PS_LED_GPIO once the pin is known: one pin driven beats eleven.

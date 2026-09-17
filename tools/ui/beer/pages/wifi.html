@@ -1,0 +1,47 @@
+<!-- ══════════════════════════════════════════════════════════════════════
+     WI-FI
+     The network the vent is on, the address you reach it at, and the name
+     it answers to.
+     ══════════════════════════════════════════════════════════════════ -->
+<section id="ps-card-sta" data-card>
+
+  <article class="no-padding">
+    <h6 class="card-title" id="ps-label-sta-state" data-str="ui_network">Network</h6>
+    <div class="small-text" data-str="ui_type_this_address_into_a_browser_o">Type this address into a browser on any device on
+      the same network to open this page again.</div>
+    <ul class="list border">
+      <li><svg class="i"><use href="#i-network"/></svg><div class="max" id="lbl_sta_ip" data-str="ui_address">Address</div><button class="note-btn" id="ps-note-sta-ip" aria-labelledby="ps-label-sta-state lbl_sta_ip" aria-haspopup="dialog">i</button><span id="ps-sta-ip"></span></li>
+      <li><svg class="i"><use href="#i-status"/></svg><div class="max" data-str="ui_signal">Signal</div><span id="ps-sta-rssi"></span></li>
+    </ul>
+    <div class="padding">
+      <button class="border responsive" id="ps-btn-wifi-config">
+        <svg class="i"><use href="#i-tune"/></svg>
+        <span data-str="ui_join_a_different_network">Join a different network</span>
+      </button>
+    </div>
+  </article>
+
+  <article class="card-divided">
+    <h6 class="card-title" data-str="hostname">Host name</h6>
+    <div class="small-text" data-str="ui_a_name_is_easier_to_remember_than_">A name is easier to remember than an address and
+      survives the router handing out a different one.</div>
+    <!-- The label has to be the input's NEXT sibling: Beer floats it with
+         `[placeholder]:not(:placeholder-shown) + label`, and the `.local`
+         span sitting between the two broke that adjacency, so the label
+         stayed in the box and was drawn straight over the value.
+
+         `.local` is not a suffix icon either -- Beer sizes those 1.5rem
+         square -- so it goes under the field as supporting text, which is
+         what it is: a note about what the name becomes on the network. -->
+    <nav>
+      <div class="field label border max">
+        <input type="text" id="ps-sta-hostname" maxlength="32" value="" placeholder=" ">
+        <label for="ps-sta-hostname" id="lbl_hostname" data-str="hostname">Host name</label>
+      </div>
+      <button class="note-btn" id="ps-note-hostname" aria-labelledby="lbl_hostname" aria-haspopup="dialog">i</button>
+    </nav>
+    <div class="small-text" data-str="ui_adding_local_to_this_name_reaches_">Adding .local to this name reaches the vent from any device on the network.</div>
+    <button class="fill responsive" id="ps-btn-set-hostname" data-str="ui_save_host_name">Save host name</button>
+  </article>
+
+</section>

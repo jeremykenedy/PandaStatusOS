@@ -1,0 +1,32 @@
+# PandaStatusOS, a clean-room firmware for the Panda Status P2. ESP-IDF v5.3.1.
+CONFIG_IDF_TARGET="esp32c3"
+
+# PROVISIONAL flash size. Unknown until Phase 0 reads it off the device; see
+# tools/fw/gen_partitions.py. Change here and regenerate the partition table together.
+CONFIG_ESPTOOLPY_FLASHSIZE_4MB=y
+CONFIG_PARTITION_TABLE_CUSTOM=y
+CONFIG_PARTITION_TABLE_CUSTOM_FILENAME="partitions.csv"
+
+# One HTTP server carries the page, the upload endpoint and the WebSocket.
+CONFIG_HTTPD_WS_SUPPORT=y
+CONFIG_HTTPD_MAX_REQ_HDR_LEN=1024
+# The socket pool is shared: the page server's eight, every WebSocket on top of them, the
+# printer's MQTT link, the captive portal's DNS listener and the multicast responder. The IDF's
+# default of ten runs out with two browsers open, and what fails is the next accept.
+CONFIG_LWIP_MAX_SOCKETS=16
+# The scan-done handler runs on the event task. Its records are heap-allocated for this reason,
+# but the task is also carrying Wi-Fi and IP events for two interfaces, so it gets room.
+CONFIG_ESP_SYSTEM_EVENT_TASK_STACK_SIZE=4096
+
+# A failed OTA image rolls back instead of bricking: the only revert path this hardware
+# has is the flash dump, so the bootloader keeps the last good slot until the new one
+# confirms itself (ps_ota.c marks the image valid after the page answers).
+CONFIG_BOOTLOADER_APP_ROLLBACK_ENABLE=y
+
+# The printer's MQTT broker presents a self-signed certificate. The link is encrypted but the
+# server is not verified; the access code is the secret. See ps_printer.c for the posture.
+CONFIG_ESP_TLS_INSECURE=y
+CONFIG_ESP_TLS_SKIP_SERVER_CERT_VERIFY=y
+
+CONFIG_COMPILER_OPTIMIZATION_SIZE=y
+CONFIG_ESP_MAIN_TASK_STACK_SIZE=6144

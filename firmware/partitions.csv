@@ -1,0 +1,10 @@
+# FROM DUMP sha256 a97c06061233bd98de7df5524c2365342812f40eba12e8d7c6a510e1b6340911, written 2026-09-11 by tools/fw/partitions_from_dump.py.
+# This is the stock partition table read out of the unit's flash. The clone is built against
+# it and installed into one of its app slots over OTA (D-028). Do not edit; regenerate from
+# the dump. tools/fw/preflight.sh check 7 compares this file against the dump again.
+# Name,     Type, SubType,  Offset,   Size,     Flags
+nvs,       data, nvs,      0x9000, 0x3000, 
+otadata,   data, ota,      0xc000, 0x2000, 
+app0,      app,  ota_0,    0x10000, 0x1f0000, 
+app1,      app,  ota_1,    0x200000, 0x1f0000, 
+coredump,  data, coredump, 0x3f0000, 0x1000, 
