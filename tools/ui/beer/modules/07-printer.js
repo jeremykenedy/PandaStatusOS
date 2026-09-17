@@ -154,7 +154,7 @@ function pcard_bind() {
 function pcard_confirm_unbind() {
   dialog_open(
     tr('ui_unbind_this_printer', 'Unbind this printer?'),
-    tr('ui_the_vent_clears_the_stored_binding',
+    tr('ui_unbind_note',
       'The vent clears the stored binding and stops talking to the printer. You can bind it again from this page.'),
     [
       { key: 'cancel', fallback: 'Cancel' },
@@ -175,7 +175,7 @@ function pcard_unbind() {
 function pcard_on_note() {
   dialog_open(
     tr('ui_bind_to_a_printer', 'Bind to a printer'),
-    tr('ui_the_vent_talks_to_the_printer_dire',
+    tr('ui_bind_note',
       'The vent talks to the printer directly over your own network; nothing goes through Bambu\'s cloud. ' +
       'Scan finds Bambu printers on the network and fills in the serial number; the LAN access code is on the printer ' +
       'under Settings, Network, LAN Only Mode, and it changes if LAN Only Mode is turned off and on again.'),

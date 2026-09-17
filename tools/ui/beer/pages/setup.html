@@ -72,14 +72,26 @@
   <div class="space"></div>
 
   <article>
+    <!-- The vent's two flap colours stood here, as two swatches painted with a fixed
+         hex and wired to nothing: a control that looked like a control and did nothing,
+         labelled for hardware this device does not have. These are the three bar states
+         this device actually shows, and they are real: each opens the picker and writes
+         the colour through the same path the Lighting page uses. -->
     <div class="grid">
-      <div class="s12 m6">
-        <div class="small-text" data-str="ui_vent_open">Vent open</div>
-        <button class="responsive no-round" style="background:#FFFFFF;height:3rem"></button>
+      <div class="s12 m4">
+        <div class="small-text" id="lbl-setup-col-0" data-str="ui_printer_state_0">Idle</div>
+        <button class="swatch responsive no-round is-unset" style="height:3rem"
+                id="ps-setup-col-0" aria-labelledby="lbl-setup-col-0"></button>
       </div>
-      <div class="s12 m6">
-        <div class="small-text" data-str="ui_vent_closed">Vent closed</div>
-        <button class="responsive no-round" style="background:#FF3700;height:3rem"></button>
+      <div class="s12 m4">
+        <div class="small-text" id="lbl-setup-col-1" data-str="ui_printer_state_2">Printing</div>
+        <button class="swatch responsive no-round is-unset" style="height:3rem"
+                id="ps-setup-col-1" aria-labelledby="lbl-setup-col-1"></button>
+      </div>
+      <div class="s12 m4">
+        <div class="small-text" id="lbl-setup-col-2" data-str="ui_printer_state_5">Error</div>
+        <button class="swatch responsive no-round is-unset" style="height:3rem"
+                id="ps-setup-col-2" aria-labelledby="lbl-setup-col-2"></button>
       </div>
     </div>
 

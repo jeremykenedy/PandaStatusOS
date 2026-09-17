@@ -86,14 +86,21 @@
 
   /* ---- the three state colours --------------------------------- */
 
+  /* The same three colours appear twice: on the Lighting page and on the last step of
+     setup, where they are the first thing a new owner picks. One painter, one sender,
+     two sets of ids, so the two can never drift apart. */
+  var SWATCH_HOSTS = ['ps-col-', 'ps-setup-col-'];
+
   function paint_swatches(m) {
     var cols = slot(m).rgb_rgba;
-    for (var i = 0; i < 3; i++) {
-      var b = byId('ps-col-' + i);
-      if (!b) continue;
-      var c = Array.isArray(cols) ? css_colour(cols[i]) : '';
-      b.style.background = c || '';
-      b.classList.toggle('is-unset', !c);
+    for (var h = 0; h < SWATCH_HOSTS.length; h++) {
+      for (var i = 0; i < 3; i++) {
+        var b = byId(SWATCH_HOSTS[h] + i);
+        if (!b) continue;
+        var c = Array.isArray(cols) ? css_colour(cols[i]) : '';
+        b.style.background = c || '';
+        b.classList.toggle('is-unset', !c);
+      }
     }
   }
 
@@ -185,16 +192,18 @@
     on_slider('ps-brightness', 'rgb_info_brightness');
     on_slider('ps-speed', 'rgb_info_speed');
 
-    for (var i = 0; i < 3; i++) {
-      (function (idx) {
-        var b = byId('ps-col-' + idx);
-        if (!b) return;
-        b.addEventListener('click', function () {
-          picker_open(b, function (hex) {
-            send({ rgb_rgba: hex, rgb_state_index: idx, rgb_info_mode: mode_now() });
+    for (var h = 0; h < SWATCH_HOSTS.length; h++) {
+      for (var i = 0; i < 3; i++) {
+        (function (host, idx) {
+          var b = byId(host + idx);
+          if (!b) return;
+          b.addEventListener('click', function () {
+            picker_open(b, function (hex) {
+              send({ rgb_rgba: hex, rgb_state_index: idx, rgb_info_mode: mode_now() });
+            });
           });
-        });
-      })(i);
+        })(SWATCH_HOSTS[h], i);
+      }
     }
 
     var list = byId('ps-block-list');

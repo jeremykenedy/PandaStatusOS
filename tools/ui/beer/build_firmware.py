@@ -132,8 +132,23 @@ print('%d pages, each marked data-card and each reachable from both navs; no inl
 # n) -- reaches this as the bare prefix, so those are matched by prefix and
 # only pass if at least one numbered key exists behind them.
 _en = json.load(io.open(os.path.join(D, '..', 'i18n', 'en.json'), encoding='utf-8'))
+# tr() and data-str are not the only ways a key is reached. A dialog takes its title and
+# its text as keys in the second and fourth argument positions, a toast takes one in the
+# first, and a note takes one too. Twenty-four keys shipped through those calls that no
+# language carried: English showed to all twenty-three other readers, silently, because
+# tr() falls back to the fallback that sits right beside the key. So the sweep below is by
+# SHAPE, not by call: every quoted token that looks like one of this project's keys is
+# treated as one, and a key-shaped literal that no language carries fails the build.
+#
+# The prefixes are this project's own naming, listed rather than guessed at, so a literal
+# like 'click' or 'change' is not mistaken for a key.
+_PREFIX = ('ui_', 'dlg_', 'cal_', 'anim_', 'status_', 'card_', 'ams_', 'fw_', 'door_',
+           'logs_', 'response_', 'sta_', 'ap_', 'cfg_', 'pctl_', 'hostname', 'restart',
+           'factory_reset', 'language_name')
 _used = set(re.findall(r"(?:tr|cpk_tr)\(\s*'([a-z0-9_]+)'", out)) | \
-        set(re.findall(r'data-str="([a-z0-9_]+)"', out))
+        set(re.findall(r'data-str="([a-z0-9_]+)"', out)) | \
+        set(re.findall(r'data-str-aria="([a-z0-9_]+)"', out)) | \
+        set(k for k in re.findall(r"'([a-z][a-z0-9_]*)'", out) if k.startswith(_PREFIX))
 _missing = []
 for _k in sorted(_used):
     if _k in _en:

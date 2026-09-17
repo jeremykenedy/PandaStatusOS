@@ -120,6 +120,50 @@
     </div>
   </article>
 
+  <!-- ══════════════════════════════════════════════════════════════════
+       A13: TRY IT
+       The bar held at a chosen state for a while, so an effect that draws
+       the print can be looked at without starting one. It sits directly
+       under the effect list because that is what it is for: pick an
+       effect, then see it. Nothing here is stored on the device.
+       ══════════════════════════════════════════════════════════════ -->
+  <article class="span-all" id="ps-pv-card" hidden>
+    <h6 class="card-title" data-str="ui_try_it">Try it</h6>
+    <div class="small-text" data-str="ui_try_it_help">Hold the bar at a chosen state for a while, so an effect can be looked at without waiting for a print. Nothing is stored.</div>
+
+    <nav><span class="max small-text" data-str="ui_percent">Percent</span>
+         <span class="small-text" id="ps-pv-percent-value"></span></nav>
+    <label class="slider">
+      <input type="range" aria-label="Percent" data-str-aria="ui_percent"
+             id="ps-pv-percent" min="0" max="100" step="1" value="60"><span></span>
+    </label>
+
+    <div class="field label suffix border">
+      <select id="ps-pv-stage"></select>
+      <label for="ps-pv-stage" data-str="ui_which_stage">Which stage</label>
+      <svg class="i"><use href="#i-caret"/></svg>
+    </div>
+
+    <nav><span class="max small-text" data-str="ui_for_how_long">For how long</span>
+         <span class="small-text" id="ps-pv-seconds-value"></span></nav>
+    <label class="slider">
+      <input type="range" aria-label="For how long" data-str-aria="ui_for_how_long"
+             id="ps-pv-seconds" min="10" max="600" step="10" value="60"><span></span>
+    </label>
+
+    <nav class="wrap btn-row">
+      <button class="fill" id="ps-pv-go">
+        <svg class="i"><use href="#i-eye"/></svg>
+        <span data-str="ui_show_it">Show it</span>
+      </button>
+      <button class="border" id="ps-pv-stop" hidden>
+        <svg class="i"><use href="#i-close"/></svg>
+        <span data-str="ui_stop">Stop</span>
+      </button>
+    </nav>
+    <div class="small-text" id="ps-pv-note"></div>
+  </article>
+
   <!-- ── The colours the chosen effect draws with ─────────────────── -->
   <article class="span-all" id="ps-fxc-card" hidden>
     <h6 class="card-title" data-str="status_colour">Colour</h6>
