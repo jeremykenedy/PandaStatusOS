@@ -10,8 +10,8 @@
   <!-- ── Mode ─────────────────────────────────────────────────────── -->
   <article class="no-padding span-all">
     <h6 class="card-title padding no-padding-bottom" data-str="ui_mode">Mode</h6>
-    <div class="grid no-space padding" id="ps-mode-row" role="radiogroup" aria-labelledby="lbl-mode-row">
-      <span id="lbl-mode-row" class="hidden" data-str="ui_mode">Mode</span>
+    <div class="grid no-space padding" id="ps-mode-row" role="radiogroup"
+         aria-label="Mode" data-str-aria="ui_mode">
       <div class="s12 m6 padding">
         <button class="border fill vertical responsive is-active" id="ps-mode-music" role="radio" aria-checked="true">
           <svg class="i"><use href="#i-speed"/></svg>
@@ -30,10 +30,10 @@
   <!-- ── Brightness, live in both modes ───────────────────────────── -->
   <article class="span-all">
     <h6 class="card-title" data-str="status_brightness">Brightness</h6>
-    <nav><span class="max small-text" id="lbl-brightness" data-str="status_brightness">Brightness</span>
+    <nav><span class="max"></span>
          <span class="small-text" id="ps-brightness-value"></span></nav>
     <label class="slider">
-      <input type="range" aria-labelledby="lbl-brightness" id="ps-brightness"
+      <input type="range" aria-label="Brightness" data-str-aria="status_brightness" id="ps-brightness"
              min="0" max="100" step="5" value="50"><span></span>
     </label>
   </article>
@@ -42,10 +42,10 @@
           behaviour and not a decision made here. ─────────────────── -->
   <article class="span-all" id="ps-speed-card">
     <h6 class="card-title" data-str="status_speed">Speed</h6>
-    <nav><span class="max small-text" id="lbl-speed" data-str="status_speed">Speed</span>
+    <nav><span class="max"></span>
          <span class="small-text" id="ps-speed-value"></span></nav>
     <label class="slider">
-      <input type="range" aria-labelledby="lbl-speed" id="ps-speed"
+      <input type="range" aria-label="Speed" data-str-aria="status_speed" id="ps-speed"
              min="0" max="100" step="5" value="100"><span></span>
     </label>
   </article>

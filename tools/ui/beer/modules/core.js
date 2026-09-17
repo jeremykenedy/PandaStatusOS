@@ -670,14 +670,14 @@ function render_chrome() {
   var st = vp.device_state;
   if (!g_have_first_state) {
     if (dot) dot.setAttribute('class', 'ux_top_dot');
-    setText('ps-top-state', tr('waiting_for_device', "Waiting for the vent. These controls are showing placeholders until it answers, so they are inactive for a moment."));
+    setText('ps-top-state', tr('waiting_for_device', "Waiting for the device. These controls are showing placeholders until it answers, so they are inactive for a moment."));
     setHidden('ps-top-pct', true);
     setHidden('ps-top-prog', true);
     setHidden('ps-top-prog-fill', true);
   } else {
     var cls = (isNum(st) && st >= 0 && st <= 5) ? TOP_DOT_CLASS[st] : 'is-idle';
     if (dot) dot.setAttribute('class', 'ux_top_dot ' + cls);
-    setText('ps-top-state', device_state_name(st) || tr('waiting_for_device', "Waiting for the vent. These controls are showing placeholders until it answers, so they are inactive for a moment."));
+    setText('ps-top-state', device_state_name(st) || tr('waiting_for_device', "Waiting for the device. These controls are showing placeholders until it answers, so they are inactive for a moment."));
 
     var pct = vp.print_percent;
     var running = isNum(st) && (st === 1 || st === 2 || st === 3);

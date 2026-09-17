@@ -381,7 +381,7 @@
   "ui_type_this_address_into_a_browser_o": "Type this address into a browser on any device on the same network to open this page again.",
   "ui_unbind": "Unbind",
   "ui_unbind_this_printer": "Unbind this printer?",
-  "ui_upload_sent": "Sent. Waiting for the vent to check it",
+  "ui_upload_sent": "Sent. Waiting for the device to check it",
   "ui_uploading": "Uploading",
   "ui_use_the_open_or_closed_colour_depe": "Use the open or closed colour depending on the flap",
   "ui_vent": "Vent",
@@ -403,6 +403,6 @@
   "vent_word_closed": "Closed",
   "vent_word_moving": "Moving",
   "vent_word_open": "Open",
-  "waiting_for_device": "Waiting for the vent. These controls are showing placeholders until it answers, so they are inactive for a moment.",
+  "waiting_for_device": "Waiting for the device. These controls are showing placeholders until it answers, so they are inactive for a moment.",
   "warn_hot_note": "The factory firmware calls 50 °C hot and cannot be told otherwise. That suits PLA and not ABS, where the bed sits at a hundred all print."
 }
