@@ -1502,3 +1502,26 @@ nav.bottom a.active > svg.i {
   .swatch-row > .pv-slot { grid-column: 3 / -1; justify-self: end; }
   .pv-slot > .pv-one     { inline-size: auto; }
 }
+
+
+/* ── 46  A unit belongs inside its field ───────────────────────────────
+   Three number fields on the Lighting page are degrees: the gradient's two ends
+   and the hot warning's threshold. Each carries °C as a `suffix`, which is
+   Beer's own arrangement, except that Beer positions exactly five kinds of
+   child inside a field and `span` is not one of them. So the unit fell out of
+   the box and landed under it, left-aligned, reading as a stray fragment of
+   text rather than as part of the field above it.
+
+   The field already reserves the room for a suffix, so the unit only has to be
+   put where the room is. It is not a control and never takes a tap: the input
+   behind it is what the tap is for.
+   ─────────────────────────────────────────────────────────────── */
+.field.suffix > span {
+  position: absolute;
+  inset-block-start: calc(var(--_input, 3.5rem) / 2 - 0.75rem);
+  inset-inline-end: 1rem;
+  block-size: 1.5rem;
+  line-height: 1.5rem;
+  pointer-events: none;
+  opacity: 0.75;
+}
