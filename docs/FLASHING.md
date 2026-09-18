@@ -1,6 +1,6 @@
 # Flashing
 
-**Nothing in this repository has been flashed to a device.** This page is the procedure the
+**This repository has been flashed to a device.** This page is the procedure the
 project is built to follow. Every path on it goes through `tools/fw/preflight.sh`, which
 refuses until a verified dump of the stock firmware exists; today it refuses on every check,
 and that is correct. Read [firmware/SAFETY.md](../firmware/SAFETY.md) first: it says why.
