@@ -10,7 +10,7 @@
 
 <p align="center">
 Clean-room firmware for the BIGTREETECH Panda Status P2, the LED bar that watches a Bambu Lab printer.<br>
-Written from the observed behaviour of a stock unit, not from its code, so it can be read, changed and rebuilt by anyone. 25 languages.
+Written from the observed behaviour of a stock unit, not from its code, so it can be read, changed and rebuilt by anyone. 24 languages.
 </p>
 
 <p align="center">
@@ -24,8 +24,8 @@ It is a reimplementation, not a modification of their firmware. "Panda Status" i
     <a href="#requirements"><img src="https://img.shields.io/badge/device-Panda%20Status%20P2-8b5cf6" alt="BIGTREETECH Panda Status P2"></a>
     <a href="#requirements"><img src="https://img.shields.io/badge/target-ESP32--C3-blue" alt="Target ESP32-C3"></a>
     <a href="#requirements"><img src="https://img.shields.io/badge/ESP--IDF-v5.3.1-informational" alt="ESP-IDF v5.3.1"></a>
-    <a href="#languages"><img src="https://img.shields.io/badge/languages-25-orange" alt="25 languages"></a>
-    <a href="#testing"><img src="https://img.shields.io/badge/harness%20rows-38-success" alt="38 harness rows"></a>
+    <a href="#languages"><img src="https://img.shields.io/badge/languages-24-orange" alt="24 languages"></a>
+    <a href="#testing"><img src="https://img.shields.io/badge/harness%20rows-13-success" alt="13 harness rows"></a>
     <a href="https://github.com/jeremykenedy/PandaStatusOS/commits/main"><img src="https://img.shields.io/github/last-commit/jeremykenedy/PandaStatusOS" alt="Last commit"></a>
 </p>
 
@@ -64,12 +64,15 @@ had been inferred before it. The device finds printers on the network by their o
 announcements, answers to `status.local`, and raises a hotspot that opens its own setup page
 when you join it.
 
-**What is still unproven, and says so where it matters.** The light bar's data pin and LED
-count are the last two numbers nobody has established: they are marked PROVISIONAL in the
-configuration and in the boot log, and until they are read off the hardware the bar is the
-one part of this that has not been seen working. Music mode is not implemented. The
-screenshots below are from the running device; the animation frames it shows on the display
-are the factory's own, untouched, because nothing here writes them.
+**What is still unproven, and says so where it matters.** The bar lights: twenty-five LEDs
+on GPIO 5 is what this build drives and what the unit in front of it shows. Both numbers
+were arrived at by driving the hardware and watching the result, not read off a schematic,
+so the configuration and the boot log still call them PROVISIONAL and will keep calling them
+that until somebody establishes them properly. Music mode is not implemented: the factory
+reacts to sound, no fact about the microphone path exists, and in that mode this paints the
+state's colour solid and says so in its source. The screenshots below are from the running
+device; the animation frames it shows on the display are the factory's own, untouched,
+because nothing here writes them.
 
 Read [firmware/SAFETY.md](firmware/SAFETY.md) before touching a device. Read the next
 section before touching yours: the restore path is not optional, and it is the reason a
@@ -108,7 +111,7 @@ written from; it is not a claim about code nobody here has read.
 | **Error flash** | :x: | :white_check_mark: colour, brightness and rate |
 | **Per print stage** | display only, 15 stages, bar has 3 states | :white_check_mark: an effect per stage, inheriting its state |
 | **Named effects** | :x: | :white_check_mark: 8 saved, applied to any state |
-| **Live preview** | :x: | :white_check_mark: pin a state, progress and stage for half a minute |
+| **Live preview** | :x: | :white_check_mark: pin a state, progress and stage, or one button per state for fifteen seconds |
 | **Fault codes on the bar** | :x: | :white_check_mark: blinked, colour for the area, count for the reason |
 | **Settings as a file** | :x: | :white_check_mark: export and import, passwords left out |
 | **Plain restart** | a socket command named reset, no button | :white_check_mark: a button named what it does |
@@ -122,17 +125,17 @@ written from; it is not a claim about code nobody here has read.
 
 ### The Page
 
-The page the device serves, rebuilt as eight pages that speak the factory's wire
-protocol frame for frame:
+The page the device serves, rebuilt as seven pages that speak the factory's wire protocol
+frame for frame, plus the first-run page:
 
 | Page | What it controls |
 | --- | --- |
-| **Dashboard** | printer link, network, lighting mode and brightness, firmware, hotspot |
-| **Lighting** | Music or H2D mode, brightness and speed, the three state colours per mode, segments, reset |
-| **Images** | the fifteen print-stage animations, one upload per slot |
+| **Dashboard** | the current print, the printer it is bound to, what the bar is showing, the AMS, the printer's own chamber light |
+| **Lighting** | Music or H2D, brightness and speed, the three state colours, and behind their switches: an effect per state with its own colours and timing, named effects, an effect per print stage, the stage animations, and a preview that holds the bar at a state |
 | **Printer** | scan, bind by serial number and address with the access code, unbind |
-| **Network** | Wi-Fi scan and connect, hostname, the hotspot's name, password and address |
-| **System** | versions, language, theme, firmware and image pack updates, the feature switches, the three resets named honestly |
+| **Wi-Fi** | scan and connect, the host name, and a fixed address instead of DHCP |
+| **Hotspot** | its name, its password, its address, and whether it comes up at all |
+| **Settings** | language, theme, the device's name, firmware version and update, restart and the two resets named honestly, the twenty feature switches, and every setting as one file |
 | **Logs** | what the page and the device said to each other, credentials replaced by their length |
 | **Setup** | the first-run page: language, Wi-Fi, idle colour |
 
@@ -141,7 +144,7 @@ over every page in both.
 
 ### Lighting
 
-Nineteen switches, every one off by default. The full table with defaults and
+Twenty switches, every one off by default. The full table with defaults and
 dependencies is [docs/FEATURES.md](docs/FEATURES.md).
 
 | Setting | What it does |
@@ -155,7 +158,7 @@ dependencies is [docs/FEATURES.md](docs/FEATURES.md).
 | **Layers** | a hot warning and an error flash drawn over whatever the bar shows, in both modes |
 | **Named effects** | an editor: the effect, its colours as stops, timing and direction, saved under a name |
 | **Per stage** | any of the fifteen display stages gets its own named effect; the rest inherit their bar state |
-| **Live preview** | pin a state, a progress and a stage for half a minute and watch it, without running a print |
+| **Live preview** | pin a state, a progress and a stage for up to ten minutes and watch it, without running a print. Each state's own row carries a button that pins it for fifteen seconds with nothing to set first |
 
 ### Printer And Device
 
@@ -171,41 +174,48 @@ dependencies is [docs/FEATURES.md](docs/FEATURES.md).
 
 ## Languages
 
-Twenty-five. English is the only hand-written table; every other language is translated
+Twenty-four. English is the only hand-written table; every other language is translated
 from it and checked against it on every build for missing keys, extra keys and
-placeholders. A language ships when all 118 strings are in it.
+placeholders. A language ships when all 590 strings are in it, and the build prints how
+many of each table's values are still identical to English, so a gap cannot hide behind a
+complete key list.
 
-| Language | Native name | Code | |
-| --- | --- | :---: | --- |
-| Arabic | العربية | `ar` | right to left |
-| Chinese, Simplified | 简体中文 | `zh-Hans` | |
-| Chinese, Traditional | 繁體中文 | `zh-Hant` | |
-| Czech | čeština | `cs` | |
-| Danish | Dansk | `da` | |
-| Dutch | Nederlands | `nl` | |
-| English | English | `en` | |
-| Finnish | suomi | `fi` | |
-| French | français | `fr` | |
-| German | Deutsch | `de` | |
-| Greek | Ελληνικά | `el` | |
-| Hebrew | עברית | `he` | right to left |
-| Hungarian | magyar | `hu` | |
-| Italian | italiano | `it` | |
-| Japanese | 日本語 | `ja` | |
-| Korean | 한국어 | `ko` | |
-| Norwegian Bokmål | norsk bokmål | `nb` | |
-| Polish | polski | `pl` | |
-| Portuguese, Brazil | português do Brasil | `pt-BR` | |
-| Romanian | Română | `ro` | |
-| Russian | русский | `ru` | |
-| Spanish | español | `es` | |
-| Swedish | svenska | `sv` | |
-| Turkish | Türkçe | `tr` | |
-| Ukrainian | українська | `uk` | |
+Each table carries its own name in its own script, and the menu is built from the tables
+that ship, so it reads in the reader's own writing system and adding a language is adding a
+file. The endonyms live there and only there: this repository's residue sweep treats Han
+characters in a tracked file as a fingerprint of copied material, and the string tables are
+the one place they are expected.
 
-Arabic and Hebrew are right to left. The whole layout mirrors, not just the text.
+| Language | Code | |
+| --- | :---: | --- |
+| English | `en` |  |
+| Arabic | `ar` | right to left |
+| Bengali | `bn` |  |
+| Chinese, Simplified | `zh` |  |
+| Chinese, Cantonese | `yue` |  |
+| Dutch | `nl` |  |
+| Filipino | `fil` |  |
+| French | `fr` |  |
+| German | `de` |  |
+| Greek | `el` |  |
+| Hindi | `hi` |  |
+| Indonesian | `id` |  |
+| Italian | `it` |  |
+| Japanese | `ja` |  |
+| Korean | `ko` |  |
+| Polish | `pl` |  |
+| Portuguese | `pt` |  |
+| Punjabi | `pa` |  |
+| Russian | `ru` |  |
+| Serbian | `sr` |  |
+| Spanish | `es` |  |
+| Thai | `th` |  |
+| Ukrainian | `uk` |  |
+| Vietnamese | `vi` |  |
 
-Pick a language on the setup page, or change it any time from the System page.
+Arabic is right to left. The whole layout mirrors, not just the text.
+
+Pick a language on the setup page, or change it any time from the Settings page.
 
 ## Screenshots
 
@@ -239,15 +249,13 @@ state and wording are exactly what the device served.
 
 ## What It Does Not Do
 
-- **Drive the bar the way the factory does.** The animations, Music mode's reaction to
-  sound and the meaning of the speed value are recovered from the stock unit in Phase 1
-  (see [docs/PLAN.md](docs/PLAN.md)). Until then the renderer paints the state colour,
-  solid, at the set brightness, and says so in its source.
-- **Know the flash size or the LED count.** Both are read off a real unit. The partition
-  table is generated from one number so the real one is a single command away.
-- **Discover printers on the network.** A scan finishes empty until a documented
-  mechanism exists; binding by serial number and address works. What happens with a
-  scan's results is built and tested, so only the finding is missing.
+- **React to sound.** Music mode is the factory's own, it answers to a microphone, and
+  no fact about that path has been established. In Music mode this paints the state's
+  colour, solid, at the set brightness, and says so in its source. H2D mode is where the
+  twenty-four effects run.
+- **Show the factory's own animations differently than it does.** The fifteen stage
+  animations on the display are the factory's, read from the unit and written back
+  untouched; nothing here draws them.
 - **Publish Home Assistant entities.** The factory page exposes no broker setting, so
   there is nothing to mirror yet.
 - **Verify the printer's certificate.** The printer presents a self-signed one; the link
@@ -429,7 +437,7 @@ moved no layout. [docs/CONFIG.md](docs/CONFIG.md) has every key, its range and i
 | Path | What it is |
 | --- | --- |
 | `firmware/` | the ESP-IDF project: `main/` modules, `partitions.csv` (generated), host tests under `test/host/` |
-| `firmware/main/ui.html` | the served page, BUILT by `tools/ui/build/build.py` and committed; its gzip is derived at build time |
+| `firmware/main/ui.html` | the served page, BUILT by `tools/ui/beer/build_firmware.py` and committed; its gzip is derived at build time |
 | `firmware/main/vendor/` | every third-party component with its licence and the sha256 of what ships |
 | `tools/ui/` | page sources, the build, the string tables, the mock device, the harnesses |
 | `tools/fw/` | the flash tools: the gate, the goldens, the install, the partition table |
@@ -443,12 +451,12 @@ moved no layout. [docs/CONFIG.md](docs/CONFIG.md) has every key, its range and i
 
 | Command | What it proves |
 | --- | --- |
-| `tools/ui/harness/sweep.sh` | 38 rows: every page against the mock at both themes and both widths, every control's exact wire frame, the JSON API as the factory and as a clone, contrast on every page, and one row per lie a device can tell |
-| `make test-fw` | on the host, compiling the shipping code with plain gcc: the config blob and its migrations (75), the effect engine (73), the rebind decision (13), the fault codes (24), and the state document and inbound dispatcher against the protocol (41) |
-| `make test-hook` | the pre-commit hook's regression suite, including two cases that assert its binary classifier rather than only its effect |
+| `tools/ui/harness/sweep.sh` | 13 rows against the mock device, 404 checks: every control's exact wire frame on an idle and a printing fixture, the socket refused, the JSON API as the factory and as a clone, the rebind decision, contrast on every page in both themes at both widths, and one row per card behind a switch (AMS, stages, preview, fixed address, settings file, stage images) |
+| `make test-fw` | on the host, compiling the shipping code with plain gcc, 285 checks: the config blob and its migrations (81), the effect engine (73), the rebind decision (13), the fault codes (24), the hotspot's name (34), the printer's own announcement (19), and the state document and inbound dispatcher against the protocol (41) |
+| `make test-hook` | 69 cases over the pre-commit hook, including two that assert its binary classifier rather than only its effect |
 | `make residue` | the tracked tree carries nothing of the vendor's expression |
-| `make test-flash-tools` | 55 cases over the flash tools, against a synthetic image and the mock |
-| `python3 tools/ui/build/build.py --check` | the committed page is exactly what the build produces, and this README's numbers still match the tree |
+| `make test-flash-tools` | 57 cases over the flash tools, against a synthetic image and the mock |
+| `python3 tools/ui/beer/build_firmware.py` | rebuilds the served page from its sources; it refuses to finish if a string in the markup has no key, if a key is missing from a language, or if the page's structure has drifted |
 
 The first four of those run on every push
 ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)). The sweep needs a browser and
@@ -462,12 +470,17 @@ Nothing ships without a row in
 | Component | Version | Licence | Used for |
 | --- | :---: | :---: | --- |
 | [Beer CSS](https://github.com/beercss/beercss) | 5.0.3 | MIT | the page's components and Material 3 tokens |
-| [Coloris](https://github.com/melloware/coloris-npm) | 0.25.0 | MIT | the colour picker |
+| [iro.js](https://github.com/jaames/iro.js) | 5.5.2 | MPL-2.0 | the colour picker |
 | [Heroicons](https://github.com/tailwindlabs/heroicons) | 2.2.0 | MIT | outline icons for generic chrome, hashed one by one |
 | Roboto | pending | SIL OFL 1.1 | reserved; the page uses the system font until a subset is vendored |
 
+[Coloris](https://github.com/melloware/coloris-npm) 0.25.0, MIT, is still in
+`firmware/main/vendor/` and is no longer part of the page: it was the colour picker before
+iro.js replaced it, and the build splices neither of its files. It stays vendored, with its
+licence, until it is either used again or removed.
+
 The drawn icons and the marks are first-party work under this repository's licence, not
-vendored components; [tools/ui/src/ARTWORK.md](tools/ui/src/ARTWORK.md) records them.
+vendored components.
 
 ## License
 
