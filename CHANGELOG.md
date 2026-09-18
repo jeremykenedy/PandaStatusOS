@@ -68,10 +68,49 @@ Everything so far. No release has been made and no device has been flashed.
   v4: every call in the tool that exists for a device that will not boot would have failed on
   its first line. The restore document also stopped claiming both spellings work.
 
+### Found by using it
+
+- The dashboard says what the printer is actually doing. The report carries more than the
+  six roots do, and it is all on the page now: both fan speeds and the chamber fan, the
+  nozzle fitted and its diameter, whether filament is loaded, the fault code, the
+  printer's own signal strength, the print stage by name, and the speed level. The chamber
+  temperature comes from the report's own ctc block, which is where that printer puts it.
+- The AMS has a card: humidity as a bar and a percentage where the printer gives a real
+  one, its temperature, and a chip per spool showing the material and the colour the
+  printer reports, with the loaded one ringed. A slot the printer describes as empty is
+  not drawn, because an empty chip is not information.
+- The printer's chamber light is a control, not a reading. It reports its own state and
+  the switch follows it; the work light is read and not published, because the printer
+  names that node whether the lamp exists or not.
+- Each bar state's row carries a button that holds the bar at that state for fifteen
+  seconds, on the unit, with nothing to set first. Same route and same clock as the
+  preview card below it, so whichever state is live is the one wearing the fill.
+- The hot warning watched the nozzle at 50 °C by default, which is true for the whole of
+  every print: the warning layer ran over the progress bar for hours and read as the bar
+  being broken. It watches the chamber now.
+- The wall of cards is multi-column again. As a grid the dashboard stood open with five
+  hundred pixels of nothing beside the printer card, because a grid row is as tall as its
+  tallest member. What had made multicol overlap was never the spanning card, it was a top
+  margin that collapses across a column break.
+- A phone no longer cuts anything off. The Current print strip wraps instead of being
+  clipped at the card's edge, the top bar can shrink below the width of everything in it,
+  a list row's value wraps rather than pushing its own label out, and the humidity bar
+  narrows below 360px so the word beside it can be read.
+- `PS_FEAT_KNOWN` was a literal that stopped at bit 19 while C9 took bit 20, so a settings
+  file exported from a device with the fixed address on was refused whole on import. The
+  mask is derived from the highest bit and the host test fails if a bit falls outside it.
+- The Logs page showed the IDF's own colour escapes as text on every line. They come out
+  on the way in.
+
 ### Features, each behind a switch that defaults off
 
+- C9, a fixed address, behind `static_ip`: an address, mask, gateway and DNS of this
+  device's own on the house network instead of whatever DHCP hands out, applied at boot
+  and before every association, in a blob of its own beside the config. Turning it off
+  puts the DHCP client back without a restart.
+
 - The clone's own JSON route, `/api/features`: the page discovers a clone by its 200 where
-  the factory answers 302, and shows a Features card on the System page only then. The
+  the factory answers 302, and shows a Features card on the Settings page only then. The
   socket document stays the factory's (D-033).
 - C8, fault codes on the bar behind `diagnostics`: amber for the network, blue for the
   printer, a count of blinks for the reason, replacing what the bar would otherwise show
@@ -83,10 +122,10 @@ Everything so far. No release has been made and no device has been flashed.
 - C5 and C6 recorded as met by parity: the hostname is stored and applied without a
   switch, and `printer.disconnect` unbinds live without a restart.
 - C4, a plain restart behind `restart`: `POST /api/restart` and a Restart button on the
-  System page, named what it does and erasing nothing (D-043).
+  Settings page, named what it does and erasing nothing (D-043).
 - C3, the settings as one file, behind `config_io`: export everything stored except the
   three passwords, import the same document whole or refused, every client pushed the
-  result; Export and Import on the System page (D-042).
+  result; Export and Import on the Settings page (D-042).
 - C2, the JSON API as one surface: `GET /api/info` (identification, no network name or
   credential) and `GET /api/state` (the six-root document over HTTP), answered by every
   clone; `docs/API.md` documents every route and the rules they follow; an API harness
@@ -145,14 +184,17 @@ Everything so far. No release has been made and no device has been flashed.
 
 ### The page
 
-- Eight pages speaking the factory wire protocol frame for frame: dashboard, lighting,
-  images, printer, network, system, logs, setup.
+- Seven pages speaking the factory wire protocol frame for frame, plus the first-run page:
+  dashboard, lighting, printer, Wi-Fi, hotspot, settings, logs, setup. The stage images,
+  the network and the system pages of the first arrangement are cards on those now.
 - Both themes as Material 3 token pairs; phone and desktop layouts; a contrast harness
   over every page in both.
-- Twenty-five languages, validated against English on every build; Arabic and Hebrew
-  right to left.
+- Twenty-four languages, validated against English on every build, with the build counting
+  how many of each table's values are still identical to English; Arabic right to left.
 - An event log in the page with credentials replaced by their length before storage.
-- Vendored Beer CSS 5.0.3, Coloris 0.25.0 and ten Heroicons 2.2.0, each gated by sha256.
+- Vendored Beer CSS 5.0.3, iro.js 5.5.2 and ten Heroicons 2.2.0, each gated by sha256.
+  Coloris 0.25.0 was the colour picker before iro.js and is vendored, unused, with its
+  licence.
 
 ### The flash safety protocol
 
@@ -174,8 +216,9 @@ Everything so far. No release has been made and no device has been flashed.
 
 - ESP-IDF v5.3.1 project for the ESP32-C3: config blob with a pinned layout and host
   tests, the state document and inbound dispatcher, the HTTP and WebSocket server, Wi-Fi
-  station and hotspot, the RMT strip driver, a placeholder renderer, OTA for firmware
-  and animations with rollback, and the printer's MQTT link.
+  station and hotspot, the RMT strip driver, an effect engine of twenty-four effects with
+  a solid placeholder for Music mode alone, OTA for firmware and animations with rollback,
+  and the printer's MQTT link.
 - A partition table generated from one number and marked PROVISIONAL until a unit's
   flash has been read.
 
@@ -183,10 +226,11 @@ Everything so far. No release has been made and no device has been flashed.
 
 - A mock device with knobs for every lie a device can tell, and a wire harness that
   proves the mock before any page trusts it.
-- Page harnesses that drive every control and assert the exact frame the device
-  receives; a resilience harness with one lie per row; thirty-eight sweep rows in all.
-- A pre-commit hook that keeps secrets and the vendor's expression out, with a
-  57-case suite; a residue sweep over the tracked tree.
+- Harnesses that drive every control and assert the exact frame the device receives, one
+  per card behind a switch, plus the wire, the API as factory and as clone, the rebind
+  decision and contrast in both themes at both widths: thirteen sweep rows, 404 checks.
+- A pre-commit hook that keeps secrets and the vendor's expression out, with a 69-case
+  suite; a residue sweep over the tracked tree.
 - Tools to capture the printer's MQTT report stream and redact it, not yet run against
   a printer.
 
