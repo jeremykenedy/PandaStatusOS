@@ -1156,9 +1156,13 @@ nav.btn-row { gap: 0.75rem; align-items: center; }
    this draws five pips and fills the ones the reading reaches. A bar scaled
    to a percentage would be asserting a conversion nobody has published. */
 .ams-humidity { display: inline-flex; align-items: center; gap: 0.2rem; }
+/* A pip is an `<i>`, and Beer sizes every `<i>` from one custom property:
+   inline-size, min-inline-size, block-size and min-block-size all read
+   `--_size`. A width set any other way is floored straight back to 1.5rem by
+   those two minimums, which is what the 0.4rem that stood here was doing:
+   nothing. The variable is the size. */
 .ams-pip {
-  inline-size: 0.4rem;
-  block-size: 0.9rem;
+  --_size: 1.5rem;
   border-radius: 0.1rem;
   background: var(--outline-variant);
 }
@@ -1427,3 +1431,49 @@ nav.bottom a.active > svg.i {
   column-gap: 1rem;
 }
 #ps-job-meta > span { white-space: nowrap; }
+
+
+/* ── 44  Nothing is cut at 320px either ────────────────────────────
+   390px is the phone in my hand; 320px is the narrowest one still in use, and
+   two things broke there and only there.
+
+   The top bar is a flex item of Beer's header, so its automatic minimum is the
+   min-content width of everything in it: the mark, the device name, the state
+   pill and the theme button. That came to 336px against a 288px content box,
+   and the bar pushed EVERY page 36px wider than the screen. A flex item that
+   is allowed to shrink has to say so, and the device name is the piece that
+   already carries the ellipsis (section 21), so it is what gives. The gap
+   closes up a little at the same time, which buys the name four more
+   characters before it has to shorten.
+
+   A list row is icon, label, value. The label wraps already; the value did
+   not, so "0.4 mm, hardened steel, high flow" and the network line ran past
+   the card's edge and the card's `overflow: clip` ate them. Both parts may now
+   be narrower than their content, and the value wraps at its spaces instead of
+   disappearing.
+   ─────────────────────────────────────────────────────────────── */
+.ux_top_bar_row { min-inline-size: 0; }
+@media only screen and (max-width: 420px) {
+  .ux_top_bar_row { gap: 0.5rem; }
+}
+
+/* Beer's `.max` is `flex: 1 1 0`, a zero basis. Let the value shrink and the
+   label keeps none of the row: it collapsed to nothing and its own text was
+   what got clipped instead. An auto basis makes each side's share of the
+   shortfall proportional to what it actually asked for. */
+[data-card] .list > li > .max  { flex: 1 1 auto; min-inline-size: 0; }
+[data-card] .list > li > span  { min-inline-size: 0; white-space: normal; }
+
+/* A fault code is one unbroken token, 154px of it in a 138px box on the
+   narrowest phone, and a token with no spaces in it does not wrap on its own.
+   It may break anywhere rather than run off the card. */
+[data-card] .list > li > span { overflow-wrap: anywhere; }
+
+/* The humidity bar is five 24px pips and a percentage, 165px of row, which at
+   320px leaves the word "Humidity" too little to be read. The pips give up a
+   third of their width on a screen that narrow and nothing else moves. The
+   phone this was reported on is 390px wide, where the bar is untouched. */
+.ams-humidity { min-inline-size: 0; }
+@media only screen and (max-width: 360px) {
+  .ams-pip { --_size: 1rem; }
+}
