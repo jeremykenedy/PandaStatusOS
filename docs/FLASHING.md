@@ -97,7 +97,7 @@ install stays on the network and needs no second step.
    hold the clone, then another golden. That golden is the clone's restore point. A golden
    taken after a single OTA has the previous image one rollback away from live.
 
-Updates thereafter are the same command, or the System page, which sends the same request.
+Updates thereafter are the same command, or the Settings page, which sends the same request.
 The image pack and single animations go the same way with `OTA-Type: ota_img` or a slot
 name, into the images partition, under the caps the factory page enforces (4.5 MB firmware,
 6.875 MB pack, 1.5 MB per animation).

@@ -6,7 +6,7 @@ below names the page and the field that shows it.
 
 ## Fault codes on the bar
 
-Off by default. Turn on **Fault codes on the bar** on the System page (feature bit 19,
+Off by default. Turn on **Fault codes on the bar** on the Settings page (feature bit 19,
 [FEATURES.md](FEATURES.md)) and the bar stops showing the printer's state while it cannot
 reach something, and blinks a code instead: a colour for the area, a count of blinks for
 the reason, then a pause, repeating. The network outranks the printer, because a printer
@@ -17,7 +17,7 @@ cannot be reached without it. Nothing blinking means nothing is wrong with eithe
 | amber | 1 | no network configured | open the device's hotspot and set the Wi-Fi on the setup page |
 | amber | 2 | joining the network | wait; if it stays here, the network is not answering |
 | amber | 3 | rejoining after losing the network | wait; if it stays here, the signal is marginal |
-| amber | 4 | the Wi-Fi password was refused | retype it on the Network page |
+| amber | 4 | the Wi-Fi password was refused | retype it on the Wi-Fi page |
 | blue | 1 | no printer bound | bind one on the Printer page |
 | blue | 2 | connecting to the printer | wait |
 | blue | 3 | nothing answers at the printer's address | check the address; a printer that moved is found again by serial with bit 18 on |
@@ -47,7 +47,7 @@ is by design. Escape closes it without reloading.
 
 ## Wi-Fi
 
-| Network page says | Meaning | Do |
+| Wi-Fi page says | Meaning | Do |
 |---|---|---|
 | No network configured | the device has no Wi-Fi name stored | the setup page, or Connect to a network |
 | Connecting | the device is trying | wait; it retries every five seconds |
