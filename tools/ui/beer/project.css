@@ -965,49 +965,46 @@ main article { background-color: var(--card); }
    lands in a column.
    ────────────────────────────────────────────────────────────────────── */
 [data-card] > article {
-  margin: 0;
-  /* Kept for the one-column case, where a card must not be torn in two. */
+  /* The wall's vertical rhythm is this margin, not a grid gap. Multicol has no
+     row gap: the space under a card is what separates it from the next card in
+     its own column, and it is bottom-only so every column starts flush. */
+  margin: 0 0 1rem;
+  /* A card is one block. It is never torn across a column break. */
   break-inside: avoid;
   overflow: clip;
 }
+[data-card].active > article:last-child { margin-block-end: 0; }
 
-/* GRID, not multi-column, and this is the reason.
+/* MULTI-COLUMN, and this is the reason.
  *
- * It was `column-count: 2` with `column-span: all` on the full-width cards. Multicol
- * balances its columns by measuring content it can flow, and a spanning child interrupts
- * that: the Settings page put Features across the bottom and the browser drew it OVER the
- * right-hand column, cutting the Settings file card in half, while the left column stopped
- * two hundred pixels short of it. The overlap is not a tuning problem, it is what multicol
- * does when a spanner sits among `break-inside: avoid` siblings of uneven height.
+ * This was a grid for exactly one commit. `column-count` with `column-span: all` had drawn
+ * the Settings page's Features card over the right-hand column, and a grid cannot overlap,
+ * so the grid fixed that. It also broke the dashboard, which is the page this wall exists
+ * for: grid rows align to their tallest card, the Printer card runs 773px against Lighting
+ * Now at 269px, and the wall stood open with five hundred pixels of nothing beside it while
+ * AMS and Printer controls were pushed down past the fold. Measured, not guessed: the cards
+ * came out 520 to 560px ragged at every width from 840 up.
  *
- * A grid cannot overlap. Each card is one item, a full-width card takes the whole row with
- * `grid-column: 1 / -1`, and the gap is one property rather than a margin that has to be
- * cancelled on the first card of every column. Rows align to their tallest card instead of
- * the columns balancing, which is a different look and a predictable one: nothing is ever
- * drawn on top of anything else, and no card is ever cut. */
-[data-card].active {
-  display: grid;
-  /* minmax(0, 1fr), not the implicit `auto`. A grid column sized `auto` is as wide as its
-     widest content, so on a phone every card grew to fit its longest row and the page ran
-     off the right edge with the values cut off. The 0 floor lets a column be narrower than
-     its content and the content wrap or ellipsis inside it, which is what the cards already
-     do. Same floor on the two and three column tracks below, for the same reason. */
-  grid-template-columns: minmax(0, 1fr);
-  gap: 1rem;
-  align-items: start;
-}
+ * Masonry is what this wall wants, and multicol IS masonry. What made it overlap was never
+ * the spanner. It was Beer's `margin-block-start: 1rem` on every article after the first:
+ * that margin lands on the first card of the second and third columns as well, the engine
+ * balances columns whose heights it has already mismeasured, and the spanner is drawn from
+ * a total it got wrong. Section 31 below cancels that top margin, the space between cards
+ * is one bottom margin set here, and the columns balance. Verified against the live page at
+ * 1440, 1200, 900 and 840 on both the dashboard and Settings: no card overlaps another.
+ * ────────────────────────────────────────────────────────────────────── */
+[data-card].active { column-gap: 1rem; }
 @media only screen and (min-width: 840px) {
-  [data-card].active {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 1.25rem;
-  }
+  [data-card].active     { column-count: 2; column-gap: 1.25rem; }
+  [data-card] > article  { margin-block-end: 1.25rem; }
 }
 @media only screen and (min-width: 1360px) {
-  [data-card].active { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  [data-card].active { column-count: 3; }
 }
 
-/* A card that is the whole point of its page takes the whole row. */
-[data-card].active > article.span-all { grid-column: 1 / -1; }
+/* A card that is the whole point of its page takes the whole width. The columns
+   stop above it and start again below it. */
+[data-card].active > article.span-all { column-span: all; }
 
 
 /* ── 30  The segmented control ───────────────────────────────────────────
@@ -1391,16 +1388,6 @@ nav.bottom a.active > svg.i {
 #ps-nav.left:not(.max) a > span { display: none; }
 
 
-/* ── 41b  A shape with nothing in it is not shown ────────────────────────
-   The mode pill and the vent-position line both say what the vent is doing.
-   Before the vent has said anything they have no text, and an empty chip and
-   a lone dot are furniture that still look like an answer. They keep their
-   space -- visibility, not display -- so nothing moves when the first state
-   document fills them in.
-   ────────────────────────────────────────────────────────────────────── */
-#ps-af-pill:has(> #ps-af-pill-text:empty),
-#ps-vent-state:has(> #ps-vent-state-text:empty) { visibility: hidden; }
-
 
 /* ── 42  Hit targets reach 44px without growing their glyph ───────────────
    The round "i" buttons (24px), the password-reveal eye (24px) and the top
@@ -1419,3 +1406,24 @@ nav.bottom a.active > svg.i {
    under its own field and over the one below it. The anchor is already a
    positioned ancestor, so the hit target needs nothing but the ::before. */
 .field.suffix > a::before { content: ''; position: absolute; inset: -0.625rem; }
+
+
+/* ── 43  The job strip wraps, it does not get cut ───────────────────────
+   Beer's nav is a toolbar: `white-space: nowrap` and no wrapping. The Current
+   print strip is not a toolbar, it is a sentence. It names the printer, the
+   stage, the layer, the time left, the speed and three temperatures, which on
+   a phone runs about three times the width of the card. The card is
+   `overflow: clip`, so the tail was not pushed off where a swipe could reach
+   it, it was gone: "Ludicrous" ended at "Ludic" and the temperatures were
+   never drawn at all.
+   So the strip wraps, and each item keeps `nowrap` of its own, because
+   "2 h 55 m left" breaking across the fold reads as two facts. The row gap is
+   tight on purpose: these are lines of one sentence, not rows of controls.
+   ─────────────────────────────────────────────────────────────── */
+#ps-job-meta {
+  flex-wrap: wrap;
+  white-space: normal;
+  row-gap: 0.25rem;
+  column-gap: 1rem;
+}
+#ps-job-meta > span { white-space: nowrap; }
