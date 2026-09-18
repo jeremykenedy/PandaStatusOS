@@ -24,6 +24,7 @@ void ps_state_init(void)
     g_ps.fan_part = g_ps.fan_aux = g_ps.fan_chamber = -1;
     g_ps.filament_in = -1;
     g_ps.ams_humidity = -1;
+    g_ps.ams_humidity_pct = -1;
     g_ps.ams_temp_c = PS_TEMP_NONE;
     g_ps.tray_count = 0; g_ps.tray_now = -1;
     memset(g_ps.trays, 0, sizeof g_ps.trays);
@@ -122,6 +123,7 @@ static cJSON *root_printer(void)
     if (g_ps.fan_chamber >= 0) cJSON_AddNumberToObject(st, "fan_chamber", g_ps.fan_chamber);
     if (g_ps.filament_in >= 0) cJSON_AddNumberToObject(st, "filament_in", g_ps.filament_in);
     if (g_ps.ams_humidity >= 0) cJSON_AddNumberToObject(st, "ams_humidity", g_ps.ams_humidity);
+    if (g_ps.ams_humidity_pct >= 0) cJSON_AddNumberToObject(st, "ams_humidity_pct", g_ps.ams_humidity_pct);
     if (g_ps.ams_temp_c != PS_TEMP_NONE) cJSON_AddNumberToObject(st, "ams_temp", g_ps.ams_temp_c);
     /* The spools. Absent entirely when the printer has described none, so a machine with no
      * AMS produces no key and the page draws no card rather than an empty one. */

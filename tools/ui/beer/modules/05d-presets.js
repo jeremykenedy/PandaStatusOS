@@ -229,6 +229,17 @@
         var text = document.createElement('div');
         text.className = 'max';
         text.textContent = stage_label(r.slot);
+        /* The same shape the Features rows use: the name, then what it is. A key with no
+           translation would show its own name back, so an absent one draws nothing. */
+        var subKey = 'ui_stage_' + r.slot + '_sub';
+        var subTxt = tr(subKey, '');
+        if (subTxt && subTxt !== subKey) {
+          var sub = document.createElement('div');
+          sub.className = 'small-text';
+          sub.textContent = subTxt;
+          text.appendChild(document.createElement('br'));
+          text.appendChild(sub);
+        }
 
         var field = document.createElement('div');
         field.className = 'field suffix border small no-margin';

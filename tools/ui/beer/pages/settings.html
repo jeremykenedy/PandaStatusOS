@@ -16,7 +16,6 @@
     </div>
 
     <div class="small-text" data-str="ui_theme">Theme</div>
-    <div class="space"></div>
     <nav class="segmented" id="ps-theme-seg" role="radiogroup" aria-label="Theme">
       <button id="ps-theme-auto"  role="radio" aria-checked="true"  data-str="appearance_auto">Auto</button>
       <button id="ps-theme-light" role="radio" aria-checked="false" data-str="appearance_light">Light</button>
@@ -82,13 +81,27 @@
     </nav>
   </article>
   <!-- ══════════════════════════════════════════════════════════════════
+       FEATURES
+       Everything this clone does beyond the factory application, one switch
+       each, every one off on a new device and off again after a factory
+       reset. The rows are built from what /api/features returns rather than
+       listed here, so a bit the firmware gains appears without the page
+       being edited, and a bit it loses stops being offered.
+       ══════════════════════════════════════════════════════════════ -->
+  <article class="span-all" id="ps-feat-card">
+    <h6 class="card-title" data-str="ui_features">Features</h6>
+    <div class="small-text" data-str="ui_features_help">Everything here is off on a new device. Each switch turns on one addition and nothing else changes.</div>
+    <ul class="list border" id="ps-feat-list"></ul>
+  </article>
+
+  <!-- ══════════════════════════════════════════════════════════════════
        C3: THE SETTINGS FILE
        Behind its own switch. The download is the device's own route with a
        Content-Disposition on it, so the browser saves it rather than
        rendering it; the restore posts the file back whole and the device
        takes it or refuses it whole.
        ══════════════════════════════════════════════════════════════ -->
-  <article id="ps-cfg-card" hidden>
+  <article class="card-divided span-all" id="ps-cfg-card" hidden>
     <h6 class="card-title" data-str="ui_settings_file">Settings file</h6>
     <div class="small-text" data-str="ui_settings_file_help">Every setting as one file, to keep or to copy onto another unit. No passwords and no access code are in it, so put those back by hand after restoring.</div>
     <div class="space"></div>
@@ -104,20 +117,6 @@
       </button>
     </nav>
     <div class="small-text" id="ps-cfg-note"></div>
-  </article>
-
-  <!-- ══════════════════════════════════════════════════════════════════
-       FEATURES
-       Everything this clone does beyond the factory application, one switch
-       each, every one off on a new device and off again after a factory
-       reset. The rows are built from what /api/features returns rather than
-       listed here, so a bit the firmware gains appears without the page
-       being edited, and a bit it loses stops being offered.
-       ══════════════════════════════════════════════════════════════ -->
-  <article class="span-all" id="ps-feat-card">
-    <h6 class="card-title" data-str="ui_features">Features</h6>
-    <div class="small-text" data-str="ui_features_help">Everything here is off on a new device. Each switch turns on one addition and nothing else changes.</div>
-    <ul class="list border" id="ps-feat-list"></ul>
   </article>
 
 </section>

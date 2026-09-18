@@ -181,6 +181,21 @@ static void apply_report(const char *json, size_t len)
         if (cJSON_IsString(tp)) { ps_lock(); g_ps.ams_temp_c = (int16_t)atoi(tp->valuestring); ps_unlock(); }
         else if (cJSON_IsNumber(tp)) { ps_lock(); g_ps.ams_temp_c = (int16_t)tp->valuedouble; ps_unlock(); }
 
+        /* A REAL relative humidity, where there is one. The newer AMS units report a
+         * percentage directly instead of the level, and Bambu's own documentation says so
+         * without naming the field, so all three spellings seen in the wild are read and a
+         * value is only taken when it falls in 0..100. This is the only percentage this
+         * device will ever show as a measurement: the level is not one, and the mapping
+         * from level to percentage is not published by anyone. */
+        static const char *const HPCT_KEYS[] = { "humidity_raw", "humidity_percent", "humidity_pct" };
+        for (size_t i = 0; i < sizeof HPCT_KEYS / sizeof HPCT_KEYS[0]; i++) {
+            cJSON *hv = cJSON_GetObjectItemCaseSensitive(ams0, HPCT_KEYS[i]);
+            int v = -1;
+            if (cJSON_IsNumber(hv)) v = (int)hv->valuedouble;
+            else if (cJSON_IsString(hv) && hv->valuestring[0]) v = atoi(hv->valuestring);
+            if (v >= 0 && v <= 100) { ps_lock(); g_ps.ams_humidity_pct = (int8_t)v; ps_unlock(); break; }
+        }
+
         /* The trays. Only the ones the printer actually describes go in the list, so a unit
          * with two spools reports two rows rather than four with two of them blank. */
         cJSON *tr = cJSON_GetObjectItemCaseSensitive(ams0, "tray");

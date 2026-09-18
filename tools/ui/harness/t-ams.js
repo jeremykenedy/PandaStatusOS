@@ -65,9 +65,22 @@ async function waitFor(page, body, ms = 4000) {
       && await page.$eval('#ps-tray-3 .swatch-dot', (e) => e.classList.contains('is-unset')));
 
     // ---- the humidity, as a level ----
-    t('C1 the humidity is drawn as a level, never as a percentage',
-      await page.$eval('#ps-ams-kv', (e) => /level\s*2/.test(e.textContent) && !/%/.test(e.textContent)),
+    /* A percentage is allowed, but only ever as a marked approximation when the printer
+       gave a level rather than a reading: the wavy equals and the level have to be there,
+       and the note under the row has to say the level is not a percentage. */
+    t('C1 a level is drawn as a marked band and the level itself, never as a bare percentage',
+      await page.$eval('#ps-ams-kv', (e) => /\u2248\s*20\u201340%/.test(e.textContent) && /level\s*2/.test(e.textContent)),
       await page.$eval('#ps-ams-kv', (e) => e.textContent));
+    t('C1b and the caveat is on screen beside it',
+      (await page.$eval('#ps-ams-note', (e) => e.hidden)) === false
+      && await page.$eval('#ps-ams-note', (e) => e.textContent === tr('ui_humidity_is_a_level', '')));
+    /* A unit that sends a real reading gets a plain percentage and no caveat. */
+    await page.evaluate(() => { g_state.printer.status.ams_humidity_pct = 37; render_ams(); });
+    t('C1c a real reading is drawn as a plain percentage, with no band and no caveat',
+      await page.$eval('#ps-ams-kv', (e) => /37%/.test(e.textContent) && !/\u2248/.test(e.textContent))
+      && await page.$eval('#ps-ams-note', (e) => e.hidden),
+      await page.$eval('#ps-ams-kv', (e) => e.textContent));
+    await page.evaluate(() => { delete g_state.printer.status.ams_humidity_pct; render_ams(); });
     t('C2 two of five pips are lit for a level of two',
       await page.$$eval('.ams-pip', (els) => els.filter((e) => e.classList.contains('is-on')).length) === 2,
       await page.$$eval('.ams-pip', (els) => els.filter((e) => e.classList.contains('is-on')).length));

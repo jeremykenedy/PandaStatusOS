@@ -618,6 +618,13 @@ input[type="range"]:active { cursor: grabbing; }
    would slide sideways every time the pill grew a percentage. */
 .ux_top_bar_row { position: relative; }
 
+/* On a phone the brand block moves to the LEFT of the bar and drops the product word,
+   so the bar reads mark, then the name of this unit, the way an app bar reads. The word
+   is what goes: at 390px there is no room for a mark, a product name, a device name and
+   a state pill, and of those four the product name is the one a person already knows.
+   The centred position below is the wide layout's, from 993px up. */
+
+
 .ux_top_brand {
   position: absolute;
   inset-inline-start: 50%;
@@ -692,6 +699,29 @@ input[type="range"]:active { cursor: grabbing; }
   block-size: 1.75rem;
   flex: 0 0 auto;
 }
+
+/* The two layouts differ in ORDER, so the order lives in the markup and the wide layout
+ * is the one that departs from it. The mark is the first thing in the bar, then the device
+ * name, then the spacer, then the state and the theme toggle: that is the phone, read
+ * straight out of the DOM with nothing rearranging it.
+ *
+ * On a wide screen the brand is taken OUT of the flow and pinned to the centre of the bar,
+ * which is why its place in the markup does not matter there. An earlier attempt did the
+ * opposite, leaving it in the middle of the markup and reordering with `order` on a phone;
+ * that is two mechanisms disagreeing about the same row, and the one with no specificity to
+ * spare lost. One mechanism, and the markup is it. */
+@media only screen and (max-width: 992px) {
+  .ux_top_brand {
+    position: static;
+    transform: none;
+    flex: 0 0 auto;
+    margin-inline-end: 0.5rem;
+  }
+  /* At 390px there is no room for a mark, a product name, a device name and a state pill.
+     Of those four the product name is the one a person already knows. */
+  .ux_top_brand > .ux_top_word { display: none; }
+}
+
 
 /* The theme toggle: a compact icon button on the right of the bar. Sized
    down from Beer's default circle so it sits with the state pill rather
@@ -935,37 +965,49 @@ main article { background-color: var(--card); }
    lands in a column.
    ────────────────────────────────────────────────────────────────────── */
 [data-card] > article {
-  /* The gap between cards is the bottom margin alone. A top margin is dropped
-     on the first card of the second and third columns but kept on the first,
-     so the left column started a margin lower than the others under a
-     spanning card. */
-  margin-block-start: 0;
-  margin: 0 0 var(--_cardgap, 1rem);
+  margin: 0;
+  /* Kept for the one-column case, where a card must not be torn in two. */
   break-inside: avoid;
-  /* A column item that can shrink below its content tears a card in two at
-     the column break; forbid it. */
   overflow: clip;
 }
-[data-card] > article:last-child { margin-block-end: 0; }
 
+/* GRID, not multi-column, and this is the reason.
+ *
+ * It was `column-count: 2` with `column-span: all` on the full-width cards. Multicol
+ * balances its columns by measuring content it can flow, and a spanning child interrupts
+ * that: the Settings page put Features across the bottom and the browser drew it OVER the
+ * right-hand column, cutting the Settings file card in half, while the left column stopped
+ * two hundred pixels short of it. The overlap is not a tuning problem, it is what multicol
+ * does when a spanner sits among `break-inside: avoid` siblings of uneven height.
+ *
+ * A grid cannot overlap. Each card is one item, a full-width card takes the whole row with
+ * `grid-column: 1 / -1`, and the gap is one property rather than a margin that has to be
+ * cancelled on the first card of every column. Rows align to their tallest card instead of
+ * the columns balancing, which is a different look and a predictable one: nothing is ever
+ * drawn on top of anything else, and no card is ever cut. */
+[data-card].active {
+  display: grid;
+  /* minmax(0, 1fr), not the implicit `auto`. A grid column sized `auto` is as wide as its
+     widest content, so on a phone every card grew to fit its longest row and the page ran
+     off the right edge with the values cut off. The 0 floor lets a column be narrower than
+     its content and the content wrap or ellipsis inside it, which is what the cards already
+     do. Same floor on the two and three column tracks below, for the same reason. */
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1rem;
+  align-items: start;
+}
 @media only screen and (min-width: 840px) {
   [data-card].active {
-    --_cardgap: 1.25rem;
-    column-count: 2;
-    column-gap: 1.25rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.25rem;
   }
 }
-
 @media only screen and (min-width: 1360px) {
-  [data-card].active { column-count: 3; }
+  [data-card].active { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 
-/* A card that is the whole point of its page does not want to be squeezed
-   into a column beside something smaller: the dashboard's vent hero and the
-   lighting editor span every column and sit at the top of the wall. */
-@media only screen and (min-width: 840px) {
-  [data-card].active > article.span-all { column-span: all; margin-block-end: 1.25rem; }
-}
+/* A card that is the whole point of its page takes the whole row. */
+[data-card].active > article.span-all { grid-column: 1 / -1; }
 
 
 /* ── 30  The segmented control ───────────────────────────────────────────
@@ -977,7 +1019,7 @@ main article { background-color: var(--card); }
    the fill, and the switcher moving that class is the whole animation.
    ────────────────────────────────────────────────────────────────────── */
 nav.segmented {
-  display: inline-flex;
+  display: flex;
   gap: 0;
   padding: 0.25rem;
   border-radius: 2rem;
@@ -1095,6 +1137,15 @@ nav.btn-row { gap: 0.75rem; align-items: center; }
   text-overflow: ellipsis;
 }
 [data-card] > article:has(#ps-trays[hidden]) { display: none; }
+
+/* A spool chip is a READING, not a control. Beer gives every .chip a hover and an active
+   state because a chip is usually something you press, and these lit up and depressed under
+   the pointer while doing nothing at all, which is a promise the card cannot keep. They take
+   no pointer events and carry the default cursor, so they read as what they are. */
+.trays-grid > .chip {
+  pointer-events: none;
+  cursor: default;
+}
 
 /* The loaded spool, marked rather than merely listed: a ring in the accent, which is the
    same signal the swatch rows use for a chosen colour. */

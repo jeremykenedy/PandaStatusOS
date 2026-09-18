@@ -121,9 +121,6 @@ __MOCKNOTE__
      ══════════════════════════════════════════════════════════════════ -->
 <header class="fixed surface-container" id="ps-top-bar">
   <nav class="ux_top_bar_row">
-    <span class="small-text ux_top_name" id="ps-top-name"></span>
-    <span class="max"></span>
-
     <!-- The product, in the middle. The left of the bar carries whatever
          the owner named THIS unit, which on a bench with two of them is the
          useful thing to see; this says what the software is, which the
@@ -135,11 +132,13 @@ __MOCKNOTE__
          Two marks, one per theme, both always in the DOM: swapping a src
          would refetch, and a data: URL that has already been decoded is
          cheaper to hide than to decode again. -->
-    <span class="ux_top_brand l" id="ps-top-brand">
+    <span class="ux_top_brand" id="ps-top-brand">
       <img class="ux_top_mark ux_mark_light" id="ps-top-mark" alt="" src="__MARKLIGHT__">
       <img class="ux_top_mark ux_mark_dark" id="ps-top-mark-dark" alt="" src="__MARKDARK__">
-      <span data-no-translate data-str="ui_pandastatusos">PandaStatusOS</span>
+      <span class="ux_top_word" data-no-translate data-str="ui_pandastatusos">PandaStatusOS</span>
     </span>
+    <span class="small-text ux_top_name" id="ps-top-name"></span>
+    <span class="max"></span>
 
     <button class="chip fill" id="ps-top-pill">
       <svg class="i small" id="ps-top-dot"><use href="#i-printer-enclosed"/></svg>

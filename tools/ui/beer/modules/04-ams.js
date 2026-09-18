@@ -41,21 +41,42 @@
     return hex.length >= 6 ? '#' + hex.slice(0, 6) : '';
   }
 
-  /* The level as pips, the way a level reads at a glance, with the number beside it so the
-     reading is still exact. Never a percentage: see the note above. */
-  function humidity_node(level) {
+  /* Two different readings, drawn differently on purpose.
+   *
+   * A unit that sends a real relative humidity gets a plain percentage, because that is a
+   * measurement. The newer AMS units do this.
+   *
+   * A unit that sends only the level gets the pips, an APPROXIMATE band, and the level
+   * itself. The band is the level's own fifth of the range and is marked with a wavy equals
+   * so it cannot be read as a measurement: Bambu's documentation says the level comes from
+   * water content and temperature mapped onto undisclosed curve thresholds, and no mapping
+   * back to a percentage is published by anyone. The note under the row says so in words.
+   * That is as close to a percentage as this reading honestly goes. */
+  function humidity_node(level, pct) {
     var wrap = document.createElement('span');
     wrap.className = 'ams-humidity';
     for (var i = 1; i <= PIPS; i++) {
       var pip = document.createElement('i');
-      pip.className = 'ams-pip' + (i <= level ? ' is-on' : '');
+      pip.className = 'ams-pip' + (isNum(level) && i <= level ? ' is-on' : '');
       wrap.appendChild(pip);
     }
     var n = document.createElement('span');
     n.className = 'small-text';
-    n.textContent = ' ' + tr('ams_level', 'level') + ' ' + level;
+    if (isNum(pct)) {
+      n.textContent = ' ' + fmtPct(pct);
+    } else {
+      var lo = (level - 1) * 20, hi = level * 20;
+      n.textContent = ' \u2248 ' + lo + '\u2013' + hi + '% \u00b7 ' + tr('ams_level', 'level') + ' ' + level;
+    }
     wrap.appendChild(n);
     return wrap;
+  }
+
+  /* The pips follow a real percentage too, in the same five bands, so the bar and the number
+     never disagree with each other. */
+  function pips_for(level, pct) {
+    if (isNum(pct)) { var n = Math.ceil(pct / 20); return n < 1 ? 1 : (n > PIPS ? PIPS : n); }
+    return level;
   }
 
   function render_ams() {
@@ -74,9 +95,20 @@
     if (card.hidden) { kv.textContent = ''; row.textContent = ''; return; }
 
     kv.textContent = '';
+    var pct = isNum(s.ams_humidity_pct) ? s.ams_humidity_pct : null;
+    var lvl = isNum(s.ams_humidity) ? s.ams_humidity : null;
+    /* A unit that sends a percentage and no level still fills the bar, from the percentage. */
+    var shown = (pct !== null || lvl !== null) ? pips_for(lvl, pct) : null;
     kv.appendChild(kv_li_icon('humidity', tr('ui_humidity', 'Humidity'), null,
-      isNum(s.ams_humidity) ? humidity_node(s.ams_humidity)
-                            : valueSpan(tr('ui_ams_no_reading', 'The printer is not reporting a humidity reading.'))));
+      shown !== null ? humidity_node(shown, pct)
+                     : valueSpan(tr('ui_ams_no_reading', 'The printer is not reporting a humidity reading.'))));
+    /* The caveat rides with the approximation and goes away when the reading is real. */
+    var note = byId('ps-ams-note');
+    if (note) {
+      var approx = (pct === null && lvl !== null);
+      note.hidden = !approx;
+      if (approx) note.textContent = tr('ui_humidity_is_a_level', '');
+    }
     if (isNum(s.ams_temp)) {
       kv.appendChild(kv_li_icon('temp', tr('ui_temperature', 'Temperature'), null, valueSpan(fmtTemp(s.ams_temp))));
     }

@@ -90,9 +90,13 @@ async function waitApi(path, pred, ms = 3000) {
     const want = doc.stages.map((r) => r.slot);
     t('B1 fifteen rows', await waitFor(page, "document.querySelectorAll('#ps-stg-list > li').length === 15"),
       await page.$$eval('#ps-stg-list > li', (e) => e.length));
-    const labels = await page.$$eval('#ps-stg-list > li > div.max', (els) => els.map((e) => e.textContent));
+    /* A row is its name and then, under it, what that stage IS, the way a Features row is.
+       So the row's first line is checked against the name, not the whole row's text. */
+    const labels = await page.$$eval('#ps-stg-list > li > div.max', (els) => els.map((e) => e.childNodes[0].textContent));
     const wantLabels = await page.evaluate((slots) => slots.map((s) => tr('ui_stage_' + s, s)), want);
     t('B2 each row is the device\'s slot, named in the page\'s own words', JSON.stringify(labels) === JSON.stringify(wantLabels), labels);
+    const subs = await page.$$eval('#ps-stg-list > li > div.max > .small-text', (els) => els.length);
+    t('B2b and every one of them says what the stage is', subs === 15, subs);
     t('B3 every row starts on Inherit', await page.$$eval('#ps-stg-list select', (els) => els.every((s) => s.value === '')));
     t('B4 with no presets the card says a preset is needed first',
       (await text(page, 'ps-stg-note')) === (await page.evaluate(() => tr('ui_stages_need_presets', ''))));

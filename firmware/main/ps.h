@@ -329,6 +329,7 @@ typedef struct {
     int8_t   fan_part, fan_aux, fan_chamber;     /* percent, 0..100 */
     int8_t   filament_in;                        /* the external spool sensor */
     int8_t   ams_humidity;                       /* the AMS's own 1..5 level */
+    int8_t   ams_humidity_pct;                   /* a real relative humidity, when the unit sends one; -1 otherwise */
     int16_t  ams_temp_c;
     /* The first AMS unit's four trays, as the printer reports them. A tray it does not
      * describe is not in the list at all; a field it leaves out of a tray it does describe
