@@ -1,6 +1,6 @@
 # Publishing PandaStatusOS
 
-The repository is on GitHub, private, at `git@github.com:jeremykenedy/PandaStatusOS.git`,
+The repository is on GitHub, public, at `git@github.com:jeremykenedy/PandaStatusOS.git`,
 and pushing to it is routine. The one step
 that cannot be taken back is the flip from private to public. This checklist gates that
 flip. It is run in full on the day, by the maintainer, and read before the setting is
