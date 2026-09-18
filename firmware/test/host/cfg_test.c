@@ -55,6 +55,23 @@ int main(void)
     printf("sizeof(ps_cfg_t) = %zu, mode at %zu, block at %zu\n", sizeof(ps_cfg_t), offsetof(ps_cfg_t, mode), offsetof(ps_cfg_t, block));
     t("layout pinned to the literal in ps.h", sizeof(ps_cfg_t) == PS_CFG_SIZE, (long)sizeof(ps_cfg_t));
 
+    /* The known-features mask against the bits themselves. It went stale once: C9 took bit
+     * 20 while the mask stopped at 19, and a settings file from a device with the fixed
+     * address on was refused whole on import. Every bit named in ps.h, ORed here by hand so
+     * that adding one without adding it here is the failure this row is for. */
+    {
+        uint32_t all = PS_FEAT_STATE_BRIGHTNESS | PS_FEAT_STATE_EFFECTS | PS_FEAT_EFFECT_COLOURS
+                     | PS_FEAT_EFFECT_PARAMS | PS_FEAT_EFFECT_RAMP | PS_FEAT_FX_PROGRESS
+                     | PS_FEAT_FX_PROGRESS_ANIM | PS_FEAT_FX_BARBER | PS_FEAT_FX_HUE_RAMP
+                     | PS_FEAT_FX_TEMP | PS_FEAT_HOT_WARNING | PS_FEAT_ERROR_FLASH
+                     | PS_FEAT_PREVIEW | PS_FEAT_PRESETS | PS_FEAT_STAGE_EFFECTS
+                     | PS_FEAT_CONFIG_IO | PS_FEAT_RESTART | PS_FEAT_AUTO_REBIND
+                     | PS_FEAT_DIAGNOSTICS | PS_FEAT_STATIC_IP;
+        t("every feature bit is inside the known mask", (all & ~PS_FEAT_KNOWN) == 0, (long)(all & ~PS_FEAT_KNOWN));
+        t("and the mask claims no bit that is not one", (PS_FEAT_KNOWN & ~all) == 0, (long)(PS_FEAT_KNOWN & ~all));
+        t("and the bridge is outside it", (PS_FEAT_KNOWN & PS_FEAT_BRIDGE) == 0, 0);
+    }
+
     /* 1. no blob: defaults */
     wipe(); memset(&c, 0xAA, sizeof c);
     t("load with no blob returns 0", ps_cfg_load(&c) == 0, 0);

@@ -49,6 +49,13 @@ void ps_effect_notify(void) { rec("effect"); }
 void ps_printer_bind(void) { rec("printer_bind"); }
 void ps_printer_unbind(void) { rec("printer_unbind"); }
 void ps_printer_scan(void) { rec("printer_scan"); }
+int ps_printer_light_set(const char *node, int on) { char b[64]; snprintf(b, sizeof b, "light:%s:%d", node ? node : "-", on ? 1 : 0); rec(b); return 0; }
+
+/* The two IDF calls ps_state.c makes for itself. Time stands still on the host, and
+ * there is no access point, so the document leaves the signal out: which is the shape
+ * the protocol document gives for a device that has nothing to report. */
+int64_t esp_timer_get_time(void) { return 0; }
+esp_err_t esp_wifi_sta_get_ap_info(wifi_ap_record_t *out) { (void)out; return ESP_FAIL; }
 
 static int pass, fail;
 static void t(const char *name, int ok, const char *got) { if (ok) { pass++; printf("  ok    %s\n", name); } else { fail++; printf("  FAIL  %s   got: %s\n", name, got ? got : ""); } }
@@ -78,7 +85,13 @@ int main(void)
     const char *c1 = cJSON_GetArrayItem(cJSON_GetObjectItemCaseSensitive(e1, "rgb_rgba"), 2)->valuestring;
     t("list2[0] colours are bare RRGGBB", !strcmp(c0, "FF0000"), c0);
     t("list2[1] colours are #RRGGBBAA", !strcmp(c1, "#FF0000FF"), c1);
-    t("list2 entries carry brightness and no speed (the observed push)", cJSON_GetObjectItemCaseSensitive(e1, "brightness") && !cJSON_GetObjectItemCaseSensitive(e1, "speed"), doc);
+    /* Brightness is the factory's. Speed is this clone's own addition, and the reason is
+     * in root_settings(): the observed push carries no speed key, so a page that shows the
+     * value it just wrote had nothing to read it back from and the Speed row stayed a dash
+     * for ever. Nothing in the factory's page reads the key, so adding it costs parity
+     * nothing. If this row ever fails, the question is which of the two that change broke. */
+    t("list2 entries carry brightness, and speed as the clone's own addition",
+      cJSON_GetObjectItemCaseSensitive(e1, "brightness") && cJSON_GetObjectItemCaseSensitive(e1, "speed"), doc);
     cJSON *sta = cJSON_GetObjectItemCaseSensitive(d, "sta");
     t("sta carries ip, hostname, state, auth_err_reason", cJSON_GetObjectItemCaseSensitive(sta, "ip") && cJSON_GetObjectItemCaseSensitive(sta, "hostname") && cJSON_GetObjectItemCaseSensitive(sta, "state") && cJSON_GetObjectItemCaseSensitive(sta, "auth_err_reason"), doc);
     cJSON *pr = cJSON_GetObjectItemCaseSensitive(d, "printer");

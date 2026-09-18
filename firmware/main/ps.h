@@ -63,7 +63,14 @@ extern const char *const ps_gif_slot_names[PS_GIF_SLOTS];
 #define PS_FEAT_AUTO_REBIND       (1u << 18)  /* C7: after the bound printer moves, find it again by serial */
 #define PS_FEAT_DIAGNOSTICS       (1u << 19)  /* C8: why it is not working, blinked on the bar */
 #define PS_FEAT_STATIC_IP         (1u << 20)  /* C9: a fixed address on the house network instead of DHCP */
-#define PS_FEAT_KNOWN             0xFFFFEu    /* every switch bit defined above, bit 0 (the bridge) excluded */
+/* Every switch bit defined above, bit 0 (the bridge) excluded. Derived from the highest
+ * one rather than written out, because it was written out: C9 took bit 20 and the mask
+ * stayed at bit 19, so ps_config_apply() refused any settings file exported from a device
+ * with the fixed address switched on. The import is all-or-nothing, so one bit outside the
+ * mask threw away the whole document. Move PS_FEAT_LAST when the next bit is taken and the
+ * mask follows; cfg_test.c fails if it does not. */
+#define PS_FEAT_LAST              PS_FEAT_STATIC_IP
+#define PS_FEAT_KNOWN             ((PS_FEAT_LAST | (PS_FEAT_LAST - 1u)) & ~1u)
 
 /* which of the printer's temperatures a feature follows (INFERENCE: the report's
  * nozzle_temper, bed_temper and chamber_temper, the fields the vent reads) */
