@@ -28,10 +28,20 @@ var g_logs_card_shown = false;
    document is pinned to the factory's six roots, so the log is a route instead
    (ps_api.c ps_api_logs_get) and asking over the socket would only earn an
    "unknown root" in the very log being asked for. */
+/* The IDF colours its own log lines, and the escape it does it with is invisible in a
+   browser while the rest of the sequence is not: every line arrived reading
+   "[0;32mI (4524713) ps_ws: ... [0m" with the marker showing and the colour nowhere.
+   A terminal is not what this is, so the sequences come out and the line reads as it was
+   written. Nothing else is touched: the text is the device's. */
+function strip_ansi(s) {
+  /* eslint-disable no-control-regex */
+  return s.replace(/\u001b\[[0-9;]*[A-Za-z]/g, '');
+}
+
 function logs_fill(text) {
   var view = document.getElementById('ps-log-view');
   if (!view) return;
-  var t = (typeof text === 'string') ? text.replace(/\s+$/, '') : '';
+  var t = (typeof text === 'string') ? strip_ansi(text).replace(/\s+$/, '') : '';
   view.textContent = t || tr('ui_no_logs', 'Nothing logged yet.');
   /* Newest at the bottom, so the interesting end is the end you land on. */
   view.scrollTop = view.scrollHeight;
