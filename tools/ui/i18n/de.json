@@ -432,6 +432,7 @@
   "ui_presets": "Voreinstellungen",
   "ui_presets_full": "Alle Plätze sind belegt. Löschen Sie einen, um einen weiteren zu speichern.",
   "ui_presets_help": "Eine benannte Kopie eines Effekts. Speichern Sie den bearbeiteten Zustand und wenden Sie ihn auf einen anderen Zustand oder eine Druckphase an.",
+  "ui_preview_state_15s": "Zustand 15 Sekunden lang zeigen",
   "ui_primary_colour": "Primary colour",
   "ui_print_finished": "Druck fertig",
   "ui_printer": "Drucker",

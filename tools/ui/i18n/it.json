@@ -432,6 +432,7 @@
   "ui_presets": "Preimpostazioni",
   "ui_presets_full": "Tutti gli slot sono occupati. Eliminane uno per salvarne un altro.",
   "ui_presets_help": "Una copia con nome di un effetto. Salva lo stato che stai modificando, poi applicalo a un altro stato o a una fase di stampa.",
+  "ui_preview_state_15s": "Mostra questo stato per 15 secondi",
   "ui_primary_colour": "Primary colour",
   "ui_print_finished": "Stampa completata",
   "ui_printer": "Stampante",

@@ -85,6 +85,57 @@ async function lastTo(path, ms = 3000) {
     t('E2 Stop goes away with it', await waitFor(page, "document.getElementById('ps-pv-stop').hidden"));
     t('E3 and the countdown line is cleared', (await page.$eval('#ps-pv-note', (e) => e.textContent)) === '');
 
+    // ---- G: the per-state buttons on the Per state card ----
+    // One button per bar state, no sliders: fifteen seconds of THAT state.
+    t('G1 three buttons, one per state, and all of them up while the switch is on',
+      await page.$$eval('.pv-one', (b) => b.length) === 3 &&
+      await page.$$eval('.pv-slot', (b) => b.every((s) => !s.hidden)));
+    t('G2 each one names the state it belongs to, for a reader who cannot see the row',
+      await page.$eval('#ps-pv-state-2', (b) => b.getAttribute('aria-labelledby')) === 'pv-lbl-2 lbl-col-2');
+
+    await tap(page, '#ps-pv-state-2');                 // error
+    const g = await lastTo('/api/preview');
+    t('G3 the error button asks for the error state', !!g && g.state === 2, g);
+    t('G4 for fifteen seconds, which is what the button says', !!g && g.seconds === 15, g);
+    t('G5 with a percentage, so a progress effect has something to draw',
+      !!g && g.percent === 60, g);
+    t('G6 no stage is pinned: the row previews a state, not a step of a print',
+      !!g && g.stage === undefined, g);
+
+    const p3 = await preview();
+    t('G7 the device is pinned to it', p3.active === true && p3.state === 2, p3);
+    t('G8 that button is the one marked live',
+      await waitFor(page, "document.getElementById('ps-pv-state-2').classList.contains('fill')"));
+    t('G9 and the other two are not',
+      await page.$eval('#ps-pv-state-0', (b) => !b.classList.contains('fill')) &&
+      await page.$eval('#ps-pv-state-1', (b) => !b.classList.contains('fill')));
+
+    // a second state takes the pin from the first
+    await tap(page, '#ps-pv-state-0');
+    await sleep(400);
+    const p4 = await preview();
+    t('G10 clicking another state moves the pin', p4.active === true && p4.state === 0, p4);
+    t('G11 the mark moves with it',
+      await waitFor(page, "document.getElementById('ps-pv-state-0').classList.contains('fill')") &&
+      await page.$eval('#ps-pv-state-2', (b) => !b.classList.contains('fill')));
+
+    // Stop on the card below ends what a row started
+    await tap(page, '#ps-pv-stop');
+    await sleep(400);
+    t('G12 Stop ends a pin a row button started', (await preview()).active === false);
+    t('G13 and no row is left marked live',
+      await waitFor(page, "!document.getElementById('ps-pv-state-0').classList.contains('fill')"));
+
+    // the switch off takes the rows with it, because the route goes with it
+    await post('/api/features', { features: { preview: false } });
+    await page.reload();
+    await page.waitForFunction(() => !document.body.classList.contains('is-waiting'), null, { timeout: 8000 });
+    await page.evaluate(() => { const d = document.getElementById('ps-dialog'); if (d && d.open) d.close(); });
+    await page.evaluate(() => show_card('theme'));
+    t('G14 with the switch off every row button is away',
+      await waitFor(page, "Array.from(document.querySelectorAll('.pv-slot')).every(s => s.hidden)"));
+    t('G15 and so is the card', await page.$eval('#ps-pv-card', (e) => e.hidden));
+
     t('F1 no page errors, no console errors', errors.length === 0, errors);
     await ctx.close();
   } catch (e) {

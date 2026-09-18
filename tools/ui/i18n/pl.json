@@ -432,6 +432,7 @@
   "ui_presets": "Ustawienia własne",
   "ui_presets_full": "Wszystkie miejsca są zajęte. Usuń jedno, aby zapisać kolejne.",
   "ui_presets_help": "Nazwana kopia efektu. Zapisz edytowany stan, a potem zastosuj go do innego stanu lub do etapu druku.",
+  "ui_preview_state_15s": "Pokaż ten stan przez 15 sekund",
   "ui_primary_colour": "Primary colour",
   "ui_print_finished": "Druk zakończony",
   "ui_printer": "Drukarka",

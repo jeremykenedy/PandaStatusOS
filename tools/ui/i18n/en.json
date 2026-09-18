@@ -432,6 +432,7 @@
   "ui_presets": "Presets",
   "ui_presets_full": "Every slot is used. Delete one to save another.",
   "ui_presets_help": "A named copy of an effect. Save the state you are editing, then apply it to another state or to a print stage.",
+  "ui_preview_state_15s": "Preview state for 15 seconds",
   "ui_primary_colour": "Primary colour",
   "ui_print_finished": "Print finished",
   "ui_printer": "Printer",

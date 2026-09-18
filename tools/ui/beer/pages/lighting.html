@@ -58,17 +58,50 @@
       <div class="swatch-slot">
         <button aria-labelledby="lbl-col-0" class="swatch responsive small-round is-unset" id="ps-col-0"></button>
       </div>
+      <!-- A13 on this row: hold the bar at THIS state for fifteen seconds. Away
+           unless Live preview is switched on, because the route does not exist
+           until it is. The state's own name is read out after the button's, so
+           three identical labels are told apart. -->
+      <div class="pv-slot" id="ps-pv-slot-0" hidden>
+        <button class="border small-round pv-one" id="ps-pv-state-0"
+                aria-labelledby="pv-lbl-0 lbl-col-0">
+          <svg class="i"><use href="#i-eye"/></svg>
+          <span id="pv-lbl-0" data-str="ui_preview_state_15s">Preview state for 15 seconds</span>
+        </button>
+      </div>
     </nav>
     <nav class="swatch-row">
       <span class="max small-text" id="lbl-col-1" data-str="ui_printer_state_2">Printing</span>
       <div class="swatch-slot">
         <button aria-labelledby="lbl-col-1" class="swatch responsive small-round is-unset" id="ps-col-1"></button>
       </div>
+      <!-- A13 on this row: hold the bar at THIS state for fifteen seconds. Away
+           unless Live preview is switched on, because the route does not exist
+           until it is. The state's own name is read out after the button's, so
+           three identical labels are told apart. -->
+      <div class="pv-slot" id="ps-pv-slot-1" hidden>
+        <button class="border small-round pv-one" id="ps-pv-state-1"
+                aria-labelledby="pv-lbl-1 lbl-col-1">
+          <svg class="i"><use href="#i-eye"/></svg>
+          <span id="pv-lbl-1" data-str="ui_preview_state_15s">Preview state for 15 seconds</span>
+        </button>
+      </div>
     </nav>
     <nav class="swatch-row">
       <span class="max small-text" id="lbl-col-2" data-str="ui_printer_state_5">Error</span>
       <div class="swatch-slot">
         <button aria-labelledby="lbl-col-2" class="swatch responsive small-round is-unset" id="ps-col-2"></button>
+      </div>
+      <!-- A13 on this row: hold the bar at THIS state for fifteen seconds. Away
+           unless Live preview is switched on, because the route does not exist
+           until it is. The state's own name is read out after the button's, so
+           three identical labels are told apart. -->
+      <div class="pv-slot" id="ps-pv-slot-2" hidden>
+        <button class="border small-round pv-one" id="ps-pv-state-2"
+                aria-labelledby="pv-lbl-2 lbl-col-2">
+          <svg class="i"><use href="#i-eye"/></svg>
+          <span id="pv-lbl-2" data-str="ui_preview_state_15s">Preview state for 15 seconds</span>
+        </button>
       </div>
     </nav>
   </article>

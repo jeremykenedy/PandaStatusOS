@@ -432,6 +432,7 @@
   "ui_presets": "プリセット",
   "ui_presets_full": "すべての枠が使用中です。別のものを保存するには一つ削除してください。",
   "ui_presets_help": "エフェクトの名前付きコピーです。編集中の状態を保存し、別の状態や印刷段階に適用できます。",
+  "ui_preview_state_15s": "この状態を15秒表示",
   "ui_primary_colour": "Primary colour",
   "ui_print_finished": "印刷完了",
   "ui_printer": "プリンター",

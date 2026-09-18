@@ -432,6 +432,7 @@
   "ui_presets": "Ajustes guardados",
   "ui_presets_full": "Todas las ranuras están ocupadas. Elimina una para guardar otra.",
   "ui_presets_help": "Una copia con nombre de un efecto. Guarda el estado que editas y aplícalo a otro estado o a una etapa de impresión.",
+  "ui_preview_state_15s": "Ver este estado 15 segundos",
   "ui_primary_colour": "Primary colour",
   "ui_print_finished": "Impresión terminada",
   "ui_printer": "Impresora",

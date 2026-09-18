@@ -432,6 +432,7 @@
   "ui_presets": "Préréglages",
   "ui_presets_full": "Tous les emplacements sont pris. Supprimez-en un pour en enregistrer un autre.",
   "ui_presets_help": "Une copie nommée d un effet. Enregistrez l état que vous modifiez, puis appliquez-le à un autre état ou à une étape d impression.",
+  "ui_preview_state_15s": "Aperçu de cet état pendant 15 secondes",
   "ui_primary_colour": "Primary colour",
   "ui_print_finished": "Impression terminée",
   "ui_printer": "Imprimante",

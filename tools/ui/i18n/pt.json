@@ -432,6 +432,7 @@
   "ui_presets": "Predefinições",
   "ui_presets_full": "Todas as posições estão ocupadas. Elimine uma para guardar outra.",
   "ui_presets_help": "Uma cópia com nome de um efeito. Guarde o estado que está a editar e aplique-o a outro estado ou a uma fase de impressão.",
+  "ui_preview_state_15s": "Ver este estado durante 15 segundos",
   "ui_primary_colour": "Primary colour",
   "ui_print_finished": "Impressão concluída",
   "ui_printer": "Impressora",

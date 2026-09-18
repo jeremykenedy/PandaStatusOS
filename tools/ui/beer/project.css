@@ -1477,3 +1477,28 @@ nav.bottom a.active > svg.i {
 @media only screen and (max-width: 360px) {
   .ams-pip { --_size: 1rem; }
 }
+
+
+/* ── 45  Preview this state, on the unit ───────────────────────────
+   Every row of the Per state card carries a button that holds the bar at that
+   state for fifteen seconds. The row is a grid of equal 4.25rem columns and no
+   single one of them is wide enough for the button's own sentence, so on a
+   phone the button takes a line of its own under the swatch, full width and
+   easy to hit, and from 600px up it takes the tail of the row and sits at the
+   right of it, where the row is mostly empty anyway.
+
+   While the bar is actually pinned to a state its button wears Beer's `fill`,
+   toggled by the renderer the way the mode buttons do it (section 16), so the
+   look of "this one is live" is the framework's and not a second opinion.
+
+   The slot is a wrapper and not a bare button because `.swatch-row > button`
+   is the colour picker's preset swatch: a button dropped straight into the row
+   would come out flat, padless and transparent.
+   ─────────────────────────────────────────────────────────────── */
+.swatch-row > .pv-slot { grid-column: 1 / -1; }
+.pv-slot > .pv-one     { inline-size: 100%; }
+
+@media only screen and (min-width: 600px) {
+  .swatch-row > .pv-slot { grid-column: 3 / -1; justify-self: end; }
+  .pv-slot > .pv-one     { inline-size: auto; }
+}

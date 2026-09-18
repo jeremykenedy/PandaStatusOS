@@ -16,6 +16,14 @@
    its effect, then hold the bar at that state and look at it. The
    countdown comes from the device's own `remaining`, not from a timer
    started here, so a pin that was cancelled elsewhere is noticed.
+
+   The Per state card higher up the page carries the short version of the
+   same thing: one button per state that pins ITS state for fifteen seconds
+   with no sliders to set first. Same route, same pin, same clock, so the
+   button of whichever state is live is the one wearing the fill, whether
+   the pin was started from a row, from the card below, or from another
+   browser. Both are behind the one switch, because with it off the device
+   answers the route with a redirect and there is nothing to drive.
    ================================================================= */
 
 (function () {
@@ -27,6 +35,14 @@
                'nozzle_cleaning', 'calibrating_flow', 'xy_mesh_mode_sweep',
                'filament_check_location', 'filament_cut', 'filament_pull_back_cur',
                'filament_push_new', 'filament_purge_old', 'printing_ok', 'printing'];
+
+  /* The per-state buttons on the Per state card above. One gesture, no sliders:
+     hold the bar at THIS state for fifteen seconds and then let it go. The
+     percentage rides along because the progress effects draw one and a pin with
+     none leaves an empty bar, and 60 is what the Try it card offers by default.
+     Fifteen seconds is the button's own promise, so it is not a setting. */
+  var ROW_SECONDS = 15;
+  var ROW_PERCENT = 60;
 
   var g_doc = null;        /* the last /api/preview answer */
   var g_timer = null;
@@ -77,10 +93,26 @@
     sel.dataset.built = '1';
   }
 
+  /* The three row buttons are drawn first and on their own terms: the Try it card
+     below can be hidden, or missing entirely, and the rows still have to be right. */
+  function render_rows() {
+    var on = !!feats().preview;
+    var live = !!(g_doc && g_doc.active);
+    var pinned = live && isNum(g_doc.state) ? g_doc.state : -1;
+    for (var i = 0; i < 3; i++) {
+      var slot = byId('ps-pv-slot-' + i);
+      if (slot) slot.hidden = !on;
+      var btn = byId('ps-pv-state-' + i);
+      if (btn) btn.classList.toggle('fill', on && i === pinned);
+    }
+    return on;
+  }
+
   function render_preview() {
+    var on = render_rows();
     var card = byId('ps-pv-card');
-    if (!card) return;
-    card.hidden = !feats().preview;
+    if (!card) { if (!on) stop_tick(); return; }
+    card.hidden = !on;
     if (card.hidden) { stop_tick(); return; }
     fill_stages();
 
@@ -121,6 +153,13 @@
     post(body);
   }
 
+  /* One row, fifteen seconds, this state. Clicking the button of a state that is
+     already pinned starts its fifteen seconds over, which is what a second look
+     means; Stop on the Try it card, or the clock, ends it. */
+  function pin_row(i) {
+    post({ state: i, percent: ROW_PERCENT, seconds: ROW_SECONDS });
+  }
+
   function wire() {
     var pc = byId('ps-pv-percent');
     if (pc) {
@@ -134,6 +173,13 @@
       se.addEventListener('input', paintS);
       paintS();
     }
+    for (var i = 0; i < 3; i++) {
+      (function (n) {
+        var b = byId('ps-pv-state-' + n);
+        if (b) b.addEventListener('click', function () { pin_row(n); });
+      })(i);
+    }
+
     var go = byId('ps-pv-go');
     if (go) go.addEventListener('click', show_it);
     var stop = byId('ps-pv-stop');

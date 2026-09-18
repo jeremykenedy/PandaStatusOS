@@ -432,6 +432,7 @@
   "ui_presets": "Mga preset",
   "ui_presets_full": "Puno na ang lahat ng slot. Magbura ng isa para makapag-save pa.",
   "ui_presets_help": "Isang pinangalanang kopya ng effect. I-save ang estadong ine-edit mo, tapos ilapat sa ibang estado o sa yugto ng pag-print.",
+  "ui_preview_state_15s": "Ipakita ang estadong ito nang 15 segundo",
   "ui_primary_colour": "Primary colour",
   "ui_print_finished": "Tapos na ang print",
   "ui_printer": "Printer",

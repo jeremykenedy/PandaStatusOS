@@ -432,6 +432,7 @@
   "ui_presets": "预设",
   "ui_presets_full": "所有槽位已用完。删除一个才能再保存。",
   "ui_presets_help": "效果的具名副本。保存你正在编辑的状态，然后应用到其他状态或打印阶段。",
+  "ui_preview_state_15s": "预览此状态 15 秒",
   "ui_primary_colour": "Primary colour",
   "ui_print_finished": "打印完成",
   "ui_printer": "打印机",
