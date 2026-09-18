@@ -220,3 +220,34 @@ uses does not.
 The two copy switches agreed above (colours vent to status, effect vent to status) live
 inside the vent card, not on the Lighting page: they are part of what being bound to a
 vent means, and a person who has not bound one should not be offered them.
+
+## The vent on the dashboard
+
+Jeremy, 17 Sep 2026: once a vent is bound there is a vent card on the dashboard, beside
+the printer's, showing what the vent is doing. Same shape as every other card on that
+page: a title, a list of rows, values that come from the vent's own reports and nothing
+invented. Not drawn at all while no vent is bound, the way the AMS card is not drawn when
+the printer describes no AMS.
+
+## A page for the vent's own settings
+
+Jeremy, 17 Sep 2026: control, as opposed to status, gets a page of its own rather than a
+card. Vent behaviour is changed there.
+
+The complication is that a vent on the network may be running one of three firmwares, and
+they do not share a surface:
+
+| What it is running | What this page has to do |
+|---|---|
+| the factory's own | speak what the factory unit serves, and offer only what that surface actually exposes |
+| PandaVentOS | speak its surface, which is this family's own and is documented in that repository |
+| DragonVent | speak its surface; the Dragon Center repository on GitHub is where it is written down |
+
+So the page is one destination with three faces, chosen by what the bound vent says it is,
+and a vent that will not say gets the smallest honest face rather than a guess. Which
+firmware a vent is running has to come out of discovery or pairing, not out of a setting a
+person is asked to fill in.
+
+Unwritten until each surface has been read the way this project reads a surface: from a
+running unit, or from a repository that is ours to read. Nothing here is a claim about
+what any of the three offers.
