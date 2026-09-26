@@ -1,7 +1,7 @@
 # Screenshots
 
-Taken from a running device over Wi-Fi on 2026-09-11, not from the mock. The Printer page
-is a real scan finding two real printers.
+Taken from a running device over Wi-Fi on 2026-09-25, not from the mock: PandaStatusOS
+V2.0.0, build 0742f8326fc5fb50, bound to a printer that was 99% through a job.
 
 **Every identifier is replaced before the shutter**, by a sanitiser that runs in the page
 just before the capture: the maintainer's own forbidden-strings list is swept first, then
@@ -12,11 +12,16 @@ published in the README and is the same on every device. Nothing else is altered
 the state and the wording are what the device served.
 
 The capture script is not in this repository. It belongs to the working area, like the
-harnesses, because it drives a browser and because it reads the forbidden-strings list. To
-retake these, run it against a device and copy the results here, then check every image by
-eye before committing: a sanitiser can only replace what it has been told about, and the
-first run of it published a network name because the name was in a text node and matched no
-pattern.
+harnesses, because it drives a browser and because it reads the forbidden-strings list. It
+freezes the page first, so a push from the device cannot put a real value back between the
+sweep and the shutter, and after sweeping it checks the whole document against the list
+again and writes no file at all if one of them survived.
+
+Check every image by eye before committing anyway. A sanitiser can only replace what it has
+been told about, and it can also replace it with the wrong thing: the run before this one
+labelled the bound printer `your-network`, because the printer's name was on the list and
+the generic placeholder was a network's. The page said "Printer: your-network" and passed
+every check.
 
 The older set was taken by the page harnesses against the mock. `tools/ui/harness/sweep.sh`
 followed by `tools/ui/harness/readme-shots.sh` still produces that set, which is the right

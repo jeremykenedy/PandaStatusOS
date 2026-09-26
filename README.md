@@ -224,8 +224,12 @@ Printer page below is a real scan finding two real printers on a real network.
 
 One thing is altered: every identifier is replaced before the shutter. Network names become
 `your-network`, addresses become `192.0.2.x`, which is the range reserved for documentation,
-and serials become `EXAMPLESERIAL01`. Nothing else is touched, and the page's own layout,
-state and wording are exactly what the device served.
+serials become `EXAMPLESERIAL01` and the bound printer is called `Bambu P1S`. Nothing else
+is touched, and the page's own layout, state and wording are exactly what the device served.
+
+The replacement is not done by hand. A script freezes the page, rewrites every text node,
+control value and read-out attribute, then checks the whole document against the list of
+real values again and writes no file at all if one of them survived.
 
 | Dashboard, light | Dashboard, dark |
 | --- | --- |
@@ -235,17 +239,17 @@ state and wording are exactly what the device served.
 | --- | --- |
 | <img src="docs/screenshots/lighting-light.png" alt="Lighting page" width="420"> | <img src="docs/screenshots/printer-light.png" alt="Printer page" width="420"> |
 
-| Network, dark | System |
+| Wi-Fi, dark | Settings |
 | --- | --- |
-| <img src="docs/screenshots/network-dark.png" alt="Network page, dark theme" width="420"> | <img src="docs/screenshots/system-light.png" alt="System page" width="420"> |
+| <img src="docs/screenshots/wifi-dark.png" alt="Wi-Fi page, dark theme" width="420"> | <img src="docs/screenshots/settings-light.png" alt="Settings page" width="420"> |
 
-| Images, dark | Logs, dark |
+| Hotspot, dark | Logs, dark |
 | --- | --- |
-| <img src="docs/screenshots/images-dark.png" alt="Images page, dark theme" width="420"> | <img src="docs/screenshots/logs-dark.png" alt="Logs page, dark theme" width="420"> |
+| <img src="docs/screenshots/hotspot-dark.png" alt="Hotspot page, dark theme" width="420"> | <img src="docs/screenshots/logs-dark.png" alt="Logs page, dark theme" width="420"> |
 
-| Lighting on a phone | Setup on a phone |
-| --- | --- |
-| <img src="docs/screenshots/lighting-dark-phone.png" alt="Lighting page on a phone" width="200"> | <img src="docs/screenshots/setup-light-phone.png" alt="Setup page on a phone" width="200"> |
+| Dashboard on a phone | Lighting on a phone | Setup on a phone |
+| --- | --- | --- |
+| <img src="docs/screenshots/dashboard-light-phone.png" alt="Dashboard on a phone" width="200"> | <img src="docs/screenshots/lighting-dark-phone.png" alt="Lighting page on a phone" width="200"> | <img src="docs/screenshots/setup-light-phone.png" alt="Setup page on a phone" width="200"> |
 
 ## What It Does Not Do
 
