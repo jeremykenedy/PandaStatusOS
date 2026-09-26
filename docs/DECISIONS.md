@@ -1456,4 +1456,44 @@ free bit and the resolve reads it there instead.
 
 ---
 
+## D-052 The print speed and the fans stay behind Developer Mode; this device signs nothing it does not own
+
+**Date** 2026-09-26 · **Reversal** cheap in code, not in principle
+
+**Asked, after the speed buttons did nothing on the owner's printer while the light worked.**
+The device now logs the printer's answers, and the printer's own words were `print_speed:
+failed, mqtt message verify failed`, twice, seconds apart from a `ledctrl` it took.
+
+**What was established.** Bambu's authorization control (announced January 2025 for the X1
+series, then the P1, A1, H2 and the P2 series from launch) makes the printer verify a
+signature on every command that moves, heats, fans, prints or touches the AMS, and Bambu says
+it applies in LAN mode and cloud mode alike. Status pushes and the LED are exempt, which is
+exactly the split this unit shows. The signature comes from a certificate and private key
+embedded in Bambu's own applications (Studio's network plugin, Handy, Bambu Connect). The one
+switch that turns verification off is Developer Mode, and on every family it is offered only
+once LAN Only Mode is on, which takes the printer off Bambu Cloud. The Home Assistant
+integration's documentation says plainly that cloud mode does not restore write functions and
+that Developer Mode is the only thing that does.
+
+**Ways that do not exist.** Publishing through Bambu's cloud broker with the owner's own account
+token: the cloud relays, the printer verifies, the answer is the same refusal. A cloud REST call
+for speed: none is documented. G-code in the file: set at slicing, not at run time.
+
+**The way that exists and is refused.** The certificate and key extracted from Bambu Connect
+were published in January 2025 and several projects sign with them so that a third-party tool
+passes as Bambu's own. This device will not. It is another party's private key, Bambu has said
+such use is unauthorized, a revocation list exists to end it at any time, and a public MIT
+repository is no place for it. The legitimate route is Bambu's developer partnership
+(devpartner@bambulab.com), which grants an application its own certificate; that is a request
+the owner can make, not a thing this firmware can do for him.
+
+**So.** The fan sliders and the speed buttons stay, they are sent, and the card says what the
+printer requires. The Logs page now carries the printer's reason for a refusal, so nobody has
+to guess again.
+
+**What would change it.** Bambu offering Developer Mode alongside the cloud, or a certificate
+of this project's own.
+
+---
+
 *Entries continue below as the run proceeds.*
