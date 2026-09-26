@@ -12,6 +12,7 @@ exists so the rule has a home before any feature does. Its value is zero.
 
 | Bit | Flag | What it does | Default | Depends on |
 |---|---|---|---|---|
+| 0 | `bridge` | the vent bridge ([PANDAVENT-BRIDGE.md](PANDAVENT-BRIDGE.md)): the device advertises itself as `_pandabridge._tcp`, finds a vent running this family's firmware by its identity, pairs with it once over a six-digit code, holds the socket to it and reconnects on its own, shows what the vent reports on the dashboard, and copies the vent's three colours or one bar state's effect into this device when asked. The binding and the token live in a blob of their own ([CONFIG.md](CONFIG.md)); the token is never shown or exported | off | nothing; with the switch off no record is advertised, no socket is opened, and `/api/bridge` and `/bridge/id` answer 302 like any unknown path |
 | 1 | `state_brightness` | one brightness per bar state (idle, printing, error) in each mode, instead of the factory's one per mode (A1) | off | nothing beyond the bar state the printer already drives |
 | 2 | `state_effects` | in H2D, each bar state runs an effect from the engine in the state's colour instead of a solid fill (A2); seventeen effects that need no live input | off | the bar state; the LED count is PROVISIONAL, so the shapes are right and the scale is not yet |
 | 3 | `effect_colours` | the effect's own four colours: lit and unlit, each for printing and for otherwise, instead of the state colour (A3) | off | A2; "printing" is a job running, preparing or paused, INFERENCE until the capture |
@@ -164,6 +165,5 @@ default is not a revert path. Both are invisible to the page and to the wire (D-
 
 ## Reserved
 
-| Bit | Reserved for |
-|---|---|
-| 0 | the Panda Vent bridge, unbound by default ([PANDAVENT-BRIDGE.md](PANDAVENT-BRIDGE.md)) |
+Nothing at present. Bit 0 was reserved for the vent bridge from the first day and is taken
+by it now (2026-09-26); the next feature takes bit 22 and moves `PS_FEAT_LAST` with it.

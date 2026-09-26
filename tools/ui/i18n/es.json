@@ -139,6 +139,8 @@
   "ui_feat_auto_rebind_sub": "Tras tres fallos seguidos el dispositivo busca y se vincula de nuevo si el número de serie aparece en otra dirección.",
   "ui_feat_bar_flip": "Barra montada al revés",
   "ui_feat_bar_flip_sub": "Dibuja la barra de extremo a extremo, para que una unidad montada al revés se lea bien. La dirección propia de cada efecto sigue aplicándose encima.",
+  "ui_feat_bridge": "Puente al ventilador",
+  "ui_feat_bridge_sub": "Vincula un ventilador con nuestro firmware, emparéjalo una vez, ve en el panel lo que hace y copia sus colores o un efecto a este dispositivo.",
   "ui_feat_config_io": "Los ajustes en un solo archivo",
   "ui_feat_config_io_sub": "Exporta e importa todo lo guardado salvo las tres contraseñas.",
   "ui_feat_diagnostics": "Parpadear el fallo",

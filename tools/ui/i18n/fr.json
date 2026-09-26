@@ -139,6 +139,8 @@
   "ui_feat_auto_rebind_sub": "Après trois échecs de suite, l'appareil scanne et se lie à nouveau si le numéro de série réapparaît à une autre adresse.",
   "ui_feat_bar_flip": "Barre montée à l'envers",
   "ui_feat_bar_flip_sub": "Dessine la barre d'un bout à l'autre, pour qu'un appareil monté à l'envers se lise correctement. La direction propre de chaque effet s'applique par-dessus.",
+  "ui_feat_bridge": "Passerelle vers l'extracteur",
+  "ui_feat_bridge_sub": "Associer un extracteur équipé de notre firmware, l'appairer une fois, voir ce qu'il fait sur le tableau de bord, et copier ses couleurs ou un effet dans cet appareil.",
   "ui_feat_config_io": "Les réglages en un seul fichier",
   "ui_feat_config_io_sub": "Exporte et importe tout ce qui est enregistré, sauf les trois mots de passe.",
   "ui_feat_diagnostics": "Clignoter la panne",

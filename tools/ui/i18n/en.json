@@ -139,6 +139,8 @@
   "ui_feat_auto_rebind_sub": "After three failures the device scans and rebinds if the serial turns up at a new address.",
   "ui_feat_bar_flip": "Bar mounted the other way round",
   "ui_feat_bar_flip_sub": "Draws the bar end for end, so a unit mounted upside down reads the right way. Each effect’s own direction still applies over it.",
+  "ui_feat_bridge": "Vent bridge",
+  "ui_feat_bridge_sub": "Bind a vent running our firmware, pair with it once, see what it is doing on the dashboard, and copy its colours or an effect into this device.",
   "ui_feat_config_io": "Settings as one file",
   "ui_feat_config_io_sub": "Export and import everything stored except the three passwords.",
   "ui_feat_diagnostics": "Blink the fault",

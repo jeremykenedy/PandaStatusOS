@@ -139,6 +139,8 @@
   "ui_feat_auto_rebind_sub": "連續三次失敗之後裝置會掃描，如果喺新地址搵到同一個序號就重新綁定。",
   "ui_feat_bar_flip": "燈條反向安裝",
   "ui_feat_bar_flip_sub": "將燈條首尾調轉嚟畫，倒裝嘅機都讀得正常。每個效果自己嘅方向仍然在此之上生效。",
+  "ui_feat_bridge": "風道橋接",
+  "ui_feat_bridge_sub": "綁定行我哋韌體嘅風道，配對一次，喺儀表板睇到佢做緊乜，仲可以將佢嘅顏色或者效果複製到呢部機。",
   "ui_feat_config_io": "設定匯出成一個檔案",
   "ui_feat_config_io_sub": "匯出同匯入除咗三個密碼以外嘅所有已儲存設定。",
   "ui_feat_diagnostics": "用閃燈報故障",

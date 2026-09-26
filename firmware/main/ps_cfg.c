@@ -361,6 +361,58 @@ int ps_netcfg_save(const ps_netcfg_t *s)
     return 0;
 }
 
+/* ---- Bit 0: the vent binding. Same shape again. The clamp keeps the blob honest about
+ * itself: a token is only ever there while `paired` says so, and a binding with nowhere to
+ * connect to is no binding, so the page never shows a bound vent that cannot be reached and
+ * the task never dials a name that was never given. ---- */
+_Static_assert(sizeof(ps_bridge_cfg_t) == PS_BRIDGE_SIZE, "the bridge blob layout moved");
+void ps_bridge_cfg_clamp(ps_bridge_cfg_t *s)
+{
+    s->magic = PS_BRIDGE_MAGIC;
+    s->id[sizeof s->id - 1] = 0; s->name[sizeof s->name - 1] = 0;
+    s->host[sizeof s->host - 1] = 0; s->token[sizeof s->token - 1] = 0;
+    s->bound = s->bound ? 1 : 0;
+    s->paired = s->paired ? 1 : 0;
+    /* Identities and tokens are lowercase hex of a fixed length or they are nothing. */
+    for (size_t i = 0; s->id[i]; i++) if (!((s->id[i] >= '0' && s->id[i] <= '9') || (s->id[i] >= 'a' && s->id[i] <= 'f'))) { s->id[0] = 0; break; }
+    if (s->id[0] && strlen(s->id) != 16) s->id[0] = 0;
+    if (s->paired && strlen(s->token) != 64) s->paired = 0;
+    if (!s->paired) memset(s->token, 0, sizeof s->token);
+    bool have_ip = s->ip[0] || s->ip[1] || s->ip[2] || s->ip[3];
+    if (!s->host[0] && !s->id[0] && !have_ip) s->bound = 0;
+    if (!s->bound) {
+        memset(s->id, 0, sizeof s->id); memset(s->name, 0, sizeof s->name); memset(s->host, 0, sizeof s->host);
+        memset(s->token, 0, sizeof s->token); memset(s->ip, 0, sizeof s->ip); s->paired = 0;
+    }
+}
+
+int ps_bridge_cfg_load(ps_bridge_cfg_t *s)
+{
+    memset(s, 0, sizeof *s); s->magic = PS_BRIDGE_MAGIC;
+    nvs_handle_t h;
+    if (nvs_open(PS_CFG_NVS_NS, NVS_READONLY, &h) != ESP_OK) return 0;
+    ps_bridge_cfg_t stored; size_t size = sizeof stored;
+    esp_err_t err = nvs_get_blob(h, PS_BRIDGE_NVS_KEY, &stored, &size);
+    nvs_close(h);
+    if (err != ESP_OK) return 0;
+    if (size != sizeof stored || stored.magic != PS_BRIDGE_MAGIC) { ESP_LOGW(TAG, "bridge blob not recognised, unbound"); return 0; }
+    memcpy(s, &stored, sizeof *s);
+    ps_bridge_cfg_clamp(s);
+    return 0;
+}
+
+int ps_bridge_cfg_save(const ps_bridge_cfg_t *s)
+{
+    nvs_handle_t h;
+    esp_err_t err = nvs_open(PS_CFG_NVS_NS, NVS_READWRITE, &h);
+    if (err != ESP_OK) { ESP_LOGE(TAG, "nvs_open: %d", (int)err); return -1; }
+    err = nvs_set_blob(h, PS_BRIDGE_NVS_KEY, s, sizeof *s);
+    if (err == ESP_OK) err = nvs_commit(h);
+    nvs_close(h);
+    if (err != ESP_OK) { ESP_LOGE(TAG, "bridge save: %d", (int)err); return -1; }
+    return 0;
+}
+
 int ps_presets_load(ps_presets_t *s)
 {
     memset(s, 0, sizeof *s); s->magic = PS_PRESETS_MAGIC;

@@ -139,6 +139,8 @@
   "ui_feat_auto_rebind_sub": "Dopo tre errori di fila il dispositivo cerca e si collega di nuovo se il numero di serie compare a un altro indirizzo.",
   "ui_feat_bar_flip": "Barra montata al contrario",
   "ui_feat_bar_flip_sub": "Disegna la barra da un capo all’altro, così un’unità montata al rovescio si legge nel verso giusto. La direzione propria di ogni effetto si applica sopra.",
+  "ui_feat_bridge": "Ponte con la ventola",
+  "ui_feat_bridge_sub": "Associa una ventola con il nostro firmware, accoppiala una volta, vedi sul pannello cosa fa e copia i suoi colori o un effetto in questo dispositivo.",
   "ui_feat_config_io": "Le impostazioni in un solo file",
   "ui_feat_config_io_sub": "Esporta e importa tutto ciò che è salvato, tranne le tre password.",
   "ui_feat_diagnostics": "Lampeggiare il guasto",

@@ -111,6 +111,20 @@ the row was assigned from, and a `ps_fx_cfg_t`), 664 bytes, pinned by `_Static_a
 read whole or not at all like the presets. A row that is not set inherits the bar state's
 effect; nothing in the config blob changes for them.
 
+## The vent binding (bit 0): a fourth blob
+
+The binding lives under the same namespace as `bridge`, laid out by `ps_bridge_cfg_t`:
+magic `0x50534231` ("PSB1"), two flags (bound, paired), the vent's identity (16 hex), the
+name it gave in its hello, the name or address that was typed to reach it, the pairing
+token (64 hex) and the last address it answered at; 192 bytes, pinned by `_Static_assert`,
+read whole or not at all. `ps_bridge_cfg_clamp()` clears a token that `paired` does not
+vouch for and a binding that names nowhere to connect to. It is written when a vent is
+bound or unbound, when pairing completes, when the vent first says who it is, and when it
+answers at a new address. It is **not** part of the settings file: `GET /api/config` carries
+the switch and nothing of the binding, because the token is a credential and a settings file
+travels; a device restored from one turns the bridge on with no vent bound and pairs again
+in person.
+
 ## The settings as a file (C3)
 
 `GET /api/config` (bit 16) writes the whole of the above, plus the presets and the stage

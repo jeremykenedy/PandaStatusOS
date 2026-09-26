@@ -264,7 +264,7 @@ static esp_err_t ws_handler(httpd_req_t *req)
 /* The number of routes ps_ws_start registers. httpd's max_uri_handlers must be at least this,
  * and a registration past the cap is refused rather than fatal, so the two are tied together
  * here and the loop below hard-fails if they ever disagree. */
-#define PS_HTTP_ROUTES 26
+#define PS_HTTP_ROUTES 29
 
 int ps_ws_start(void)
 {
@@ -314,6 +314,9 @@ int ps_ws_start(void)
         { .uri = "/api/config",    .method = HTTP_GET,  .handler = ps_api_config_get },      /* C3; 302 while its bit is off */
         { .uri = "/api/config",    .method = HTTP_POST, .handler = ps_api_config_post },
         { .uri = "/api/restart",   .method = HTTP_POST, .handler = ps_api_restart_post },    /* C4; 302 while its bit is off */
+        { .uri = "/api/bridge",    .method = HTTP_GET,  .handler = ps_api_bridge_get },      /* bit 0, the vent bridge; 302 while it is off */
+        { .uri = "/api/bridge",    .method = HTTP_POST, .handler = ps_api_bridge_post },
+        { .uri = "/bridge/id",     .method = HTTP_GET,  .handler = ps_bridge_id_get },       /* this device's identity, for a peer binding it by hand */
         /* The wildcard answers every client, not only the hotspot's. That is parity: the
            factory answers 302 to any path it does not serve, and every gated route leans on it
            to look absent while its switch is off. It is also what makes a phone's captive probe

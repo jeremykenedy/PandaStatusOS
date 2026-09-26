@@ -46,8 +46,8 @@ extern const char *const ps_gif_slot_names[PS_GIF_SLOTS];
 #define PS_CFG_MAGIC     PS_CFG_MAGIC_V4
 
 /* feature bits in ps_cfg_t.features. Every one defaults to 0 and leaves the device at
- * factory parity; docs/FEATURES.md is the table. Bit 0 is reserved for the vent bridge. */
-#define PS_FEAT_BRIDGE            (1u << 0)
+ * factory parity; docs/FEATURES.md is the table. */
+#define PS_FEAT_BRIDGE            (1u << 0)   /* the vent bridge (ps_bridge.c, docs/PANDAVENT-BRIDGE.md) */
 #define PS_FEAT_STATE_BRIGHTNESS  (1u << 1)   /* A1: one brightness per bar state instead of one per mode */
 #define PS_FEAT_STATE_EFFECTS     (1u << 2)   /* A2: an effect per bar state in H2D, in the state's colour */
 #define PS_FEAT_EFFECT_COLOURS    (1u << 3)   /* A3, reserved: the effect's own four colours */
@@ -69,14 +69,15 @@ extern const char *const ps_gif_slot_names[PS_GIF_SLOTS];
 #define PS_FEAT_DIAGNOSTICS       (1u << 19)  /* C8: why it is not working, blinked on the bar */
 #define PS_FEAT_STATIC_IP         (1u << 20)  /* C9: a fixed address on the house network instead of DHCP */
 #define PS_FEAT_BAR_FLIP          (1u << 21)  /* D1: the bar is drawn the other way round, for a unit mounted upside down */
-/* Every switch bit defined above, bit 0 (the bridge) excluded. Derived from the highest
- * one rather than written out, because it was written out: C9 took bit 20 and the mask
- * stayed at bit 19, so ps_config_apply() refused any settings file exported from a device
- * with the fixed address switched on. The import is all-or-nothing, so one bit outside the
- * mask threw away the whole document. Move PS_FEAT_LAST when the next bit is taken and the
- * mask follows; cfg_test.c fails if it does not. */
+/* Every switch bit defined above, bit 0 included now that ps_bridge.c stands behind it (it
+ * was masked out while nothing did). Derived from the highest one rather than written out,
+ * because it was written out: C9 took bit 20 and the mask stayed at bit 19, so
+ * ps_config_apply() refused any settings file exported from a device with the fixed address
+ * switched on. The import is all-or-nothing, so one bit outside the mask threw away the whole
+ * document. Move PS_FEAT_LAST when the next bit is taken and the mask follows; cfg_test.c
+ * fails if it does not. */
 #define PS_FEAT_LAST              PS_FEAT_BAR_FLIP
-#define PS_FEAT_KNOWN             ((PS_FEAT_LAST | (PS_FEAT_LAST - 1u)) & ~1u)
+#define PS_FEAT_KNOWN             (PS_FEAT_LAST | (PS_FEAT_LAST - 1u))
 
 /* which of the printer's temperatures a feature follows (INFERENCE: the report's
  * nozzle_temper, bed_temper and chamber_temper, the fields the vent reads) */
@@ -270,6 +271,30 @@ void ps_netcfg_clamp(ps_netcfg_t *s);
  * interface exists and again whenever the setting changes; the change takes effect on the
  * next association, which the caller triggers. */
 void ps_wifi_apply_netcfg(void);
+
+/* Bit 0: the vent binding (docs/PANDAVENT-BRIDGE.md), its own blob under the same namespace.
+ * A device binds to an identity, never to an address: `id` is the bind once the vent has said
+ * who it is, `host` is what was typed to reach it the first time, and `ip` is the last address
+ * it answered at, tried after mDNS has been asked and before giving up. The token is what
+ * pairing produced; it is never shown by /api/bridge and never exported by /api/config, so a
+ * settings file carries the switch but not the pairing, which has to be done again in person. */
+#define PS_BRIDGE_NVS_KEY  "bridge"
+#define PS_BRIDGE_MAGIC    0x50534231u   /* 'P' 'S' 'B' '1' */
+typedef struct {
+    uint32_t magic;
+    uint8_t  bound;              /* a vent is bound: host, id or ip below says where */
+    uint8_t  paired;             /* token holds what pairing produced */
+    uint8_t  _pad[2];
+    char     id[17];             /* the vent's identity, 16 hex; "" until it has said */
+    char     name[33];           /* what it calls itself, from its hello */
+    char     host[64];           /* what was typed: a name or an address */
+    char     token[65];          /* 64 hex */
+    uint8_t  ip[4];              /* the last address it answered at, 0.0.0.0 for none */
+} ps_bridge_cfg_t;                                                                    /* 192 bytes */
+#define PS_BRIDGE_SIZE     192
+int  ps_bridge_cfg_load(ps_bridge_cfg_t *s);   /* the stored binding, or none; never fails the boot */
+int  ps_bridge_cfg_save(const ps_bridge_cfg_t *s);
+void ps_bridge_cfg_clamp(ps_bridge_cfg_t *s);
 
 #define PS_STAGES_NVS_KEY  "stages"
 #define PS_STAGES_MAGIC    0x50535331u   /* 'P' 'S' 'S' '1' */
@@ -595,6 +620,62 @@ int ps_presets_apply(const char *json, size_t len);   /* the whole list, or one 
 char *ps_presets_json(void);                          /* the list as the page reads it; cJSON_free() it */
 int ps_api_logs_get(httpd_req_t *req);                /* the clone's own: GET /api/logs, the RAM ring as text */
 int ps_api_logs_delete(httpd_req_t *req);             /* DELETE /api/logs, empties the ring */
+
+/* ------------------------------------------------------------- ps_sha256.c ---- */
+/* SHA-256 from FIPS 180-4, in software, so the bridge's arithmetic has a host test that
+ * needs no IDF. ps_hex writes 2n lowercase hex digits and a terminator. */
+typedef struct { uint32_t h[8]; uint64_t len; uint8_t buf[64]; size_t n; } ps_sha256_t;
+void ps_sha256_init(ps_sha256_t *c);
+void ps_sha256_update(ps_sha256_t *c, const void *data, size_t len);
+void ps_sha256_final(ps_sha256_t *c, uint8_t out[32]);
+void ps_sha256(const void *data, size_t len, uint8_t out[32]);
+void ps_hex(const uint8_t *in, size_t n, char *out);
+
+/* ------------------------------------------------------- ps_bridge_proto.c ---- */
+/* The vent bridge's pure parts (docs/PANDAVENT-BRIDGE.md): pairing arithmetic over the hex
+ * strings, RFC 6455 client framing, and the reading of a vent report. Host-tested. */
+void ps_bridge_code(const char *na, const char *nb, const char *ia, const char *ib, char out[7]);
+void ps_bridge_token(const char *na, const char *nb, const char *ia, const char *ib, char out[65]);
+void ps_bridge_auth(const char *token_hex, const char *nonce_hex, char out[65]);
+void ps_bridge_identity(const uint8_t mac[6], char out[17]);
+
+enum { PS_WS_CONT = 0x0, PS_WS_TEXT = 0x1, PS_WS_BINARY = 0x2, PS_WS_CLOSE = 0x8, PS_WS_PING = 0x9, PS_WS_PONG = 0xA };
+typedef struct {
+    bool     fin, masked;
+    uint8_t  opcode;
+    uint8_t  mask[4];
+    uint64_t len;              /* payload bytes */
+    size_t   header;           /* bytes before the payload */
+    const uint8_t *payload;    /* into the parsed buffer, unmasked in place */
+} ps_ws_frame_t;
+/* One masked client frame, FIN set; the bytes written, or 0 when it does not fit. */
+size_t ps_ws_encode(uint8_t opcode, const uint8_t *payload, size_t len, const uint8_t mask[4], uint8_t *out, size_t cap);
+/* The first frame in buf: its whole size when all of it is there, 0 when more is needed,
+ * -1 when it is not a frame a client can accept. A masked payload is unmasked in place. */
+int ps_ws_parse(uint8_t *buf, size_t len, ps_ws_frame_t *f);
+
+enum { PS_VENT_UNKNOWN = 0, PS_VENT_OPEN = 1, PS_VENT_CLOSED = 2, PS_VENT_SEALING = 3, PS_VENT_MOVING = 4 };
+typedef struct {
+    uint8_t state;             /* PS_VENT_*; a state name this device does not know is UNKNOWN */
+    bool    have_chamber;
+    bool    have_policy;
+    bool    override;          /* the vent's policy is deciding from the filament loaded */
+    float   chamber_c;
+    char    reason[16];        /* "" when the vent gave none */
+    char    error[16];         /* "" when the vent reports no fault */
+} ps_vent_report_t;
+const char *ps_vent_state_name(int s);
+struct cJSON;
+int ps_bridge_vent_parse(const struct cJSON *body, ps_vent_report_t *out);   /* 0, or -1: not a report */
+
+/* ------------------------------------------------------------- ps_bridge.c ---- */
+/* Bit 0. The task idles while the bit is off; with it on it holds the socket to the bound
+ * vent, reconnects on its own, and re-finds a vent that moved by its identity. */
+void ps_bridge_start(void);
+void ps_bridge_notify(void);                          /* the bit, or the binding, changed */
+int  ps_api_bridge_get(httpd_req_t *req);             /* the page's view of the bridge; 302 while bit 0 is off */
+int  ps_api_bridge_post(httpd_req_t *req);            /* scan, bind, pair, unbind, copy */
+int  ps_bridge_id_get(httpd_req_t *req);              /* GET /bridge/id: this device, for a peer binding it by hand */
 
 /* ------------------------------------------------------------------ utility ---- */
 void ps_restart(const char *why);

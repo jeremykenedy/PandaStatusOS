@@ -66,6 +66,7 @@ void app_main(void)
     ps_ws_start();
     ps_portal_start();   /* answer DNS for the hotspot, so joining it opens the setup page */
     ps_printer_discover_start();   /* listen for printer announcements from here on */
+    ps_bridge_start();             /* the vent bridge's task; idle until bit 0 is on and a vent is bound */
     ps_ota_confirm_boot();                       /* the page is reachable: this image stays */
     ps_printer_start();
     if (xTaskCreate(guard_task, "ps_guard", 3072, NULL, 10, NULL) != pdPASS) ESP_LOGE(TAG, "guard would not start");

@@ -139,6 +139,8 @@
   "ui_feat_auto_rebind_sub": "Nach drei Fehlschlägen hintereinander sucht das Gerät und verbindet sich neu, wenn dieselbe Seriennummer unter einer anderen Adresse auftaucht.",
   "ui_feat_bar_flip": "Leiste umgekehrt montiert",
   "ui_feat_bar_flip_sub": "Zeichnet die Leiste von hinten nach vorn, damit ein umgekehrt montiertes Gerät richtig zu lesen ist. Die eigene Richtung jedes Effekts gilt weiterhin darüber.",
+  "ui_feat_bridge": "Lüftungsbrücke",
+  "ui_feat_bridge_sub": "Eine Lüftung mit unserer Firmware binden, einmal koppeln, auf dem Dashboard sehen, was sie tut, und ihre Farben oder einen Effekt auf dieses Gerät kopieren.",
   "ui_feat_config_io": "Einstellungen als eine Datei",
   "ui_feat_config_io_sub": "Exportiert und importiert alles Gespeicherte außer den drei Passwörtern.",
   "ui_feat_diagnostics": "Den Fehler blinken",

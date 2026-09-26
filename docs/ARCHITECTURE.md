@@ -37,6 +37,7 @@ and releases it before touching the strip.
 | ps_effect | `ps_effect.c` | renders a frame every 33 ms, or sooner when notified |
 | mqtt | `esp-mqtt` | the printer link; its events update the printer and bar state under the lock |
 | ps_prn | `ps_printer.c` | the only caller of the MQTT client: bind, unbind and every printer command, taken from a queue |
+| ps_bridge | `ps_bridge.c` | the vent bridge (bit 0): owns the one socket to the bound vent, the mDNS record and browse, the pairing exchange and the reconnects; the page's requests reach it through a queue that never waits, and a copy is the one request a handler waits on (2.5 s at most) |
 | wifi / event loop | ESP-IDF | station and scan events, under the lock |
 | esp_timer | ESP-IDF | the Wi-Fi retry, the printer scan's completion, the delayed restart after a firmware update |
 

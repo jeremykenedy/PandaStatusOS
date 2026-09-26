@@ -139,6 +139,8 @@
   "ui_feat_auto_rebind_sub": "Sau ba lần hỏng liên tiếp, thiết bị quét mạng và gắn lại nếu cùng số sê-ri xuất hiện ở địa chỉ khác.",
   "ui_feat_bar_flip": "Thanh đèn gắn ngược",
   "ui_feat_bar_flip_sub": "Vẽ thanh đèn đảo đầu, nên thiết bị gắn ngược vẫn đọc đúng chiều. Hướng riêng của từng hiệu ứng vẫn áp dụng lên trên.",
+  "ui_feat_bridge": "Cầu nối bộ thoát khí",
+  "ui_feat_bridge_sub": "Gắn một bộ thoát khí chạy firmware của chúng tôi, ghép đôi một lần, xem trên bảng điều khiển nó đang làm gì, và chép màu hoặc một hiệu ứng của nó vào thiết bị này.",
   "ui_feat_config_io": "Cài đặt trong một tệp",
   "ui_feat_config_io_sub": "Xuất và nhập mọi thứ đã lưu, trừ ba mật khẩu.",
   "ui_feat_diagnostics": "Nháy mã lỗi",

@@ -26,6 +26,7 @@
 static const char *TAG = "ps_api";
 
 static const struct { const char *name; uint32_t bit; } FEATURES[] = {
+    { "bridge",           PS_FEAT_BRIDGE },
     { "state_brightness", PS_FEAT_STATE_BRIGHTNESS },
     { "state_effects",    PS_FEAT_STATE_EFFECTS },
     { "effect_colours",   PS_FEAT_EFFECT_COLOURS },
@@ -292,6 +293,7 @@ int ps_features_apply(const char *json, size_t len)
     if (net_moved) ps_netcfg_save(&saved);
     if (net_apply) ps_wifi_apply_netcfg();
     if (changed) { ps_effect_notify(); ESP_LOGI(TAG, "features 0x%08x", (unsigned)g_ps.cfg.features); }
+    if ((set | clear) & PS_FEAT_BRIDGE) ps_bridge_notify();           /* the task reads the bit on its own clock; this is only so it does not wait for it */
     return 0;
 }
 

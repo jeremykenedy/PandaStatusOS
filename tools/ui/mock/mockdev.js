@@ -151,13 +151,15 @@ let STATE = null;
 let booting = false;                    // true while a "restart" is in progress
 let LANDED = null;                      // {build, page, until}: the image an ota_fw upload installed (PS_OTA_LANDS)
 let FEAT = null;                        // the clone's feature document (PS_CLONE); null until first asked
-const FEATURE_NAMES = ['state_brightness', 'state_effects', 'effect_colours', 'effect_params', 'effect_ramp', 'fx_progress', 'fx_progress_anim', 'fx_barber', 'fx_hue_ramp', 'fx_temp', 'hot_warning', 'error_flash', 'preview', 'presets', 'stage_effects', 'config_io', 'restart', 'auto_rebind', 'diagnostics', 'static_ip', 'bar_flip'];
-// Bits 1..N of the names above, which is what the device's own PS_FEAT_KNOWN comes to. This
-// was the literal 0x1FFFE, bits 1 to 16, for as long as there have been twenty bits: a
-// settings file exported from a device with the fixed address or the diagnostics switch on
-// was refused whole by the mock and by nothing else. Derived now, so a name added above is a
-// bit the import accepts.
-const FEATURE_BITS_KNOWN = ((1 << (FEATURE_NAMES.length + 1)) - 2);
+const FEATURE_NAMES = ['bridge', 'state_brightness', 'state_effects', 'effect_colours', 'effect_params', 'effect_ramp', 'fx_progress', 'fx_progress_anim', 'fx_barber', 'fx_hue_ramp', 'fx_temp', 'hot_warning', 'error_flash', 'preview', 'presets', 'stage_effects', 'config_io', 'restart', 'auto_rebind', 'diagnostics', 'static_ip', 'bar_flip'];
+// Bits 0..N-1 of the names above, in that order, which is what the device's own PS_FEAT_KNOWN
+// comes to (bit 0 is the bridge, inside the mask since ps_bridge.c stands behind it). This was
+// the literal 0x1FFFE, bits 1 to 16, for as long as there have been twenty bits: a settings
+// file exported from a device with the fixed address or the diagnostics switch on was refused
+// whole by the mock and by nothing else. Derived now, so a name added above is a bit the
+// import accepts.
+const FEATURE_BITS_KNOWN = ((1 << FEATURE_NAMES.length) - 1);
+const featBit = (i) => (1 << i);
 const FX_SELECTABLE = 17;
 // which effect ids the bits allow, as the firmware's ps_fx_allowed(): the seventeen need only the
 // effect switch; the ones that read the print each wait for their own
@@ -170,11 +172,8 @@ function fxAllowed(id, features) {
 // opt 0x20: kept inside the progress by default (O2); fx_unlit 0: the unfilled part solid (O1)
 const fxDefault = (colour) => ({ effect: 0, brightness: 50, speed: 100, bright_end: 0, opt: 0x20, aux: 0, fx_unlit: 0, colours: [colour, colour, '#000000FF', '#000000FF'] });
 function featDefaults() {
-  // `bridge` is bit 0 and is deliberately NOT in FEATURE_NAMES: that list is the bits the
-  // settings file carries, 1 upward, and the firmware keeps bit 0 out of PS_FEAT_KNOWN until
-  // ps_bridge.c exists to be turned on. It is in this document because the page behind it is
-  // built first, against the contract, which is what this mock is for.
-  return { features: { bridge: false, state_brightness: false, state_effects: false, effect_colours: false, effect_params: false, effect_ramp: false, fx_progress: false, fx_progress_anim: false, fx_barber: false, fx_hue_ramp: false, fx_temp: false, hot_warning: false, error_flash: false, preview: false, presets: false, stage_effects: false, config_io: false, restart: false, auto_rebind: false, diagnostics: false, static_ip: false },
+  // every switch off, in the firmware's order: the features table in ps_api.c, bit 0 first
+  return { features: Object.fromEntries(FEATURE_NAMES.map((k) => [k, false])),
            config: { state_brightness: [[50, 50, 50], [50, 50, 50]],
                      state_effects: [fxDefault('#FFFFFFFF'), fxDefault('#FFFFFFFF'), fxDefault('#FF0000FF')],
                      temp_gradient: { source: 0, lo: 25, hi: 250 },
@@ -209,7 +208,7 @@ function featApply(j) {
   if (f === undefined && c === undefined) return false;
   if (f !== undefined && (typeof f !== 'object' || f === null || Array.isArray(f))) return false;
   if (c !== undefined && (typeof c !== 'object' || c === null || Array.isArray(c))) return false;
-  if (f) for (const k of Object.keys(f)) if ((k !== 'bridge' && !FEATURE_NAMES.includes(k)) || typeof f[k] !== 'boolean') return false;
+  if (f) for (const k of Object.keys(f)) if (!FEATURE_NAMES.includes(k) || typeof f[k] !== 'boolean') return false;
   let sb = null, se = null, tg = null, hw = null, ef = null, si = null;
   const after = Object.assign({}, FEAT.features, f || {});          // the bits this document leaves in force
   if (c) for (const k of Object.keys(c)) {
@@ -362,6 +361,7 @@ function bridgeConnect() {
   const ws = new WebSocket(url);
   BRIDGE.ws = ws;
   BRIDGE.nonce = crypto.randomBytes(16).toString('hex');
+  BRIDGE.hellosIn = 0;
   ws.on('open', () => {
     log({ ev: 'bridge_open', detail: url });
     bridgeSay('hello', {
@@ -377,6 +377,11 @@ function bridgeConnect() {
     const root = Object.keys(f)[0], body = f[root] || {};
     log({ ev: 'bridge_in', detail: root });
     if (root === 'hello') {
+      /* The vent greets once per socket and this end answers once, with its proof over the
+         vent's nonce. Anything after that is not answered, or two devices would greet each
+         other for ever; ps_bridge.c keeps the same count. */
+      BRIDGE.hellosIn += 1;
+      if (BRIDGE.hellosIn > 1) return;
       BRIDGE.peerNonce = body.nonce;
       /* The identity is the bind. A vent answering under another one is not this vent, and
          the page has to be able to say so rather than quietly following the new one. */
@@ -892,7 +897,7 @@ async function handleHttp(req, res) {
     // C2: identification, always answered by a clone; no network name, address, serial or credential
     if (req.method !== 'GET') { res.writeHead(405); return res.end(); }
     if (!FEAT) FEAT = featDefaults();
-    let bits = 0; FEATURE_NAMES.forEach((k, i) => { if (FEAT.features[k]) bits |= (1 << (i + 1)); });
+    let bits = 0; FEATURE_NAMES.forEach((k, i) => { if (FEAT.features[k]) bits |= featBit(i); });
     const info = { product: 'PandaStatusOS', build: LANDED ? LANDED.build : String(knob('PS_BUILD', 'mock')), version: (STATE.settings && STATE.settings.fw_version) || 'V1.0.0', idf: 'v5.3.1',
                    uptime_s: Math.floor((Date.now() - t0) / 1000), heap_free: 180000, flash_size: 4194304, leds: 16, mode: (STATE.settings && STATE.settings.current_mode) || 0, features: bits, config_layout: 'PS04',
                    // Bytes one GIF slot may take. Zero is the answer on a unit whose flash carries no
@@ -1100,7 +1105,7 @@ async function handleHttp(req, res) {
     // taken whole or refused whole and then pushed to every socket client
     const toH2D = (s) => { const h = String(s || '').replace('#', '').toUpperCase(); return '#' + h.slice(0, 6) + (h.length >= 8 ? h.slice(6, 8) : 'FF'); };
     const exportDoc = () => {
-      let bits = 0; FEATURE_NAMES.forEach((k, i) => { if (FEAT.features[k]) bits |= (1 << (i + 1)); });
+      let bits = 0; FEATURE_NAMES.forEach((k, i) => { if (FEAT.features[k]) bits |= featBit(i); });
       const modes = (STATE.settings.list2 || []).map((m, i) => ({ brightness: m.brightness, speed: m.speed === undefined ? 100 : m.speed, colours: (m.rgb_rgba || []).map(toH2D) }));
       return { layout: 'PS04', features: bits, wifi: { ssid: STATE.wifi.ssid }, ap: { ssid: STATE.ap.ssid, ip: STATE.ap.ip, on: STATE.ap.on }, hostname: STATE.sta.hostname,
                printer: { name: STATE.printer.name, sn: STATE.printer.sn, ip: STATE.printer.ip }, language: STATE.settings.language, mode: STATE.settings.current_mode, modes,
@@ -1133,7 +1138,7 @@ async function handleHttp(req, res) {
     if (j.blocks !== undefined && (!Array.isArray(j.blocks) || j.blocks.length > 15 || !j.blocks.every((b) => isObj(b) && Number.isInteger(b.id) && b.id >= 0 && b.id <= 255 && /^#?[0-9A-Fa-f]{6}([0-9A-Fa-f]{2})?$/.test(b.colour)))) return refuse();
     // the feature settings and the switches go through the features route's own validation, on a copy
     const saved = JSON.parse(JSON.stringify(FEAT));
-    const feats = {}; if (j.features !== undefined) FEATURE_NAMES.forEach((k, i) => { feats[k] = !!(j.features & (1 << (i + 1))); });
+    const feats = {}; if (j.features !== undefined) FEATURE_NAMES.forEach((k, i) => { feats[k] = !!(j.features & featBit(i)); });
     const cfg = {}; for (const k of ['state_brightness', 'state_effects', 'temp_gradient', 'hot_warning', 'error_flash']) if (j[k] !== undefined) cfg[k] = j[k];
     const sub = {}; if (Object.keys(feats).length) sub.features = feats; if (Object.keys(cfg).length) sub.config = cfg;
     if (Object.keys(sub).length && !featApply(sub)) { FEAT = saved; return refuse(); }

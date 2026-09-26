@@ -61,6 +61,7 @@
  *   POST /__knob     {name, value} at runtime
  *
  *   PV_PORT=8299 node tools/ui/mock/mockvent.js
+ *   PV_HOST=0.0.0.0 PV_PORT=80 node tools/ui/mock/mockvent.js    (the bench: a device can reach it)
  */
 const http = require('http');
 const crypto = require('crypto');
@@ -140,6 +141,7 @@ function fresh(ws) {
   ws._paired = false;       // this socket has proved it holds the token
   ws._pending = null;       // the token both ends would store if they confirm
   ws._confirmed = false;    // this end has seen the peer's pair{confirm}
+  ws._greeted = false;      // this end has sent its one hello on this socket
 }
 
 function ventBody() {
@@ -199,6 +201,12 @@ function handle(ws, text) {
       ws._code = pairCode(ws._peerNonce, ws._myNonce, ws._peer, ID);
       log({ ev: 'pair_code', detail: ws._code });
     }
+    /* One hello per socket from this end. The peer's second hello is its proof over the nonce
+       this end sent in its answer; it is checked above and answered with the state, never with
+       another hello, or two devices would greet each other for ever (the firmware found this
+       as soon as it reconnected while paired; the contract now says so). */
+    if (ws._greeted) { if (ws._paired) pushVent(ws); return; }
+    ws._greeted = true;
     send(ws, 'hello', {
       ver: VER,
       id: knobFlag('PV_WRONG_ID') ? String(knob('PV_WRONG_ID', 'deadbeefdeadbeef')) : ID,
@@ -383,6 +391,10 @@ setInterval(() => {
   for (const ws of sockets) if (ws._paired) pushVent(ws);
 }, 200);
 
-server.listen(PORT, '127.0.0.1', () => {
-  log({ ev: 'listening', detail: `http://127.0.0.1:${PORT} id=${ID} name=${NAME}` });
+/* The loopback by default, so a harness row cannot be reached from the network. PV_HOST=0.0.0.0
+   is the bench: a real status device on the same network bound to this mock by address, which
+   is the first conversation the device half has before the real vent is touched. */
+const HOST = String(env('PV_HOST', '127.0.0.1'));
+server.listen(PORT, HOST, () => {
+  log({ ev: 'listening', detail: `http://${HOST}:${PORT} id=${ID} name=${NAME}` });
 });

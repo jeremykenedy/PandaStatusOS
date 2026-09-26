@@ -139,6 +139,8 @@
   "ui_feat_auto_rebind_sub": "Po trzech nieudanych próbach z rzędu urządzenie skanuje sieć i łączy się ponownie, jeśli ten sam numer seryjny pojawi się pod innym adresem.",
   "ui_feat_bar_flip": "Listwa zamontowana odwrotnie",
   "ui_feat_bar_flip_sub": "Rysuje listwę od końca do początku, więc odwrotnie zamontowane urządzenie czyta się poprawnie. Własny kierunek każdego efektu nadal działa na tym.",
+  "ui_feat_bridge": "Most do wentylacji",
+  "ui_feat_bridge_sub": "Powiąż wentylację z naszym oprogramowaniem, sparuj ją raz, zobacz na pulpicie, co robi, i skopiuj jej kolory lub efekt do tego urządzenia.",
   "ui_feat_config_io": "Ustawienia jako jeden plik",
   "ui_feat_config_io_sub": "Eksportuje i importuje wszystko, co zapisane, poza trzema hasłami.",
   "ui_feat_diagnostics": "Migać kod usterki",

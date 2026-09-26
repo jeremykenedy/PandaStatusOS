@@ -88,6 +88,20 @@ After pairing, every `hello` carries `auth = sha256(token ‖ nonce_peer)`, comp
 the nonce the peer just sent, so the token itself never travels. A `hello` that fails
 the check is answered with `bye {reason: "unpaired"}` and the socket closes.
 
+**How many hellos, and over which nonce** (settled 2026-09-26, when the device half was
+written and found the mocks would greet each other for ever). On each socket:
+
+1. The status side opens with `hello`. It has no peer nonce yet, so when it holds a token
+   its `auth` is over its **own** nonce; the vent accepts a first proof over either nonce.
+2. The vent answers with its one `hello` for that socket: `pair: true` when it holds no
+   token for that identity, otherwise `auth` over the status side's nonce.
+3. The status side checks that proof and answers with its **second** `hello`, `auth` over
+   the vent's nonce. The vent checks it and answers with its current `vent` frame, never
+   with another `hello`. Neither side answers a `hello` after that.
+
+Every derivation hashes the hex strings concatenated, not the bytes they spell; both mocks
+are JavaScript and concatenate strings, and the firmware follows them.
+
 ## Binding and rebinding
 
 A device binds to an identity, never to an address. On every connect, and every time
@@ -95,6 +109,21 @@ the socket drops, it re-resolves the peer: mDNS first, the last known address se
 When a peer comes back at a new address under the same `id`, the bind survives without
 a page visit. This is the shape the printer's address-change logic has, applied to a
 peer whose identity is a fact rather than a guess.
+
+What the device half actually does (`firmware/main/ps_bridge.c`, 2026-09-26): the order is
+mDNS by identity (a browse of `_pandabridge._tcp`, picking the record whose `id` is the
+bound one), then the name or address that was typed (an address as it stands, a name asked
+of mDNS and then of DNS), then the last address the vent answered at. Whatever answered is
+stored as that last address. A vent bound by address alone has no identity until its first
+`hello`; the identity is adopted from that and is the bind from then on, and a different
+identity answering at the bound address is reported (`link` 5) rather than followed.
+
+Reconnects back off from 2 s to 30 s. A vent that will not have this device (a `bye`, a proof
+that fails, a pairing code that lapses or is cancelled) is tried again after 30 s, which with
+the minute the code stands means an unpaired binding left alone offers a fresh code for a
+minute of every minute and a half until it is confirmed or unbound. A socket that opens and
+says nothing for 10 s, or a paired vent silent for 90 s (three missed heartbeats), is dropped
+and dialled again.
 
 ## Transport
 
@@ -230,9 +259,25 @@ peer whose proof fails told `bye {unpaired}` and closed, a command from a socket
 said hello refused outright, the heartbeat, and the three silences. Thirty-two assertions, a
 row in the sweep (`PS_WITH_VENT=1`).
 
-When `ps_bridge.c` is written it is written against this same exchange, and if the two
-disagree one of them is wrong in a way that can be pointed at. The real vent is not touched
-during any of it.
+`ps_bridge.c` is written against this same exchange, and if the two disagree one of them is
+wrong in a way that can be pointed at. The real vent is not touched during any of it.
+
+### The first conversation: the bench
+
+The device half and the mock have not yet spoken. The job, in order, with nothing else on the
+network at risk:
+
+1. `PV_HOST=0.0.0.0 PV_PORT=80 node tools/ui/mock/mockvent.js` on the Mac. Port 80 because
+   the contract puts `/bridge` on the peer's port 80 and the device dials nothing else; a
+   low port needs the Mac's permission, which is the Mac's business and not the protocol's.
+2. On the device's page: the bridge switch on, the vent bound by the Mac's address, the six
+   digits read off the page and off the mock's log (`pair_code`), confirmed on the page (the
+   mock confirms on its own).
+3. Watch: `link` 3, the vent card on the dashboard saying `closed` and the mock's chamber,
+   `POST /__vent {"state":"open"}` followed on the card without a page visit, both copies
+   landing, the mock's `PV_DROP_AFTER` and `PV_SILENT` knobs bringing the link down and the
+   device bringing it back on its own, the device's log saying each of these in its words.
+4. Only then step 4 below.
 
 ## Order of work
 
@@ -243,9 +288,15 @@ during any of it.
    the card, the scan, the bind, the pairing code, the link, the two copies and the unbind,
    driven through `mockdev.js`, which holds a REAL bridge client rather than a pretence of
    one. `t-bridge.js` runs the three processes together, 32 assertions, a row in the sweep.
-   **The device half is not**: `ps_bridge.c` does not exist, so the switch that turns this on
-   is the mock's, and the firmware's bit 0 is still outside `PS_FEAT_KNOWN` until there is
-   something behind it to turn on.
+   **The device half is written, 2026-09-26**: `ps_bridge.c` holds the task, the socket,
+   the hello and pairing exchange, the reconnects, the mDNS record and browse, `/api/bridge`
+   and `/bridge/id`; `ps_bridge_proto.c` and `ps_sha256.c` are its pure parts, host-tested
+   against node's numbers and RFC 6455's own frames (`bridge_test.c`, 32 assertions); the
+   binding is its own NVS blob (`ps_bridge_cfg_t`, `cfg_test.c`). Bit 0 is inside
+   `PS_FEAT_KNOWN` and in the features table, so the switch on the page is the device's.
+   **Not yet exercised against a vent**: the mock vent listens on the loopback only, so the
+   device half has been built to the same frames the mock speaks and has not spoken to it;
+   the first conversation is the bench job below, before the real vent is touched.
 4. Vent side, in its own repository, against a mock status.
 5. Shared printer state and backups, last, because they carry the most consequence.
 

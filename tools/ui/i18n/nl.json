@@ -139,6 +139,8 @@
   "ui_feat_auto_rebind_sub": "Na drie mislukkingen op rij zoekt het apparaat en koppelt het opnieuw als hetzelfde serienummer op een ander adres opduikt.",
   "ui_feat_bar_flip": "Balk omgekeerd gemonteerd",
   "ui_feat_bar_flip_sub": "Tekent de balk van achter naar voren, zodat een omgekeerd gemonteerd apparaat goed leesbaar is. De eigen richting van elk effect geldt daarbovenop.",
+  "ui_feat_bridge": "Ventilatiebrug",
+  "ui_feat_bridge_sub": "Koppel een ventilatie met onze firmware, paar één keer, zie op het dashboard wat ze doet en kopieer haar kleuren of een effect naar dit apparaat.",
   "ui_feat_config_io": "Instellingen als één bestand",
   "ui_feat_config_io_sub": "Exporteert en importeert alles wat is opgeslagen, behalve de drie wachtwoorden.",
   "ui_feat_diagnostics": "De storing knipperen",

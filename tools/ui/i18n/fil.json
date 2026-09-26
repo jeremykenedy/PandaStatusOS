@@ -139,6 +139,8 @@
   "ui_feat_auto_rebind_sub": "Pagkatapos ng tatlong sunod na palya, nagha-scan ang device at kumakabit ulit kung lumitaw ang parehong serial sa bagong address.",
   "ui_feat_bar_flip": "Baligtad na nakakabit ang bar",
   "ui_feat_bar_flip_sub": "Iginuguhit ang bar mula dulo hanggang dulo, para tama ang pagbasa sa unit na baligtad ang kabit. Nananatiling nakadagdag ang sariling direksyon ng bawat effect.",
+  "ui_feat_bridge": "Bridge sa vent",
+  "ui_feat_bridge_sub": "I-bind ang isang vent na may firmware namin, i-pair nang isang beses, tingnan sa dashboard ang ginagawa nito, at kopyahin ang mga kulay nito o isang effect sa device na ito.",
   "ui_feat_config_io": "Mga setting bilang isang file",
   "ui_feat_config_io_sub": "Ini-export at ini-import ang lahat ng nakaimbak maliban sa tatlong password.",
   "ui_feat_diagnostics": "Kumurap ang depekto",

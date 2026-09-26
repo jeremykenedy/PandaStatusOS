@@ -139,6 +139,8 @@
   "ui_feat_auto_rebind_sub": "Ao fim de três falhas seguidas o dispositivo procura e liga-se de novo se o número de série aparecer noutro endereço.",
   "ui_feat_bar_flip": "Barra montada ao contrário",
   "ui_feat_bar_flip_sub": "Desenha a barra de uma ponta à outra, para que uma unidade montada ao contrário se leia bem. A direção própria de cada efeito continua a aplicar-se por cima.",
+  "ui_feat_bridge": "Ponte para o ventilador",
+  "ui_feat_bridge_sub": "Vincule um ventilador com o nosso firmware, emparelhe uma vez, veja no painel o que ele faz e copie as suas cores ou um efeito para este dispositivo.",
   "ui_feat_config_io": "As definições num só ficheiro",
   "ui_feat_config_io_sub": "Exporta e importa tudo o que está guardado, exceto as três palavras-passe.",
   "ui_feat_diagnostics": "Piscar a avaria",

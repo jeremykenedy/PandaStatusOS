@@ -139,6 +139,8 @@
   "ui_feat_auto_rebind_sub": "Setelah tiga kali gagal berturut-turut perangkat memindai dan menghubungkan ulang jika nomor seri yang sama muncul di alamat lain.",
   "ui_feat_bar_flip": "Bar dipasang terbalik",
   "ui_feat_bar_flip_sub": "Menggambar bar dari ujung ke ujung, sehingga unit yang terpasang terbalik terbaca benar. Arah masing-masing efek tetap berlaku di atasnya.",
+  "ui_feat_bridge": "Jembatan ventilasi",
+  "ui_feat_bridge_sub": "Ikat ventilasi dengan firmware kami, pasangkan sekali, lihat di dasbor apa yang dilakukannya, dan salin warnanya atau sebuah efek ke perangkat ini.",
   "ui_feat_config_io": "Setelan sebagai satu berkas",
   "ui_feat_config_io_sub": "Mengekspor dan mengimpor semua yang tersimpan kecuali tiga kata sandi.",
   "ui_feat_diagnostics": "Mengedipkan gangguan",

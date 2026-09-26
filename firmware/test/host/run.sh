@@ -28,6 +28,10 @@ if [ -f "$IDF/components/json/cJSON/cJSON.c" ]; then
     gcc -std=c11 -Wall -Wextra -Wmisleading-indentation -Werror -Wno-unused-parameter -I "$HERE/stub" -I "$HERE/../../main" -I "$IDF/components/json/cJSON" \
         -o "$OUT-state" "$HERE/state_test.c" "$IDF/components/json/cJSON/cJSON.c"
     "$OUT-state"
+    echo
+    gcc -std=c11 -Wall -Wextra -Wmisleading-indentation -Werror -I "$HERE/stub" -I "$HERE/../../main" -I "$IDF/components/json/cJSON" \
+        -o "$OUT-bridge" "$HERE/bridge_test.c" "$HERE/../../main/ps_bridge_proto.c" "$HERE/../../main/ps_sha256.c" "$IDF/components/json/cJSON/cJSON.c"
+    "$OUT-bridge"
 else
     echo "state_test.c skipped: no ESP-IDF checkout at $IDF (set IDF_PATH)"; exit 0
 fi

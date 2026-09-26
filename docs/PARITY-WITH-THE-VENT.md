@@ -241,9 +241,17 @@ That document sets the order of work. Steps 2 and the page half of 3 are done:
   vent sent one, which way its policy is deciding, and a fault only when the vent reports one.
   Nothing in it is invented and no row is drawn for a value that has not arrived.
 
-**The device half is not built**: `ps_bridge.c` does not exist. Item 10 (the vent settings
-page, three firmwares) stays unwritten until each of the three surfaces has been read the way
-this project reads a surface.
+- **The device half, 2026-09-26**: `ps_bridge.c`, with `ps_bridge_proto.c` and `ps_sha256.c`
+  as its host-tested pure parts (`bridge_test.c`, 32 assertions) and the binding in a blob of
+  its own (`cfg_test.c`). The task, the socket, the mDNS record and browse, the pairing, the
+  reconnects, `/api/bridge` and `/bridge/id`; bit 0 inside the known mask and in the features
+  table, so the switch on the page is the device's (D-056). Writing it found the mocks would
+  have greeted each other for ever on a reconnect; the contract now counts hellos and both
+  mocks follow it. **Not yet spoken to a vent**: the bench job in the contract document comes
+  first, against the mock vent listening on the network, before the real vent is touched.
+
+Item 10 (the vent settings page, three firmwares) stays unwritten until each of the three
+surfaces has been read the way this project reads a surface.
 
 ## The owner's list, 2026-09-26
 

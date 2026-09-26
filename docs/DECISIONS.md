@@ -1571,4 +1571,65 @@ a field away.
 
 ---
 
+## D-056 The vent bridge's device half: one task, one raw socket, the project's own framing, a blob of its own
+
+**Date** 2026-09-26 · **Reversal** moderate (a module, a blob, three routes; the contract is shared with the vent's repository)
+
+**The contract** is [PANDAVENT-BRIDGE.md](PANDAVENT-BRIDGE.md); this entry is about how this
+side keeps it, not what it says.
+
+**Transport.** A plain lwIP socket and RFC 6455 client framing written here
+(`ps_bridge_proto.c`), not the `esp_websocket_client` managed component. The framing is
+forty lines, it is host-tested against the RFC's own example frames, and the dependency set
+stays what it was; a component would have brought its own task, its own buffers and its own
+reconnect policy, all of which this link needs to be different from. The handshake verifies
+`Sec-WebSocket-Accept` with mbedtls's SHA-1, so a server that answers 101 to anything is not
+mistaken for a vent.
+
+**One task owns the socket.** `ps_bridge` (priority 4) dials, greets, listens and reconnects;
+the web server's handlers read the state under the bridge's own mutex and post requests to
+the task through a queue that never waits, the shape `ps_prn` has for the MQTT client
+(D-049). The two locks are never nested and nothing here calls the MQTT client, so the
+deadlock D-049 closed cannot be reopened from this side. A copy is the one request a handler
+waits for, and it waits on a semaphore with a 2.5 s limit, because the alternative (the page
+polling for an answer that may never come) puts a state machine on the page the contract says
+the device owns.
+
+**Hellos are counted.** Writing the device half showed the two mocks would have greeted each
+other for ever once a paired peer reconnected: each answered a `hello` with a `hello`. The
+contract now says the vent greets once per socket and answers the status side's second hello
+(its proof over the vent's nonce) with its state; the mocks say the same; the firmware
+answers no hello after its second.
+
+**A binding is its own blob**, `ps_bridge_cfg_t`, 192 bytes under the key `bridge`, for the
+same reason the named effects, the stage rows and the fixed address are (D-039, D-040,
+[CONFIG.md](CONFIG.md)): the config layout does not move for it. The
+token is in it and nowhere else: `/api/bridge` never carries it, `/api/config` never exports
+it, the log never prints it. A settings file therefore restores the switch and not the
+pairing, which is done again in person; a credential in a file that travels is the wrong
+trade for the minute it saves.
+
+**Bit 0 joins the known mask.** It was masked out of `PS_FEAT_KNOWN` while nothing stood
+behind it, so an import could not switch on a feature that did not exist; now it is a switch
+like the others, in the features table and in the mock's names, and `cfg_test.c` pins it
+inside the mask instead of outside.
+
+**Unpaired retries.** A vent that will not have this device (a `bye`, a failed proof, a code
+that lapsed or was cancelled) is dialled again after 30 s rather than on the backoff, so an
+unpaired binding left alone shows a fresh code for a minute of every minute and a half. The
+alternative, stopping after one refusal until the page asks again, would leave a vent that
+was paired from its own side later never connected, since the vent cannot initiate.
+
+**Not yet proven against a vent.** The mock vent listens on the loopback, so the device half
+has been built to the frames the mock speaks and has not spoken to it. The bench job is in
+the contract document; it runs before the real vent is touched.
+
+**Alternatives.** The component (above). The binding inside `ps_cfg_t` (a fifth migration
+arm for a feature most devices never turn on). Answering every hello (the loop).
+
+**What would change it.** The bench showing a frame the mock and the firmware read
+differently: then one of them is wrong in a way the contract has to settle.
+
+---
+
 *Entries continue below as the run proceeds.*

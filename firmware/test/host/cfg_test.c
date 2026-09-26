@@ -66,10 +66,10 @@ int main(void)
                      | PS_FEAT_FX_TEMP | PS_FEAT_HOT_WARNING | PS_FEAT_ERROR_FLASH
                      | PS_FEAT_PREVIEW | PS_FEAT_PRESETS | PS_FEAT_STAGE_EFFECTS
                      | PS_FEAT_CONFIG_IO | PS_FEAT_RESTART | PS_FEAT_AUTO_REBIND
-                     | PS_FEAT_DIAGNOSTICS | PS_FEAT_STATIC_IP | PS_FEAT_BAR_FLIP;
+                     | PS_FEAT_DIAGNOSTICS | PS_FEAT_STATIC_IP | PS_FEAT_BAR_FLIP | PS_FEAT_BRIDGE;
         t("every feature bit is inside the known mask", (all & ~PS_FEAT_KNOWN) == 0, (long)(all & ~PS_FEAT_KNOWN));
         t("and the mask claims no bit that is not one", (PS_FEAT_KNOWN & ~all) == 0, (long)(PS_FEAT_KNOWN & ~all));
-        t("and the bridge is outside it", (PS_FEAT_KNOWN & PS_FEAT_BRIDGE) == 0, 0);
+        t("and the bridge is inside it, now that ps_bridge.c stands behind it", (PS_FEAT_KNOWN & PS_FEAT_BRIDGE) != 0, 0);
     }
 
     /* 1. no blob: defaults */
@@ -253,6 +253,34 @@ int main(void)
       t("clamp bounds set, the ids and the numbers, and terminates the names", s.row[3].set == 1 && s.row[3].fx.effect == PS_FX_STATIC && s.row[3].fx.brightness == 100 && s.row[2].name[PS_PRESET_NAME - 1] == 0, s.row[3].set);
       ps_stages_t bad; memset(&bad, 0, sizeof bad); bad.magic = 0x11111111; bad.row[0].set = 1; nvs_set_blob(1, PS_STAGES_NVS_KEY, &bad, sizeof bad);
       t("a stages blob with the wrong magic loads as none set", ps_stages_load(&e) == 0 && e.row[0].set == 0, e.row[0].set); }
+
+    /* 15. bit 0: the vent binding, its own blob. The clamp is what keeps a token from outliving
+     * `paired` and a binding from pointing nowhere; both are things the task would otherwise
+     * have to check at every use. */
+    { ps_bridge_cfg_t b, e; wipe();
+      t("the bridge blob is 192 bytes", sizeof(ps_bridge_cfg_t) == PS_BRIDGE_SIZE && PS_BRIDGE_SIZE == 192, (long)sizeof(ps_bridge_cfg_t));
+      t("no bridge blob loads as unbound with the magic", ps_bridge_cfg_load(&b) == 0 && b.bound == 0 && b.paired == 0 && b.magic == PS_BRIDGE_MAGIC && !b.host[0], b.bound);
+      memset(&b, 0, sizeof b); b.magic = PS_BRIDGE_MAGIC; b.bound = 1; b.paired = 1;
+      strcpy(b.id, "0123456789abcdef"); strcpy(b.name, "bench vent"); strcpy(b.host, "vent-bench.local");
+      memset(b.token, 'a', 64); b.ip[0] = 10; b.ip[3] = 7;
+      t("a binding saves", ps_bridge_cfg_save(&b) == 0, 0);
+      t("and loads back whole: identity, name, host, token and the last address",
+        ps_bridge_cfg_load(&e) == 0 && e.bound == 1 && e.paired == 1 && !strcmp(e.id, "0123456789abcdef") && !strcmp(e.name, "bench vent")
+        && !strcmp(e.host, "vent-bench.local") && strlen(e.token) == 64 && e.token[0] == 'a' && e.ip[0] == 10 && e.ip[3] == 7, e.bound);
+      e = b; e.paired = 0; ps_bridge_cfg_clamp(&e);
+      t("clamp: no pairing, no token", e.token[0] == 0 && e.bound == 1, e.token[0]);
+      e = b; e.token[63] = 0; ps_bridge_cfg_clamp(&e);
+      t("clamp: a token of the wrong length is not a pairing", e.paired == 0 && e.token[0] == 0, e.paired);
+      e = b; strcpy(e.id, "0123456789ABCDEF"); ps_bridge_cfg_clamp(&e);
+      t("clamp: an identity that is not lowercase hex is no identity, and the binding stands on its host", e.id[0] == 0 && e.bound == 1, e.bound);
+      e = b; e.host[0] = 0; e.id[0] = 0; memset(e.ip, 0, 4); ps_bridge_cfg_clamp(&e);
+      t("clamp: nowhere to connect to is no binding, and everything goes with it", e.bound == 0 && e.paired == 0 && e.token[0] == 0 && e.name[0] == 0, e.bound);
+      e = b; e.host[0] = 0; e.id[0] = 0; ps_bridge_cfg_clamp(&e);
+      t("clamp: a last address alone is enough to keep a binding", e.bound == 1, e.bound);
+      ps_bridge_cfg_t bad; memset(&bad, 0, sizeof bad); bad.magic = 0x22222222; bad.bound = 1; strcpy(bad.host, "x"); nvs_set_blob(1, PS_BRIDGE_NVS_KEY, &bad, sizeof bad);
+      t("a bridge blob with the wrong magic loads as unbound", ps_bridge_cfg_load(&e) == 0 && e.bound == 0, e.bound);
+      fill_distinct(&d); wipe(); put(&d, sizeof d); ps_bridge_cfg_save(&b); ps_cfg_load(&c);
+      t("the config blob is untouched by the binding", !strcmp(c.hostname, "t-host") && c.features == 0x5, c.features); }
 
     printf("\n%d passed, %d failed\n", pass, fail);
     return fail ? 1 : 0;

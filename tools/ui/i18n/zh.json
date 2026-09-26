@@ -139,6 +139,8 @@
   "ui_feat_auto_rebind_sub": "连续三次失败后设备会扫描，若在新地址上发现相同序列号则重新绑定。",
   "ui_feat_bar_flip": "灯条反向安装",
   "ui_feat_bar_flip_sub": "把灯条首尾对调绘制，倒装的机器也能正常读取。每个效果自身的方向仍在此之上生效。",
+  "ui_feat_bridge": "风道桥接",
+  "ui_feat_bridge_sub": "绑定运行本家固件的风道设备，配对一次，在仪表盘查看它在做什么，并把它的颜色或效果复制到本机。",
   "ui_feat_config_io": "设置导出为单个文件",
   "ui_feat_config_io_sub": "导出与导入除三个密码以外的全部已存设置。",
   "ui_feat_diagnostics": "用闪烁提示故障",
