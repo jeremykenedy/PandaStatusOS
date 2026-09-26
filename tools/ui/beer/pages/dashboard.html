@@ -74,7 +74,51 @@
         <label class="switch"><input type="checkbox" id="ps-pctl-chamber-light" aria-labelledby="lbl-pctl-chamber-light"><span></span></label>
       </li>
 
+      <!-- The fans and the print speed. Each row appears only once the printer has
+           reported that fan, for the same reason the light rows do: a slider at zero for a
+           fan nobody has mentioned is a reading, and it would be a made up one. The number
+           on the right is the slider's own value: while a finger is on it that is where the
+           finger is, and every other moment it is what the printer last said, because that
+           is what wrote the slider.
+
+           step is 1 and not 5 so that the slider can sit exactly where the printer says it
+           is. The printer runs its fans in fifteenths and reports them that way, which lands
+           on 7, 13, 20, 27 and so on once converted; a step of 5 would snap every one of
+           those to a neighbour and the row would show a number the fan is not running at. A
+           fan asked for 63 will report back 60 or 67 and the slider will move there, which
+           is the printer's own granularity showing through rather than being hidden. -->
+      <li id="ps-pctl-fan-part-row" hidden>
+        <svg class="i"><use href="#i-fan"/></svg>
+        <div class="max" data-str="ui_fan_part" id="lbl-pctl-fan-part">Part cooling fan</div>
+        <label class="slider"><input type="range" min="0" max="100" step="1" value="0"
+               id="ps-pctl-fan-part" aria-labelledby="lbl-pctl-fan-part"><span></span></label>
+        <span class="small-text" id="ps-pctl-fan-part-value"></span>
+      </li>
+      <li id="ps-pctl-fan-aux-row" hidden>
+        <svg class="i"><use href="#i-fan"/></svg>
+        <div class="max" data-str="ui_fan_aux" id="lbl-pctl-fan-aux">Aux fan</div>
+        <label class="slider"><input type="range" min="0" max="100" step="1" value="0"
+               id="ps-pctl-fan-aux" aria-labelledby="lbl-pctl-fan-aux"><span></span></label>
+        <span class="small-text" id="ps-pctl-fan-aux-value"></span>
+      </li>
+      <li id="ps-pctl-fan-chamber-row" hidden>
+        <svg class="i"><use href="#i-fan"/></svg>
+        <div class="max" data-str="ui_fan_chamber" id="lbl-pctl-fan-chamber">Chamber fan</div>
+        <label class="slider"><input type="range" min="0" max="100" step="1" value="0"
+               id="ps-pctl-fan-chamber" aria-labelledby="lbl-pctl-fan-chamber"><span></span></label>
+        <span class="small-text" id="ps-pctl-fan-chamber-value"></span>
+      </li>
+
     </ul>
+    <div class="padding" id="ps-pctl-speed-wrap" hidden>
+      <div class="small-text" data-str="ui_print_speed">Print speed</div>
+      <nav class="segmented" id="ps-pctl-speed" role="radiogroup" aria-label="Print speed" data-str-aria="ui_print_speed">
+        <button data-level="1" role="radio" aria-checked="false" data-str="speed_word_1">Silent</button>
+        <button data-level="2" role="radio" aria-checked="false" data-str="speed_word_2">Standard</button>
+        <button data-level="3" role="radio" aria-checked="false" data-str="speed_word_3">Sport</button>
+        <button data-level="4" role="radio" aria-checked="false" data-str="speed_word_4">Ludicrous</button>
+      </nav>
+    </div>
     <div class="padding">
       <div class="small-text" id="ps-pctl-locked" hidden data-str="ui_the_printer_is_refusing_commands_t">The printer is refusing commands. Turn on
         Developer Mode, under LAN Only Mode, on the printer's own screen.</div>

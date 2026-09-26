@@ -22,7 +22,14 @@
     "access_code": "<PRINTER_ACCESS_CODE>",
     "ip": "192.0.2.20",
     "state": 3,
-    "scan": 5
+    "scan": 5,
+    "status": {
+      "printer_light": 1,
+      "fan_part": 40,
+      "fan_aux": 70,
+      "fan_chamber": 0,
+      "uptime_s": 0
+    }
   },
   "settings": {
     "list2": [

@@ -27,19 +27,42 @@ features beyond its clone, the faults it found, and its harness suite.
 | More than seven effects | Twenty-four |
 | Per-effect brightness, speed and direction | A4, `effect_params` |
 | Twenty-four languages, every key complete | Twenty-four, 590 keys |
+| Printer fans and print speed over `printer_ctl` | Three fan sliders and four speed levels on the Printer controls card, `t-pctl.js` (2026-09-26) |
 
 ## What has not
 
-Each of these exists on the vent and does not exist here. None is started.
+Each of these exists on the vent and does not exist here. The numbers are stable: a done
+item keeps its number and says so, so that a list written against this file still reads.
 
-### 1. Printer controls, beyond the one lamp
+### 1. Printer controls, beyond the one lamp — DONE 2026-09-26
 
-The vent drives the printer's fans and its print speed over `printer_ctl`, and has three
-harnesses for it. Here, `apply_printer_ctl()` reads one key, `light`, and nothing else:
-the Printer controls card is a single switch. The same envelope rules apply, so what the
-vent does is what is possible: `system.*` and `camera.*` are not signature-checked,
-`print.*` is, and Developer Mode under LAN Only Mode is the switch that makes writes
-land at all.
+`apply_printer_ctl()` now takes three shapes: `{fan,percent}`, `{speed}` and the `{light,on}`
+it already had. The card carries a slider per fan the printer has actually named and a
+four-level speed control, `ps_printer_fan_set()` sends `M106 P1|P2|P3 S0..255` and
+`ps_printer_speed_set()` sends `print_speed` with "1".."4", both inside the `print` envelope
+that Developer Mode under LAN Only Mode gates. `t-pctl.js` is the harness, 41 assertions,
+and the mock grew `printer_ctl` (recorded always, echoed under `PS_PCTL_ECHO`), a
+`printer.status` on the printing fixture, `speed_level` on `/api/print`, and a
+`/__printer_status` debug route so a harness can make the printer report whatever it likes.
+
+Two faults came out of writing it, both older than this item:
+
+- **The focus rule was freezing controls.** `setChecked(id, on, guardFocus)` refused to write
+  a switch that had focus, and the light settle did the same. A switch that has just been
+  clicked HAS focus and keeps it, so a lamp the printer refused, or a hotspot that dropped on
+  its own, went on being drawn the way the last finger left it for as long as the page stayed
+  open. The guard is gone from all three switches; what protects a command in flight is the
+  bounded settle window, which ends with the device winning. The same reasoning is why the fan
+  sliders are held by module 3b's window and not by focus: `t-pctl.js` D0 and I5 assert the
+  control still has focus at the moment the device is allowed to win, so the rule cannot come
+  back unnoticed.
+- **A stale firmware binary was passing a page check.** `test-flash-tools.sh` compared the
+  page embedded in `firmware/build` with `firmware/main/ui.html` through an unquoted `eval` of
+  `appdesc` output, and `DATE=Sep 25 2026` made the shell run `25` as a command. The row could
+  only ever have been read as a page mismatch. Values are quoted now.
+
+The fan scale is the printer's, not ours: it reports fans in fifteenths, so the sliders step
+by 1 and land where the printer says rather than snapping to a five.
 
 ### 2. The camera
 
@@ -61,7 +84,7 @@ says so in its own text. Direction here is per-effect only.
 
 ### 5. The harness classes this suite does not have
 
-The vent runs forty harnesses. This tree runs thirteen. The gap is not coverage of the
+The vent runs forty harnesses. This tree runs fourteen. The gap is not coverage of the
 same things, it is whole classes of check that do not exist here:
 
 | Vent harness | What it catches | Here |

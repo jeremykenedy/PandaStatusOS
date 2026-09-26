@@ -79,10 +79,20 @@ function setInputValue(id, val) {
 }
 
 /* Write a checkbox, optionally guarding against a focused control. */
-function setChecked(id, on, guardFocus) {
+/* A switch is written from the device, always.
+   
+   The focus rule the text fields keep (§10.1, §12: never write a field someone is typing in)
+   used to be kept here too, and it was wrong. Typing has a duration; flipping a switch does
+   not. What a clicked switch has is FOCUS, which it then keeps until something else is
+   touched, so a focus rule here does not protect an interaction in progress, it silences the
+   device for the rest of the session: a lamp the printer refused, or a hotspot that dropped
+   on its own, would go on being drawn the way the last finger left it.
+   
+   What actually protects a command in flight is the settle window in module 3b, which is
+   bounded and ends with the device winning. That is the only hold on a switch. */
+function setChecked(id, on) {
   var el = byId(id);
   if (!el) return;
-  if (guardFocus && document.activeElement === el) return;
   el.checked = !!on;
 }
 
@@ -1257,7 +1267,7 @@ function handle_ap() {
   setInputValue('ps-ap-ssid', ap.ssid);
   setInputValue('ps-password-ap', ap.password);
   setInputValue('ps-ap-ip', ap.ip);
-  setChecked('ps-btn-ap-on', ap.on, true);
+  setChecked('ps-btn-ap-on', ap.on);
   var sw = byId('ps-card-ap-switch');
   if (sw) sw.classList.toggle('active', !!ap.on);
   var note = byId('ps-label-ap-note');
@@ -1292,14 +1302,62 @@ function handle_pctl() {
   var clRow = byId('ps-pctl-chamber-light-row');
   var hasCL = (st.printer_light === 0 || st.printer_light === 1);
   if (clRow) clRow.hidden = !hasCL;
-  if (hasCL) setChecked('ps-pctl-chamber-light', st.printer_light, true);
+  if (hasCL) setChecked('ps-pctl-chamber-light', st.printer_light);
 
+  /* There is no work light row in the markup, on purpose: this printer names a work_light
+     node in its report and has no such lamp, so the device reads it and does not publish it
+     (ps_state.c, the printer status object). The branch stays because the rule is the same
+     one, and a printer that does have the lamp needs only the row and the publish. */
   var wlRow = byId('ps-pctl-work-light-row');
   var hasWL = (st.work_light === 0 || st.work_light === 1);
   if (wlRow) wlRow.hidden = !hasWL;
-  if (hasWL) setChecked('ps-pctl-work-light', st.work_light, true);
+  if (hasWL) setChecked('ps-pctl-work-light', st.work_light);
 
-  if (card) card.hidden = (printer.state !== 3) || (!hasCL && !hasWL);
+  /* The fans, one row per fan the printer has actually named. A fan named once stays named:
+     the state document is merged, a report that does not repeat a fan is not a fan that
+     stopped existing, and a row that vanished every time a report was partial would be
+     worse than a row a second stale.
+
+     The slider follows the printer except while module 3b is holding it. That hold, and not
+     focus, is the rule here: a slider keeps focus after the finger leaves it, so the focus
+     rule the switches and the text fields keep would freeze the row at the last value
+     dragged and the printer's reading would never appear in it again. */
+  var FANS = [
+    { row: 'ps-pctl-fan-part-row',    id: 'ps-pctl-fan-part',    field: 'fan_part' },
+    { row: 'ps-pctl-fan-aux-row',     id: 'ps-pctl-fan-aux',     field: 'fan_aux' },
+    { row: 'ps-pctl-fan-chamber-row', id: 'ps-pctl-fan-chamber', field: 'fan_chamber' }
+  ];
+  var anyFan = false;
+  for (var fi = 0; fi < FANS.length; fi++) {
+    var f = FANS[fi];
+    var have = isNum(st[f.field]);
+    var frow = byId(f.row);
+    if (frow) frow.hidden = !have;
+    if (!have) continue;
+    anyFan = true;
+    var fel = byId(f.id);
+    var held = (typeof pctl_held === 'function') && pctl_held(f.id);
+    if (fel && !held) fel.value = st[f.field];
+    if (fel) setText(f.id + '-value', fmtPct(Number(fel.value)));
+  }
+
+  /* The speed control. The level the printer is running at comes with the print document,
+     not with the printer's status, so it is read from there; with no print running there is
+     no level to mark and none is marked. */
+  var lvl = (window.g_last_print && isNum(window.g_last_print.speed_level)) ? window.g_last_print.speed_level : 0;
+  var spWrap = byId('ps-pctl-speed-wrap');
+  var spNav = byId('ps-pctl-speed');
+  if (spWrap) spWrap.hidden = (printer.state !== 3);
+  if (spNav) {
+    var btns = spNav.querySelectorAll('button[data-level]');
+    for (var bi = 0; bi < btns.length; bi++) {
+      var on = Number(btns[bi].getAttribute('data-level')) === lvl;
+      btns[bi].classList.toggle('is-on', on);
+      btns[bi].setAttribute('aria-checked', on ? 'true' : 'false');
+    }
+  }
+
+  if (card) card.hidden = (printer.state !== 3) || (!hasCL && !hasWL && !anyFan);
 
   setHidden('ps-pctl-locked', !g_pctl_locked);
 

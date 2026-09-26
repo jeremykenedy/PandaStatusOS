@@ -344,15 +344,46 @@ static uint32_t apply_printer(cJSON *m, int client)
     return 0;
 }
 
-/* The page asking the printer to switch a light: { light:"chamber_light"|"work_light", on:0|1 }.
+/* The page asking the printer to do something. Three shapes, one per thing:
+ *
+ *   { light:"chamber_light"|"work_light", on:0|1 }
+ *   { fan:"part"|"aux"|"chamber", percent:0..100 }
+ *   { speed:1..4 }
+ *
+ * It is its own root and not a member of "printer" on purpose: "printer" is where the
+ * binding lives, and a message that changes which printer this device talks to and a
+ * message that spins that printer's fan are not the same kind of thing. Under one key is
+ * how one gets sent while aiming at the other.
  *
  * Nothing is stored and no root is marked changed. The command goes to the printer and the
- * printer's own telemetry is what moves the switch back on the page, so a command the printer
- * refuses leaves the page showing the truth rather than the request. The page holds the
- * flipped switch against stale pushes for a few seconds on its own. */
+ * printer's own telemetry is what moves the control back on the page, so a command the
+ * printer refuses leaves the page showing the truth rather than the request. The page holds
+ * a flipped switch against stale pushes for a few seconds on its own.
+ *
+ * The light is the one the printer takes without Developer Mode. The fan and the speed go
+ * in the `print` envelope, which is signature-checked, so they need it. Both are sent
+ * anyway: a printer that has it accepts them, and the card says what is required. */
 static uint32_t apply_printer_ctl(cJSON *m, int client)
 {
     (void)client;
+    const char *fan = str(m, "fan");
+    if (fan && has(m, "percent")) {
+        int which = 0;
+        if      (!strcmp(fan, "part"))    which = PS_FAN_PART;
+        else if (!strcmp(fan, "aux"))     which = PS_FAN_AUX;
+        else if (!strcmp(fan, "chamber")) which = PS_FAN_CHAMBER;
+        else return 0;
+        int pct = num(m, "percent", -1);
+        if (pct < 0 || pct > 100) return 0;
+        ps_printer_fan_set(which, pct);
+        return 0;
+    }
+    if (has(m, "speed")) {
+        int level = num(m, "speed", -1);
+        if (level < 1 || level > 4) return 0;
+        ps_printer_speed_set(level);
+        return 0;
+    }
     const char *light = str(m, "light");
     if (!light || !has(m, "on")) return 0;
     int on = num(m, "on", -1);

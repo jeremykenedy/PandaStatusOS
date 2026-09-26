@@ -56,6 +56,10 @@ ROWS=(
   # the stage images card, both branches: a unit with nowhere to put one (the zero above,
   # inside t-stages.js) and a unit that has room
   "p2-idle.json      | t-images.js   | PS_CLONE=1 PS_IMG_SLOT_BYTES=98304"
+  # the printer controls, on the one fixture whose printer is actually printing: the rows
+  # exist per fan the printer named, a drag sends one command, and the speed level comes
+  # from the print document rather than the printer's status
+  "p2-printing.json  | t-pctl.js     | PS_CLONE=1 PS_PRINT_PERCENT=37 PS_PRINT_SPEED=2"
 )
 
 pass=0; fail=0; failed=()

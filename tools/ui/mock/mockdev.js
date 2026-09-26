@@ -130,7 +130,7 @@ const LOG = env('PS_LOG', '');
 
 const CONNECT_ROOTS = ['wifi', 'sta', 'ap', 'printer', 'settings', 'block'];
 const SETTINGS_PUSH_KEYS = ['list2', 'current_mode', 'fw_version', 'language'];
-const OUTBOUND_ROOTS = new Set(['settings', 'wifi', 'sta', 'ap', 'printer', 'block']);
+const OUTBOUND_ROOTS = new Set(['settings', 'wifi', 'sta', 'ap', 'printer', 'block', 'printer_ctl']);
 const RESPONSE_TYPES = new Set(['set_hostname', 'set_ap', 'set_hotspot_ip', 'factory_reset', 'ota_fw', 'ota_img']);
 const GIF_SLOTS = ['standby', 'nozzle_heating', 'bed_heating', 'bed_leveling', 'homing', 'nozzle_cleaning',
   'calibrating_flow', 'xy_mesh_mode_sweep', 'filament_check_location', 'filament_cut',
@@ -581,7 +581,40 @@ function applyBlock(ws, m) {
   return ['block'];
 }
 
-const APPLY = { settings: applySettings, wifi: applyWifi, sta: applySta, ap: applyAp, printer: applyPrinter, block: applyBlock };
+// The clone's own root: the page asking the DEVICE to ask the PRINTER for something.
+//
+// The device stores nothing for it and pushes nothing back: the printer answers in its own
+// time, through telemetry, and that is what moves the control on the page. So the default
+// here is to record the frame and do nothing, which is what the hardware does.
+//
+//   PS_PCTL_ECHO=1   a printer that obeys: the ask is written into printer.status and
+//                    pushed, after PS_PCTL_ECHO_MS (default 300), so a harness can watch a
+//                    control follow the printer rather than its own finger.
+//   PS_PCTL_DEAF=1   a printer that refuses everything: nothing is ever echoed. Same as the
+//                    default, named, so a row can say which case it is testing.
+function applyPrinterCtl(ws, m) {
+  if (!knobFlag('PS_PCTL_ECHO')) return null;
+  const st = (STATE.printer && STATE.printer.status) || null;
+  if (!st) return null;
+  const after = Number(knob('PS_PCTL_ECHO_MS', 300));
+  const patch = {};
+  if (typeof m.light === 'string' && (m.on === 0 || m.on === 1)) {
+    if (m.light === 'chamber_light') patch.printer_light = m.on;
+    if (m.light === 'work_light') patch.work_light = m.on;
+  } else if (typeof m.fan === 'string' && typeof m.percent === 'number') {
+    const field = { part: 'fan_part', aux: 'fan_aux', chamber: 'fan_chamber' }[m.fan];
+    if (field) patch[field] = m.percent;
+  }
+  if (!Object.keys(patch).length) return null;
+  setTimeout(() => {
+    Object.assign(st, patch);
+    pushAfterChange(ws, ['printer']);
+    log({ ev: 'pctl_echo', detail: JSON.stringify(patch) });
+  }, after);
+  return null;
+}
+
+const APPLY = { settings: applySettings, wifi: applyWifi, sta: applySta, ap: applyAp, printer: applyPrinter, block: applyBlock, printer_ctl: applyPrinterCtl };
 
 function handleInbound(ws, text) {
   const rec = { t: Date.now(), rel_ms: Date.now() - t0, text };
@@ -657,6 +690,21 @@ async function handleHttp(req, res) {
     });
     res.writeHead(200); return res.end('ok');
   }
+  if (p === '/__printer_status' && req.method === 'POST') {
+    // debug only: the printer's next report. Fields given are merged into printer.status and
+    // a null removes one, then the printer root is pushed. Protocol-wise this is nothing but
+    // the printer reporting, which is the only way anything about a fan or a lamp ever moves;
+    // it is here so a harness can drive "the printer stopped naming the chamber fan" and "a
+    // push lands still carrying the old value", which is what the page's hold on a dragged
+    // control exists for and what no knob could express.
+    const { body } = await readBody(req, 1 << 12);
+    let j = {}; try { j = JSON.parse(body.toString('utf8') || '{}'); } catch (_) { j = {}; }
+    STATE.printer.status = STATE.printer.status || {};
+    for (const k of Object.keys(j)) { if (j[k] === null) delete STATE.printer.status[k]; else STATE.printer.status[k] = j[k]; }
+    log({ ev: 'printer_status', detail: Object.keys(j).join(',') });
+    for (const ws of sockets) push(ws, { printer: rootBody('printer') }, 'printer_status');
+    res.writeHead(200); return res.end('ok');
+  }
   if (p === '/__sent') { res.writeHead(200, { 'Content-Type': 'application/json' }); return res.end(JSON.stringify(SENT)); }
   if (p === '/__pushed') { res.writeHead(200, { 'Content-Type': 'application/json' }); return res.end(JSON.stringify(PUSHED)); }
   if (p === '/__state') { res.writeHead(200, { 'Content-Type': 'application/json' }); return res.end(JSON.stringify(STATE)); }
@@ -720,6 +768,10 @@ async function handleHttp(req, res) {
         bed:     Number(knob('PS_PRINT_BED', -1000)),
         chamber: Number(knob('PS_PRINT_CHAMBER', -1000)),
       },
+      // PS_PRINT_SPEED 1..4, silent to ludicrous. Minus one is what the device sends for a
+      // printer that has not said which level it is running at (ps_api.c, spd_lvl starts at
+      // -1), so it is the default here too: the speed control then marks nothing.
+      speed_level: Number(knob('PS_PRINT_SPEED', -1)),
     };
     res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
     return res.end(JSON.stringify(doc));

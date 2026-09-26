@@ -367,6 +367,56 @@ int ps_printer_light_set(const char *node, int on)
     return rc >= 0 ? 0 : -1;
 }
 
+/* The printer's fans, and the print speed. Both go in the `print` envelope, and the
+ * printer signature-checks everything in that envelope: the sibling project measured it
+ * one command at a time on a real P2S, and every gcode_line and print_speed came back
+ * `mqtt message verify failed` while a ledctrl on the same connection seconds apart came
+ * back `result: success`. What unlocks them is Developer Mode, which sits under LAN Only
+ * Mode and is a separate switch; LAN Only on its own is not enough.
+ *
+ * So these are sent, and a printer that is not in Developer Mode refuses them. That is the
+ * printer's rule and not this device's, and the page says so on the card that offers them.
+ * As with the light, nothing is written into g_ps here: what the fan actually ends up doing
+ * arrives in the next report, from the printer, which is the only thing that knows. */
+
+/* M106 P<part> S<0..255>. The part indices are Bambu's own, from its gcode: P1 the part
+ * cooling fan, P2 the aux fan, P3 the chamber fan. The page works in percent because
+ * percent is what the printer reports back, so the one place that knows about 255 is here. */
+int ps_printer_fan_set(int which, int percent)
+{
+    if (!s_client || !s_topic_request[0]) return -1;
+    if (which < PS_FAN_PART || which > PS_FAN_CHAMBER) return -1;
+    if (percent < 0) percent = 0;
+    if (percent > 100) percent = 100;
+    int s255 = (percent * 255 + 50) / 100;
+    static unsigned seq = 1;
+    char body[192];
+    int n = snprintf(body, sizeof body,
+        "{\"print\":{\"sequence_id\":\"%u\",\"command\":\"gcode_line\",\"param\":\"M106 P%d S%d\\n\"}}",
+        seq++, which, s255);
+    if (n <= 0 || n >= (int)sizeof body) return -1;
+    int rc = esp_mqtt_client_publish(s_client, s_topic_request, body, n, 0, 0);
+    ESP_LOGI(TAG, "fan P%d %d%% (S%d): %s", which, percent, s255, rc >= 0 ? "sent" : "not sent");
+    return rc >= 0 ? 0 : -1;
+}
+
+/* print_speed takes 1 to 4: silent, standard, sport, ludicrous. The same four the printer's
+ * own screen offers and the same four the print strip names. */
+int ps_printer_speed_set(int level)
+{
+    if (!s_client || !s_topic_request[0]) return -1;
+    if (level < 1 || level > 4) return -1;
+    static unsigned seq = 1;
+    char body[128];
+    int n = snprintf(body, sizeof body,
+        "{\"print\":{\"sequence_id\":\"%u\",\"command\":\"print_speed\",\"param\":\"%d\"}}",
+        seq++, level);
+    if (n <= 0 || n >= (int)sizeof body) return -1;
+    int rc = esp_mqtt_client_publish(s_client, s_topic_request, body, n, 0, 0);
+    ESP_LOGI(TAG, "print speed %d: %s", level, rc >= 0 ? "sent" : "not sent");
+    return rc >= 0 ? 0 : -1;
+}
+
 int ps_printer_start(void)
 {
     ps_lock(); bool bound = g_ps.cfg.printer_sn[0] && g_ps.cfg.printer_ip[0]; ps_unlock();

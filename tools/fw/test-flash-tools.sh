@@ -120,7 +120,9 @@ python3 -c "import struct,zlib,sys; s=struct.pack('<I',2); open(sys.argv[1],'wb'
 t "otadata: seq 2 in the second entry boots ota_1" "$([ "$($FI otadata "$T/ota2.bin" 2 | awk -F= '/ACTIVE/{print $2}')" = 1 ]; echo $?)"
 printf '\xff%.0s' $(seq 1 8192) > "$T/otaff.bin"
 t "otadata: erased means no valid entry" "$([ "$($FI otadata "$T/otaff.bin" 2 | awk -F= '/ACTIVE/{print $2}')" = none ]; echo $?)"
-eval "$($FI appdesc "$BIN" | sed 's/^/A_/')"
+# The values are quoted on the way in: DATE is "Sep 25 2026", and an unquoted eval of that
+# line sets A_DATE=Sep and then tries to run "25" as a command.
+eval "$($FI appdesc "$BIN" | sed 's/^\([A-Z0-9_]*\)=\(.*\)$/A_\1="\2"/')"
 t "appdesc reads the built image's identity and page" "$([ "$A_PROJECT" = pandastatusos ] && [ ${#A_BUILD} -eq 16 ] && [ "$A_PAGE_SHA256" != none ]; echo $?)"
 t "appdesc page equals firmware/main/ui.html" "$([ "$A_PAGE_SHA256" = "$(shasum -a 256 "$ROOT/firmware/main/ui.html" | awk '{print $1}')" ]; echo $?)"
 head -c 4096 /dev/urandom > "$T/noise.bin"
