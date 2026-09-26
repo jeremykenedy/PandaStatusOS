@@ -19,8 +19,28 @@
 (function () {
   'use strict';
 
-  var PRESETS = ['#FFFFFF', '#FF0000', '#FF7F00', '#FFD400', '#00C000',
-                 '#00B7C3', '#0066FF', '#7B2FF7', '#FF2D8D', '#000000'];
+  /* The presets, each with its name written on it in the page's language.
+     A row of bare coloured squares is a row of guesses to anyone who cannot
+     tell the colours apart, and a tooltip is no help on a phone, so the name
+     is part of the button. They are in addition to the wheel and the two
+     typed fields, not instead of them. Off is black, which on a light bar is
+     the pixel switched off: what the unlit colours usually want. */
+  var PRESETS = [
+    { key: 'ui_pick_white',      en: 'White',      hex: '#FFFFFF' },
+    { key: 'ui_pick_warm_white', en: 'Warm white', hex: '#FFE0B0' },
+    { key: 'ui_pick_red',        en: 'Red',        hex: '#FF0000' },
+    { key: 'ui_pick_orange',     en: 'Orange',     hex: '#FF7F00' },
+    { key: 'ui_pick_amber',      en: 'Amber',      hex: '#FFBF00' },
+    { key: 'ui_pick_yellow',     en: 'Yellow',     hex: '#FFFF00' },
+    { key: 'ui_pick_green',      en: 'Green',      hex: '#00FF00' },
+    { key: 'ui_pick_teal',       en: 'Teal',       hex: '#00A080' },
+    { key: 'ui_pick_cyan',       en: 'Cyan',       hex: '#00FFFF' },
+    { key: 'ui_pick_blue',       en: 'Blue',       hex: '#0000FF' },
+    { key: 'ui_pick_purple',     en: 'Purple',     hex: '#8000FF' },
+    { key: 'ui_pick_magenta',    en: 'Magenta',    hex: '#FF00FF' },
+    { key: 'ui_pick_pink',       en: 'Pink',       hex: '#FF69B4' },
+    { key: 'ui_pick_off',        en: 'Off',        hex: '#000000' }
+  ];
 
   var dlg, wheel, preview, hexIn, hslIn, presetRow;
   var iroPicker = null;
@@ -67,7 +87,20 @@
     return [Math.round(h), Math.round(s * 100), Math.round(l * 100)];
   }
 
+  /* The preset that is the colour being chosen wears a ring and a bold name,
+     whichever way the colour got there: a tap, the wheel, or a typed value. */
+  function mark(hex) {
+    if (!presetRow) return;
+    var want = clampHex(hex);
+    var btns = presetRow.querySelectorAll('[data-ps-hex]');
+    for (var i = 0; i < btns.length; i++) {
+      var on = !!want && btns[i].getAttribute('data-ps-hex') === want;
+      btns[i].setAttribute('aria-pressed', on ? 'true' : 'false');
+    }
+  }
+
   function show(hex) {
+    mark(hex);
     if (preview) preview.style.background = hex;
     if (hexIn && document.activeElement !== hexIn) hexIn.value = hex;
     if (hslIn && document.activeElement !== hslIn) hslIn.value = toHsl(hex).join(', ');
@@ -80,15 +113,33 @@
   }
 
   function build_presets() {
-    if (!presetRow || presetRow.childNodes.length) return;
-    PRESETS.forEach(function (c) {
-      var b = document.createElement('button');
-      b.className = 'swatch small-round';
-      b.style.background = c;
-      b.setAttribute('aria-label', c);
-      b.addEventListener('click', function () { show(c); });
-      presetRow.appendChild(b);
-    });
+    if (!presetRow) return;
+    if (!presetRow.querySelector('[data-ps-hex]')) {
+      PRESETS.forEach(function (c) {
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.setAttribute('data-ps-hex', c.hex);
+        b.setAttribute('aria-pressed', 'false');
+        var chip = document.createElement('span');     /* the colour */
+        chip.className = 'chip';
+        chip.style.background = c.hex;
+        var nm = document.createElement('span');       /* and the word for it */
+        nm.className = 'nm';
+        b.appendChild(chip);
+        b.appendChild(nm);
+        b.addEventListener('click', function () { show(c.hex); });
+        presetRow.appendChild(b);
+      });
+    }
+    /* Named in the current language every time the dialog opens, because the
+       language can change while the page is up. */
+    var btns = presetRow.querySelectorAll('[data-ps-hex]');
+    for (var i = 0; i < btns.length && i < PRESETS.length; i++) {
+      var name = tr(PRESETS[i].key, PRESETS[i].en);
+      var nmEl = btns[i].querySelector('.nm');
+      if (nmEl) nmEl.textContent = name;
+      btns[i].setAttribute('aria-label', name);
+    }
   }
 
   function ensure_wheel() {
@@ -102,6 +153,7 @@
                  { component: window.iro.ui.Slider, options: { sliderType: 'value' } }]
       });
       iroPicker.on('color:change', function (c) {
+        mark(c.hexString);
         if (preview) preview.style.background = c.hexString;
         if (hexIn && document.activeElement !== hexIn) hexIn.value = c.hexString.toUpperCase();
         if (hslIn && document.activeElement !== hslIn) hslIn.value = toHsl(c.hexString).join(', ');

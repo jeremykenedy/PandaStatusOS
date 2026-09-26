@@ -142,6 +142,22 @@ JS_ONLY = {
     'ui_stage_standby': 'Standby',
     'ui_stage_xy_mesh_mode_sweep': 'Sweeping the mesh',
     'ui_ap_note_off': 'Only appears when the vent cannot join the network it knows about.',
+    # The colour picker's presets, each named on the button. Built from a list in
+    # 05b-picker.js, so no page file names them.
+    'ui_pick_white': 'White',
+    'ui_pick_warm_white': 'Warm white',
+    'ui_pick_red': 'Red',
+    'ui_pick_orange': 'Orange',
+    'ui_pick_amber': 'Amber',
+    'ui_pick_yellow': 'Yellow',
+    'ui_pick_green': 'Green',
+    'ui_pick_teal': 'Teal',
+    'ui_pick_cyan': 'Cyan',
+    'ui_pick_blue': 'Blue',
+    'ui_pick_purple': 'Purple',
+    'ui_pick_magenta': 'Magenta',
+    'ui_pick_pink': 'Pink',
+    'ui_pick_off': 'Off',
     # Set from JS when the password is revealed (the shown state's title).
     'ui_hide_the_password': 'Hide the password',
 }
