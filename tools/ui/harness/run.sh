@@ -54,8 +54,32 @@ fi
 
 node "$MOCK" > "$LOGDIR/mock-stdout.log" 2>&1 &
 MOCK_PID=$!
-cleanup() { kill "$MOCK_PID" 2>/dev/null; wait "$MOCK_PID" 2>/dev/null; }
+VENT_PID=""
+cleanup() {
+    kill "$MOCK_PID" 2>/dev/null; wait "$MOCK_PID" 2>/dev/null
+    [ -n "$VENT_PID" ] && { kill "$VENT_PID" 2>/dev/null; wait "$VENT_PID" 2>/dev/null; }
+    return 0
+}
 trap cleanup EXIT
+
+# A row that says PS_WITH_VENT=1 gets a mock vent beside the mock device, on its own port.
+# The bridge is a protocol between two devices (docs/PANDAVENT-BRIDGE.md), so a harness for it
+# needs both ends up; starting it here rather than inside the harness keeps the rule that a
+# row's environment is the whole of what that row needs.
+if [ "${PS_WITH_VENT:-}" = "1" ]; then
+    export PV_PORT="${PV_PORT:-8299}"
+    if curl -s -m 1 -o /dev/null "http://127.0.0.1:$PV_PORT/bridge/id"; then
+        echo "something already answers on port $PV_PORT. Not starting a second mock vent." >&2; exit 2
+    fi
+    node "$ROOT/tools/ui/mock/mockvent.js" > "$LOGDIR/mockvent-stdout.log" 2>&1 &
+    VENT_PID=$!
+    for _ in $(seq 1 40); do
+        curl -s -m 1 -o /dev/null "http://127.0.0.1:$PV_PORT/bridge/id" && break
+        kill -0 "$VENT_PID" 2>/dev/null || { echo "mock vent exited early:" >&2; cat "$LOGDIR/mockvent-stdout.log" >&2; exit 2; }
+        sleep 0.15
+    done
+    curl -s -m 1 -o /dev/null "http://127.0.0.1:$PV_PORT/bridge/id" || { echo "mock vent never answered on $PV_PORT" >&2; exit 2; }
+fi
 
 # wait for the mock, up to ~6 s
 for _ in $(seq 1 40); do

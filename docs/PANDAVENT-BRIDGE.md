@@ -186,18 +186,32 @@ hot-warning threshold is. Which segment, colour and pattern each vent state gets
 configuration on the status side, with defaults that keep the bar readable from across
 a room: sealing pulses, moving sweeps, an error strobes the error colour.
 
-## What the mock vent does
+## What the mock vent does — BUILT 2026-09-26
 
-`tools/ui/mock/mockvent.js` (to be written with the PandaStatusOS side) advertises itself,
-answers the pairing exchange, sends `vent` frames on a timer, accepts commands and
-echoes the state change, and lies on demand like `mockdev.js`: slow, silent, gone,
-wrong identity, wrong token. The PandaStatusOS side is built and tested against it; the real
-vent is never touched during that work.
+`tools/ui/mock/mockvent.js` answers `GET /bridge/id`, speaks the exchange above on a socket
+at `/bridge`, sends `vent` frames on every change and on a heartbeat, takes `open`, `close`
+and `policy`, keeps the `light` frames it is sent, and lies on demand the way `mockdev.js`
+does: `PV_SLOW`, `PV_SILENT`, `PV_GONE`, `PV_WRONG_ID`, `PV_WRONG_TOKEN`, `PV_NO_PAIR`,
+`PV_NO_ACK`, `PV_DROP_AFTER`. It does not advertise itself over mDNS: a node process cannot
+be made to answer for a device that is not there, so discovery is proved on the device side
+and this end is bound by address, which is the contract's own fallback.
+
+`tools/ui/harness/vent.js` plays the status side by hand, frame by frame, and holds the mock
+to the document: the identity over HTTP, the first hello and its pairing code, the token both
+ends derive, a returning peer proving itself without sending the token, the three commands
+and their acks, an unknown command refused rather than ignored, a light frame kept as sent, a
+peer whose proof fails told `bye {unpaired}` and closed, a command from a socket that never
+said hello refused outright, the heartbeat, and the three silences. Thirty-two assertions, a
+row in the sweep (`PS_WITH_VENT=1`).
+
+When `ps_bridge.c` is written it is written against this same exchange, and if the two
+disagree one of them is wrong in a way that can be pointed at. The real vent is not touched
+during any of it.
 
 ## Order of work
 
-1. This document, agreed by both projects.
-2. The mock vent.
+1. This document, agreed by both projects. **Done.**
+2. The mock vent. **Done 2026-09-26**, with the harness that holds it to the document.
 3. PandaStatusOS side: the flag, discovery, pairing, `vent` in and `light` out, on the page
    behind the flag, with harnesses and screenshots.
 4. Vent side, in its own repository, against a mock status.

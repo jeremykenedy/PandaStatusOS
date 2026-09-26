@@ -214,9 +214,15 @@ is, written down here, because it is a design decision and not a defect.
 ## The vent bridge
 
 Separate from parity, and its own document: [PANDAVENT-BRIDGE.md](PANDAVENT-BRIDGE.md).
-Three things were asked for and none is built: the two copy switches inside a bind-a-vent
-card, a vent status card on the dashboard, and a vent settings page that has to speak to
-three different firmwares (the factory's, PandaVent OS's, and DragonVent's).
+Three things were asked for: the two copy switches inside a bind-a-vent card, a vent status
+card on the dashboard, and a vent settings page that has to speak to three different
+firmwares (the factory's, PandaVent OS's, and DragonVent's).
+
+That document sets the order of work, and step 2 of it is done: **the mock vent is built**
+(`tools/ui/mock/mockvent.js`), with `tools/ui/harness/vent.js` holding it to the contract in
+32 assertions and a row in the sweep. Nothing of the device side exists yet, which is the
+point of the order: the page and the firmware are built against a vent that can be made to
+lie, and the real vent is not touched until they are.
 
 ## Catalogued elsewhere, still open
 

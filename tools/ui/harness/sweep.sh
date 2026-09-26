@@ -36,6 +36,10 @@ ROWS=(
   # mode is covered by nows.js, which asserts the upgrade is refused.
   "p2-idle.json      | nows.js | PS_NO_WS=1"
 
+  # --- the other end of the bridge, before the device side exists to trust it: the mock vent
+  # is played against by hand, frame by frame, as the firmware will have to (PANDAVENT-BRIDGE)
+  "p2-idle.json      | vent.js | PS_WITH_VENT=1"
+
   # --- the JSON API (C2): against the factory every /api path is a 302; against the clone the
   # read-only routes answer and the gated ones answer only while their switch is on ---
   "p2-idle.json      | api.js | "
