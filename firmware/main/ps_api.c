@@ -378,13 +378,9 @@ int ps_api_preview_post(httpd_req_t *req)
 {
     if (!preview_on()) return ps_http_redirect_portal(req);
     if (req->content_len == 0 || req->content_len > 512) { httpd_resp_set_status(req, "400 Bad Request"); return httpd_resp_send(req, "body", HTTPD_RESP_USE_STRLEN); }
-    char buf[513]; size_t got = 0;
-    while (got < req->content_len) {
-        int n = httpd_req_recv(req, buf + got, req->content_len - got);
-        if (n == HTTPD_SOCK_ERR_TIMEOUT) continue;
-        if (n <= 0) return ESP_FAIL;
-        got += (size_t)n;
-    }
+    char buf[513];
+    if (ps_http_recv_all(req, buf, req->content_len) != 0) return ESP_FAIL;
+    size_t got = req->content_len;
     buf[got] = 0;
     if (ps_preview_apply(buf, got) != 0) { httpd_resp_set_status(req, "400 Bad Request"); return httpd_resp_send(req, "refused", HTTPD_RESP_USE_STRLEN); }
     return send_preview(req);
@@ -492,13 +488,8 @@ int ps_api_presets_post(httpd_req_t *req)
     if (req->content_len == 0 || req->content_len > 4096) { httpd_resp_set_status(req, "400 Bad Request"); return httpd_resp_send(req, "body", HTTPD_RESP_USE_STRLEN); }
     char *buf = malloc(req->content_len + 1);
     if (!buf) { httpd_resp_set_status(req, "500 Internal Server Error"); return httpd_resp_send(req, "no memory", HTTPD_RESP_USE_STRLEN); }
-    size_t got = 0;
-    while (got < req->content_len) {
-        int n = httpd_req_recv(req, buf + got, req->content_len - got);
-        if (n == HTTPD_SOCK_ERR_TIMEOUT) continue;
-        if (n <= 0) { free(buf); return ESP_FAIL; }
-        got += (size_t)n;
-    }
+    if (ps_http_recv_all(req, buf, req->content_len) != 0) { free(buf); return ESP_FAIL; }
+    size_t got = req->content_len;
     buf[got] = 0;
     int rc = ps_presets_apply(buf, got);
     free(buf);
@@ -615,13 +606,8 @@ int ps_api_stages_post(httpd_req_t *req)
     if (req->content_len == 0 || req->content_len > 8192) { httpd_resp_set_status(req, "400 Bad Request"); return httpd_resp_send(req, "body", HTTPD_RESP_USE_STRLEN); }
     char *buf = malloc(req->content_len + 1);
     if (!buf) { httpd_resp_set_status(req, "500 Internal Server Error"); return httpd_resp_send(req, "no memory", HTTPD_RESP_USE_STRLEN); }
-    size_t got = 0;
-    while (got < req->content_len) {
-        int n = httpd_req_recv(req, buf + got, req->content_len - got);
-        if (n == HTTPD_SOCK_ERR_TIMEOUT) continue;
-        if (n <= 0) { free(buf); return ESP_FAIL; }
-        got += (size_t)n;
-    }
+    if (ps_http_recv_all(req, buf, req->content_len) != 0) { free(buf); return ESP_FAIL; }
+    size_t got = req->content_len;
     buf[got] = 0;
     int rc = ps_stages_apply(buf, got);
     free(buf);
@@ -1019,13 +1005,8 @@ int ps_api_config_post(httpd_req_t *req)
     if (req->content_len == 0 || req->content_len > 16384) { httpd_resp_set_status(req, "400 Bad Request"); return httpd_resp_send(req, "body", HTTPD_RESP_USE_STRLEN); }
     char *buf = malloc(req->content_len + 1);
     if (!buf) { httpd_resp_set_status(req, "500 Internal Server Error"); return httpd_resp_send(req, "no memory", HTTPD_RESP_USE_STRLEN); }
-    size_t got = 0;
-    while (got < req->content_len) {
-        int n = httpd_req_recv(req, buf + got, req->content_len - got);
-        if (n == HTTPD_SOCK_ERR_TIMEOUT) continue;
-        if (n <= 0) { free(buf); return ESP_FAIL; }
-        got += (size_t)n;
-    }
+    if (ps_http_recv_all(req, buf, req->content_len) != 0) { free(buf); return ESP_FAIL; }
+    size_t got = req->content_len;
     buf[got] = 0;
     int rc = ps_config_apply(buf, got);
     free(buf);
@@ -1047,12 +1028,12 @@ static bool restart_on(void) { ps_lock(); bool on = (g_ps.cfg.features & PS_FEAT
 int ps_api_restart_post(httpd_req_t *req)
 {
     if (!restart_on()) return ps_http_redirect_portal(req);
-    char drain[64]; size_t left = req->content_len;                    /* the route takes no document */
+    char drain[64]; size_t left = req->content_len; int idle = 0;      /* the route takes no document */
     while (left) {
         int n = httpd_req_recv(req, drain, left < sizeof drain ? left : sizeof drain);
-        if (n == HTTPD_SOCK_ERR_TIMEOUT) continue;
+        if (n == HTTPD_SOCK_ERR_TIMEOUT) { if (++idle >= PS_HTTP_RECV_TIMEOUTS) return ESP_FAIL; continue; }
         if (n <= 0) return ESP_FAIL;
-        left -= (size_t)n;
+        idle = 0; left -= (size_t)n;
     }
     httpd_resp_set_type(req, "application/json");
     httpd_resp_set_hdr(req, "Cache-Control", "no-store");
@@ -1081,13 +1062,8 @@ esp_err_t ps_api_features_post(httpd_req_t *req)
     if (req->content_len == 0 || req->content_len > 2048) { httpd_resp_set_status(req, "400 Bad Request"); return httpd_resp_send(req, "body", HTTPD_RESP_USE_STRLEN); }
     char *buf = malloc(req->content_len + 1);
     if (!buf) { httpd_resp_set_status(req, "500 Internal Server Error"); return httpd_resp_send(req, "no memory", HTTPD_RESP_USE_STRLEN); }
-    size_t got = 0;
-    while (got < req->content_len) {
-        int n = httpd_req_recv(req, buf + got, req->content_len - got);
-        if (n == HTTPD_SOCK_ERR_TIMEOUT) continue;
-        if (n <= 0) { free(buf); return ESP_FAIL; }
-        got += (size_t)n;
-    }
+    if (ps_http_recv_all(req, buf, req->content_len) != 0) { free(buf); return ESP_FAIL; }
+    size_t got = req->content_len;
     buf[got] = 0;
     int rc = ps_features_apply(buf, got);
     free(buf);

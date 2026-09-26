@@ -471,9 +471,13 @@ typedef struct {
 void ps_effect_stats(ps_render_stats_t *out);
 
 /* ------------------------------------------------------------ ps_printer.c ---- */
+/* The MQTT client is driven by one task of its own and nothing else touches it: bind, unbind
+ * and the printer commands below post to that task and return at once, so they are safe to
+ * call with ps_lock held. See ps_printer.c for the deadlock that is why. */
+void ps_printer_init(void);                           /* the client's task; before the web server */
 int  ps_printer_start(void);
-void ps_printer_bind(void);                           /* from g_ps.cfg.printer_* */
-void ps_printer_unbind(void);
+void ps_printer_bind(void);                           /* from g_ps.cfg.printer_*, queued */
+void ps_printer_unbind(void);                         /* queued */
 void ps_printer_scan(void);
 void ps_printer_discover(void);       /* start a scan; finds nothing until a mechanism is documented */
 void ps_printer_moved_maybe(void);    /* C7: count a transport failure and start a rebind scan at the threshold */
@@ -499,9 +503,9 @@ void ps_hostname_sanitise(char *s, size_t n);
 size_t ps_ota_slot_cap(void);
 
 /* ps_printer.c: ask the bound printer to switch one of its lights. node is "chamber_light"
- * or "work_light", on is 0 or 1. Returns 0 when the command was published, -1 when there is
- * no printer connection to publish it on. The printer answers in its own telemetry, not
- * here, so nothing is assumed to have worked. */
+ * or "work_light", on is 0 or 1. Returns 0 when the command was queued for the client's task,
+ * -1 when it was refused or the queue was full; the task logs whether it was sent. The
+ * printer answers in its own telemetry, not here, so nothing is assumed to have worked. */
 int ps_printer_light_set(const char *node, int on);
 /* Bambu's own fan indices, from its gcode: M106 P1 part, P2 aux, P3 chamber. */
 enum { PS_FAN_PART = 1, PS_FAN_AUX = 2, PS_FAN_CHAMBER = 3 };
@@ -551,6 +555,10 @@ int ps_api_preview_post(httpd_req_t *req);
 int ps_preview_apply(const char *json, size_t len);   /* the pin from its JSON, whole or refused; 0 on success */
 char *ps_preview_json(void);                          /* the pin as the page reads it; cJSON_free() it */
 int ps_http_redirect_portal(httpd_req_t *req);        /* the wildcard's answer, for a route that must look absent */
+/* A request body read whole, or -1 once the client has gone quiet for PS_HTTP_RECV_TIMEOUTS
+ * receive timeouts in a row (ps_ws.c says why a loop that just retries is a hung server). */
+#define PS_HTTP_RECV_TIMEOUTS 3
+int ps_http_recv_all(httpd_req_t *req, char *buf, size_t len);
 int  ps_api_print_get(httpd_req_t *req);              /* the clone's own: what the printer reports, which the factory document omits */
 int  ps_api_render_get(httpd_req_t *req);             /* C8: what the renderer is doing; 302 while the diagnostics bit is off */
 int  ps_portal_page(httpd_req_t *req);                /* esp_err_t: the small setup page a captive sheet can render */

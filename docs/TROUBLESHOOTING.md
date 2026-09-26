@@ -45,6 +45,17 @@ device at its new address or on its hotspot.
 A control used while the socket is down sends nothing and brings this dialog back; that
 is by design. Escape closes it without reloading.
 
+## The page stops loading, but the device still answers ping
+
+From a computer on the same network, `ping` answers and the page times out; the bar either
+sits on one frame or carries on as if nothing were wrong. The web server is stuck, and only a
+power cycle brings it back: unplug the device for a few seconds. Firmware built before
+2026-09-26 had two ways to get there, both closed since (D-049): a light, fan, speed or bind
+command arriving while a printer report was being applied deadlocked the server against the
+printer link and froze the bar with it, and a client that went quiet partway through sending
+a request held the server with the bar still running. If it happens on a build that has
+D-049, the Logs page after the power cycle shows what came just before, up to its last lines.
+
 ## Wi-Fi
 
 | Wi-Fi page says | Meaning | Do |

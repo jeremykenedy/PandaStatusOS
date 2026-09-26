@@ -1342,4 +1342,50 @@ would be visible as failing cases rather than as a Scan button that quietly find
 
 ---
 
+## D-049 Nothing calls the MQTT client while holding the state lock, and no request body waits forever
+
+**Date** 2026-09-26 · **Reversal** cheap (one task and one queue in ps_printer.c, one helper in ps_ws.c)
+
+**Decided, after the unit's web server stopped answering on real hardware.** Ping answered and
+the name resolved, but port 80 took no connection for as long as it was watched, and the
+server that would have shown the log was the thing that had stopped. Two paths in the code end
+exactly there, and both are closed.
+
+**The deadlock.** esp-mqtt runs our event handler on its own task and holds its API lock for
+the whole of it, and the handler takes `ps_lock` to write down what a report says. The web
+server's socket handler holds `ps_lock` around every inbound message, and three of those
+messages, the printer's lights, its fans and its print speed, called `esp_mqtt_client_publish`,
+which takes the client's API lock. A command that arrived while a report was being applied left
+each task holding the lock the other wanted, and the renderer stopped at its next `ps_lock` with
+the last frame still on the bar. Binding had the same shape through `esp_mqtt_client_stop`,
+which waits for the client's task to finish a handler that may itself be waiting. Now one task,
+`ps_prn`, owns the client: bind, unbind and every printer command are posted to a queue that
+never waits, and the task runs them without holding `ps_lock`. The only other caller is the
+event handler itself, on the client's own task.
+
+**The body that never came.** Seven handlers read a request body in a loop that retried on
+every receive timeout. A client that went quiet between the headers and the body, a phone that
+slept or left the network, held the server's only task forever while the bar ran on. One
+helper, `ps_http_recv_all`, now gives up after three timeouts in a row, progress resets the
+count, and the handler's `ESP_FAIL` closes the socket. The upload and the restart route's drain
+count the same way.
+
+**And the log.** Every task writes the log ring, and esp_log lets go of its own lock before it
+calls the writer, so two partial lines could race on the pending length and push it past its
+buffer. The ring has its own lock now. A writer waits at most 10 ms for it and otherwise leaves
+the ring alone; the UART still gets the line.
+
+**Which one it was is not known.** There was no cable on the unit, and a frozen bar and a
+running one are the only outside difference between the first two. Both were real either way.
+
+**Alternatives.** A timeout on `ps_lock` in the event handler, which drops reports under load
+and leaves the lock order wrong. Releasing `ps_lock` around the dispatcher's printer calls,
+which the next printer command added to the dispatcher would forget. A second server task,
+which `esp_http_server` does not have.
+
+**What would change it.** A client library that dispatches its events without its own lock
+held, which would make the queue a convenience rather than the fix.
+
+---
+
 *Entries continue below as the run proceeds.*

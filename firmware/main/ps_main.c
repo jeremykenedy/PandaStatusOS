@@ -27,6 +27,7 @@ void app_main(void)
     ESP_LOGI(TAG, "config loaded, mode %u, hostname %s", g_ps.cfg.current_mode, g_ps.cfg.hostname);
     ps_led_init();
     ps_effect_start();
+    ps_printer_init();   /* the MQTT client's own task, before anything can ask it for something */
     ps_wifi_start();
     ps_ws_start();
     ps_portal_start();   /* answer DNS for the hotspot, so joining it opens the setup page */

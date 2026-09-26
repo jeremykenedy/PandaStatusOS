@@ -32,6 +32,7 @@
 #include "lwip/sockets.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "freertos/queue.h"
 #include "ps.h"
 
 static const char *TAG = "ps_printer";
@@ -343,6 +344,122 @@ static void on_mqtt(void *arg, esp_event_base_t base, int32_t id, void *data)
     }
 }
 
+/* ---- the client's own task ----
+ *
+ * esp-mqtt runs on_mqtt on the client's task and holds the client's API lock for the whole of
+ * it, and on_mqtt takes ps_lock to write down what a report says. So any call into the client
+ * made while ps_lock is held is one half of a deadlock, and the web server's socket handler
+ * holds ps_lock around every inbound message. A light switch, a fan slider or a speed button
+ * that arrives while a report is being applied leaves the web server waiting on the client's
+ * lock and the client waiting on ps_lock, for good: the server stops accepting connections,
+ * the renderer stops at its next ps_lock with the last frame still on the bar, and nothing
+ * but a power cycle brings it back. Binding has the same shape through esp_mqtt_client_stop,
+ * which waits for the client's task to finish a handler that may be waiting on ps_lock.
+ *
+ * So nothing but this task calls the client. The public calls below post a command and return
+ * at once, whatever lock their caller holds; this task runs the commands in order and never
+ * holds ps_lock across a call into the client. The one other caller is on_mqtt itself, which
+ * runs on the client's own task and already holds the client's lock. */
+#define PS_PRN_QUEUE 6
+enum { CMD_BIND = 1, CMD_UNBIND, CMD_SEND };
+typedef struct { uint8_t kind; uint16_t len; char what[40]; char body[224]; } prn_cmd_t;
+static QueueHandle_t s_cmds;
+
+static void do_unbind(void)
+{
+    if (s_client) { esp_mqtt_client_stop(s_client); esp_mqtt_client_destroy(s_client); s_client = NULL; ESP_LOGI(TAG, "unbound"); }
+    free(s_assembly); s_assembly = NULL; s_assembled = 0;
+    ps_lock(); g_ps.printer_state = PS_PRN_INVALID; g_ps.bar_state = PS_BAR_IDLE; ps_unlock();
+    ps_effect_notify();
+}
+
+static void do_bind(void)
+{
+    s_transport_fails = 0;
+    do_unbind();
+    /* Everything the client needs is copied out under the lock and the lock is let go before
+     * the client is made: the client copies every string it is given, and the access code's
+     * copy here is wiped as soon as it has. */
+    char code[sizeof g_ps.cfg.printer_access_code];
+    ps_lock();
+    snprintf(s_uri, sizeof s_uri, "mqtts://%u.%u.%u.%u:8883", g_ps.cfg.printer_ip[0], g_ps.cfg.printer_ip[1], g_ps.cfg.printer_ip[2], g_ps.cfg.printer_ip[3]);
+    snprintf(s_topic_report, sizeof s_topic_report, "device/%s/report", g_ps.cfg.printer_sn);
+    snprintf(s_topic_request, sizeof s_topic_request, "device/%s/request", g_ps.cfg.printer_sn);
+    memcpy(code, g_ps.cfg.printer_access_code, sizeof code); code[sizeof code - 1] = 0;
+    bool usable = g_ps.cfg.printer_sn[0] && g_ps.cfg.printer_ip[0];
+    ps_unlock();
+    if (!usable) { memset(code, 0, sizeof code); set_state(PS_PRN_INVALID); ESP_LOGW(TAG, "bind without a serial number or an address"); return; }
+    uint8_t mac[6]; esp_read_mac(mac, ESP_MAC_WIFI_STA);
+    snprintf(s_client_id, sizeof s_client_id, "pandastatusos-%02x%02x%02x", mac[3], mac[4], mac[5]);
+    esp_mqtt_client_config_t mc = {
+        .broker.address.uri = s_uri,
+        .credentials.username = "bblp",
+        .credentials.client_id = s_client_id,
+        .credentials.authentication.password = code,
+        .network.reconnect_timeout_ms = 5000,
+        .session.keepalive = 30,
+    };
+    s_client = esp_mqtt_client_init(&mc);
+    memset(code, 0, sizeof code);
+    if (!s_client) { set_state(PS_PRN_UNKNOWN_ERR); ESP_LOGE(TAG, "client init failed"); return; }
+    esp_mqtt_client_register_event(s_client, ESP_EVENT_ANY_ID, on_mqtt, NULL);
+    set_state(PS_PRN_CONNECTING);
+    esp_mqtt_client_start(s_client);
+    ESP_LOGI(TAG, "binding to %s", s_uri);
+}
+
+static void do_send(const prn_cmd_t *c)
+{
+    int rc = (s_client && s_topic_request[0]) ? esp_mqtt_client_publish(s_client, s_topic_request, c->body, c->len, 0, 0) : -1;
+    ESP_LOGI(TAG, "%s: %s", c->what, rc >= 0 ? "sent" : "not sent");
+}
+
+static void client_task(void *arg)
+{
+    (void)arg;
+    prn_cmd_t c;
+    for (;;) {
+        if (xQueueReceive(s_cmds, &c, portMAX_DELAY) != pdTRUE) continue;
+        if (c.kind == CMD_BIND) do_bind();
+        else if (c.kind == CMD_UNBIND) do_unbind();
+        else if (c.kind == CMD_SEND) do_send(&c);
+    }
+}
+
+/* Before the web server starts, so there is never a moment when something can ask for the
+ * printer and nothing is there to take the request. */
+void ps_printer_init(void)
+{
+    if (s_cmds) return;
+    s_cmds = xQueueCreate(PS_PRN_QUEUE, sizeof(prn_cmd_t));
+    if (!s_cmds) { ESP_LOGE(TAG, "client queue: no memory"); return; }
+    /* 6 KiB: a publish and the disconnect in a stop both write through TLS on this stack */
+    if (xTaskCreate(client_task, "ps_prn", 6144, NULL, 4, NULL) != pdPASS) {
+        ESP_LOGE(TAG, "client task would not start: the printer cannot be bound");
+        vQueueDelete(s_cmds); s_cmds = NULL;
+    }
+}
+
+/* Never waits: a full queue drops the command and says so, because a caller may be holding
+ * ps_lock and waiting here is how the deadlock above comes back. */
+static int post(uint8_t kind, const char *what, const char *body, int len)
+{
+    if (!s_cmds) { ESP_LOGW(TAG, "%s: dropped, no client task", what); return -1; }
+    prn_cmd_t c;
+    memset(&c, 0, sizeof c);
+    c.kind = kind;
+    snprintf(c.what, sizeof c.what, "%s", what);
+    if (body) {
+        if (len <= 0 || len >= (int)sizeof c.body) return -1;
+        memcpy(c.body, body, (size_t)len); c.len = (uint16_t)len;
+    }
+    if (xQueueSend(s_cmds, &c, 0) != pdTRUE) { ESP_LOGW(TAG, "%s: dropped, %d commands already waiting", what, PS_PRN_QUEUE); return -1; }
+    return 0;
+}
+
+void ps_printer_bind(void)   { post(CMD_BIND, "bind", NULL, 0); }
+void ps_printer_unbind(void) { post(CMD_UNBIND, "unbind", NULL, 0); }
+
 /* The printer's own LED command. FACT (the Bambu request topic this client already publishes
  * pushall on): system.ledctrl, with the node and the mode. The three timing members are part
  * of the command's shape and are sent as the steady-on values; this device never asks for a
@@ -350,10 +467,11 @@ static void on_mqtt(void *arg, esp_event_base_t base, int32_t id, void *data)
  *
  * Nothing is written into g_ps here. The printer reports its lights in its telemetry, and
  * that report is the only thing that moves the switch: a command that the printer ignores
- * leaves the page showing what the printer actually did. */
+ * leaves the page showing what the printer actually did. Queued, and sent by the client's
+ * task; 0 means queued, not delivered. */
 int ps_printer_light_set(const char *node, int on)
 {
-    if (!node || !s_client || !s_topic_request[0]) return -1;
+    if (!node) return -1;
     if (strcmp(node, "chamber_light") && strcmp(node, "work_light")) return -1;
     static unsigned seq = 1;
     char body[224];
@@ -362,9 +480,8 @@ int ps_printer_light_set(const char *node, int on)
         "\"led_mode\":\"%s\",\"led_on_time\":500,\"led_off_time\":500,\"loop_times\":0,\"interval_time\":0}}",
         seq++, node, on ? "on" : "off");
     if (n <= 0 || n >= (int)sizeof body) return -1;
-    int rc = esp_mqtt_client_publish(s_client, s_topic_request, body, n, 0, 0);
-    ESP_LOGI(TAG, "ledctrl %s %s: %s", node, on ? "on" : "off", rc >= 0 ? "sent" : "not sent");
-    return rc >= 0 ? 0 : -1;
+    char what[40]; snprintf(what, sizeof what, "ledctrl %s %s", node, on ? "on" : "off");
+    return post(CMD_SEND, what, body, n);
 }
 
 /* The printer's fans, and the print speed. Both go in the `print` envelope, and the
@@ -384,7 +501,6 @@ int ps_printer_light_set(const char *node, int on)
  * percent is what the printer reports back, so the one place that knows about 255 is here. */
 int ps_printer_fan_set(int which, int percent)
 {
-    if (!s_client || !s_topic_request[0]) return -1;
     if (which < PS_FAN_PART || which > PS_FAN_CHAMBER) return -1;
     if (percent < 0) percent = 0;
     if (percent > 100) percent = 100;
@@ -395,16 +511,14 @@ int ps_printer_fan_set(int which, int percent)
         "{\"print\":{\"sequence_id\":\"%u\",\"command\":\"gcode_line\",\"param\":\"M106 P%d S%d\\n\"}}",
         seq++, which, s255);
     if (n <= 0 || n >= (int)sizeof body) return -1;
-    int rc = esp_mqtt_client_publish(s_client, s_topic_request, body, n, 0, 0);
-    ESP_LOGI(TAG, "fan P%d %d%% (S%d): %s", which, percent, s255, rc >= 0 ? "sent" : "not sent");
-    return rc >= 0 ? 0 : -1;
+    char what[40]; snprintf(what, sizeof what, "fan P%d %d%% (S%d)", which, percent, s255);
+    return post(CMD_SEND, what, body, n);
 }
 
 /* print_speed takes 1 to 4: silent, standard, sport, ludicrous. The same four the printer's
  * own screen offers and the same four the print strip names. */
 int ps_printer_speed_set(int level)
 {
-    if (!s_client || !s_topic_request[0]) return -1;
     if (level < 1 || level > 4) return -1;
     static unsigned seq = 1;
     char body[128];
@@ -412,9 +526,8 @@ int ps_printer_speed_set(int level)
         "{\"print\":{\"sequence_id\":\"%u\",\"command\":\"print_speed\",\"param\":\"%d\"}}",
         seq++, level);
     if (n <= 0 || n >= (int)sizeof body) return -1;
-    int rc = esp_mqtt_client_publish(s_client, s_topic_request, body, n, 0, 0);
-    ESP_LOGI(TAG, "print speed %d: %s", level, rc >= 0 ? "sent" : "not sent");
-    return rc >= 0 ? 0 : -1;
+    char what[40]; snprintf(what, sizeof what, "print speed %d", level);
+    return post(CMD_SEND, what, body, n);
 }
 
 int ps_printer_start(void)
@@ -439,44 +552,6 @@ void ps_printer_moved_maybe(void)
     ps_lock(); g_ps.printer_scan = PS_PSCAN_IP_CHANGE; ps_unlock();
     ps_ws_push(PS_ROOT_PRINTER, -1);
     ps_printer_discover();
-}
-
-void ps_printer_bind(void)
-{
-    s_transport_fails = 0;
-    ps_printer_unbind();
-    ps_lock();
-    snprintf(s_uri, sizeof s_uri, "mqtts://%u.%u.%u.%u:8883", g_ps.cfg.printer_ip[0], g_ps.cfg.printer_ip[1], g_ps.cfg.printer_ip[2], g_ps.cfg.printer_ip[3]);
-    snprintf(s_topic_report, sizeof s_topic_report, "device/%s/report", g_ps.cfg.printer_sn);
-    snprintf(s_topic_request, sizeof s_topic_request, "device/%s/request", g_ps.cfg.printer_sn);
-    const char *code = g_ps.cfg.printer_access_code;
-    bool usable = g_ps.cfg.printer_sn[0] && g_ps.cfg.printer_ip[0];
-    uint8_t mac[6]; esp_read_mac(mac, ESP_MAC_WIFI_STA);
-    snprintf(s_client_id, sizeof s_client_id, "pandastatusos-%02x%02x%02x", mac[3], mac[4], mac[5]);
-    esp_mqtt_client_config_t mc = {
-        .broker.address.uri = s_uri,
-        .credentials.username = "bblp",
-        .credentials.client_id = s_client_id,
-        .credentials.authentication.password = code,
-        .network.reconnect_timeout_ms = 5000,
-        .session.keepalive = 30,
-    };
-    if (usable) s_client = esp_mqtt_client_init(&mc);
-    ps_unlock();
-    if (!usable) { set_state(PS_PRN_INVALID); ESP_LOGW(TAG, "bind without a serial number or an address"); return; }
-    if (!s_client) { set_state(PS_PRN_UNKNOWN_ERR); ESP_LOGE(TAG, "client init failed"); return; }
-    esp_mqtt_client_register_event(s_client, ESP_EVENT_ANY_ID, on_mqtt, NULL);
-    set_state(PS_PRN_CONNECTING);
-    esp_mqtt_client_start(s_client);
-    ESP_LOGI(TAG, "binding to %s", s_uri);
-}
-
-void ps_printer_unbind(void)
-{
-    if (s_client) { esp_mqtt_client_stop(s_client); esp_mqtt_client_destroy(s_client); s_client = NULL; ESP_LOGI(TAG, "unbound"); }
-    free(s_assembly); s_assembly = NULL; s_assembled = 0;
-    ps_lock(); g_ps.printer_state = PS_PRN_INVALID; g_ps.bar_state = PS_BAR_IDLE; ps_unlock();
-    ps_effect_notify();
 }
 
 /* Discovery. Printers announce themselves; nothing here probes addresses one by one.

@@ -147,6 +147,29 @@ static esp_err_t redirect_portal(httpd_req_t *req)
 }
 int ps_http_redirect_portal(httpd_req_t *req) { return redirect_portal(req); }   /* for a route that must look absent (A13) */
 
+/* A request body, read whole. httpd_req_recv gives up after the receive timeout with
+ * HTTPD_SOCK_ERR_TIMEOUT, and a loop that simply asks again waits forever on a client that has
+ * gone without closing: a phone that slept, or left the network, between the headers and the
+ * body. The server is one task, so that one request is the whole server: the port stops
+ * answering and nothing but a power cycle brings it back, while the bar goes on as if nothing
+ * had happened. A few timeouts in a row are allowed, because a slow link is not a dead one, and
+ * any progress starts the count again. -1 tells the handler to return ESP_FAIL, which closes
+ * the socket. */
+int ps_http_recv_all(httpd_req_t *req, char *buf, size_t len)
+{
+    size_t got = 0; int idle = 0;
+    while (got < len) {
+        int n = httpd_req_recv(req, buf + got, len - got);
+        if (n == HTTPD_SOCK_ERR_TIMEOUT) {
+            if (++idle >= PS_HTTP_RECV_TIMEOUTS) { ESP_LOGW(TAG, "body: the client went quiet after %u of %u bytes", (unsigned)got, (unsigned)len); return -1; }
+            continue;
+        }
+        if (n <= 0) return -1;
+        idle = 0; got += (size_t)n;
+    }
+    return 0;
+}
+
 static esp_err_t ota_post(httpd_req_t *req)
 {
     char type[40];
@@ -160,11 +183,15 @@ static esp_err_t ota_post(httpd_req_t *req)
     ESP_LOGI(TAG, "upload %s, %u bytes", type, (unsigned)req->content_len);
     char *buf = malloc(4096);
     if (!buf) { ps_ota_end(ctx, false); httpd_resp_set_status(req, "500 Internal Server Error"); return httpd_resp_send(req, "no memory", HTTPD_RESP_USE_STRLEN); }
-    size_t left = req->content_len; bool ok = true;
+    size_t left = req->content_len; bool ok = true; int idle = 0;
     while (left > 0) {
         int n = httpd_req_recv(req, buf, left < 4096 ? left : 4096);
-        if (n == HTTPD_SOCK_ERR_TIMEOUT) continue;
+        if (n == HTTPD_SOCK_ERR_TIMEOUT) {
+            if (++idle >= PS_HTTP_RECV_TIMEOUTS) { ESP_LOGW(TAG, "upload: the client went quiet, abandoned"); ok = false; break; }
+            continue;
+        }
         if (n <= 0) { ok = false; break; }
+        idle = 0;
         if (ps_ota_write(ctx, buf, (size_t)n) != 0) { ok = false; break; }
         left -= (size_t)n;
     }

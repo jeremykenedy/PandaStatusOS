@@ -19,6 +19,9 @@
 #include <stdarg.h>
 #include <ctype.h>
 #include "esp_log.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/semphr.h"
+#include "freertos/task.h"
 #include "ps.h"
 
 #define LOG_LINES  64
@@ -31,6 +34,18 @@ static vprintf_like_t s_chain;                /* the writer we replaced, still f
 /* A line that arrives in pieces waits here for its newline. */
 static char   s_pend[LOG_WIDTH];
 static size_t s_pend_n;
+/* Every task logs, and esp_log lets go of its own lock before it calls the writer, so two
+ * tasks can be in log_vprintf at once. Unguarded, two partial lines racing on s_pend_n could
+ * push it past the buffer, and the next memcpy would write past the end of s_pend into
+ * whatever the linker put after it. This lock guards the ring and the pending line. Nothing
+ * inside it logs or blocks, and a writer that cannot have it quickly leaves the ring alone:
+ * the UART still gets the line, and a log must never be what stops a task. */
+static SemaphoreHandle_t s_ring_lock;
+static bool ring_take(TickType_t wait)
+{
+    if (!s_ring_lock || xPortInIsrContext() || xTaskGetSchedulerState() != taskSCHEDULER_RUNNING) return false;
+    return xSemaphoreTake(s_ring_lock, wait) == pdTRUE;
+}
 
 /* The words that mean a value must not survive. A match blanks the REST of the line: the
  * value's own length is a fact about the secret, so even that is not kept. */
@@ -78,7 +93,7 @@ static int log_vprintf(const char *fmt, va_list ap)
     char buf[LOG_WIDTH];
     int n = vsnprintf(buf, sizeof buf, fmt, copy);
     va_end(copy);
-    if (n > 0) {
+    if (n > 0 && ring_take(pdMS_TO_TICKS(10))) {
         /* One call can carry several lines, and one LINE can arrive in several calls: the
          * Wi-Fi driver writes its tag and its message separately, which had every one of its
          * lines broken in two in the ring. A chunk with no newline in it is held until the
@@ -106,6 +121,7 @@ static int log_vprintf(const char *fmt, va_list ap)
             /* A partial line that grows past the buffer is committed rather than dropped. */
             if (s_pend_n >= sizeof s_pend - 1) { put_line(s_pend, s_pend_n); s_pend_n = 0; }
         }
+        xSemaphoreGive(s_ring_lock);
     }
     return s_chain ? s_chain(fmt, ap) : vprintf(fmt, ap);
 }
@@ -113,15 +129,17 @@ static int log_vprintf(const char *fmt, va_list ap)
 void ps_log_init(void)
 {
     if (s_chain) return;
+    if (!s_ring_lock) s_ring_lock = xSemaphoreCreateMutex();
     s_chain = esp_log_set_vprintf(log_vprintf);
 }
 
 void ps_log_clear(void)
 {
-    ps_lock();
+    if (!ring_take(portMAX_DELAY)) return;
     s_head = 0;
     s_count = 0;
-    ps_unlock();
+    s_pend_n = 0;
+    xSemaphoreGive(s_ring_lock);
 }
 
 /* Oldest first, newline separated, into the caller's buffer. Returns the bytes written. */
@@ -129,7 +147,7 @@ size_t ps_log_dump(char *out, size_t n)
 {
     if (!out || n == 0) return 0;
     size_t used = 0;
-    ps_lock();
+    if (!ring_take(portMAX_DELAY)) { out[0] = 0; return 0; }
     uint16_t first = (uint16_t)((s_head + LOG_LINES - s_count) % LOG_LINES);
     for (uint16_t i = 0; i < s_count; i++) {
         const char *line = s_ring[(first + i) % LOG_LINES];
@@ -139,7 +157,7 @@ size_t ps_log_dump(char *out, size_t n)
         used += l;
         out[used++] = '\n';
     }
-    ps_unlock();
+    xSemaphoreGive(s_ring_lock);
     out[used] = 0;
     return used;
 }

@@ -36,12 +36,19 @@ and releases it before touching the strip.
 | httpd | `esp_http_server` | serves the page and the upload, owns the sockets, applies inbound frames, sends every outbound frame (other tasks queue work onto it) |
 | ps_effect | `ps_effect.c` | renders a frame every 33 ms, or sooner when notified |
 | mqtt | `esp-mqtt` | the printer link; its events update the printer and bar state under the lock |
+| ps_prn | `ps_printer.c` | the only caller of the MQTT client: bind, unbind and every printer command, taken from a queue |
 | wifi / event loop | ESP-IDF | station and scan events, under the lock |
 | esp_timer | ESP-IDF | the Wi-Fi retry, the printer scan's completion, the delayed restart after a firmware update |
 
 The rule that keeps this simple: **only the httpd task writes to a socket.** `ps_ws_push()`
 and `ps_ws_response()` copy the text and queue it with `httpd_queue_work()`, so any task
 may call them.
+
+The second rule: **nothing calls the MQTT client while holding `ps_lock`.** esp-mqtt runs
+its event handler with its own lock held, and the handler takes `ps_lock`, so a call into the
+client from under `ps_lock` is one half of a deadlock (D-049). The dispatcher runs with the
+lock held, so the printer calls it makes (bind, unbind, the lights, the fans, the speed) only
+post to `ps_prn`'s queue, which never waits.
 
 ### What happens on the wire
 
