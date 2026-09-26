@@ -31,6 +31,7 @@ features beyond its clone, the faults it found, and its harness suite.
 | Render stats on the page | The Renderer card on the Logs page, `GET /api/render`, `t-render.js` (2026-09-26) |
 | A master direction, exclusive-or with the effect's own | Bit 21 `bar_flip`, applied to the finished frame, `fx_test.c` (2026-09-26) |
 | `pixels.js`: contrast from the pixels that were painted | `tools/ui/harness/pixels.js`, 842 regions, both themes, both widths, three CVD simulations, with a control sample (2026-09-26) |
+| A static page of every card at once, for laying out | `tools/ui/harness/mockpage.js` -> `private/uiwork/ui-mock.html` (2026-09-26) |
 
 ## What has not
 
@@ -195,10 +196,20 @@ had looked, and on this device it is the dark theme that had never been rendered
 | an `<img>` whose colour is baked in | two, and handled: the mark is a pair of base64 PNGs, one drawn for each theme, swapped by CSS in all three states (default, explicit, and system preference) |
 | duplicate rules where the later copy shadows the earlier fixed one | none, and no longer possible to add quietly: `tools/ui/css_check.py` runs in the build and fails it on any selector that declares the same property twice in the same context |
 
-### 7. A static mock of the page
+### 7. A static mock of the page — DONE 2026-09-26
 
-The vent generates `ui-mock.html`: every card visible at once, no scripts, for laying
-out. There is no equivalent here, so laying out a card means driving the mock device.
+`tools/ui/harness/mockpage.js` drives the mock once with every switch on and a printer that
+is printing, then writes the DOM as it stands with every card made active, everything that was
+hidden shown, and every script removed. What comes out is `private/uiwork/ui-mock.html`: one
+file that opens in any browser with no device, no server and no network, showing every card of
+every page with real values in it. It is a picture and says so on itself; nothing in it works.
+
+It earned its keep on the first run. With everything shown at once it is plain that the fault
+banner (`.banner`, `position: fixed; inset: 0 0 auto 0`) is drawn OVER the top bar rather than
+above it, so for as long as a save is failing the printer's name, the state chip and the print
+percentage are behind it. That is a deliberate banner that cannot be dismissed, and covering
+the one line that says what the printer is doing is the cost nobody had looked at. Left as it
+is, written down here, because it is a design decision and not a defect.
 
 ## The vent bridge
 
