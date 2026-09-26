@@ -1515,4 +1515,27 @@ own (D-052): the control is one markup block and one handler to put back.
 
 ---
 
+## D-054 Every control the printer will not take is gone: the fans follow the speed
+
+**Date** 2026-09-26 · **Reversal** cheap (three markup rows, one module section, one firmware shape)
+
+**The owner's word, widening D-053:** remove what cannot be made to work. The three fan sliders
+fail exactly as the speed did, for exactly the reason in D-052, so they go too, with the line
+on the card that told people to switch on Developer Mode and the page's handling of a refusal
+that the firmware never sent in the first place. The Printer controls card is the chamber
+light alone, which the printer takes unsigned; a card with no lamp in it goes away. The fan
+speeds stay on the printer card and the running level on the job strip, because those are
+readings and readings are exempt from the check.
+
+**What was looked at and left.** Music mode: the stock image links an audio framework and
+carries microphone strings, so a working Music mode is a matter of reading that path, not a
+thing the hardware forbids; it stays as the factory surface it is, rendering its placeholder,
+item 14 on the parity list. The vent bridge: its device half is unwritten, not unwritable.
+Nothing else on the page is known to be impossible.
+
+**What would change it.** Developer Mode on the printer, or a certificate of this project's
+own (D-052). The rows and the two shapes are in the history.
+
+---
+
 *Entries continue below as the run proceeds.*

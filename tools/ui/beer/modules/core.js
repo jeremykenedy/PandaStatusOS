@@ -1286,9 +1286,6 @@ function handle_ap() {
    16. Printer control card (§10, device push)
    ------------------------------------------------------------------- */
 
-var g_pctl_locked = false;
-var g_last_cmd_at = null;
-
 function handle_pctl() {
   var st = (g_state.printer && g_state.printer.status) || {};
   var printer = g_state.printer || {};
@@ -1313,53 +1310,11 @@ function handle_pctl() {
   if (wlRow) wlRow.hidden = !hasWL;
   if (hasWL) setChecked('ps-pctl-work-light', st.work_light);
 
-  /* The fans, one row per fan the printer has actually named. A fan named once stays named:
-     the state document is merged, a report that does not repeat a fan is not a fan that
-     stopped existing, and a row that vanished every time a report was partial would be
-     worse than a row a second stale.
-
-     The slider follows the printer except while module 3b is holding it. That hold, and not
-     focus, is the rule here: a slider keeps focus after the finger leaves it, so the focus
-     rule the switches and the text fields keep would freeze the row at the last value
-     dragged and the printer's reading would never appear in it again. */
-  var FANS = [
-    { row: 'ps-pctl-fan-part-row',    id: 'ps-pctl-fan-part',    field: 'fan_part' },
-    { row: 'ps-pctl-fan-aux-row',     id: 'ps-pctl-fan-aux',     field: 'fan_aux' },
-    { row: 'ps-pctl-fan-chamber-row', id: 'ps-pctl-fan-chamber', field: 'fan_chamber' }
-  ];
-  var anyFan = false;
-  for (var fi = 0; fi < FANS.length; fi++) {
-    var f = FANS[fi];
-    var have = isNum(st[f.field]);
-    var frow = byId(f.row);
-    if (frow) frow.hidden = !have;
-    if (!have) continue;
-    anyFan = true;
-    var fel = byId(f.id);
-    var held = (typeof pctl_held === 'function') && pctl_held(f.id);
-    if (fel && !held) fel.value = st[f.field];
-    if (fel) setText(f.id + '-value', fmtPct(Number(fel.value)));
-  }
-
-  if (card) card.hidden = (printer.state !== 3) || (!hasCL && !hasWL && !anyFan);
-
-  setHidden('ps-pctl-locked', !g_pctl_locked);
-
-  /* 10.2 command ack */
-  var cmd = st.cmd;
-  if (cmd && isNum(cmd.at_s) && cmd.at_s !== g_last_cmd_at) {
-    g_last_cmd_at = cmd.at_s;
-    if (cmd.ok === false || cmd.ok === 0) {
-      if (cmd.reason && /verify failed/i.test(cmd.reason)) {
-        g_pctl_locked = true;
-        setHidden('ps-pctl-locked', false);
-        toast_show('ui_pctl_needs_dev_mode', 4000, 'The printer refused: it only takes this from a signed app unless Developer Mode (LAN mode) is on.');
-      } else {
-        var el = byId('ps-toast');
-        if (el) { el.textContent = cmd.reason || tr('ui_command_failed', 'Command failed'); el.classList.add('active'); if (g_toast_timer) clearTimeout(g_toast_timer); g_toast_timer = setTimeout(function () { el.classList.remove('active'); }, 4000); }
-      }
-    }
-  }
+  /* A card with no lamp in it is a card with nothing in it, so it goes too. The fans and
+     the speed that were beside the lamp are gone (D-054): the printer signs neither
+     away and this device does not forge signatures, so a slider here would be a control
+     that never does anything. Their readings live on the printer card and the job strip. */
+  if (card) card.hidden = (printer.state !== 3) || (!hasCL && !hasWL);
 }
 
 /* ---------------------------------------------------------------------
@@ -1437,9 +1392,8 @@ function handle_response(resp) {
     case 'ota_unknown':
       dialog_open('dlg_ota_unknown_title', 'dlg_ota_unknown_text', [{ key: 'ui_ok', fallback: 'OK' }]);
       break;
-    /* printer, block, settings, anim,
-       printer_speed, printer_light, printer_record: silent success ack;
-       failures are consumed by optimistic settle / status.cmd (§0.6). */
+    /* printer, block, settings, anim, printer_light: silent success ack;
+       a refusal shows as the printer's own report not moving (§0.6). */
     default:
       break;
   }

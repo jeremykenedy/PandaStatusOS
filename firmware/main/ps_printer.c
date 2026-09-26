@@ -297,8 +297,10 @@ static void apply_report(const char *json, size_t len)
     }
     /* The printer answers a command in a report of its own: the command's name, a result and,
      * for a refusal, a reason. Written to the log, so a control that did nothing on the printer
-     * says why on the Logs page. A printer without Developer Mode refuses the fans and the
-     * speed this way while it takes the light. The periodic status report is not an answer. */
+     * says why on the Logs page. A printer without Developer Mode refuses anything in the
+     * `print` envelope this way while it takes the light, which is how the fan and speed
+     * controls came to be removed (D-052 to D-054). The periodic status report is not an
+     * answer. */
     static const char *const ANSWERS[] = { "print", "system" };
     for (size_t e = 0; e < sizeof ANSWERS / sizeof ANSWERS[0]; e++) {
         cJSON *env = cJSON_GetObjectItemCaseSensitive(doc, ANSWERS[e]);
@@ -364,8 +366,8 @@ static void on_mqtt(void *arg, esp_event_base_t base, int32_t id, void *data)
  * esp-mqtt runs on_mqtt on the client's task and holds the client's API lock for the whole of
  * it, and on_mqtt takes ps_lock to write down what a report says. So any call into the client
  * made while ps_lock is held is one half of a deadlock, and the web server's socket handler
- * holds ps_lock around every inbound message. A light switch, a fan slider or a speed button
- * that arrives while a report is being applied leaves the web server waiting on the client's
+ * holds ps_lock around every inbound message. A light switch that arrives while a report is
+ * being applied leaves the web server waiting on the client's
  * lock and the client waiting on ps_lock, for good: the server stops accepting connections,
  * the renderer stops at its next ps_lock with the last frame still on the bar, and nothing
  * but a power cycle brings it back. Binding has the same shape through esp_mqtt_client_stop,
@@ -496,37 +498,6 @@ int ps_printer_light_set(const char *node, int on)
         seq++, node, on ? "on" : "off");
     if (n <= 0 || n >= (int)sizeof body) return -1;
     char what[40]; snprintf(what, sizeof what, "ledctrl %s %s", node, on ? "on" : "off");
-    return post(CMD_SEND, what, body, n);
-}
-
-/* The printer's fans, and the print speed. Both go in the `print` envelope, and the
- * printer signature-checks everything in that envelope: the sibling project measured it
- * one command at a time on a real P2S, and every gcode_line and print_speed came back
- * `mqtt message verify failed` while a ledctrl on the same connection seconds apart came
- * back `result: success`. What unlocks them is Developer Mode, which sits under LAN Only
- * Mode and is a separate switch; LAN Only on its own is not enough.
- *
- * So these are sent, and a printer that is not in Developer Mode refuses them. That is the
- * printer's rule and not this device's, and the page says so on the card that offers them.
- * As with the light, nothing is written into g_ps here: what the fan actually ends up doing
- * arrives in the next report, from the printer, which is the only thing that knows. */
-
-/* M106 P<part> S<0..255>. The part indices are Bambu's own, from its gcode: P1 the part
- * cooling fan, P2 the aux fan, P3 the chamber fan. The page works in percent because
- * percent is what the printer reports back, so the one place that knows about 255 is here. */
-int ps_printer_fan_set(int which, int percent)
-{
-    if (which < PS_FAN_PART || which > PS_FAN_CHAMBER) return -1;
-    if (percent < 0) percent = 0;
-    if (percent > 100) percent = 100;
-    int s255 = (percent * 255 + 50) / 100;
-    static unsigned seq = 1;
-    char body[192];
-    int n = snprintf(body, sizeof body,
-        "{\"print\":{\"sequence_id\":\"%u\",\"command\":\"gcode_line\",\"param\":\"M106 P%d S%d\\n\"}}",
-        seq++, which, s255);
-    if (n <= 0 || n >= (int)sizeof body) return -1;
-    char what[40]; snprintf(what, sizeof what, "fan P%d %d%% (S%d)", which, percent, s255);
     return post(CMD_SEND, what, body, n);
 }
 

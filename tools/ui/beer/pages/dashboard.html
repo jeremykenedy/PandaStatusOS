@@ -96,8 +96,6 @@
   <!-- ── Reaching back to the printer ─────────────────────────────── -->
   <article class="no-padding" id="ps-card-pctl">
     <h6 class="card-title" data-str="pctl_title">Printer controls</h6>
-    <div class="small-text" data-str="ui_these_write_to_the_printer_so_they">These write to the printer, so they need Developer
-      Mode switched on under LAN Only Mode. Everything above only listens.</div>
     <ul class="list border">
       <!-- Neither switch carries `checked`: a switch that starts on and is only corrected
            when the printer speaks is a switch that lies for as long as the printer is
@@ -108,50 +106,13 @@
         <label class="switch"><input type="checkbox" id="ps-pctl-chamber-light" aria-labelledby="lbl-pctl-chamber-light"><span></span></label>
       </li>
 
-      <!-- The fans. Each row appears only once the printer has
-           reported that fan, for the same reason the light rows do: a slider at zero for a
-           fan nobody has mentioned is a reading, and it would be a made up one. The number
-           on the right is the slider's own value: while a finger is on it that is where the
-           finger is, and every other moment it is what the printer last said, because that
-           is what wrote the slider.
-
-           step is 1 and not 5 so that the slider can sit exactly where the printer says it
-           is. The printer runs its fans in fifteenths and reports them that way, which lands
-           on 7, 13, 20, 27 and so on once converted; a step of 5 would snap every one of
-           those to a neighbour and the row would show a number the fan is not running at. A
-           fan asked for 63 will report back 60 or 67 and the slider will move there, which
-           is the printer's own granularity showing through rather than being hidden. -->
-      <li id="ps-pctl-fan-part-row" hidden>
-        <svg class="i"><use href="#i-fan"/></svg>
-        <div class="max" data-str="ui_fan_part" id="lbl-pctl-fan-part">Part cooling fan</div>
-        <label class="slider"><input type="range" min="0" max="100" step="1" value="0"
-               id="ps-pctl-fan-part" aria-labelledby="lbl-pctl-fan-part"><span></span></label>
-        <span class="small-text" id="ps-pctl-fan-part-value"></span>
-      </li>
-      <li id="ps-pctl-fan-aux-row" hidden>
-        <svg class="i"><use href="#i-fan"/></svg>
-        <div class="max" data-str="ui_fan_aux" id="lbl-pctl-fan-aux">Aux fan</div>
-        <label class="slider"><input type="range" min="0" max="100" step="1" value="0"
-               id="ps-pctl-fan-aux" aria-labelledby="lbl-pctl-fan-aux"><span></span></label>
-        <span class="small-text" id="ps-pctl-fan-aux-value"></span>
-      </li>
-      <li id="ps-pctl-fan-chamber-row" hidden>
-        <svg class="i"><use href="#i-fan"/></svg>
-        <div class="max" data-str="ui_fan_chamber" id="lbl-pctl-fan-chamber">Chamber fan</div>
-        <label class="slider"><input type="range" min="0" max="100" step="1" value="0"
-               id="ps-pctl-fan-chamber" aria-labelledby="lbl-pctl-fan-chamber"><span></span></label>
-        <span class="small-text" id="ps-pctl-fan-chamber-value"></span>
-      </li>
-
     </ul>
-    <!-- There is no print speed control here. There was one, four levels, and the printer
-         answered every press with "mqtt message verify failed": print_speed is a signed
-         command on this firmware, and this device signs nothing (D-052, D-053). The level
-         the printer is running at is still shown on the job strip, as a reading. -->
-    <div class="padding">
-      <div class="small-text" id="ps-pctl-locked" hidden data-str="ui_the_printer_is_refusing_commands_t">The printer is refusing commands. Turn on
-        Developer Mode, under LAN Only Mode, on the printer's own screen.</div>
-    </div>
+    <!-- The lamp is the only control here, on purpose. Three fan sliders and a four-level
+         speed control sat under it for one day and the printer answered every one of them
+         with "mqtt message verify failed": on this firmware the fans and the speed are signed
+         commands, the lamp is not, and this device signs nothing (D-052 to D-054). The fan
+         speeds and the running level are still shown, as readings, on the printer card and
+         the job strip. -->
   </article>
 
 

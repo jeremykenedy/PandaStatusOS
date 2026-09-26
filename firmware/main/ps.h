@@ -520,9 +520,6 @@ size_t ps_ota_slot_cap(void);
  * -1 when it was refused or the queue was full; the task logs whether it was sent. The
  * printer answers in its own telemetry, not here, so nothing is assumed to have worked. */
 int ps_printer_light_set(const char *node, int on);
-/* Bambu's own fan indices, from its gcode: M106 P1 part, P2 aux, P3 chamber. */
-enum { PS_FAN_PART = 1, PS_FAN_AUX = 2, PS_FAN_CHAMBER = 3 };
-int ps_printer_fan_set(int which, int percent);      /* percent 0..100, clamped */
 
 /* ps_log.c: the last lines the device wrote to itself, kept in RAM so the page can show
  * them. Scrubbed on the way in, never on the way out. */

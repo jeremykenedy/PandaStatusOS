@@ -760,10 +760,8 @@ function applyPrinterCtl(ws, m) {
   if (typeof m.light === 'string' && (m.on === 0 || m.on === 1)) {
     if (m.light === 'chamber_light') patch.printer_light = m.on;
     if (m.light === 'work_light') patch.work_light = m.on;
-  } else if (typeof m.fan === 'string' && typeof m.percent === 'number') {
-    const field = { part: 'fan_part', aux: 'fan_aux', chamber: 'fan_chamber' }[m.fan];
-    if (field) patch[field] = m.percent;
   }
+  // a fan or a speed frame from an older page is ignored, as the firmware ignores it (D-053, D-054)
   if (!Object.keys(patch).length) return null;
   setTimeout(() => {
     Object.assign(st, patch);

@@ -50,7 +50,6 @@ void ps_printer_bind(void) { rec("printer_bind"); }
 void ps_printer_unbind(void) { rec("printer_unbind"); }
 void ps_printer_scan(void) { rec("printer_scan"); }
 int ps_printer_light_set(const char *node, int on) { char b[64]; snprintf(b, sizeof b, "light:%s:%d", node ? node : "-", on ? 1 : 0); rec(b); return 0; }
-int ps_printer_fan_set(int which, int percent) { char b[64]; snprintf(b, sizeof b, "fan:%d:%d", which, percent); rec(b); return 0; }
 
 /* The two IDF calls ps_state.c makes for itself. Time stands still on the host, and
  * there is no access point, so the document leaves the signal out: which is the shape
@@ -170,13 +169,7 @@ int main(void)
     ch = apply("{\"printer_ctl\":{\"light\":\"chamber_light\",\"on\":1,\"device_wakeup\":1}}");
     t("printer_ctl light reaches the printer and stores nothing", ch == 0 && called(calls, "light:chamber_light:1"), calls);
     ch = apply("{\"printer_ctl\":{\"fan\":\"aux\",\"percent\":60,\"device_wakeup\":1}}");
-    t("printer_ctl fan names Bambu's own index, not ours", ch == 0 && called(calls, "fan:2:60"), calls);
-    ch = apply("{\"printer_ctl\":{\"fan\":\"chamber\",\"percent\":0,\"device_wakeup\":1}}");
-    t("a fan at zero is a command, not a missing value", ch == 0 && called(calls, "fan:3:0"), calls);
-    ch = apply("{\"printer_ctl\":{\"fan\":\"part\",\"percent\":101,\"device_wakeup\":1}}");
-    t("a percentage out of range sends nothing", ch == 0 && !called(calls, "fan:"), calls);
-    ch = apply("{\"printer_ctl\":{\"fan\":\"nose\",\"percent\":50,\"device_wakeup\":1}}");
-    t("a fan this printer does not have sends nothing", ch == 0 && !called(calls, "fan:"), calls);
+    t("a fan frame from an older page is ignored: the control is gone (D-054)", ch == 0 && calls[0] == 0, calls);
     ch = apply("{\"printer_ctl\":{\"speed\":4,\"device_wakeup\":1}}");
     t("a speed frame from an older page is ignored: the control is gone (D-053)", ch == 0 && calls[0] == 0, calls);
 

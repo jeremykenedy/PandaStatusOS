@@ -27,7 +27,7 @@ features beyond its clone, the faults it found, and its harness suite.
 | More than seven effects | Twenty-four |
 | Per-effect brightness, speed and direction | A4, `effect_params` |
 | Twenty-four languages, every key complete | Twenty-four, 404 keys |
-| Printer fans and print speed over `printer_ctl` | Three fan sliders on the Printer controls card, `t-pctl.js` (2026-09-26). The speed control was built and then taken out the same day: the printer refuses `print_speed` without Developer Mode, and the owner had it removed (D-053) |
+| Printer fans and print speed over `printer_ctl` | Built and taken out the same day (2026-09-26): the printer refuses both without Developer Mode, and the owner had every control that cannot work removed (D-052 to D-054). The fan speeds and the running level stay on the page as readings. The lamp stays as a control, `t-pctl.js` |
 | Render stats on the page | The Renderer card on the Logs page, `GET /api/render`, `t-render.js` (2026-09-26) |
 | A master direction, exclusive-or with the effect's own | Bit 21 `bar_flip`, applied to the finished frame, `fx_test.c` (2026-09-26) |
 | `pixels.js`: contrast from the pixels that were painted | `tools/ui/harness/pixels.js`, 842 regions, both themes, both widths, three CVD simulations, with a control sample (2026-09-26) |
@@ -40,16 +40,18 @@ item keeps its number and says so, so that a list written against this file stil
 
 ### 1. Printer controls, beyond the one lamp — DONE 2026-09-26
 
-`apply_printer_ctl()` takes two shapes: `{fan,percent}` and the `{light,on}` it already had.
-The card carries a slider per fan the printer has actually named; `ps_printer_fan_set()`
-sends `M106 P1|P2|P3 S0..255` inside the `print` envelope that Developer Mode under LAN Only
-Mode gates. A four-level speed control (`{speed}`, `print_speed` "1".."4") was built with
-them and removed the same day at the owner's word, after the printer answered every press
-with `mqtt message verify failed` (D-052, D-053); the level the printer runs at stays on the
-job strip as a reading. `t-pctl.js` is the harness, 35 assertions,
-and the mock grew `printer_ctl` (recorded always, echoed under `PS_PCTL_ECHO`), a
-`printer.status` on the printing fixture, `speed_level` on `/api/print`, and a
-`/__printer_status` debug route so a harness can make the printer report whatever it likes.
+Built, then taken out the same day. Three fan sliders (`{fan,percent}`, `M106 P1|P2|P3
+S0..255`) and a four-level speed control (`{speed}`, `print_speed` "1".."4") went in beside
+the lamp, and on the owner's printer every one of them came back `mqtt message verify
+failed`: both ride the `print` envelope, which this firmware takes only signed, and only
+Developer Mode under LAN Only Mode turns that check off (D-052). The owner had every control
+that cannot work removed (D-053, D-054). What remains of the item: `apply_printer_ctl()` takes
+`{light,on}` alone and ignores the two old shapes; the fan speeds and the running level are
+readings on the printer card and the job strip; the firmware logs the printer's answer to any
+command, in the printer's words. `t-pctl.js` is the harness, 21 assertions, and the mock keeps
+`printer_ctl` (recorded always, the lamp echoed under `PS_PCTL_ECHO`), a `printer.status` on
+the printing fixture, `speed_level` on `/api/print`, and a `/__printer_status` debug route so
+a harness can make the printer report whatever it likes.
 
 Two faults came out of writing it, both older than this item:
 
@@ -58,8 +60,7 @@ Two faults came out of writing it, both older than this item:
   clicked HAS focus and keeps it, so a lamp the printer refused, or a hotspot that dropped on
   its own, went on being drawn the way the last finger left it for as long as the page stayed
   open. The guard is gone from all three switches; what protects a command in flight is the
-  bounded settle window, which ends with the device winning. The same reasoning is why the fan
-  sliders are held by module 3b's window and not by focus: `t-pctl.js` D0 and I5 assert the
+  bounded settle window, which ends with the device winning. `t-pctl.js` C7 asserts the
   control still has focus at the moment the device is allowed to win, so the rule cannot come
   back unnoticed.
 - **A stale firmware binary was passing a page check.** `test-flash-tools.sh` compared the

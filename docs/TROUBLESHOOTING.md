@@ -85,9 +85,10 @@ secret. Do not put a printer on a network you do not trust.
 A scan finishes with no printers found: no discovery mechanism is documented yet, so
 the scan cannot find anything. Type the serial number and address.
 
-### The fans and the print speed do nothing; the light works
+### There is no fan or print speed control, only the light
 
-The printer is refusing them, and the Logs page says so in the printer's own words:
+On purpose. Both were built and the printer refused every one of them; the Logs page still
+shows such an answer in the printer's own words when a command is refused:
 `the printer answered print_speed: failed, mqtt message verify failed`. Bambu's firmware
 since early 2025 (P2 series from launch) takes motion, temperature, fan, AMS and print
 commands only when they carry a signature from Bambu's own applications, and it checks
@@ -97,7 +98,9 @@ appears on the printer's screen only once LAN Only Mode is on, and LAN Only Mode
 printer off Bambu Cloud: no Handy, no cloud timelapse. Bambu Studio keeps working over the
 LAN. There is no third way this device could take: sending through Bambu's cloud with your
 own account changes nothing, because the cloud relays the command and the printer still
-checks it, and this device will not sign with a key that is not its own (D-052).
+checks it, and this device will not sign with a key that is not its own (D-052). So the
+controls came off the page (D-053, D-054); the fan speeds and the running level are still
+shown as readings.
 
 ## Uploads
 

@@ -137,72 +137,14 @@ function light_settle_tick() {
 }
 
 /* ---------------------------------------------------------------------
-   3b. The fans
+   3b. What is not here
    ---------------------------------------------------------------------
-
-   The same route as the lights and the same silence afterwards: the device stores nothing
-   and pushes nothing for printer_ctl, and what the fan actually ends up doing arrives in
-   the printer's next report. The difference is what the printer will accept. `ledctrl` is
-   not signature-checked and these are: they ride in the `print` envelope, which the printer
-   refuses unless Developer Mode is on under LAN Only Mode. They are sent regardless. A
-   printer with it on takes them, one without it answers `mqtt message verify failed`, and
-   the card already carries the line that says so. The print speed control that sat beside
-   them is gone for that reason (D-053); the fans stay for now, at the owner's word.
-
-   A slider is not a switch, so the hold is simpler: while a drag is in progress, or for a
-   moment after one ends, the reported value does not repaint the control. `input` paints
-   the number beside it and sends nothing; `change`, which fires when the drag ends, is what
-   goes to the printer. Dragging a slider does not spray thirty commands at a printer.
+   Three fan sliders and a print speed control rode this same root for one day. They go
+   in the `print` envelope, which the printer signature-checks unless Developer Mode is on
+   under LAN Only Mode; `ledctrl` is not checked, which is why the lamp works and they did
+   not. The owner had them taken out (D-052 to D-054). Their readings are module 1's, on
+   the printer card and the job strip.
    ------------------------------------------------------------------- */
-
-/* slider id -> the fan's wire name, and the status field it is reported back on */
-var FAN_SLIDERS = {
-  'ps-pctl-fan-part':    { fan: 'part',    field: 'fan_part' },
-  'ps-pctl-fan-aux':     { fan: 'aux',     field: 'fan_aux' },
-  'ps-pctl-fan-chamber': { fan: 'chamber', field: 'fan_chamber' }
-};
-
-var FAN_SETTLE_MS = 5000;
-var g_fan_settles = {};            /* slider id -> until ms */
-
-/* True while this control's own value is not to be written over.
-   
-   For a slider this hold is the whole of the rule, and it replaces the focus rule the rest
-   of the page keeps. A text field is protected by focus because focus is what "someone is
-   typing here" looks like; a slider keeps focus after the finger comes off and never gives
-   it back on its own, so a focus rule would freeze that row at the last value dragged and
-   the printer's own reading would never appear in it again. The window is refreshed on every
-   movement, so it covers the drag itself and five seconds after the last one, and then the
-   printer wins whatever it says. */
-function pctl_held(id) {
-  var until = g_fan_settles[id];
-  return !!(until && Date.now() < until);
-}
-window.pctl_held = pctl_held;
-
-function fan_hold(id) { g_fan_settles[id] = Date.now() + FAN_SETTLE_MS; }
-
-function fan_paint_value(id) {
-  var el = status_el(id);
-  if (el) setText(id + '-value', fmtPct(Number(el.value)));
-}
-
-/* Every movement: hold the row and paint the number beside it. Nothing is sent. */
-function fan_slider_input(ev) {
-  if (!FAN_SLIDERS[ev.target.id]) return;
-  fan_hold(ev.target.id);
-  fan_paint_value(ev.target.id);
-}
-
-function fan_slider_changed(ev) {
-  var el = ev.target;
-  var f = FAN_SLIDERS[el.id];
-  if (!f) return;
-  if (!status_device_ready()) return;
-  ws_push('printer_ctl', { fan: f.fan, percent: Number(el.value) });
-  fan_hold(el.id);
-  fan_paint_value(el.id);
-}
 
 /* ---------------------------------------------------------------------
    4. Wiring: one init, every listener added here, no inline handlers
@@ -211,11 +153,6 @@ function fan_slider_changed(ev) {
 function init_status_card() {
   for (var id in LIGHT_SWITCHES) {
     if (Object.prototype.hasOwnProperty.call(LIGHT_SWITCHES, id)) status_wire(id, 'change', light_switch_changed);
-  }
-  for (var fid in FAN_SLIDERS) {
-    if (!Object.prototype.hasOwnProperty.call(FAN_SLIDERS, fid)) continue;
-    status_wire(fid, 'input', fan_slider_input);
-    status_wire(fid, 'change', fan_slider_changed);
   }
 }
 
