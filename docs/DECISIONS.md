@@ -1388,4 +1388,38 @@ held, which would make the queue a convenience rather than the fix.
 
 ---
 
+## D-050 A guard restarts a device whose server or state lock has stopped, and the log survives it
+
+**Date** 2026-09-26 · **Reversal** cheap (one task in ps_main.c, a ping in ps_ws.c, one attribute in ps_log.c)
+
+**Decided, after the server stopped a second time within minutes of a power cycle.** D-049 closed
+the two paths found by reading the code. Whether either was the one that fired is not known,
+because a server that has stopped cannot serve its own log and the power cycle that brings it
+back empties the ring. A third stop, from a path nobody has found, would look the same and
+teach nothing.
+
+**What it does.** `ps_guard` wakes every ten seconds, above every task it watches. `ps_lock`
+must come free within ten seconds; if not, it logs which task holds it. The server must run a
+queued ping within two minutes; a backup or an upload in progress says it is moving, so a slow
+transfer is not mistaken for a stop. Either failure is logged and the device restarts.
+
+**Why the log survives.** The ring is `__NOINIT_ATTR` memory, which a restart does not clear. On
+a warm reset (software, panic, a watchdog) with this build's mark, the old lines stay and a
+line saying so is added; a power cut, a first boot or another build starts clean. So after the
+guard fires, the Logs page shows what came before it. `/api/info` gains `reset_reason` and
+`heap_min` so a restart and a leak can each be seen from outside.
+
+**Parity.** No switch: this changes nothing a working device does. The factory's behaviour when
+its server stops is not observed; staying stopped until someone pulls the plug is not a
+behaviour worth copying.
+
+**Alternatives.** The task watchdog, which watches the idle task and would not see a blocked
+server at all. A hardware watchdog fed from the server, which would restart a server that is
+merely busy serving a large page. Logging only, which leaves the device stopped.
+
+**What would change it.** A restart that happens when nothing is wrong. The thresholds are
+generous on purpose, and the reset reason in `/api/info` would show it.
+
+---
+
 *Entries continue below as the run proceeds.*

@@ -642,6 +642,8 @@ int ps_api_info_get(httpd_req_t *req)
     cJSON_AddStringToObject(doc, "idf", esp_get_idf_version());
     cJSON_AddNumberToObject(doc, "uptime_s", (double)(esp_timer_get_time() / 1000000));
     cJSON_AddNumberToObject(doc, "heap_free", (double)esp_get_free_heap_size());
+    cJSON_AddNumberToObject(doc, "heap_min", (double)esp_get_minimum_free_heap_size());   /* the lowest it has been since boot */
+    cJSON_AddNumberToObject(doc, "reset_reason", (double)esp_reset_reason());             /* esp_reset_reason_t: 1 power, 3 software, 4 panic */
     cJSON_AddNumberToObject(doc, "flash_size", (double)flash);
     cJSON_AddNumberToObject(doc, "leds", CONFIG_PS_LED_COUNT);
     cJSON_AddNumberToObject(doc, "mode", mode);

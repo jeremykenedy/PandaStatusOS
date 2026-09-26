@@ -419,6 +419,8 @@ uint32_t ps_state_apply(const char *json, size_t len, int client);
 /* ----------------------------------------------------------------- ps_ws.c ---- */
 int  ps_ws_start(void);
 void ps_ws_push(uint32_t roots, int client);         /* client < 0: every client */
+bool ps_ws_alive(uint32_t within_ms);                /* did the server run a queued ping in time? (the guard) */
+void ps_ws_feed(void);                               /* a long transfer on the server task says it is moving */
 void ps_ws_response(const char *type, bool ok, const char *gif, int client);
 
 /* --------------------------------------------------------------- ps_wifi.c ---- */

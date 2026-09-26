@@ -99,6 +99,7 @@ esp_err_t ps_backup_get(httpd_req_t *req)
         uint32_t n = (size - off) < CHUNK ? (size - off) : CHUNK;
         if (esp_flash_read(NULL, buf, off, n) != ESP_OK) { ESP_LOGE(TAG, "flash read failed at 0x%06x", (unsigned)off); err = ESP_FAIL; break; }
         if (httpd_resp_send_chunk(req, (const char *)buf, n) != ESP_OK) { ESP_LOGW(TAG, "client left at 0x%06x", (unsigned)off); err = ESP_FAIL; break; }
+        ps_ws_feed();                                       /* a stream that moves is a server that is alive (the guard) */
         if (off && (off & 0x7FFFFu) == 0) vTaskDelay(1);   /* every 512 KB: Wi-Fi and the bar get a turn */
     }
     free(buf);

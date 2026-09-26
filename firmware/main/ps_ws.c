@@ -23,6 +23,8 @@
 #include "esp_http_server.h"
 #include "esp_app_desc.h"
 #include "cJSON.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
 #include "ps.h"
 
 static const char *TAG = "ps_ws";
@@ -147,6 +149,31 @@ static esp_err_t redirect_portal(httpd_req_t *req)
 }
 int ps_http_redirect_portal(httpd_req_t *req) { return redirect_portal(req); }   /* for a route that must look absent (A13) */
 
+/* Is the server task still running its queue? The guard in ps_main.c asks every so often.
+ * A ping is a work item that writes its own number down when the server gets to it; one that
+ * is written down means the task is alive. A ping can be lost without the server being stuck
+ * (the control socket drops a datagram when its queue is full), so a fresh one goes every ten
+ * seconds and any of them landing counts. */
+static volatile uint32_t s_ping_sent, s_ping_seen;
+static void ping_work(void *arg) { s_ping_seen = (uint32_t)(uintptr_t)arg; }
+/* A long transfer runs on the server task and keeps it from its queue for as long as it takes;
+ * the transfer says it is still moving, so a slow backup is not mistaken for a stopped server. */
+void ps_ws_feed(void) { s_ping_seen = s_ping_sent; }
+bool ps_ws_alive(uint32_t within_ms)
+{
+    if (!s_hd) return true;                            /* no server, nothing to be stuck */
+    uint32_t first = s_ping_sent + 1;
+    for (uint32_t waited = 0; waited < within_ms; waited += 10000) {
+        uint32_t n = ++s_ping_sent;
+        httpd_queue_work(s_hd, ping_work, (void *)(uintptr_t)n);
+        for (int i = 0; i < 100; i++) {                /* ten seconds in tenths */
+            if ((int32_t)(s_ping_seen - first) >= 0) return true;
+            vTaskDelay(pdMS_TO_TICKS(100));
+        }
+    }
+    return false;
+}
+
 /* A request body, read whole. httpd_req_recv gives up after the receive timeout with
  * HTTPD_SOCK_ERR_TIMEOUT, and a loop that simply asks again waits forever on a client that has
  * gone without closing: a phone that slept, or left the network, between the headers and the
@@ -192,6 +219,7 @@ static esp_err_t ota_post(httpd_req_t *req)
         }
         if (n <= 0) { ok = false; break; }
         idle = 0;
+        ps_ws_feed();                                  /* an upload that moves is a server that is alive */
         if (ps_ota_write(ctx, buf, (size_t)n) != 0) { ok = false; break; }
         left -= (size_t)n;
     }

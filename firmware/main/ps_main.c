@@ -16,6 +16,40 @@ void ps_lock(void)   { xSemaphoreTakeRecursive(s_lock, portMAX_DELAY); }
 void ps_unlock(void) { xSemaphoreGiveRecursive(s_lock); }
 void ps_restart(const char *why) { ESP_LOGW(TAG, "restart: %s", why); vTaskDelay(pdMS_TO_TICKS(150)); esp_restart(); }
 
+/* ---- the guard ----
+ *
+ * Two things stop this device for good if they stop: the web server, which is one task, and
+ * ps_lock, which every task takes. Nothing on the network can restart a device whose server
+ * has stopped, so the only way back was a power cycle, and the log that would have said why
+ * went with it. So a task wakes every ten seconds and checks both: the lock must come free
+ * within ten seconds, and the server must run a queued ping within two minutes (a page load
+ * or an upload can keep it busy for a while; a stopped server never gets there). If either
+ * fails it writes down which, and who holds the lock, and restarts. The log ring survives that
+ * restart (ps_log.c), so the Logs page afterwards shows what came before.
+ *
+ * It runs above every task it watches, so one that spins cannot starve it, and it spends
+ * nearly all its time asleep. */
+#define PS_GUARD_EVERY_MS   10000
+#define PS_GUARD_LOCK_MS    10000
+#define PS_GUARD_SERVER_MS 120000
+static void guard_task(void *arg)
+{
+    (void)arg;
+    for (;;) {
+        vTaskDelay(pdMS_TO_TICKS(PS_GUARD_EVERY_MS));
+        if (xSemaphoreTakeRecursive(s_lock, pdMS_TO_TICKS(PS_GUARD_LOCK_MS)) != pdTRUE) {
+            TaskHandle_t h = xSemaphoreGetMutexHolder(s_lock);
+            ESP_LOGE(TAG, "guard: ps_lock held over %d s by %s", PS_GUARD_LOCK_MS / 1000, h ? pcTaskGetName(h) : "no task");
+            ps_restart("guard, ps_lock");
+        }
+        xSemaphoreGiveRecursive(s_lock);
+        if (!ps_ws_alive(PS_GUARD_SERVER_MS)) {
+            ESP_LOGE(TAG, "guard: the web server ran nothing from its queue in %d s", PS_GUARD_SERVER_MS / 1000);
+            ps_restart("guard, web server");
+        }
+    }
+}
+
 void app_main(void)
 {
     ps_log_init();   /* before anything else: a log that starts late misses the boot */
@@ -34,6 +68,7 @@ void app_main(void)
     ps_printer_discover_start();   /* listen for printer announcements from here on */
     ps_ota_confirm_boot();                       /* the page is reachable: this image stays */
     ps_printer_start();
+    if (xTaskCreate(guard_task, "ps_guard", 3072, NULL, 10, NULL) != pdPASS) ESP_LOGE(TAG, "guard would not start");
     #if CONFIG_PS_LED_PIN_WALK
     /* The pin walk is a diagnostic and it needs a person to watch and count. Fan-out replaced
        it: the strip lights without anyone counting anything. Kept because it is the only way to

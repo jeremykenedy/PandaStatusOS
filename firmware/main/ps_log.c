@@ -19,6 +19,9 @@
 #include <stdarg.h>
 #include <ctype.h>
 #include "esp_log.h"
+#include "esp_attr.h"
+#include "esp_system.h"
+#include "esp_app_desc.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/semphr.h"
 #include "freertos/task.h"
@@ -27,9 +30,17 @@
 #define LOG_LINES  64
 #define LOG_WIDTH  160
 
-static char     s_ring[LOG_LINES][LOG_WIDTH];
-static uint16_t s_head;                       /* next slot to write */
-static uint16_t s_count;                      /* how many slots hold a line */
+/* The ring outlives a restart that is not a power cut: __NOINIT_ATTR memory is never zeroed
+ * at boot, so when the device restarts itself (the guard in ps_main.c, a panic, a watchdog)
+ * the lines from before it are still here to read afterwards. That is the whole point of the
+ * guard: a server that stopped cannot serve its own log, and a restart would otherwise take
+ * the evidence with it. A power cut, a first boot or a different build finds a mark that does
+ * not match, and starts clean. */
+#define LOG_MARK 0x50534C47u                   /* "PSLG", xor the build's first word */
+static __NOINIT_ATTR char     s_ring[LOG_LINES][LOG_WIDTH];
+static __NOINIT_ATTR uint16_t s_head;         /* next slot to write */
+static __NOINIT_ATTR uint16_t s_count;        /* how many slots hold a line */
+static __NOINIT_ATTR uint32_t s_mark;
 static vprintf_like_t s_chain;                /* the writer we replaced, still fed */
 /* A line that arrives in pieces waits here for its newline. */
 static char   s_pend[LOG_WIDTH];
@@ -130,6 +141,19 @@ void ps_log_init(void)
 {
     if (s_chain) return;
     if (!s_ring_lock) s_ring_lock = xSemaphoreCreateMutex();
+    uint32_t build; memcpy(&build, esp_app_get_description()->app_elf_sha256, sizeof build);
+    uint32_t want = LOG_MARK ^ build;
+    esp_reset_reason_t why = esp_reset_reason();
+    bool warm = why == ESP_RST_SW || why == ESP_RST_PANIC || why == ESP_RST_INT_WDT || why == ESP_RST_TASK_WDT
+             || why == ESP_RST_WDT || why == ESP_RST_CPU_LOCKUP;
+    if (warm && s_mark == want && s_head < LOG_LINES && s_count <= LOG_LINES) {
+        for (int i = 0; i < LOG_LINES; i++) s_ring[i][LOG_WIDTH - 1] = 0;   /* whatever else, every slot ends */
+        char m[96];
+        int n = snprintf(m, sizeof m, "---- restarted, reset reason %d; the lines above are from before it ----", (int)why);
+        if (n > 0) put_line(m, (size_t)n);
+    } else {
+        memset(s_ring, 0, sizeof s_ring); s_head = 0; s_count = 0; s_mark = want;
+    }
     s_chain = esp_log_set_vprintf(log_vprintf);
 }
 
