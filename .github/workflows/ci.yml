@@ -27,15 +27,22 @@ jobs:
       - name: Pillow, for the artwork checks
         run: python3 -m pip install --quiet --disable-pip-version-check pillow
 
+      # Three of the four scripts this job used to call have not existed since the page
+      # was rebuilt: tools/ui/build/build.py, tools/ui/gen_icons.py and
+      # tools/ui/normalize_icons.py. The first one is the first step of the job, so every
+      # run since has died on line one and nothing after it was ever reached. The page is
+      # built by tools/ui/beer/build_firmware.py now, and it takes the output path as its
+      # argument, so the check is: build it somewhere else and compare.
       - name: The committed page is exactly what the build produces
-        run: python3 tools/ui/build/build.py --check
+        run: |
+          python3 tools/ui/beer/build_firmware.py "$RUNNER_TEMP/ui.html"
+          cmp "$RUNNER_TEMP/ui.html" firmware/main/ui.html
+          git diff --exit-code
 
       - name: The committed artwork is exactly what its generators produce
         run: |
           python3 tools/art/gen_marks.py --check
           python3 tools/art/gen_banner.py --check
-          python3 tools/ui/gen_icons.py --check
-          python3 tools/ui/normalize_icons.py --check
 
       - name: Host tests
         run: make test-fw
