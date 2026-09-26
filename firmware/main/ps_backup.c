@@ -30,18 +30,44 @@
 static const char *TAG = "ps_backup";
 #define CHUNK 4096u
 
-/* true when the request came in on the hotspot's address, or when that cannot be told */
+/* true when the request came in on the hotspot's address, or when that cannot be told.
+ *
+ * The local address is what says which interface answered, and it has to be read the way
+ * the server actually hands it over. The HTTP server listens on a dual-stack socket, so
+ * getsockname() reports AF_INET6 for every request, including plain IPv4 clients, whose
+ * address arrives mapped as ::ffff:a.b.c.d. The first version of this refused anything
+ * that was not AF_INET, which is everything: GET /backup answered 403 on the station
+ * interface, on the device, every time, and the only route off this hardware back to a
+ * factory image could not be used at all. The harness never caught it because the mock is
+ * a node server with no interfaces to tell apart.
+ *
+ * With no hotspot up there is nothing to refuse. With one up, a request whose local
+ * address is the hotspot's is refused, and a genuine IPv6 request is refused too, because
+ * which interface it arrived on cannot be told from here and the image carries the Wi-Fi
+ * password in plaintext (D-029). */
 static bool via_hotspot(httpd_req_t *req)
 {
     int fd = httpd_req_to_sockfd(req);
     struct sockaddr_storage ss;
     socklen_t len = sizeof ss;
     if (fd < 0 || getsockname(fd, (struct sockaddr *)&ss, &len) != 0) return true;
-    if (ss.ss_family != AF_INET) return true;
+
     esp_netif_t *ap = esp_netif_get_handle_from_ifkey("WIFI_AP_DEF");
     esp_netif_ip_info_t ip;
-    if (!ap || esp_netif_get_ip_info(ap, &ip) != ESP_OK) return false;    /* no hotspot: nothing to refuse */
-    return ((struct sockaddr_in *)&ss)->sin_addr.s_addr == ip.ip.addr;
+    if (!ap || esp_netif_get_ip_info(ap, &ip) != ESP_OK || ip.ip.addr == 0) return false;
+
+    uint32_t local;
+    if (ss.ss_family == AF_INET) {
+        local = ((struct sockaddr_in *)&ss)->sin_addr.s_addr;
+    } else if (ss.ss_family == AF_INET6) {
+        static const uint8_t V4MAPPED[12] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xFF, 0xFF };
+        const uint8_t *a = (const uint8_t *)&((struct sockaddr_in6 *)&ss)->sin6_addr;
+        if (memcmp(a, V4MAPPED, sizeof V4MAPPED) != 0) return true;
+        memcpy(&local, a + 12, sizeof local);
+    } else {
+        return true;
+    }
+    return local == ip.ip.addr;
 }
 
 esp_err_t ps_backup_get(httpd_req_t *req)
