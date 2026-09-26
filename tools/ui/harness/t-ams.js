@@ -100,6 +100,25 @@ async function waitFor(page, body, ms = 4000) {
 
     t('F1 no page errors, no console errors', errors.length === 0, errors);
     await ctx.close();
+
+    // ---- on a phone: two by two, every material readable (O5) ----
+    const pctx = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+    const phone = await pctx.newPage();
+    await phone.goto(BASE + '/');
+    await phone.waitForFunction(() => !document.body.classList.contains('is-waiting'), null, { timeout: 8000 });
+    await phone.evaluate(() => { const d = document.getElementById('ps-dialog'); if (d && d.open) d.close(); });
+    await phone.evaluate(() => show_card('status'));
+    await waitFor(phone, "document.querySelectorAll('#ps-trays-row > .chip').length === 4");
+    const grid = await phone.evaluate(() => {
+      const chips = [...document.querySelectorAll('#ps-trays-row > .chip')];
+      const lefts = new Set(chips.map((c) => Math.round(c.getBoundingClientRect().left)));
+      const clipped = chips.filter((c) => { const sp = c.querySelector('span'); return sp.scrollWidth > sp.clientWidth + 1 || sp.scrollHeight > sp.clientHeight + 1; }).length;
+      const text = chips.map((c) => c.querySelector('span').textContent);
+      return { cols: lefts.size, clipped, text };
+    });
+    t('G1 four spools sit two by two on a phone', grid.cols === 2, grid);
+    t('G2 and no material is cut short', grid.clipped === 0 && grid.text.some((x) => /PLA Basic/.test(x)), grid);
+    await pctx.close();
   } catch (e) {
     console.log('  FAIL  harness threw: ' + (e && e.stack || e));
     t('the harness ran to the end', false);

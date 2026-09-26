@@ -256,7 +256,7 @@ behind whichever one takes the longest. Each line is updated as it lands.
 | O2 | Kept inside the printed part defaults to on | open |
 | O3 | The printer page shows which Bambu printer it is (the model) | open |
 | O4 | The dashboard shows the humidity inside the printer, the way it shows the AMS humidity | open |
-| O5 | The AMS card on a phone: two trays by two, and the material readable rather than cut after a letter or two | open |
+| O5 | The AMS card on a phone: two trays by two, and the material readable rather than cut after a letter or two | DONE 2026-09-26: two columns under 600px, the chip text wraps instead of being cut, `t-ams.js` G1 and G2 |
 
 ## Catalogued elsewhere, still open
 
