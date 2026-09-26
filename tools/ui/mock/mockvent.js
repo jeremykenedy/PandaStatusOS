@@ -54,6 +54,8 @@
  *
  * Debug, not protocol, in the shape mockdev.js uses:
  *   GET  /__state    what the vent believes right now
+ *   POST /__vent     {state?, chamber_c?, override?, reason?, error?}: the vent does
+ *                    something on its own, and the paired sockets are told
  *   GET  /__sent     every frame it has received, in order, parsed
  *   POST /__reset    back to the fixture state, the log cleared, any pairing forgotten
  *   POST /__knob     {name, value} at runtime
@@ -308,6 +310,24 @@ const server = http.createServer((req, res) => {
   const json = (o, code) => { res.writeHead(code || 200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }); res.end(JSON.stringify(o)); };
 
   if (p === '/__state') return json({ id: ID, name: NAME, kind: 'vent', ver: VER, caps: CAPS, state: STATE });
+  if (p === '/__vent' && req.method === 'POST') {
+    /* Debug only: the vent does something on its own. The knobs above are read when the
+       process starts or resets, which is right for what a vent IS when a row begins and no
+       use at all for what it DOES while the row runs. Fields given are merged and the paired
+       sockets are told, which is exactly what a flap moving looks like from the other end. */
+    let b = '';
+    req.on('data', (c) => { b += c; });
+    req.on('end', () => {
+      let j = {}; try { j = JSON.parse(b || '{}'); } catch (_) { j = {}; }
+      for (const k of ['state', 'chamber_c', 'override', 'reason', 'error']) {
+        if (j[k] !== undefined) STATE[k] = j[k];
+      }
+      log({ ev: 'vent_set', detail: JSON.stringify(j) });
+      for (const ws of sockets) if (ws._paired) pushVent(ws);
+      res.writeHead(200); res.end('ok');
+    });
+    return;
+  }
   if (p === '/__sent') return json(SENT);
   if (p === '/__reset' && req.method === 'POST') { STATE = FRESH(); SENT.length = 0; log({ ev: 'reset' }); res.writeHead(200); return res.end('ok'); }
   if (p === '/__knob' && req.method === 'POST') {

@@ -59,6 +59,40 @@
     </div>
   </article>
 
+  <!-- ── The vent, when there is one ──────────────────────────────────
+       Not drawn at all while no vent is bound, the way the AMS card is not
+       drawn when the printer describes no AMS. Everything in it is the vent's
+       own report and nothing is invented: a row whose value the vent has not
+       sent is not in the card.
+
+       Status, not control. What the vent is told to do is on its own page
+       (docs/PANDAVENT-BRIDGE.md, "A page for the vent's own settings"). -->
+  <article id="ps-card-vent-status" hidden>
+    <h6 class="card-title" data-str="ui_vent">Vent</h6>
+    <ul class="list border">
+      <li>
+        <svg class="i"><use href="#i-vent-auto"/></svg>
+        <div class="max" data-str="ui_state">State</div>
+        <span class="small-text" id="ps-vs-state"></span>
+      </li>
+      <li id="ps-vs-chamber-row" hidden>
+        <svg class="i"><use href="#i-temp"/></svg>
+        <div class="max" data-str="ui_chamber">Chamber</div>
+        <span class="small-text" id="ps-vs-chamber"></span>
+      </li>
+      <li id="ps-vs-policy-row" hidden>
+        <svg class="i"><use href="#i-material"/></svg>
+        <div class="max" data-str="ui_policy">Policy</div>
+        <span class="small-text" id="ps-vs-policy"></span>
+      </li>
+      <li id="ps-vs-error-row" hidden>
+        <svg class="i"><use href="#i-warning"/></svg>
+        <div class="max" data-str="status_fault_code">Fault code</div>
+        <span class="small-text" id="ps-vs-error"></span>
+      </li>
+    </ul>
+  </article>
+
   <!-- ── Reaching back to the printer ─────────────────────────────── -->
   <article class="no-padding" id="ps-card-pctl">
     <h6 class="card-title" data-str="pctl_title">Printer controls</h6>

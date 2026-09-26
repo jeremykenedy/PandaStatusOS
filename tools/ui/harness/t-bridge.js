@@ -103,6 +103,33 @@ async function open(page) {
     t('E7 the vent holds a token for this device, which is what paired means',
       !!(await (await fetch(`${VENT}/__state`)).json()).state.tokens[vd.self.id]);
 
+    // ---- E8..E12: the card on the dashboard ----
+    await page.evaluate(() => show_card('status'));
+    t('E8 once a vent is talking there is a vent card on the dashboard',
+      await until(async () => !await hidden(page, 'ps-card-vent-status'), 5000));
+    t('E9 saying what it is doing, in words rather than the vent\'s own token',
+      ['Open', 'Closed', 'Sealing the chamber', 'Moving', 'Not reported'].includes(await text(page, 'ps-vs-state')),
+      await text(page, 'ps-vs-state'));
+    t('E10 and what the chamber reads, because the vent sent one',
+      !await hidden(page, 'ps-vs-chamber-row') && /\d/.test(await text(page, 'ps-vs-chamber')),
+      await text(page, 'ps-vs-chamber'));
+    t('E11 the policy row says which way round it is',
+      (await text(page, 'ps-vs-policy')) === 'Following the printer', await text(page, 'ps-vs-policy'));
+    t('E12 and nothing is claimed about a fault the vent has not reported',
+      await hidden(page, 'ps-vs-error-row'));
+
+    /* The vent moves on its own, and the card follows it: the command goes to the vent
+       through the device, and nothing on this page is told what to draw. */
+    await post(VENT, '/__vent', { state: 'sealing', error: 'E42' });
+    t('E13 the card follows the vent without the page being told anything',
+      await until(async () => (await text(page, 'ps-vs-state')) === 'Sealing the chamber', 6000),
+      await text(page, 'ps-vs-state'));
+    t('E14 and a fault the vent reports appears, in the vent\'s own code',
+      await until(async () => !await hidden(page, 'ps-vs-error-row') && (await text(page, 'ps-vs-error')) === 'E42', 4000),
+      await text(page, 'ps-vs-error'));
+    await post(VENT, '/__vent', { state: 'closed', error: null });
+    await page.evaluate(() => show_card('printer'));
+
     // ---- F: the effect copy, refused before it is allowed ----
     await post(BASE, '/api/features', { features: { state_effects: true } });   // but not fx_barber
     await page.click('#ps-btn-vent-copy-effect');
@@ -138,6 +165,10 @@ async function open(page) {
     t('H1 unbinding takes the link back to nothing', await until(async () => (await doc()).link === 0, 4000));
     t('H2 the copies go with it', await until(async () => await hidden(page, 'ps-vent-copy'), 4000));
     t('H3 and so does the link row', await until(async () => await hidden(page, 'ps-vent-link-row'), 4000));
+    await page.evaluate(() => show_card('status'));
+    t('H4 and the dashboard stops carrying a card about a vent that is no longer bound',
+      await until(async () => await hidden(page, 'ps-card-vent-status'), 5000));
+    await page.evaluate(() => show_card('printer'));
 
     // ---- I: the switch off again ----
     await post(BASE, '/api/features', { features: { bridge: false } });

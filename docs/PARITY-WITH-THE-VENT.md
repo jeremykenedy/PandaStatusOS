@@ -232,10 +232,15 @@ That document sets the order of work. Steps 2 and the page half of 3 are done:
 - The two frames the copies are made of (`light {request}` and `fx`) were missing from the
   contract, which described the copies before they had a wire. They are written into it now.
 
-**The device half is not built**: `ps_bridge.c` does not exist. Items 9 (the vent card on the
-dashboard) and 10 (the vent settings page, three firmwares) are still open, and 10 stays
-unwritten until each of the three surfaces has been read the way this project reads a
-surface.
+- **The second of the three: the vent card on the dashboard.** Drawn only once a vent is bound
+  AND talking, beside the printer's, the way the AMS card is not drawn when the printer
+  describes no spools. Its state in words rather than the vent's own token, the chamber if the
+  vent sent one, which way its policy is deciding, and a fault only when the vent reports one.
+  Nothing in it is invented and no row is drawn for a value that has not arrived.
+
+**The device half is not built**: `ps_bridge.c` does not exist. Item 10 (the vent settings
+page, three firmwares) stays unwritten until each of the three surfaces has been read the way
+this project reads a surface.
 
 ## Catalogued elsewhere, still open
 

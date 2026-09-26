@@ -37,6 +37,17 @@
   var g_doc = null;
   var g_card_shown = false;
 
+  /* What the vent says it is doing, in words. The five the contract names and nothing else:
+     a state this page does not know is drawn as the dash every unreported value gets, not as
+     the word the vent happened to send, which would be English on a page in Polish. */
+  var VENT_WORD = {
+    open: ['ui_vent_open', 'Open'],
+    closed: ['ui_vent_closed', 'Closed'],
+    sealing: ['ui_vent_sealing', 'Sealing the chamber'],
+    moving: ['ui_vent_moving', 'Moving'],
+    unknown: ['ui_vent_unknown', 'Not reported'],
+  };
+
   /* The link, in the device's own numbering. 0, 2, 3 and 4 mean what they mean for the
      printer and borrow its words; 5 and 6 are a vent's own and have their own. */
   var LINK_WORD = {
@@ -149,6 +160,39 @@
 
     /* The copies, only while the vent is actually talking. */
     show('ps-vent-copy', d.link === 3 && !!d.vent);
+
+    render_dashboard(d);
+  }
+
+  /* The card on the dashboard, beside the printer's. Drawn only while a vent is bound AND
+     talking: a card that says nothing about a vent nobody has bound is a card in the way, and
+     the AMS card keeps the same rule about a printer that describes no spools. */
+  function render_dashboard(d) {
+    var card = el('ps-card-vent-status');
+    var live = !!(d && d.link === 3 && d.vent);
+    if (card) card.hidden = !live;
+    if (!live) return;
+    var v = d.vent;
+    var w = VENT_WORD[v.state] || null;
+    setText('ps-vs-state', w ? tr(w[0], w[1]) : DASH);
+
+    /* Each row is here only if the vent sent the value. A chamber reading of nothing is not
+       zero degrees, and a policy nobody reported is not "following the printer". */
+    var hasC = isNum(v.chamber_c);
+    show('ps-vs-chamber-row', hasC);
+    if (hasC) setText('ps-vs-chamber', fmtTemp(v.chamber_c));
+
+    var pol = v.policy && typeof v.policy === 'object' ? v.policy : null;
+    show('ps-vs-policy-row', !!pol && (pol.override === true || pol.override === false));
+    if (pol) {
+      setText('ps-vs-policy', pol.override
+        ? tr('ui_policy_material', 'Deciding from the filament loaded')
+        : tr('ui_policy_factory', 'Following the printer'));
+    }
+
+    var err = (typeof v.error === 'string' && v.error) ? v.error : '';
+    show('ps-vs-error-row', !!err);
+    if (err) setText('ps-vs-error', err);
   }
 
   /* ---------------------------------------------------------------- actions */
@@ -202,17 +246,31 @@
   }
 
   /* A card is open exactly when it wears .active, which catches every way of opening it:
-     the rail, the bottom bar, the keyboard and a bare show_card('printer'). */
+     the rail, the bottom bar, the keyboard and a bare show_card('printer').
+     
+     Two pages want this document: the Bindings page, which is where a vent is bound, and the
+     dashboard, which shows what the bound one is doing. Either being open is a reason to ask;
+     neither being open is a reason to stop, because nothing is reading it. */
+  var WATCHED = ['ps-card-printer', 'ps-card-status'];
+  function anyOpen() {
+    return WATCHED.some(function (id) {
+      var c = document.getElementById(id);
+      return c && c.classList.contains('active');
+    });
+  }
   function watch() {
-    var card = document.getElementById('ps-card-printer');
-    if (!card || typeof MutationObserver !== 'function') return;
-    g_card_shown = card.classList.contains('active');
-    new MutationObserver(function () {
-      var on = card.classList.contains('active');
+    if (typeof MutationObserver !== 'function') return;
+    g_card_shown = anyOpen();
+    var obs = new MutationObserver(function () {
+      var on = anyOpen();
       if (on && !g_card_shown) start();
       if (!on && g_card_shown) stop();
       g_card_shown = on;
-    }).observe(card, { attributes: true, attributeFilter: ['class'] });
+    });
+    WATCHED.forEach(function (id) {
+      var c = document.getElementById(id);
+      if (c) obs.observe(c, { attributes: true, attributeFilter: ['class'] });
+    });
   }
 
   function wire(id, ev, fn) { var e = el(id); if (e) e.addEventListener(ev, fn); }

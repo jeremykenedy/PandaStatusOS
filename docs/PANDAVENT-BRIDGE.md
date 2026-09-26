@@ -267,13 +267,20 @@ The two copy switches agreed above (colours vent to status, effect vent to statu
 inside the vent card, not on the Lighting page: they are part of what being bound to a
 vent means, and a person who has not bound one should not be offered them.
 
-## The vent on the dashboard
+## The vent on the dashboard — BUILT 2026-09-26 (the page half)
 
 Jeremy, 17 Sep 2026: once a vent is bound there is a vent card on the dashboard, beside
 the printer's, showing what the vent is doing. Same shape as every other card on that
 page: a title, a list of rows, values that come from the vent's own reports and nothing
 invented. Not drawn at all while no vent is bound, the way the AMS card is not drawn when
 the printer describes no AMS.
+
+Built: `ps-card-vent-status` on the dashboard, drawn only while the link is up and a report
+has arrived. Four rows, each present only if the vent sent it: the state in words (the five
+the contract names, and a state this page does not know is a dash rather than the vent's own
+token, which would be English on a page in Polish), the chamber, which way the policy is
+deciding, and a fault code when there is one. `t-bridge.js` walks it, including a vent that
+moves on its own while the page is open and is followed without the page being told anything.
 
 ## A page for the vent's own settings
 
