@@ -214,6 +214,8 @@
   "ui_fx_8": "Odbicie",
   "ui_fx_9": "Biegnące światło na zewnątrz",
   "ui_fx_in_progress": "Tylko w już wydrukowanej części paska",
+  "ui_fx_unlit": "Efekt na niewypełnionej części",
+  "ui_fx_unlit_help": "Działa w kolorze niezapalonym, gdy wydruk wypełnia pasek. Jednolity z ciemnym kolorem niezapalonym oznacza wyłączony.",
   "ui_gateway": "Brama",
   "ui_h2d": "H2D",
   "ui_hide_the_password": "Ukryj hasło",

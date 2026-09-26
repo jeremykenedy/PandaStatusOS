@@ -214,6 +214,8 @@
   "ui_fx_8": "Talbog",
   "ui_fx_9": "Tumatakbong ilaw palabas",
   "ui_fx_in_progress": "Sa bahagi lang ng bar na na-print na",
+  "ui_fx_unlit": "Effect sa hindi pa napupunong bahagi",
+  "ui_fx_unlit_help": "Tumatakbo sa kulay na hindi nakasindi habang pinupuno ng print ang bar. Ang solid na may madilim na kulay na hindi nakasindi ay patay.",
   "ui_gateway": "Gateway",
   "ui_h2d": "H2D",
   "ui_hide_the_password": "Itago ang password",

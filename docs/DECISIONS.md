@@ -1538,4 +1538,37 @@ own (D-052). The rows and the two shapes are in the history.
 
 ---
 
+## D-055 Kept inside the progress is on by default and means nothing without a job; the unfilled part runs an effect of its own
+
+**Date** 2026-09-26 · **Reversal** cheap (one default, one condition in the resolve, one byte that was padding)
+
+**Asked for by the owner (O1, O2).** Two changes to D-051's option.
+
+**On by default, and only while a job is on.** A default of on for a per-state option would
+have left an idle bar dark: with no print there is nothing filled, so everything was the
+unfilled part. So the option now applies only while a job is on (`job_active`, which the
+printer's report says), and with no job the whole bar is the effect whatever the bit says.
+That makes the default safe, and it is what the owner meant: the bar shows progress while
+there is progress to show. Parity is untouched, because the bit is read only under A4.
+
+**The unfilled part runs an effect of its own.** `fx_unlit`, in the byte that was padding in
+`ps_fx_cfg_t`, so no stored blob changes shape and every existing one reads 0, which is
+solid, which is the plain fill the renderer already did. Any of the seventeen effects that
+need no live input may go there, under the same switch as the effect itself; the effects that
+read the print are refused, because a second progress bar on the part the progress has not
+reached is not a thing. It runs in the unlit colour over black, at the effect's brightness,
+speed and direction, with an animation phase of its own, and the frame waits for whichever of
+the two effects is sooner. With the unlit colour left dark, most of the seventeen draw nothing,
+which is the off the owner asked for; the ones that make their own colours (the hue cycle, the
+rainbow) show regardless.
+
+**Alternatives.** A separate colour for the unfilled effect: more to set, and the unlit colour
+is already the colour of that part of the bar. A shared phase: the two effects would move in
+lockstep for no reason.
+
+**What would change it.** The owner wanting the unfilled effect's own colour or speed; both are
+a field away.
+
+---
+
 *Entries continue below as the run proceeds.*

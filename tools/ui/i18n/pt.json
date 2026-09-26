@@ -214,6 +214,8 @@
   "ui_fx_8": "Ressalto",
   "ui_fx_9": "Luz a correr para fora",
   "ui_fx_in_progress": "Só na parte já impressa da barra",
+  "ui_fx_unlit": "Efeito na parte por preencher",
+  "ui_fx_unlit_help": "Corre na cor apagada enquanto a impressão preenche a barra. Sólido com a cor apagada deixada escura é desligado.",
   "ui_gateway": "Gateway",
   "ui_h2d": "H2D",
   "ui_hide_the_password": "Ocultar a palavra-passe",

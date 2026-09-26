@@ -157,7 +157,10 @@ void ps_cfg_factory_defaults(ps_cfg_t *c)
      * parity defaults, its active colours the H2D state colour, its inactive colours unset. */
     for (int s = 0; s < 3; s++) {
         c->fx[s].effect = PS_FX_STATIC; c->fx[s].brightness = 50; c->fx[s].speed = 100;
-        c->fx[s].bright_end = 0; c->fx[s].opt = 0; c->fx[s].aux = 0;
+        c->fx[s].bright_end = 0; c->fx[s].aux = 0; c->fx[s].fx_unlit = PS_FX_STATIC;
+        /* O2: kept inside the progress by default. Read only under A4, and only while a job is
+         * on, so a default device is still at parity and an idle bar still fills. */
+        c->fx[s].opt = PS_FX_OPT_IN_PROGRESS;
         c->fx[s].colour[0] = c->fx[s].colour[1] = c->mode[PS_MODE_H2D].colour[s];
         c->fx[s].colour[2] = c->fx[s].colour[3] = (ps_rgba_t){ 0, 0, 0, 0xFF };
     }
@@ -193,6 +196,7 @@ void ps_cfg_clamp(ps_cfg_t *c)
         if (c->fx[s].brightness > 100) c->fx[s].brightness = 100;
         if (c->fx[s].speed > 100) c->fx[s].speed = 100;
         if (c->fx[s].bright_end > 100) c->fx[s].bright_end = 100;
+        if (c->fx[s].fx_unlit >= PS_FX_SELECTABLE) c->fx[s].fx_unlit = PS_FX_STATIC;   /* O1: only the seventeen */
     }
     /* v4: the sources index temp_c[], the degrees are bounded, the percentages are 0..100 */
     if (c->temp_src >= PS_TEMP_COUNT) c->temp_src = PS_TEMP_NOZZLE;

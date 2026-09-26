@@ -25,6 +25,7 @@ static const char *TAG = "ps_effect";
 static TaskHandle_t s_task;
 static ps_rgba_t s_frame[CONFIG_PS_LED_COUNT];
 static ps_fx_phase_t s_phase;               /* the engine's animation state (ps_fx.c) */
+static ps_fx_phase_t s_phase_unlit;         /* O1: the unfilled part's effect keeps its own */
 
 /* C8: what the renderer is doing, counted where the work happens (ps.h, ps_render_stats_t) */
 static uint32_t s_frames;
@@ -113,6 +114,15 @@ static uint32_t render(void)
             wait = ps_fx_render_palette(k.fx, k.stops, k.nstops, b, k.speed, k.reverse, &s_phase, s_frame + off, len);
         else
             wait = ps_fx_render(k.fx, k.colour, k.bg, b, k.speed, k.reverse, k.band, &in, &s_phase, s_frame + off, len);
+        /* O1: the rest of the bar runs its own effect, in the unlit colour over black, at the
+         * same brightness, speed and direction, with a phase of its own. Solid is the fill
+         * above, so nothing is drawn twice. The frame waits for whichever effect is sooner. */
+        if (k.in_progress && k.fx_unlit >= 0 && len < CONFIG_PS_LED_COUNT) {
+            int uoff = k.reverse ? 0 : len, ulen = CONFIG_PS_LED_COUNT - len;
+            uint32_t w2 = ps_fx_render(k.fx_unlit, k.bg, (ps_rgba_t){ 0, 0, 0, 0xFF }, b, k.speed, k.reverse, k.band, &in,
+                                       &s_phase_unlit, s_frame + uoff, ulen);
+            if (w2 < wait) wait = w2;
+        }
     }
 
     /* the layers, over the base, in time rather than in frames so a static base still pulses;
@@ -151,6 +161,7 @@ void ps_effect_start(void)
     if (s_task) return;
     memset(s_frame, 0, sizeof s_frame);
     ps_fx_phase_init(&s_phase);
+    ps_fx_phase_init(&s_phase_unlit);
     if (xTaskCreate(effect_task, "ps_effect", 3072, NULL, 5, &s_task) != pdPASS) { ESP_LOGE(TAG, "task"); s_task = NULL; return; }
     ESP_LOGI(TAG, "running, %d LEDs, placeholder render (Phase 1 recovers the effects)", CONFIG_PS_LED_COUNT);
 }

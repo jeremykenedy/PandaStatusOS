@@ -132,7 +132,10 @@ typedef struct {
     uint8_t   bright_end;              /* 0..100, the ramp's end */
     uint8_t   opt;                     /* PS_FX_OPT_* */
     uint8_t   aux;
-    uint8_t   _pad[2];
+    uint8_t   fx_unlit;                /* O1: the effect on the part the print has not filled, while kept inside the
+                                          progress; one of the seventeen that need no live input, in the unlit colour.
+                                          Was padding, so every stored blob reads 0, which is solid. */
+    uint8_t   _pad;
     ps_rgba_t colour[4];               /* active printing, active not printing, inactive printing, inactive not printing */
 } ps_fx_cfg_t;                         /* 24 bytes */
 
@@ -282,8 +285,10 @@ void ps_stages_clamp(ps_stages_t *s);
  * host-tested. */
 typedef struct { int fx; ps_rgba_t colour, bg; uint8_t brightness, speed; bool reverse; int bright_end; int band;
                  ps_rgba_t stops[4]; int nstops;
-                 bool in_progress; } ps_fx_pick_t;   /* stops: the palette effects' colours, in order (A14);
-                                                       in_progress: draw inside the printed part only (A4) */
+                 bool in_progress; int fx_unlit; } ps_fx_pick_t;
+                 /* stops: the palette effects' colours, in order (A14); in_progress: draw inside the
+                    printed part only, which is only ever so while a job is on (A4); fx_unlit: the
+                    effect on the rest of the bar then, in the unlit colour, -1 for the plain fill (O1) */
 void ps_fx_resolve(const ps_cfg_t *c, uint8_t mode, uint8_t st, bool job_active, ps_fx_pick_t *out);
 /* the same with a per-stage row (B1, B2): a set row replaces the state's entry while bit 15 is on;
  * NULL or an unset row inherits the state's, which is what the plain resolve does */

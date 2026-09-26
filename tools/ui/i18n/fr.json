@@ -214,6 +214,8 @@
   "ui_fx_8": "Rebond",
   "ui_fx_9": "Lumière qui court vers l'extérieur",
   "ui_fx_in_progress": "Uniquement dans la partie déjà imprimée de la barre",
+  "ui_fx_unlit": "Effet sur la partie non remplie",
+  "ui_fx_unlit_help": "S'exécute dans la couleur éteinte pendant que l'impression remplit la barre. Uni avec la couleur éteinte laissée sombre équivaut à éteint.",
   "ui_gateway": "Passerelle",
   "ui_h2d": "H2D",
   "ui_hide_the_password": "Masquer le mot de passe",

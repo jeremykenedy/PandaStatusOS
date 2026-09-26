@@ -214,6 +214,8 @@
   "ui_fx_8": "바운스",
   "ui_fx_9": "바깥으로 흐르기",
   "ui_fx_in_progress": "바의 인쇄된 부분에서만 표시",
+  "ui_fx_unlit": "채워지지 않은 부분의 효과",
+  "ui_fx_unlit_help": "출력이 바를 채우는 동안 꺼진 색으로 실행됩니다. 꺼진 색을 어둡게 둔 단색은 꺼짐입니다.",
   "ui_gateway": "게이트웨이",
   "ui_h2d": "H2D",
   "ui_hide_the_password": "비밀번호 숨기기",

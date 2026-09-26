@@ -63,6 +63,7 @@ static cJSON *fx_json(const ps_fx_cfg_t *f)
     cJSON_AddNumberToObject(o, "bright_end", f->bright_end);
     cJSON_AddNumberToObject(o, "opt", f->opt);
     cJSON_AddNumberToObject(o, "aux", f->aux);
+    cJSON_AddNumberToObject(o, "fx_unlit", f->fx_unlit);                     /* O1 */
     cJSON *cols = cJSON_AddArrayToObject(o, "colours");
     for (int i = 0; i < 4; i++) { char w[10]; ps_rgba_to_wire(f->colour[i], PS_MODE_H2D, w); cJSON_AddItemToArray(cols, cJSON_CreateString(w)); }
     return o;
@@ -87,6 +88,9 @@ static bool fx_parse(cJSON *o, ps_fx_cfg_t *f, uint32_t feat)
         else if (!strcmp(k, "bright_end")) { if (v > 100) return false; f->bright_end = (uint8_t)v; }
         else if (!strcmp(k, "opt"))        { if (v > PS_FX_OPT_ALL) return false; f->opt = (uint8_t)v; }
         else if (!strcmp(k, "aux"))        { if (v > 255) return false; f->aux = (uint8_t)v; }
+        /* O1: one of the seventeen that need no live input, under the same switch as the
+         * effect itself; echoing the stored id is never a change to refuse */
+        else if (!strcmp(k, "fx_unlit"))   { if (v != f->fx_unlit && (v >= PS_FX_SELECTABLE || !ps_fx_allowed(feat, v))) return false; f->fx_unlit = (uint8_t)v; }
         else return false;
     }
     return true;

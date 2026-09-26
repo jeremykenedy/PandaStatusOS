@@ -158,6 +158,16 @@
           <input type="checkbox" id="ps-fx-inprog" aria-labelledby="lbl-fx-inprog"><span></span>
         </label>
       </nav>
+      <!-- O1: what the rest of the bar does meanwhile. One of the effects that need no live
+           input, in the unlit colour; solid with that colour left dark is off. -->
+      <div id="ps-fx-unlit-wrap" hidden>
+        <div class="field label suffix border">
+          <select id="ps-fx-unlit"></select>
+          <label for="ps-fx-unlit" data-str="ui_fx_unlit">Effect on the unfilled part</label>
+          <svg class="i"><use href="#i-caret"/></svg>
+        </div>
+        <div class="small-text" data-str="ui_fx_unlit_help">Runs in the unlit colour while the print fills the bar. Solid with the unlit colour left dark is off.</div>
+      </div>
     </div>
   </article>
 

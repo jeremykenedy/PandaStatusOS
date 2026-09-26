@@ -214,6 +214,8 @@
   "ui_fx_8": "Nảy",
   "ui_fx_9": "Đèn chạy ra ngoài",
   "ui_fx_in_progress": "Chỉ trong phần đã in của thanh",
+  "ui_fx_unlit": "Hiệu ứng trên phần chưa lấp đầy",
+  "ui_fx_unlit_help": "Chạy bằng màu chưa sáng trong khi bản in lấp đầy thanh. Đặc với màu chưa sáng để tối nghĩa là tắt.",
   "ui_gateway": "Cổng mạng",
   "ui_h2d": "H2D",
   "ui_hide_the_password": "Ẩn mật khẩu",

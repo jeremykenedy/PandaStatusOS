@@ -214,6 +214,8 @@
   "ui_fx_8": "Rebote",
   "ui_fx_9": "Luz que corre hacia fuera",
   "ui_fx_in_progress": "Solo en la parte ya impresa de la barra",
+  "ui_fx_unlit": "Efecto en la parte sin rellenar",
+  "ui_fx_unlit_help": "Se ejecuta en el color apagado mientras la impresión rellena la barra. Sólido con el color apagado en oscuro equivale a apagado.",
   "ui_gateway": "Puerta de enlace",
   "ui_h2d": "H2D",
   "ui_hide_the_password": "Ocultar la contraseña",

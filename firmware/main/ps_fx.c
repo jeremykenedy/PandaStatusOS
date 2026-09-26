@@ -258,7 +258,7 @@ void ps_fx_resolve_stage(const ps_cfg_t *c, uint8_t mode, uint8_t st, bool job_a
     o->bg = (ps_rgba_t){ 0, 0, 0, 0xFF };
     o->brightness = (feat & PS_FEAT_STATE_BRIGHTNESS) ? c->state_brightness[mode][st] : m->brightness;
     o->speed = m->speed;
-    o->reverse = false; o->bright_end = -1; o->band = 0; o->in_progress = false;
+    o->reverse = false; o->bright_end = -1; o->band = 0; o->in_progress = false; o->fx_unlit = -1;
     o->nstops = 1; o->stops[0] = o->colour;
     if (mode != PS_MODE_H2D || !(feat & PS_FEAT_STATE_EFFECTS)) return;
     o->fx = ps_fx_allowed(feat, f->effect) ? f->effect : PS_FX_STATIC;   /* a stored id whose switch is off falls back to solid */
@@ -277,7 +277,15 @@ void ps_fx_resolve_stage(const ps_cfg_t *c, uint8_t mode, uint8_t st, bool job_a
         o->reverse = (f->opt & PS_FX_OPT_REVERSE) != 0;
         if (f->opt & PS_FX_OPT_AUX) o->band = f->aux;
         if ((feat & PS_FEAT_EFFECT_RAMP) && (f->opt & PS_FX_OPT_RAMP)) o->bright_end = f->bright_end;
-        o->in_progress = (f->opt & PS_FX_OPT_IN_PROGRESS) && !ps_fx_draws_progress(o->fx);
+        /* Kept inside the progress only while there is a job to have progress of: without one
+         * the whole bar is the effect, so the option can default to on (O2) without an idle
+         * bar going dark. The three effects that draw the progress ignore it. */
+        o->in_progress = (f->opt & PS_FX_OPT_IN_PROGRESS) && !ps_fx_draws_progress(o->fx) && job_active;
+        /* O1: the unfilled part runs an effect of its own then, one of the seventeen that
+         * need no live input, in the unlit colour. Solid is the plain fill the renderer
+         * already does, so it is -1 here; so is anything the bits do not allow. */
+        if (o->in_progress && f->fx_unlit > PS_FX_STATIC && f->fx_unlit < PS_FX_SELECTABLE && ps_fx_allowed(feat, f->fx_unlit))
+            o->fx_unlit = f->fx_unlit;
     }
 }
 

@@ -214,6 +214,8 @@
   "ui_fx_8": "Pantul",
   "ui_fx_9": "Lampu berjalan ke luar",
   "ui_fx_in_progress": "Hanya di bagian bilah yang sudah tercetak",
+  "ui_fx_unlit": "Efek pada bagian yang belum terisi",
+  "ui_fx_unlit_help": "Berjalan dengan warna tak menyala saat cetakan mengisi bilah. Polos dengan warna tak menyala dibiarkan gelap berarti mati.",
   "ui_gateway": "Gerbang",
   "ui_h2d": "H2D",
   "ui_hide_the_password": "Sembunyikan kata sandi",

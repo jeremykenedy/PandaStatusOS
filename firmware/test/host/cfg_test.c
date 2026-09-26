@@ -84,6 +84,9 @@ int main(void)
     t("  long enough for WPA2, so the hotspot is never open by default", strlen(c.ap_password) >= 8, 0);
     t("  and H2D at 50%", c.current_mode == PS_MODE_H2D && c.mode[1].brightness == 50, c.mode[1].brightness);
     t("  and every feature bit off", c.features == 0, c.features);
+    t("  each state's effect is kept inside the progress by default, and its unfilled part solid (O1, O2)",
+      c.fx[0].opt == PS_FX_OPT_IN_PROGRESS && c.fx[1].opt == PS_FX_OPT_IN_PROGRESS && c.fx[2].opt == PS_FX_OPT_IN_PROGRESS
+      && c.fx[0].fx_unlit == PS_FX_STATIC && c.fx[2].fx_unlit == PS_FX_STATIC, c.fx[1].opt);
     t("  every nvs handle closed", opened == 0, opened);
 
     /* 2. defaults write through the pointer only, and are idempotent */
@@ -115,12 +118,14 @@ int main(void)
 
     /* 6. values read from flash are clamped, with unterminated strings terminated */
     wipe(); fill_distinct(&d); d.current_mode = 7; d.block_count = 99; d.mode[0].brightness = 250; d.mode[1].speed = 101; d.ap_on = 2;
+    d.fx[1].fx_unlit = PS_FX_PROGRESS;                 /* a progress draw on the unfilled part makes no sense */
     memset(d.hostname, 'h', sizeof d.hostname); memset(d.printer_access_code, 'c', sizeof d.printer_access_code);
     put(&d, sizeof d); ps_cfg_load(&c);
     t("mode index clamped", c.current_mode == PS_MODE_H2D, c.current_mode);
     t("block count clamped", c.block_count == PS_BLOCKS_MAX, c.block_count);
     t("brightness and speed clamped", c.mode[0].brightness == 100 && c.mode[1].speed == 100, c.mode[0].brightness);
     t("ap_on clamped", c.ap_on == 1, c.ap_on);
+    t("an unfilled-part effect outside the seventeen is clamped to solid", c.fx[1].fx_unlit == PS_FX_STATIC, c.fx[1].fx_unlit);
     t("strings terminated", strlen(c.hostname) == sizeof c.hostname - 1 && strlen(c.printer_access_code) == sizeof c.printer_access_code - 1, (long)strlen(c.hostname));
 
     /* 7. erase */

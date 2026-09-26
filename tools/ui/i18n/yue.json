@@ -214,6 +214,8 @@
   "ui_fx_8": "彈跳",
   "ui_fx_9": "向外跑馬燈",
   "ui_fx_in_progress": "只喺燈條已經印咗嘅部分顯示",
+  "ui_fx_unlit": "未填滿部分嘅效果",
+  "ui_fx_unlit_help": "列印填滿燈條期間用未著色運行。純色而未著色保持暗即係關。",
   "ui_gateway": "閘道",
   "ui_h2d": "H2D",
   "ui_hide_the_password": "隱藏密碼",

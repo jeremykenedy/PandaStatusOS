@@ -302,6 +302,20 @@ int main(void)
       t("without A4 the option is not honoured", !k.in_progress, k.in_progress);
       c.features = PS_FEAT_STATE_EFFECTS | PS_FEAT_EFFECT_PARAMS; ps_fx_resolve(&c, PS_MODE_H2D, PS_BAR_PRINTING, true, &k);
       t("with A4 a full-bar effect is kept inside the progress", k.in_progress, k.in_progress);
+      ps_fx_resolve(&c, PS_MODE_H2D, PS_BAR_IDLE, false, &k);
+      t("but only while a job is on: with none the whole bar is the effect (O2)", !k.in_progress, k.in_progress);
+      /* O1: the unfilled part's own effect rides the same option */
+      c.fx[1].fx_unlit = PS_FX_BREATHING; ps_fx_resolve(&c, PS_MODE_H2D, PS_BAR_PRINTING, true, &k);
+      t("the unfilled part runs its own effect while kept inside the progress", k.in_progress && k.fx_unlit == PS_FX_BREATHING, k.fx_unlit);
+      ps_fx_resolve(&c, PS_MODE_H2D, PS_BAR_IDLE, false, &k);
+      t("and none when there is nothing unfilled", k.fx_unlit < 0, k.fx_unlit);
+      c.fx[1].fx_unlit = PS_FX_STATIC; ps_fx_resolve(&c, PS_MODE_H2D, PS_BAR_PRINTING, true, &k);
+      t("solid on the unfilled part is the plain fill, not an effect", k.fx_unlit < 0, k.fx_unlit);
+      c.fx[1].fx_unlit = PS_FX_PROGRESS; ps_fx_resolve(&c, PS_MODE_H2D, PS_BAR_PRINTING, true, &k);
+      t("a progress draw is never the unfilled part's effect", k.fx_unlit < 0, k.fx_unlit);
+      c.fx[1].fx_unlit = PS_FX_RAINBOW; c.features = PS_FEAT_EFFECT_PARAMS; ps_fx_resolve(&c, PS_MODE_H2D, PS_BAR_PRINTING, true, &k);
+      t("nor anything the bits do not allow", k.fx_unlit < 0 && k.fx < 0, k.fx_unlit);
+      c.features = PS_FEAT_STATE_EFFECTS | PS_FEAT_EFFECT_PARAMS;
       c.fx[1].opt = 0; ps_fx_resolve(&c, PS_MODE_H2D, PS_BAR_PRINTING, true, &k);
       t("and not when its bit is clear", !k.in_progress, k.in_progress);
       c.features |= PS_FEAT_FX_PROGRESS; c.fx[1].effect = PS_FX_PROGRESS; c.fx[1].opt = PS_FX_OPT_IN_PROGRESS;

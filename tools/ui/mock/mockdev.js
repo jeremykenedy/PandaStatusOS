@@ -167,7 +167,8 @@ function fxAllowed(id, features) {
   if (id < FX_SELECTABLE) return !!features.state_effects;
   return FX_NEEDS[id] ? !!features[FX_NEEDS[id]] : false;
 }
-const fxDefault = (colour) => ({ effect: 0, brightness: 50, speed: 100, bright_end: 0, opt: 0, aux: 0, colours: [colour, colour, '#000000FF', '#000000FF'] });
+// opt 0x20: kept inside the progress by default (O2); fx_unlit 0: the unfilled part solid (O1)
+const fxDefault = (colour) => ({ effect: 0, brightness: 50, speed: 100, bright_end: 0, opt: 0x20, aux: 0, fx_unlit: 0, colours: [colour, colour, '#000000FF', '#000000FF'] });
 function featDefaults() {
   // `bridge` is bit 0 and is deliberately NOT in FEATURE_NAMES: that list is the bits the
   // settings file carries, 1 upward, and the firmware keeps bit 0 out of PS_FEAT_KNOWN until
@@ -195,6 +196,7 @@ function fxParse(o, cur, features) {
     else if (k === 'brightness' || k === 'speed' || k === 'bright_end') { if (v > 100) return null; }
     else if (k === 'opt') { if (v > 0x3F) return null; }                                    // PS_FX_OPT_ALL: 0x20 is A4's kept-inside-the-progress
     else if (k === 'aux') { if (v > 255) return null; }
+    else if (k === 'fx_unlit') { if (v !== cur.fx_unlit && (v >= 17 || !fxAllowed(v, features))) return null; }   // O1: the seventeen, under the same switch
     else return null;
     out[k] = v;
   }

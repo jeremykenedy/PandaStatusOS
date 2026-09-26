@@ -11,7 +11,11 @@
                             the same document GET returns.
 
    One fx is:
-       { effect, brightness, speed, bright_end, opt, aux, colours[4] }
+       { effect, brightness, speed, bright_end, opt, aux, fx_unlit, colours[4] }
+
+   fx_unlit (O1) is the effect the unfilled part of the bar runs while the
+   effect is kept inside the printed part: one of the seventeen that need no
+   live input, drawn in the unlit colour. 0 is solid, which is the plain fill.
 
    colours, as ps_fx.c reads them:
        [0]  the primary
@@ -173,6 +177,27 @@
     sel.value = want;
   }
 
+  /* O1: the unfilled part's list is the seventeen that need no live input, each greyed
+     when its switch is off, the same way the main list does it. */
+  function fill_unlit_list(want) {
+    var sel = byId('ps-fx-unlit');
+    if (!sel) return;
+    if (!sel.options.length) {
+      for (var id = 0; id < FX_SELECTABLE; id++) {
+        var o = document.createElement('option');
+        o.value = String(id);
+        sel.appendChild(o);
+      }
+    }
+    for (var i = 0; i < sel.options.length; i++) {
+      var opt = sel.options[i], n = Number(opt.value);
+      opt.textContent = tr('ui_fx_' + n, 'Effect ' + n);
+      opt.disabled = !fx_allowed(n);
+      if (opt.disabled) opt.textContent += '. ' + tr('ui_needs_feature', 'Turned off. Switch it on under Features.');
+    }
+    if (document.activeElement !== sel) sel.value = String(want);
+  }
+
   function paint_state_row() {
     for (var i = 0; i < 3; i++) {
       var b = byId('ps-fx-state-' + i);
@@ -286,9 +311,14 @@
 
     /* A4 again: the effect kept inside the printed part, right under the list
        because it changes what the chosen effect does. */
-    show('ps-fx-inprog-row', !!(f_.effect_params && !DRAWS_PROGRESS[id]));
+    var inprogOn = !!(f_.effect_params && !DRAWS_PROGRESS[id]);
+    show('ps-fx-inprog-row', inprogOn);
     var inprog = byId('ps-fx-inprog');
-    if (inprog) inprog.checked = !!((f.opt || 0) & OPT_IN_PROGRESS);
+    var kept = !!((f.opt || 0) & OPT_IN_PROGRESS);
+    if (inprog) inprog.checked = kept;
+    /* O1: and what the rest of the bar does meanwhile, offered only while it is kept. */
+    show('ps-fx-unlit-wrap', inprogOn && kept);
+    fill_unlit_list(isNum(f.fx_unlit) ? f.fx_unlit : 0);
 
     show('ps-fxp-card', !!f_.effect_params);
     var sp = byId('ps-fxp-speed');
@@ -390,6 +420,9 @@
 
     var inp = byId('ps-fx-inprog');
     if (inp) inp.addEventListener('change', function () { set_opt(OPT_IN_PROGRESS, inp.checked); });
+
+    var unl = byId('ps-fx-unlit');
+    if (unl) unl.addEventListener('change', function () { send_fx({ fx_unlit: Number(unl.value) }); });
 
     /* A5: the switch owns the bit, the slider owns the value. Turning the
        switch on with no value stored sends the slider's, so the device never

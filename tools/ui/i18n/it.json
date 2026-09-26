@@ -214,6 +214,8 @@
   "ui_fx_8": "Rimbalzo",
   "ui_fx_9": "Luce che corre verso l'esterno",
   "ui_fx_in_progress": "Solo nella parte già stampata della barra",
+  "ui_fx_unlit": "Effetto sulla parte non riempita",
+  "ui_fx_unlit_help": "Gira nel colore spento mentre la stampa riempie la barra. Tinta unita con il colore spento lasciato scuro equivale a spento.",
   "ui_gateway": "Gateway",
   "ui_h2d": "H2D",
   "ui_hide_the_password": "Nascondi la password",
