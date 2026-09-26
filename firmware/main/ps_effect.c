@@ -99,10 +99,20 @@ static uint32_t render(void)
         s_kind = PS_RENDER_FX; s_effect = k.fx;
         ps_fx_in_t in = { .percent = percent, .temp_c = temp, .temp_lo = temp_lo, .temp_hi = temp_hi };
         uint8_t b = ps_fx_ramp(&s_phase, k.brightness, k.bright_end);
-        if (k.fx == PS_FX_PALETTE || k.fx == PS_FX_PALETTE_SCROLL)
-            wait = ps_fx_render_palette(k.fx, k.stops, k.nstops, b, k.speed, k.reverse, &s_phase, s_frame, CONFIG_PS_LED_COUNT);
+        /* A4, kept inside the progress: the effect is drawn as if the bar were only as long as
+         * the part the print has filled, and the rest shows the unlit colour. The span grows a
+         * pixel at a time as the print does; every effect writes only the pixels it is given. */
+        int off = 0, len = CONFIG_PS_LED_COUNT;
+        if (k.in_progress) {
+            ps_fx_progress_span(percent, CONFIG_PS_LED_COUNT, k.reverse, &off, &len);
+            ps_fx_fill(s_frame, CONFIG_PS_LED_COUNT, k.bg, b);
+        }
+        if (len < 1)
+            wait = ps_fx_period(k.speed);
+        else if (k.fx == PS_FX_PALETTE || k.fx == PS_FX_PALETTE_SCROLL)
+            wait = ps_fx_render_palette(k.fx, k.stops, k.nstops, b, k.speed, k.reverse, &s_phase, s_frame + off, len);
         else
-            wait = ps_fx_render(k.fx, k.colour, k.bg, b, k.speed, k.reverse, k.band, &in, &s_phase, s_frame, CONFIG_PS_LED_COUNT);
+            wait = ps_fx_render(k.fx, k.colour, k.bg, b, k.speed, k.reverse, k.band, &in, &s_phase, s_frame + off, len);
     }
 
     /* the layers, over the base, in time rather than in frames so a static base still pulses;

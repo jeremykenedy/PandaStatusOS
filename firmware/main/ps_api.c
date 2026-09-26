@@ -85,7 +85,7 @@ static bool fx_parse(cJSON *o, ps_fx_cfg_t *f, uint32_t feat)
         else if (!strcmp(k, "brightness")) { if (v > 100) return false; f->brightness = (uint8_t)v; }
         else if (!strcmp(k, "speed"))      { if (v > 100) return false; f->speed = (uint8_t)v; }
         else if (!strcmp(k, "bright_end")) { if (v > 100) return false; f->bright_end = (uint8_t)v; }
-        else if (!strcmp(k, "opt"))        { if (v > 0x1F) return false; f->opt = (uint8_t)v; }
+        else if (!strcmp(k, "opt"))        { if (v > PS_FX_OPT_ALL) return false; f->opt = (uint8_t)v; }
         else if (!strcmp(k, "aux"))        { if (v > 255) return false; f->aux = (uint8_t)v; }
         else return false;
     }

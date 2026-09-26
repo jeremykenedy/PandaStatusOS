@@ -216,6 +216,7 @@
   "ui_fx_7": "Scanner",
   "ui_fx_8": "Bounce",
   "ui_fx_9": "Marquee outward",
+  "ui_fx_in_progress": "Only inside the printed part of the bar",
   "ui_gateway": "Gateway",
   "ui_h2d": "H2D",
   "ui_hide_the_password": "Hide the password",

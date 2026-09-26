@@ -98,6 +98,13 @@ enum ps_fx {
 };
 #define PS_FX_SELECTABLE 17    /* A2 offers ids 0..16, the ones that need no live input; the rest arrive with their features */
 bool ps_fx_allowed(uint32_t features, int fx);   /* may this effect be chosen under these bits? */
+/* A4, kept inside the progress. The three effects that draw the print's progress already fill only
+ * that part, so the option means nothing to them. The span is the part a print has filled, the
+ * way those three draw it: from pixel 0 up, or down from the far end when the effect runs
+ * backwards; percent is clamped to 0..100 and a missing one (negative) fills nothing. */
+bool ps_fx_draws_progress(int fx);
+void ps_fx_progress_span(int percent, int n, bool reverse, int *off, int *len);
+void ps_fx_fill(ps_rgba_t *px, int n, ps_rgba_t colour, uint8_t bright100);   /* one colour, scaled */
 /* A11: a layer over whatever the base rendered, pure in time: one colour pulsing in and out
  * on a fixed period, at its own brightness. At the trough the base shows untouched; at the
  * peak the strip is the colour. */
@@ -116,6 +123,8 @@ bool ps_fx_layer_strobe(ps_rgba_t *px, int n, ps_rgba_t colour, uint8_t bright10
 #define PS_FX_OPT_RAMP         0x04   /* bright_end is set */
 #define PS_FX_OPT_AUX          0x08   /* aux is set (the pole's band width, for the effects that read it) */
 #define PS_FX_OPT_REVERSE      0x10   /* this effect runs the other way round */
+#define PS_FX_OPT_IN_PROGRESS  0x20   /* this effect runs inside the printed part of the bar only (A4) */
+#define PS_FX_OPT_ALL          0x3F   /* every opt bit this build knows; anything above is refused */
 typedef struct {
     uint8_t   effect;                  /* enum ps_fx */
     uint8_t   brightness;              /* 0..100 */
@@ -272,7 +281,9 @@ void ps_stages_clamp(ps_stages_t *s);
  * bit (A1 to A5); fx < 0 means the placeholder in the state's colour. Pure, in ps_fx.c,
  * host-tested. */
 typedef struct { int fx; ps_rgba_t colour, bg; uint8_t brightness, speed; bool reverse; int bright_end; int band;
-                 ps_rgba_t stops[4]; int nstops; } ps_fx_pick_t;   /* stops: the palette effects' colours, in order (A14) */
+                 ps_rgba_t stops[4]; int nstops;
+                 bool in_progress; } ps_fx_pick_t;   /* stops: the palette effects' colours, in order (A14);
+                                                       in_progress: draw inside the printed part only (A4) */
 void ps_fx_resolve(const ps_cfg_t *c, uint8_t mode, uint8_t st, bool job_active, ps_fx_pick_t *out);
 /* the same with a per-stage row (B1, B2): a set row replaces the state's entry while bit 15 is on;
  * NULL or an unset row inherits the state's, which is what the plain resolve does */

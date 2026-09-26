@@ -170,6 +170,27 @@ bool ps_fx_allowed(uint32_t features, int fx)
     }
 }
 
+bool ps_fx_draws_progress(int fx)
+{
+    return fx == PS_FX_PROGRESS || fx == PS_FX_PROGRESS_ANIM || fx == PS_FX_BARBER;
+}
+
+void ps_fx_progress_span(int percent, int n, bool reverse, int *off, int *len)
+{
+    if (n < 0) n = 0;
+    int pc = percent < 0 ? 0 : (percent > 100 ? 100 : percent);
+    int l = (pc * n + 50) / 100;                  /* nearest pixel, as the progress bar rounds its lit count */
+    if (l > n) l = n;
+    *len = l;
+    *off = reverse ? n - l : 0;
+}
+
+void ps_fx_fill(ps_rgba_t *px, int n, ps_rgba_t c, uint8_t bright100)
+{
+    ps_rgba_t o = { chan(c.r, bright100), chan(c.g, bright100), chan(c.b, bright100), 0xFF };
+    for (int i = 0; i < n; i++) px[i] = o;
+}
+
 /* speed 0..100 -> frame interval, geometric: each equal step in speed multiplies the frame
  * RATE by a constant, because liveliness reads as a ratio. 16 ms at 100 so the fast end
  * stays smooth, 500 ms at 0 so it is a slow pulse rather than a stall. */
@@ -237,7 +258,7 @@ void ps_fx_resolve_stage(const ps_cfg_t *c, uint8_t mode, uint8_t st, bool job_a
     o->bg = (ps_rgba_t){ 0, 0, 0, 0xFF };
     o->brightness = (feat & PS_FEAT_STATE_BRIGHTNESS) ? c->state_brightness[mode][st] : m->brightness;
     o->speed = m->speed;
-    o->reverse = false; o->bright_end = -1; o->band = 0;
+    o->reverse = false; o->bright_end = -1; o->band = 0; o->in_progress = false;
     o->nstops = 1; o->stops[0] = o->colour;
     if (mode != PS_MODE_H2D || !(feat & PS_FEAT_STATE_EFFECTS)) return;
     o->fx = ps_fx_allowed(feat, f->effect) ? f->effect : PS_FX_STATIC;   /* a stored id whose switch is off falls back to solid */
@@ -256,6 +277,7 @@ void ps_fx_resolve_stage(const ps_cfg_t *c, uint8_t mode, uint8_t st, bool job_a
         o->reverse = (f->opt & PS_FX_OPT_REVERSE) != 0;
         if (f->opt & PS_FX_OPT_AUX) o->band = f->aux;
         if ((feat & PS_FEAT_EFFECT_RAMP) && (f->opt & PS_FX_OPT_RAMP)) o->bright_end = f->bright_end;
+        o->in_progress = (f->opt & PS_FX_OPT_IN_PROGRESS) && !ps_fx_draws_progress(o->fx);
     }
 }
 

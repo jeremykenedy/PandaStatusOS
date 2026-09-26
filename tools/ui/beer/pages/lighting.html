@@ -150,6 +150,14 @@
         <label for="ps-fx-effect" data-str="ui_the_effect">The effect</label>
         <svg class="i"><use href="#i-caret"/></svg>
       </div>
+      <!-- A4: the effect drawn only across the part the print has filled. Offered with the
+           effect's own settings, and not for the three that already draw only that. -->
+      <nav class="ps-sw-row" id="ps-fx-inprog-row" hidden>
+        <span class="max small-text" id="lbl-fx-inprog" data-str="ui_fx_in_progress">Only inside the printed part of the bar</span>
+        <label class="switch">
+          <input type="checkbox" id="ps-fx-inprog" aria-labelledby="lbl-fx-inprog"><span></span>
+        </label>
+      </nav>
     </div>
   </article>
 

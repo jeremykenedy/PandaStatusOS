@@ -216,6 +216,7 @@
   "ui_fx_7": "扫描",
   "ui_fx_8": "弹跳",
   "ui_fx_9": "向外跑马灯",
+  "ui_fx_in_progress": "仅在灯条已打印的部分内运行",
   "ui_gateway": "网关",
   "ui_h2d": "H2D",
   "ui_hide_the_password": "隐藏密码",

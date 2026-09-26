@@ -29,6 +29,7 @@
    opt bits, from ps.h:
        0x01 bg while printing set   0x02 bg while idle set   0x04 ramp set
        0x08 aux set                 0x10 run it backwards
+       0x20 only inside the printed part of the bar (A4; not for 17 to 19)
 
    Which effects may be chosen is the device's answer, not ours: the
    seventeen that need no live input want only state_effects, and each of
@@ -46,7 +47,11 @@
   var FX_COUNT = 24;
 
   var OPT_BG_PRINTING = 0x01, OPT_BG_IDLE = 0x02, OPT_RAMP = 0x04,
-      OPT_AUX = 0x08, OPT_REVERSE = 0x10;
+      OPT_AUX = 0x08, OPT_REVERSE = 0x10, OPT_IN_PROGRESS = 0x20;
+
+  /* The three that draw the progress themselves, so keeping them inside it
+     means nothing: ps_fx_draws_progress() on the device. */
+  var DRAWS_PROGRESS = { 17: 1, 18: 1, 19: 1 };
 
   /* The effects that read the print, and so the ones the band width and the
      background colours are for. */
@@ -279,6 +284,12 @@
     if (band && document.activeElement !== band) band.value = isNum(f.aux) ? f.aux : 0;
     setText('ps-fxb-band-value', isNum(f.aux) && f.aux > 0 ? String(f.aux) : tr('ui_auto', 'Auto'));
 
+    /* A4 again: the effect kept inside the printed part, right under the list
+       because it changes what the chosen effect does. */
+    show('ps-fx-inprog-row', !!(f_.effect_params && !DRAWS_PROGRESS[id]));
+    var inprog = byId('ps-fx-inprog');
+    if (inprog) inprog.checked = !!((f.opt || 0) & OPT_IN_PROGRESS);
+
     show('ps-fxp-card', !!f_.effect_params);
     var sp = byId('ps-fxp-speed');
     if (sp && document.activeElement !== sp) sp.value = isNum(f.speed) ? f.speed : 100;
@@ -376,6 +387,9 @@
 
     var rev = byId('ps-fxp-reverse');
     if (rev) rev.addEventListener('change', function () { set_opt(OPT_REVERSE, rev.checked); });
+
+    var inp = byId('ps-fx-inprog');
+    if (inp) inp.addEventListener('change', function () { set_opt(OPT_IN_PROGRESS, inp.checked); });
 
     /* A5: the switch owns the bit, the slider owns the value. Turning the
        switch on with no value stored sends the slider's, so the device never

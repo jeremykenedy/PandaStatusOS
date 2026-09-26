@@ -42,7 +42,7 @@ this table with it.
 | `fx[3].effect` | u8 | an `enum ps_fx` id the bits allow: below 17 with bit 2; 17, 18, 19 and 21 with bits 6 to 9 (A6 to A9) | 0, solid | v3 | `POST /api/features` `config.state_effects[].effect`; read in H2D while bit 2 is set (A2); an id whose own bit goes off is written back to 0 |
 | `fx[3].brightness`, `.speed` | u8 | 0 to 100 | 50, 100 | v3 | `config.state_effects[]`; read while bit 4 is set (A4), with `opt` bit 0x10 as the direction and `aux` as the band width when `opt` bit 0x08 is set |
 | `fx[3].bright_end` | u8 | 0 to 100 | 0 | v3 | `config.state_effects[]`; read while bits 4 and 5 are set and `opt` bit 0x04 is set (A5) |
-| `fx[3].opt`, `.aux` | u8 | option bits (0x01, 0x02 unlit colours set; 0x04 ramp; 0x08 aux set; 0x10 reverse), one number for the effect that reads it | 0 | v3 | `config.state_effects[]`; A3 to A5 |
+| `fx[3].opt`, `.aux` | u8 | option bits (0x01, 0x02 unlit colours set; 0x04 ramp; 0x08 aux set; 0x10 reverse; 0x20 only inside the printed part, read under A4), one number for the effect that reads it; anything above 0x3F is refused | 0 | v3 | `config.state_effects[]`; A3 to A5 |
 | `fx[3].colour[4]` | RGBA | any | the H2D state colour for the two lit entries, black for the two unlit ones | v3 | `config.state_effects[].colours`, `#RRGGBBAA`; read while bit 3 is set (A3): `[0]` lit and `[2]` unlit while a job is on, `[1]` and `[3]` otherwise; an unlit entry counts only while its `opt` bit (1 or 2) is set |
 | `temp_lo`, `temp_hi` | i16 | 0 to 500, degrees C | 25, 250 | v4 | `config.temp_gradient.lo`, `.hi`; the gradient's ends, read while bit 10 is set (A10) |
 | `temp_src` | u8 | 0 nozzle, 1 bed, 2 chamber | 0 | v4 | `config.temp_gradient.source`; which reading the gradient follows (A10) |

@@ -1422,4 +1422,38 @@ generous on purpose, and the reset reason in `/api/info` would show it.
 
 ---
 
+## D-051 An effect kept inside the printed part rides A4's switch, as direction and band do
+
+**Date** 2026-09-26 · **Reversal** cheap (one opt bit, one resolve line, one span in the renderer)
+
+**Asked for by the owner.** Every effect but the three that draw the progress runs the whole
+length of the bar, which he likes, and he wanted the choice, per state, of running one only
+across the part the print has filled.
+
+**What it is.** Bit 0x20 in the effect's `opt`, beside 0x10 for the direction. With it set the
+renderer draws the effect as if the bar were only as long as the filled part, nearest pixel as
+the progress bar rounds, from the far end when the effect runs backwards, and the rest shows
+the unlit colour. The progress bar, its animated form and the barber pole ignore it, because
+they already draw only that; the page does not offer it for them. The colour ramp across the
+print does honour it, because it fills the whole bar with one colour otherwise. No reading, or
+0%, is nothing filled, not a full bar. Every effect writes only the pixels it is handed, which
+`fx_test.c` holds for every id at every length, so a span that grows a pixel at a time as the
+print does cannot reach past itself.
+
+**Why it has no switch of its own.** It is one more setting of the effect, of exactly the kind
+A4 already carries: the direction is a bit in `opt` read under A4, and so is the barber pole's
+band. A device with A4 off never reads the bit and never shows the control, so a new or reset
+device is at parity, which is what Rule 5 protects. A switch of its own would put a second
+step between the owner and a control he asked for by name, for no difference in what a default
+device does.
+
+**Alternatives.** A switch of its own on the Features page. Masking a full-width render to the
+filled part instead of fitting the effect into it, which shows a rainbow's first few colours
+rather than a rainbow.
+
+**What would change it.** The owner wanting it separately switchable; then it takes the next
+free bit and the resolve reads it there instead.
+
+---
+
 *Entries continue below as the run proceeds.*

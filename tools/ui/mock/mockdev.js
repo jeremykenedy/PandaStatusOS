@@ -193,7 +193,7 @@ function fxParse(o, cur, features) {
     if (!Number.isInteger(v) || v < 0) return null;
     if (k === 'effect') { if (v !== cur.effect && !fxAllowed(v, features)) return null; }   // echoing the stored id is never a change to refuse
     else if (k === 'brightness' || k === 'speed' || k === 'bright_end') { if (v > 100) return null; }
-    else if (k === 'opt') { if (v > 0x1F) return null; }
+    else if (k === 'opt') { if (v > 0x3F) return null; }                                    // PS_FX_OPT_ALL: 0x20 is A4's kept-inside-the-progress
     else if (k === 'aux') { if (v > 255) return null; }
     else return null;
     out[k] = v;

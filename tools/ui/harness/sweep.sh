@@ -74,6 +74,7 @@ ROWS=(
   # C8 on the page: the renderer's own numbers, and the poll that has to stop when the card
   # closes, which is invisible from the page and obvious from the mock's request log
   "p2-idle.json      | t-render.js   | PS_CLONE=1"
+  "p2-idle.json      | t-inprog.js   | PS_CLONE=1"
 )
 
 pass=0; fail=0; failed=()

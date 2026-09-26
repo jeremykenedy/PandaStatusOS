@@ -216,6 +216,7 @@
   "ui_fx_7": "Scanner",
   "ui_fx_8": "Abprall",
   "ui_fx_9": "Lauflicht nach außen",
+  "ui_fx_in_progress": "Nur im bereits gedruckten Teil des Balkens",
   "ui_gateway": "Gateway",
   "ui_h2d": "H2D",
   "ui_hide_the_password": "Passwort verbergen",

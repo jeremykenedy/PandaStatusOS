@@ -276,6 +276,54 @@ int main(void)
         t("an effect id beyond the selectable set resolves to solid", k.fx == PS_FX_STATIC, k.fx);
     }
 
+    /* A4, kept inside the progress. The span is the part the print has filled, rounded to the
+     * nearest pixel the way the progress bar rounds its lit count, at the far end when the
+     * effect runs backwards; nothing when there is no reading. The option rides A4's switch,
+     * and it means nothing to the three effects that draw the progress themselves. */
+    { int off, len;
+      ps_fx_progress_span(40, 25, false, &off, &len);  t("40% of 25 pixels is the first 10", off == 0 && len == 10, len);
+      ps_fx_progress_span(40, 25, true, &off, &len);   t("and backwards, the last 10", off == 15 && len == 10, off);
+      ps_fx_progress_span(0, 25, false, &off, &len);   t("0% is nothing", len == 0, len);
+      ps_fx_progress_span(-1, 25, false, &off, &len);  t("no reading is nothing, not a full bar", len == 0, len);
+      ps_fx_progress_span(100, 25, true, &off, &len);  t("100% is the whole bar from either end", off == 0 && len == 25, off);
+      ps_fx_progress_span(150, 25, false, &off, &len); t("past 100 is clamped to the bar", len == 25, len);
+      ps_fx_progress_span(2, 25, false, &off, &len);   t("2% of 25 rounds to one pixel", len == 1, len);
+      t("the three progress draws are the ones that fill the progress themselves",
+        ps_fx_draws_progress(PS_FX_PROGRESS) && ps_fx_draws_progress(PS_FX_PROGRESS_ANIM) && ps_fx_draws_progress(PS_FX_BARBER)
+        && !ps_fx_draws_progress(PS_FX_PROGRESS_HUE) && !ps_fx_draws_progress(PS_FX_RAINBOW) && !ps_fx_draws_progress(PS_FX_STATIC), 0);
+      ps_rgba_t f[4]; ps_fx_fill(f, 4, (ps_rgba_t){ 200, 100, 50, 255 }, 50);
+      t("the fill is the colour at the brightness, every pixel", f[0].r == 100 && f[3].g == 50 && f[3].b == 25, f[0].r);
+
+      ps_cfg_t c; memset(&c, 0, sizeof c);
+      c.current_mode = PS_MODE_H2D;
+      c.fx[1].effect = PS_FX_RAINBOW; c.fx[1].opt = PS_FX_OPT_IN_PROGRESS;
+      ps_fx_pick_t k;
+      c.features = PS_FEAT_STATE_EFFECTS; ps_fx_resolve(&c, PS_MODE_H2D, PS_BAR_PRINTING, true, &k);
+      t("without A4 the option is not honoured", !k.in_progress, k.in_progress);
+      c.features = PS_FEAT_STATE_EFFECTS | PS_FEAT_EFFECT_PARAMS; ps_fx_resolve(&c, PS_MODE_H2D, PS_BAR_PRINTING, true, &k);
+      t("with A4 a full-bar effect is kept inside the progress", k.in_progress, k.in_progress);
+      c.fx[1].opt = 0; ps_fx_resolve(&c, PS_MODE_H2D, PS_BAR_PRINTING, true, &k);
+      t("and not when its bit is clear", !k.in_progress, k.in_progress);
+      c.features |= PS_FEAT_FX_PROGRESS; c.fx[1].effect = PS_FX_PROGRESS; c.fx[1].opt = PS_FX_OPT_IN_PROGRESS;
+      ps_fx_resolve(&c, PS_MODE_H2D, PS_BAR_PRINTING, true, &k);
+      t("the progress bar ignores it: it already draws only the progress", k.fx == PS_FX_PROGRESS && !k.in_progress, k.in_progress);
+
+      /* every effect writes only the pixels it is handed, so a span that grows or shrinks
+       * between frames never reaches past it: render into the middle of a guarded buffer */
+      ps_rgba_t buf[27]; int clean = 1;
+      ps_fx_phase_init(&p);
+      for (int fx = 0; fx < PS_FX_COUNT && clean; fx++) {
+          for (int n = 25; n >= 1 && clean; n -= 3) {
+              for (int i = 0; i < 27; i++) buf[i] = (ps_rgba_t){ 7, 7, 7, 7 };
+              ps_fx_in_t in = { 50, 30, 20, 60 };
+              if (fx == PS_FX_PALETTE || fx == PS_FX_PALETTE_SCROLL) { ps_rgba_t st[2] = { AMBER, WHITE }; ps_fx_render_palette(fx, st, 2, 100, 50, false, &p, buf + 1, n); }
+              else ps_fx_render(fx, AMBER, BLACK, 100, 50, (n & 1) != 0, 0, &in, &p, buf + 1, n);
+              if (buf[0].a != 7 || buf[n + 1].a != 7) clean = 0;
+          }
+      }
+      t("no effect writes outside the span it is given, at any length", clean, 0);
+    }
+
     printf("\n%d passed, %d failed\n", pass, fail);
     return fail ? 1 : 0;
 }
