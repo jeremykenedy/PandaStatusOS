@@ -245,6 +245,19 @@ That document sets the order of work. Steps 2 and the page half of 3 are done:
 page, three firmwares) stays unwritten until each of the three surfaces has been read the way
 this project reads a surface.
 
+## The owner's list, 2026-09-26
+
+Asked for by name, written down before any of it was started so that none of it gets lost
+behind whichever one takes the longest. Each line is updated as it lands.
+
+| # | Asked for | Status |
+|---|---|---|
+| O1 | While an effect is kept inside the printed part, the unfilled part runs an effect of its own (any effect that does not draw the progress), in the unlit colour, defaulting to solid, which with the unlit colour left dark is off | open |
+| O2 | Kept inside the printed part defaults to on | open |
+| O3 | The printer page shows which Bambu printer it is (the model) | open |
+| O4 | The dashboard shows the humidity inside the printer, the way it shows the AMS humidity | open |
+| O5 | The AMS card on a phone: two trays by two, and the material readable rather than cut after a letter or two | open |
+
 ## Catalogued elsewhere, still open
 
 [ROADMAP.md](ROADMAP.md) holds the rest: AMS tray colour mirroring onto the bar, layer or
