@@ -36,10 +36,18 @@ assert _iro_src.startswith('/*!\n * iro.js v5.5.2'), 'vendored iro.min.js is not
 js_out.append('<script>%s</script>' % _iro_src)
 print('spliced vendor iro.js 5.5.2 (%d bytes)' % len(_iro_src))
 
+# ── no sheet may declare the same property twice for the same selector ───
+# A rule fixed once and duplicated further down the same file goes on showing the old value,
+# because the later copy wins, and nothing about the fix looks wrong. tools/ui/css_check.py
+# says which selector and which property.
+import subprocess as _sp
+_c = _sp.run([sys.executable, os.path.join(D, '..', 'css_check.py')], capture_output=True, text=True)
+assert _c.returncode == 0, 'a stylesheet shadows itself:\n' + _c.stdout + _c.stderr
+sys.stdout.write(_c.stdout)
+
 # ── the string table, ours, from strings/en.json and its 23 siblings ─────
 # build_strings.py refuses to emit unless every language carries every key
 # with the same placeholders, so a half-translated table cannot ship.
-import subprocess as _sp
 _r = _sp.run([sys.executable, os.path.join(D, '..', 'build_strings.py'), os.path.join(D, '..', 'i18n')],
              capture_output=True, text=True)
 sys.stdout.write(_r.stdout)

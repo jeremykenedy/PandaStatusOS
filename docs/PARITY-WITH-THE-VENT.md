@@ -179,20 +179,21 @@ the harness suite itself, each of which had been quietly making the suite agree 
    all twenty-four languages. The fourteen are rewritten and the 201 are gone, which took the
    page from 1450 KB to 1208 KB and the firmware from 19% free to 24%.
 
-### 6. The light-theme faults the vent found, unchecked here
+### 6. The light-theme faults the vent found — CHECKED 2026-09-26, one of them was here
 
-Every one of these was found on the vent by looking at the light theme properly. Whether
-this tree has them is unknown, because nothing here has looked:
+Every one of these was found on the vent by looking at the light theme properly. Nothing here
+had looked, and on this device it is the dark theme that had never been rendered under a check
+(item 5). Now that both themes are measured, each of the seven has an answer:
 
-- a fixed hex where an M3 container pair belongs
-- white washes (`rgba(255,255,255,.04)` and up) doing edges, tracks and grooves, which
-  are a hairline on dark and nothing on light
-- fields and selects with a border and a height and no colours, so the browser paints
-  them white on white
-- a select arrow drawn as a white triangle
-- `color-scheme` never set, so native dropdowns and scrollbars come out wrong
-- an `<img>` whose colour is baked into a base64 SVG, which no stylesheet can reach
-- duplicate rules where the later copy shadows the earlier fixed one
+| The vent's fault | Here |
+|---|---|
+| a fixed hex where an M3 container pair belongs | one, in `project.css`: the clear button on a colour swatch, opaque dark on purpose because it sits over a colour the owner picked and 45% over a pale swatch measured 3.4:1 through protanopia. Written down where it is. `app.css` has none; `theme.css` is the token file and is nothing but hexes |
+| white washes doing edges, tracks and grooves | none. No `rgba(255,255,255,…)` in any sheet |
+| fields and selects with a border and a height and no colours | measured rather than assumed: `contrast.js` reads every field's own colour and its border, in both themes, and holds the border to 3:1 as a boundary |
+| a select arrow drawn as a white triangle | nothing draws one: no `data:image/svg` in any sheet. The browser draws it, which is the next row |
+| **`color-scheme` never set** | **it was not set here either.** Everything the page does not draw itself reads that property: the select's arrow and its dropdown, scrollbars, focus rings, a number field's spin buttons. Without it the browser assumes light, so on the dark theme all of it came out light chrome on a dark page. Set now in all three theme states (`theme.css`), including the auto one |
+| an `<img>` whose colour is baked in | two, and handled: the mark is a pair of base64 PNGs, one drawn for each theme, swapped by CSS in all three states (default, explicit, and system preference) |
+| duplicate rules where the later copy shadows the earlier fixed one | none, and no longer possible to add quietly: `tools/ui/css_check.py` runs in the build and fails it on any selector that declares the same property twice in the same context |
 
 ### 7. A static mock of the page
 

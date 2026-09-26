@@ -113,6 +113,13 @@ body {
 /* Dark is the default: this thing lives next to a printer, often dim. */
 :root,
 body.dark {
+  /* Tell the browser which palette it is drawing into. Everything the page does NOT draw
+     itself reads this: the select's own arrow and its dropdown, the scrollbars, the focus
+     ring, a date field's calendar, the spin buttons on a number field. Without it the browser
+     assumes light, so on the dark theme all of those come out light chrome on a dark page,
+     and the select arrow in particular is the fault the sibling project found by hand. It is
+     set on the body so it follows the theme class, and on the root for the canvas. */
+  color-scheme: dark;
   --primary: #A4D1B5;
   --on-primary: #1E4833;
   --primary-container: #315B45;
@@ -179,6 +186,7 @@ body.dark {
 
 /* Light, chosen explicitly. */
 body.light {
+  color-scheme: light;
   --primary: #316A4D;
   --on-primary: #E6FFED;
   --primary-container: #B4F0CC;
@@ -229,8 +237,12 @@ body.light {
 }
 
 @media (prefers-color-scheme: light) {
-  /* And light by system preference. */
+  /* And light by system preference. The root goes with it, so the canvas and its scrollbar
+     match; a body.dark inside a light system still wins for everything inside the body, which
+     is every control on the page. */
+  :root { color-scheme: light; }
   body:not(.dark) {
+    color-scheme: light;
     --primary: #316A4D;
     --on-primary: #E6FFED;
     --primary-container: #B4F0CC;
