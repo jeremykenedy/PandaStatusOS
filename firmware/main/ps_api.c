@@ -734,6 +734,44 @@ int ps_api_print_get(httpd_req_t *req)
     return send_json(req, s);
 }
 
+/* GET /api/render: what the renderer is doing (C8).
+ *
+ * Behind the diagnostics bit, because it is the same capability as the blinks on the bar and
+ * answers the same question: why is this thing not doing what it should. With the switch off
+ * the route is a 302 like every other gated one, and the card on the Logs page is not there.
+ *
+ * The fps figure is measured over the window between reads (ps_effect.c), so two clients
+ * polling this at once would each see a shorter window than they asked for and read low. That
+ * is acceptable for a diagnostic on a device with one owner, and it is written down here
+ * rather than guarded, because the guard would be a lock in the renderer's path.
+ *
+ * `kind` is a word and not a number: a reader looking at a captured document should not need
+ * this header to know what drew the frame. */
+static bool diagnostics_on(void) { ps_lock(); bool on = (g_ps.cfg.features & PS_FEAT_DIAGNOSTICS) != 0; ps_unlock(); return on; }
+
+int ps_api_render_get(httpd_req_t *req)
+{
+    if (!diagnostics_on()) return ps_http_redirect_portal(req);
+    ps_render_stats_t rs;
+    ps_effect_stats(&rs);
+    cJSON *o = cJSON_CreateObject();
+    if (!o) return send_json(req, NULL);
+    cJSON_AddNumberToObject(o, "frames", (double)rs.frames);
+    cJSON_AddNumberToObject(o, "push_failed", (double)rs.push_failed);
+    cJSON_AddNumberToObject(o, "interval_ms", (double)rs.interval_ms);
+    /* -1 is "not measured yet", the same not-reported convention the print document keeps. */
+    cJSON_AddNumberToObject(o, "fps", rs.fps);
+    cJSON_AddNumberToObject(o, "effect", rs.effect);
+    cJSON_AddStringToObject(o, "kind",
+        rs.kind == PS_RENDER_FX    ? "fx" :
+        rs.kind == PS_RENDER_SOLID ? "solid" :
+        rs.kind == PS_RENDER_DIAG  ? "diag" : "none");
+    cJSON_AddNumberToObject(o, "leds", CONFIG_PS_LED_COUNT);
+    char *s = cJSON_PrintUnformatted(o);
+    cJSON_Delete(o);
+    return send_json(req, s);
+}
+
 /* GET /api/logs: the last lines the device wrote to itself, oldest first, as text.
  *
  * Read only and always answered, like /api/info and /api/state: it changes nothing and it

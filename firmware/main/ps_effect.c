@@ -26,6 +26,14 @@ static TaskHandle_t s_task;
 static ps_rgba_t s_frame[CONFIG_PS_LED_COUNT];
 static ps_fx_phase_t s_phase;               /* the engine's animation state (ps_fx.c) */
 
+/* C8: what the renderer is doing, counted where the work happens (ps.h, ps_render_stats_t) */
+static uint32_t s_frames;
+static uint32_t s_last_wait;
+static int      s_kind = PS_RENDER_NONE;
+static int      s_effect = -1;
+static int64_t  s_mark_us;                  /* when the fps window opened */
+static uint32_t s_mark_frames;              /* the frame count when it opened */
+
 static ps_rgba_t scaled(ps_rgba_t c, uint8_t brightness)
 {
     unsigned k = brightness > 100 ? 100 : brightness;
@@ -45,7 +53,10 @@ static uint32_t render(void)
     ps_lock();
     bool diagnose = (g_ps.cfg.features & PS_FEAT_DIAGNOSTICS) && ps_diag_pick(g_ps.sta_state, g_ps.printer_state, &diag);
     ps_unlock();
-    if (diagnose) return ps_diag_render(&diag, (uint32_t)(esp_timer_get_time() / 1000), s_frame, CONFIG_PS_LED_COUNT);
+    if (diagnose) {
+        s_kind = PS_RENDER_DIAG; s_effect = -1;
+        return ps_diag_render(&diag, (uint32_t)(esp_timer_get_time() / 1000), s_frame, CONFIG_PS_LED_COUNT);
+    }
 
     ps_fx_pick_t k;
     ps_lock();
@@ -83,7 +94,9 @@ static uint32_t render(void)
         ps_rgba_t px = scaled(k.colour, k.brightness);
         for (size_t i = 0; i < CONFIG_PS_LED_COUNT; i++) s_frame[i] = px;
         wait = 33;                                 /* 30 fps */
+        s_kind = PS_RENDER_SOLID; s_effect = -1;
     } else {
+        s_kind = PS_RENDER_FX; s_effect = k.fx;
         ps_fx_in_t in = { .percent = percent, .temp_c = temp, .temp_lo = temp_lo, .temp_hi = temp_hi };
         uint8_t b = ps_fx_ramp(&s_phase, k.brightness, k.bright_end);
         if (k.fx == PS_FX_PALETTE || k.fx == PS_FX_PALETTE_SCROLL)
@@ -111,6 +124,9 @@ static void effect_task(void *arg)
     for (;;) {
         uint32_t wait_ms = render();
         ps_led_write(s_frame, CONFIG_PS_LED_COUNT);
+        /* After the write, not before: a frame counted is a frame that reached the driver. */
+        s_frames++;
+        s_last_wait = wait_ms;
         /* sleep the effect's own frame period, or less when something changed */
         ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(wait_ms < 1 ? 1 : wait_ms));
     }
@@ -128,4 +144,27 @@ void ps_effect_start(void)
 void ps_effect_notify(void)
 {
     if (s_task) xTaskNotifyGive(s_task);
+}
+
+/* Read from the HTTP task while the renderer runs in its own. Nothing here is behind ps_lock:
+ * every field is a single word written by one task and read by another, so a reader can catch
+ * a frame count one frame stale, which is the truth one frame ago rather than a wrong number.
+ * A lock around this would put the web server in the renderer's way for no gain. */
+void ps_effect_stats(ps_render_stats_t *out)
+{
+    if (!out) return;
+    out->frames = s_frames;
+    out->push_failed = ps_led_push_failures();
+    out->kind = s_kind;
+    out->effect = s_effect;
+    out->interval_ms = s_last_wait;
+
+    /* A rate over the window since the last read, so it keeps telling the truth as things
+     * change. Under 200 ms of window there is nothing to divide by yet. */
+    int64_t now = esp_timer_get_time();
+    int64_t span = now - s_mark_us;
+    out->fps = (s_mark_us && span > 200000)
+             ? (int)(((int64_t)(s_frames - s_mark_frames) * 1000000 + span / 2) / span)
+             : -1;
+    if (!s_mark_us || span > 200000) { s_mark_us = now; s_mark_frames = s_frames; }
 }

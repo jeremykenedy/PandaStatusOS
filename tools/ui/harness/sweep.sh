@@ -60,6 +60,9 @@ ROWS=(
   # exist per fan the printer named, a drag sends one command, and the speed level comes
   # from the print document rather than the printer's status
   "p2-printing.json  | t-pctl.js     | PS_CLONE=1 PS_PRINT_PERCENT=37 PS_PRINT_SPEED=2"
+  # C8 on the page: the renderer's own numbers, and the poll that has to stop when the card
+  # closes, which is invisible from the page and obvious from the mock's request log
+  "p2-idle.json      | t-render.js   | PS_CLONE=1"
 )
 
 pass=0; fail=0; failed=()

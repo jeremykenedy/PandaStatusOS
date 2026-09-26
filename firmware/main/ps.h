@@ -417,6 +417,10 @@ void ps_wifi_ap_apply(void);                          /* from g_ps.cfg.ap_* */
 /* ---------------------------------------------------------------- ps_led.c ---- */
 int  ps_led_init(void);
 void ps_led_write(const ps_rgba_t *px, size_t n);
+/* Transmits the RMT driver refused, since boot. A refusal is silent on the bar: the strip
+ * simply keeps showing the last frame that did land, which from across a room is the same
+ * sight as a renderer that has stopped and as a strip that is not wired up. */
+uint32_t ps_led_push_failures(void);
 #if CONFIG_PS_LED_PIN_WALK
 void ps_led_pin_walk(void);   /* diagnostic: never returns; the blink count names the GPIO */
 #endif     /* n <= CONFIG_PS_LED_COUNT */
@@ -424,6 +428,33 @@ void ps_led_pin_walk(void);   /* diagnostic: never returns; the blink count name
 /* ------------------------------------------------------------- ps_effect.c ---- */
 void ps_effect_start(void);
 void ps_effect_notify(void);                          /* config or bar state changed */
+
+/* C8, counted here and read on the Logs page: what the renderer is actually doing.
+ *
+ * A bar showing the wrong thing, a renderer that has stopped, a driver refusing every
+ * transmit and a strip that was never wired up all look identical from across the room, and
+ * until now the only way to tell them apart was a serial cable. These four numbers do it.
+ *
+ * `fps` is measured over the window since the last time anyone asked, not since boot: a
+ * lifetime average can never move again once it has settled, so it would go on saying thirty
+ * for hours after the renderer stopped. -1 means nobody has asked recently enough to know.
+ *
+ * `kind` says what drew the frame, because for most of them there is no effect number: a
+ * diagnostic has the bar (and that is itself the answer to "why is it red"), the placeholder
+ * is a solid colour, and only the engine draws a PS_FX_*. */
+#define PS_RENDER_NONE   0     /* nothing has been drawn yet */
+#define PS_RENDER_FX     1     /* the effect engine; `effect` says which */
+#define PS_RENDER_SOLID  2     /* the placeholder: the state's own colour, solid */
+#define PS_RENDER_DIAG   3     /* C8 has the bar; nothing else is being drawn */
+typedef struct {
+    uint32_t frames;           /* frames rendered since boot */
+    uint32_t push_failed;      /* ps_led_push_failures() at the same moment */
+    int      kind;             /* PS_RENDER_* */
+    int      effect;           /* PS_FX_* when kind is PS_RENDER_FX, else -1 */
+    uint32_t interval_ms;      /* what the last frame asked to wait before the next */
+    int      fps;              /* over the window since this was last read, -1 unknown */
+} ps_render_stats_t;
+void ps_effect_stats(ps_render_stats_t *out);
 
 /* ------------------------------------------------------------ ps_printer.c ---- */
 int  ps_printer_start(void);
@@ -507,6 +538,7 @@ int ps_preview_apply(const char *json, size_t len);   /* the pin from its JSON, 
 char *ps_preview_json(void);                          /* the pin as the page reads it; cJSON_free() it */
 int ps_http_redirect_portal(httpd_req_t *req);        /* the wildcard's answer, for a route that must look absent */
 int  ps_api_print_get(httpd_req_t *req);              /* the clone's own: what the printer reports, which the factory document omits */
+int  ps_api_render_get(httpd_req_t *req);             /* C8: what the renderer is doing; 302 while the diagnostics bit is off */
 int  ps_portal_page(httpd_req_t *req);                /* esp_err_t: the small setup page a captive sheet can render */
 bool ps_portal_req_from_ap(httpd_req_t *req);         /* is this client on the hotspot rather than the house network? */
 int ps_api_restart_post(httpd_req_t *req);            /* C4: POST /api/restart, a plain restart; a 302 while bit 17 is off */

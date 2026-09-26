@@ -26,6 +26,9 @@ static rmt_encoder_handle_t s_bytes;            /* bit encoder */
 static rmt_encoder_handle_t s_copy;             /* the reset pulse */
 static uint8_t s_grb[CONFIG_PS_LED_COUNT * 3];
 static const rmt_symbol_word_t s_reset = { .level0 = 0, .duration0 = RESET_TICKS / 2, .level1 = 0, .duration1 = RESET_TICKS / 2 };
+static uint32_t s_push_fail;                    /* transmits the driver refused, since boot */
+
+uint32_t ps_led_push_failures(void) { return s_push_fail; }
 
 static void wait_idle(void)
 {
@@ -118,7 +121,10 @@ void ps_led_write(const ps_rgba_t *px, size_t n)
     rmt_transmit_config_t tc = { .loop_count = 0 };
     esp_err_t e = rmt_transmit(s_chan, s_bytes, s_grb, sizeof s_grb, &tc);
     if (e == ESP_OK) e = rmt_transmit(s_chan, s_copy, &s_reset, sizeof s_reset, &tc);
-    if (e != ESP_OK) ESP_LOGW(TAG, "transmit: %d", (int)e);
+    /* Counted as well as logged. Thirty of these a second fills the log ring in two seconds
+     * and pushes out whatever was in it, so the count is what survives long enough to be
+     * read, and the Logs page reads it (C8). */
+    if (e != ESP_OK) { s_push_fail++; ESP_LOGW(TAG, "transmit: %d", (int)e); }
 }
 
 #if CONFIG_PS_LED_PIN_WALK

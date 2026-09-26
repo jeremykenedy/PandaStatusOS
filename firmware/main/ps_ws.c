@@ -209,7 +209,7 @@ static esp_err_t ws_handler(httpd_req_t *req)
 /* The number of routes ps_ws_start registers. httpd's max_uri_handlers must be at least this,
  * and a registration past the cap is refused rather than fatal, so the two are tied together
  * here and the loop below hard-fails if they ever disagree. */
-#define PS_HTTP_ROUTES 25
+#define PS_HTTP_ROUTES 26
 
 int ps_ws_start(void)
 {
@@ -245,6 +245,7 @@ int ps_ws_start(void)
         { .uri = "/api/info",      .method = HTTP_GET,  .handler = ps_api_info_get },        /* the clone's own (ps_api.c), always answered */
         { .uri = "/api/state",     .method = HTTP_GET,  .handler = ps_api_state_get },
         { .uri = "/api/print",     .method = HTTP_GET,  .handler = ps_api_print_get },     /* the clone's own: the running print */
+        { .uri = "/api/render",    .method = HTTP_GET,  .handler = ps_api_render_get },    /* C8: what the renderer is doing; 302 while its bit is off */
         { .uri = "/api/logs",      .method = HTTP_GET,  .handler = ps_api_logs_get },      /* the clone's own: the last lines, scrubbed */
         { .uri = "/api/logs",      .method = HTTP_DELETE, .handler = ps_api_logs_delete },
         { .uri = "/api/features",  .method = HTTP_GET,  .handler = ps_api_features_get },

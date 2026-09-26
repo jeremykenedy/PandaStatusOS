@@ -456,7 +456,7 @@ moved no layout. [docs/CONFIG.md](docs/CONFIG.md) has every key, its range and i
 
 | Command | What it proves |
 | --- | --- |
-| `tools/ui/harness/sweep.sh` | 14 rows against the mock device, 445 checks: every control's exact wire frame on an idle and a printing fixture, the socket refused, the JSON API as the factory and as a clone, the rebind decision, contrast on every page in both themes at both widths, one row per card behind a switch (AMS, stages, preview, fixed address, settings file, stage images), and the printer controls against a printing printer |
+| `tools/ui/harness/sweep.sh` | 15 rows against the mock device, 464 checks: every control's exact wire frame on an idle and a printing fixture, the socket refused, the JSON API as the factory and as a clone, the rebind decision, contrast on every page in both themes at both widths, one row per card behind a switch (AMS, stages, preview, fixed address, settings file, stage images), the printer controls against a printing printer, and the renderer's own numbers |
 | `make test-fw` | on the host, compiling the shipping code with plain gcc, 285 checks: the config blob and its migrations (81), the effect engine (73), the rebind decision (13), the fault codes (24), the hotspot's name (34), the printer's own announcement (19), and the state document and inbound dispatcher against the protocol (41) |
 | `make test-hook` | 69 cases over the pre-commit hook, including two that assert its binary classifier rather than only its effect |
 | `make residue` | the tracked tree carries nothing of the vendor's expression |

@@ -793,6 +793,37 @@ async function handleHttp(req, res) {
     restart('api/restart', null);
     return;
   }
+  if (p === '/api/render' && knobFlag('PS_CLONE') && FEAT && FEAT.features.diagnostics) {
+    // C8: what the renderer is doing. Behind the diagnostics switch, like the firmware's, so
+    // the same route that vanishes on the device vanishes here.
+    //
+    // Every request is recorded, because whether the page is polling AT ALL, and whether it
+    // stops when nobody is looking at the card, is the thing worth asserting: a poll left
+    // running behind a closed card is invisible from the page and obvious from here.
+    //
+    //   PS_RENDER_KIND      fx | solid | diag | none     what drew the frame (default solid)
+    //   PS_RENDER_EFFECT    0..23, only meaningful with fx
+    //   PS_RENDER_FPS       frames a second, or -1 for "not measured yet" (default 30)
+    //   PS_RENDER_INTERVAL  what the frame asked to wait, ms (default 33)
+    //   PS_RENDER_FRAMES    frames since boot; unset means it climbs on its own at the fps
+    //                       above, so a harness can watch the number move without pretending
+    //   PS_RENDER_FAILED    transmits the driver refused (default 0)
+    if (req.method !== 'GET') { res.writeHead(405); return res.end(); }
+    SENT.push({ t: Date.now(), rel_ms: Date.now() - t0, api: '/api/render', text: JSON.stringify({ api: '/api/render' }), roots: ['api'] });
+    const fps = Number(knob('PS_RENDER_FPS', 30));
+    const fixed = knob('PS_RENDER_FRAMES', '');
+    const doc = {
+      frames: fixed === '' ? Math.floor((Date.now() - t0) / 1000 * (fps > 0 ? fps : 30)) : Number(fixed),
+      push_failed: Number(knob('PS_RENDER_FAILED', 0)),
+      interval_ms: Number(knob('PS_RENDER_INTERVAL', 33)),
+      fps,
+      kind: String(knob('PS_RENDER_KIND', 'solid')),
+      effect: Number(knob('PS_RENDER_EFFECT', -1)),
+      leds: 25,
+    };
+    res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
+    return res.end(JSON.stringify(doc));
+  }
   if (p === '/api/config' && knobFlag('PS_CLONE') && FEAT && FEAT.features.config_io) {
     // C3: the settings as one document; the export leaves the three passwords out, the import is
     // taken whole or refused whole and then pushed to every socket client

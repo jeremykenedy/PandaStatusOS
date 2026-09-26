@@ -80,7 +80,8 @@ function logs_watch_card() {
   g_logs_card_shown = card.classList.contains('active');
   var watcher = new MutationObserver(function () {
     var shown = card.classList.contains('active');
-    if (shown && !g_logs_card_shown) logs_request();
+    if (shown && !g_logs_card_shown) { logs_request(); render_poll_start(); }
+    if (!shown && g_logs_card_shown) render_poll_stop();
     g_logs_card_shown = shown;
   });
   watcher.observe(card, { attributes: true, attributeFilter: ['class'] });
@@ -102,7 +103,7 @@ function logs_nav_hit(e) {
 function logs_on_nav_click(e) {
   if (!logs_nav_hit(e)) return;
   var card = document.getElementById('ps-card-logs');
-  if (card && card.classList.contains('active')) logs_request();
+  if (card && card.classList.contains('active')) { logs_request(); render_stats_request(); }
 }
 
 function logs_on_nav_key(e) {
@@ -113,14 +114,98 @@ function logs_on_nav_key(e) {
 function logs_init() {
   var refresh = document.getElementById('ps-btn-logs-refresh');
   var clear = document.getElementById('ps-btn-logs-clear');
-  if (refresh) refresh.addEventListener('click', logs_request);
+  /* Refresh means the page, not only the log: the renderer's numbers are the other half of
+     why anyone is on this page. */
+  if (refresh) refresh.addEventListener('click', function () { logs_request(); render_stats_request(); });
   if (clear) clear.addEventListener('click', logs_clear_request);
   document.addEventListener('click', logs_on_nav_click, true);
   document.addEventListener('keydown', logs_on_nav_key, true);
   logs_watch_card();
+  /* A tab coming back to the front asks once, rather than waiting out the interval. */
+  if (typeof document.addEventListener === 'function') {
+    document.addEventListener('visibilitychange', function () {
+      if (!document.hidden && g_logs_card_shown) render_stats_request();
+    });
+  }
+  /* Landing straight on this page (a reload while it is open) moves no class, so the
+     observer stays quiet and the poll has to be started here. */
+  if (g_logs_card_shown) render_poll_start();
 }
 
-/* Section 2 stood here and is gone.
+/* ---------------------------------------------------------------------
+   2. C8: what the renderer is doing (GET /api/render)
+   ---------------------------------------------------------------------
+
+   The card decides nothing. It asks the route, and the route goes with the diagnostics
+   switch: a device with the switch off answers the 302 every absent route answers, an
+   older firmware has no route at all, and a factory device redirects to its own page. All
+   three arrive here as "not JSON I understand", and all three mean the same thing, which
+   is that this card has nothing to say and should not be on the page.
+
+   Polled only while the card is open and the tab is visible. Thirty frames a second is
+   not something to watch through a two second poll; what these numbers answer is "is it
+   drawing at all, and is the driver taking it", and that does not need to be live. The
+   device measures the rate over the window between reads, so a page that polled it in the
+   background would be narrowing that window for nothing.
+   ------------------------------------------------------------------- */
+
+var RENDER_POLL_MS = 2000;
+var g_render_timer = null;
+
+function render_kind_text(d) {
+  if (d.kind === 'fx') {
+    return (typeof effect_name === 'function') ? effect_name(d.effect, 'h2d') : String(d.effect);
+  }
+  if (d.kind === 'solid') return tr('ui_solid_colour', 'Solid colour');
+  if (d.kind === 'diag') return tr('ui_diagnostic', 'Diagnostic');
+  return DASH;                                  /* "none": nothing drawn yet */
+}
+
+function render_stats_fill(d) {
+  var card = document.getElementById('ps-card-render');
+  /* A number the device did not send is a dash, never a zero: "no frames yet" and "it has
+     drawn nothing since boot" are different answers and one of them is alarming. */
+  if (!d || typeof d.kind !== 'string') { if (card) card.hidden = true; return; }
+  if (card) card.hidden = false;
+  setText('ps-rd-kind', render_kind_text(d));
+  setText('ps-rd-fps', isNum(d.fps) && d.fps >= 0 ? String(d.fps) : DASH);
+  setText('ps-rd-interval', isNum(d.interval_ms) ? d.interval_ms + ' ms' : DASH);
+  setText('ps-rd-frames', isNum(d.frames) ? String(d.frames) : DASH);
+  setText('ps-rd-failed', isNum(d.push_failed) ? String(d.push_failed) : DASH);
+}
+
+function render_stats_request() {
+  var x = new XMLHttpRequest();
+  x.open('GET', '/api/render', true);
+  x.timeout = 4000;
+  x.onload = function () {
+    var d = null;
+    /* A 302 is followed by the browser, so the switch being off arrives here as the page's
+       own HTML with a 200. Parsing is the test, not the status. */
+    if (x.status === 200) { try { d = JSON.parse(x.responseText); } catch (e) { d = null; } }
+    render_stats_fill(d);
+  };
+  /* A device that does not answer is not an error to draw: the socket already says whether
+     it is there, and two places saying it disagree. */
+  x.onerror = function () {};
+  x.ontimeout = function () {};
+  try { x.send(); } catch (e) {}
+}
+
+function render_poll_stop() {
+  if (g_render_timer) { clearInterval(g_render_timer); g_render_timer = null; }
+}
+
+function render_poll_start() {
+  render_poll_stop();
+  render_stats_request();
+  g_render_timer = setInterval(function () {
+    if (typeof document.hidden === 'boolean' && document.hidden) return;
+    render_stats_request();
+  }, RENDER_POLL_MS);
+}
+
+/* Section 3 stood here and is gone.
 
    It let a picked image be decoded in the browser and POSTed to /anim as raw RGB, a frame
    per row, and it drew its progress into #ps-anim-canvas and its state into #ps-kv-anim.

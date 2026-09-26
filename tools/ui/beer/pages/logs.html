@@ -22,4 +22,41 @@
     </nav>
   </article>
 
+  <!-- ── C8: what the renderer is actually doing ────────────────────
+       Behind the diagnostics switch, because it is the same capability as the blinks
+       on the bar and answers the same question. The route goes with the switch, so the
+       card follows the route rather than deciding for itself.
+
+       Every row is a number the device counted. Nothing here is computed by the page,
+       and nothing is drawn as zero because it has not been reported: a dash means the
+       device has not said. -->
+  <article id="ps-card-render" hidden>
+    <h6 class="card-title" data-str="ui_renderer">Renderer</h6>
+    <div class="small-text" data-str="ui_renderer_help">A bar showing the wrong thing, a renderer that
+      has stopped and a strip that is not wired up all look the same from across a room. These
+      numbers tell them apart.</div>
+    <ul class="list border">
+      <li>
+        <div class="max" data-str="ui_drawing_now">Drawing</div>
+        <span class="small-text" id="ps-rd-kind"></span>
+      </li>
+      <li>
+        <div class="max" data-str="ui_frames_per_second">Frames a second</div>
+        <span class="small-text" id="ps-rd-fps"></span>
+      </li>
+      <li>
+        <div class="max" data-str="ui_frame_interval">Frame interval</div>
+        <span class="small-text" id="ps-rd-interval"></span>
+      </li>
+      <li>
+        <div class="max" data-str="ui_frames_drawn">Frames drawn</div>
+        <span class="small-text" id="ps-rd-frames"></span>
+      </li>
+      <li>
+        <div class="max" data-str="ui_pushes_refused">Pushes refused</div>
+        <span class="small-text" id="ps-rd-failed"></span>
+      </li>
+    </ul>
+  </article>
+
 </section>

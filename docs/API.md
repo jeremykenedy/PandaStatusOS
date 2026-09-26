@@ -11,12 +11,15 @@ documents that say they store.
 
 A client probes `GET /api/features`. The factory answers 302; the clone answers 200. The
 page does exactly this once on load and shows nothing beyond the factory page until it
-sees the 200 (D-033). Two more read-only routes are always answered by a clone:
+sees the 200 (D-033). Four more read-only routes are always answered by a clone:
 
 | Route | Answer |
 |---|---|
 | `GET /api/info` | identification: `{"product":"PandaStatusOS","build":"<16 hex>","version":"V2.0.0","idf":"v5.3.1","uptime_s":n,"heap_free":n,"flash_size":n,"leds":n,"mode":0 or 1,"features":<the switch bits as a number>,"config_layout":"PS04"}`. No network name, address, serial or credential. |
 | `GET /api/state` | the six-root state document the socket pushes on connect (`wifi`, `sta`, `ap`, `printer`, `settings`, `block`), as JSON over HTTP, for tools and for gate 2. **Three fields are emptied here and nowhere else:** `wifi.password`, `ap.password` and `printer.access_code`. The socket still carries them, because the factory's socket does and the page's fields are filled from that push; this route is the clone's own, answers an unauthenticated GET from anyone who can reach port 80, and a second copy of a secret is a second place to lose it. The fields keep their shape and come back empty. The printer serial stays: it is on a sticker and the printer broadcasts it to the whole network itself. |
+
+| `GET /api/print` | what the printer reports about the running print, which the factory's own document does not carry: `{"percent":n or -1,"stage":0..14,"printing":bool,"temp":{"nozzle","bed","chamber"},"printer_state":0..7,"bar_state":0..2,"job":"","layer":n,"layers":n,"remain_min":n,"speed_level":1..4 or -1}`. Every field carries its own "not reported" (`-1`, `PS_TEMP_NONE`, an empty name) so the page can tell an absent reading from a zero one. A route rather than a seventh root, because the socket document is pinned to the factory's six. |
+| `GET`/`DELETE /api/logs` | the device's own 64-line ring, oldest first, as `text/plain`; `DELETE` clears it. Already scrubbed: `ps_log.c` redacts on the way in, so the unredacted line never reaches RAM. |
 
 `build` is the first eight bytes of the app image's ELF sha256, the same value `X-Build`
 carries on `GET /`; `tools/fw/ota-install.sh` proves an install by it.
@@ -42,6 +45,7 @@ carries on `GET /`; `tools/fw/ota-install.sh` proves an install by it.
 | `GET`/`POST /api/presets` | bit 14 `presets` | `{"presets":[…]}` or `{"apply":{"name","state"}}` | [FEATURES.md](FEATURES.md), A14 |
 | `GET`/`POST /api/stages` | bit 15 `stage_effects` | `{"assign":{"stage","name"}}`, `{"clear":{"stage"}}` or `{"stages":[…15]}` | [FEATURES.md](FEATURES.md), B1 and B2 |
 | `GET`/`POST /api/config` | bit 16 `config_io` | the settings as one document: the export leaves the three passwords out, the import takes them if given; whole or refused; the answer is the export | C3, D-042 |
+| `GET /api/render` | bit 19 `diagnostics` | none; answers `{"frames":n,"push_failed":n,"interval_ms":n,"fps":n or -1,"effect":0..23 or -1,"kind":"fx"\|"solid"\|"diag"\|"none","leds":n}`. What the renderer is actually doing, which is the same question C8 answers in blinks on the bar. `fps` is measured over the window since the last read, so it keeps telling the truth as things change and two clients polling at once both read low. | C8 |
 | `POST /api/restart` | bit 17 `restart` | no document; answers `{"restarting":true}`, then restarts about 300 ms later with every setting kept | C4, D-043 |
 | `GET /backup` | none (required) | the whole flash, `X-Flash-Size` before the body; station interface only | [FLASHING.md](FLASHING.md), D-029 |
 

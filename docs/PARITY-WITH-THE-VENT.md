@@ -28,6 +28,7 @@ features beyond its clone, the faults it found, and its harness suite.
 | Per-effect brightness, speed and direction | A4, `effect_params` |
 | Twenty-four languages, every key complete | Twenty-four, 590 keys |
 | Printer fans and print speed over `printer_ctl` | Three fan sliders and four speed levels on the Printer controls card, `t-pctl.js` (2026-09-26) |
+| Render stats on the page | The Renderer card on the Logs page, `GET /api/render`, `t-render.js` (2026-09-26) |
 
 ## What has not
 
@@ -69,11 +70,28 @@ by 1 and land where the printer says rather than snapping to a five.
 The vent has a Camera page and a harness for it. There is no camera anywhere in this
 tree. The envelope is one of the two that need no signature, so this is reachable.
 
-### 3. Render stats
+### 3. Render stats — DONE 2026-09-26
 
-Frames, frames per second, the interval and dropped pushes, on the page. The vent has
-them and they are how it proved a dropped frame on every page load was real. Nothing
-here counts a frame.
+Frames, frames per second, the interval and refused pushes, counted where the work happens
+(`ps_effect.c`, `ps_led.c`) and read on the Logs page, which is the page whose whole purpose
+is that every possible cause looks the same from the outside. `GET /api/render` carries them,
+behind the diagnostics bit, because this is the same capability as the blinks on the bar and
+answers the same question.
+
+Two things here are deliberate and worth keeping:
+
+- **`fps` is a rate, not a lifetime average.** It is measured over the window between reads.
+  An average since boot settles at thirty and then can never move again, so it would go on
+  saying thirty for hours after the renderer stopped, which is precisely the fault this is
+  for. The cost is that two clients polling at once each narrow the other's window and both
+  read low; that is written down in `ps_api.c` rather than guarded, because the guard would
+  be a lock in the renderer's path.
+- **The poll stops when the card closes**, and `t-render.js` E3 asserts it from the mock's
+  request log. A poll left running behind a closed card is invisible from the page, and on
+  this device it would also be narrowing the fps window of whoever IS looking.
+
+The vent puts the same numbers on its Status page and reads them out of its status root; here
+they are a route, because the socket document is pinned to the factory's six roots.
 
 ### 4. What a segment is
 
@@ -84,7 +102,7 @@ says so in its own text. Direction here is per-effect only.
 
 ### 5. The harness classes this suite does not have
 
-The vent runs forty harnesses. This tree runs fourteen. The gap is not coverage of the
+The vent runs forty harnesses. This tree runs fifteen. The gap is not coverage of the
 same things, it is whole classes of check that do not exist here:
 
 | Vent harness | What it catches | Here |
