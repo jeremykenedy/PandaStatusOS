@@ -68,13 +68,14 @@ extern const char *const ps_gif_slot_names[PS_GIF_SLOTS];
 #define PS_FEAT_AUTO_REBIND       (1u << 18)  /* C7: after the bound printer moves, find it again by serial */
 #define PS_FEAT_DIAGNOSTICS       (1u << 19)  /* C8: why it is not working, blinked on the bar */
 #define PS_FEAT_STATIC_IP         (1u << 20)  /* C9: a fixed address on the house network instead of DHCP */
+#define PS_FEAT_BAR_FLIP          (1u << 21)  /* D1: the bar is drawn the other way round, for a unit mounted upside down */
 /* Every switch bit defined above, bit 0 (the bridge) excluded. Derived from the highest
  * one rather than written out, because it was written out: C9 took bit 20 and the mask
  * stayed at bit 19, so ps_config_apply() refused any settings file exported from a device
  * with the fixed address switched on. The import is all-or-nothing, so one bit outside the
  * mask threw away the whole document. Move PS_FEAT_LAST when the next bit is taken and the
  * mask follows; cfg_test.c fails if it does not. */
-#define PS_FEAT_LAST              PS_FEAT_STATIC_IP
+#define PS_FEAT_LAST              PS_FEAT_BAR_FLIP
 #define PS_FEAT_KNOWN             ((PS_FEAT_LAST | (PS_FEAT_LAST - 1u)) & ~1u)
 
 /* which of the printer's temperatures a feature follows (INFERENCE: the report's
@@ -147,6 +148,19 @@ uint32_t ps_fx_render_palette(int fx, const ps_rgba_t *stops, int nstops, uint8_
                               ps_fx_phase_t *p, ps_rgba_t *px, int n);
 uint8_t  ps_fx_ramp(ps_fx_phase_t *p, uint8_t bright, int bright_end);   /* bright_end < 0: no ramp */
 /* fills px[0..n-1], advances the phase once, returns the ms to wait before the next frame */
+/* D1: the finished frame, end for end, in place.
+ *
+ * This is the master flip, and it is applied to the FRAME rather than passed into the engine
+ * on purpose. Every effect's own direction is a coordinate flip inside the render, so flipping
+ * the output of one composes with it exactly as exclusive-or: an effect already running
+ * backwards on a bar that is mounted upside down comes out running forwards, and neither of
+ * the two silently wins. It also catches what the engine never sees, which is the placeholder
+ * fill, the diagnostic pattern and both layers.
+ *
+ * The bar has an odd number of pixels, so the middle one stays where it is. fx_test.c pins
+ * both that and the composition. */
+void ps_fx_flip(ps_rgba_t *px, size_t n);
+
 uint32_t ps_fx_render(int fx, ps_rgba_t colour, ps_rgba_t bg, uint8_t bright100, uint8_t speed, bool reverse,
                       int band, const ps_fx_in_t *in, ps_fx_phase_t *p, ps_rgba_t *px, int n);
 #define PS_CFG_NVS_NS    "ps"

@@ -46,6 +46,7 @@ static const struct { const char *name; uint32_t bit; } FEATURES[] = {
     { "auto_rebind",      PS_FEAT_AUTO_REBIND },
     { "diagnostics",      PS_FEAT_DIAGNOSTICS },
     { "static_ip",        PS_FEAT_STATIC_IP },
+    { "bar_flip",         PS_FEAT_BAR_FLIP },
 };
 
 /* Both defined beside the config document further down; declared here because the features

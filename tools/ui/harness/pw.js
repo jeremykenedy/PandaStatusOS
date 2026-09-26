@@ -115,9 +115,20 @@ async function tapEye(page, field) { await tap(page, eyeSel(field)); }
 const eye = (page, field) => page.$eval(eyeSel(field) + ' use', (el) => el.getAttribute('href'));
 const pressed = (page, field) => page.$eval(eyeSel(field), (el) => el.getAttribute('aria-pressed'));
 
+/* Waits until `name` is the one card wearing .active.
+ *
+ * The card has to EXIST. Without that clause this returned true for a name no page carries:
+ * with nothing active, every card's `active === (id === name)` is false === false, so the
+ * whole set agreed and the harness walked on. contrast.js asked for eight pages by names from
+ * another tree, six of which are not cards here, and measured whatever was on screen eight
+ * times over while printing the names it had asked for. Thirty-two of its rows were one page. */
 async function waitCard(page, name, ms = 2000) {
-  return page.waitForFunction((n) => { const all = [...document.querySelectorAll('[data-card]')]; return all.length > 1 && all.every((a) => a.classList.contains('active') === (a.id === 'ps-card-' + n)); }, name, { timeout: ms, polling: 25 })
-    .then(() => true).catch(() => false);
+  return page.waitForFunction((n) => {
+    const all = [...document.querySelectorAll('[data-card]')];
+    const want = document.getElementById('ps-card-' + n);
+    if (!want || !all.includes(want)) return false;
+    return all.length > 1 && all.every((a) => a.classList.contains('active') === (a === want));
+  }, name, { timeout: ms, polling: 25 }).then(() => true).catch(() => false);
 }
 
 // The default is the viewport, which is what a person sees. A full-page capture puts the

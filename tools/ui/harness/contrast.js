@@ -24,7 +24,11 @@
 const pw = require('./pw');
 const { t } = pw;
 
-const PAGES = ['dashboard', 'lighting', 'images', 'printer', 'network', 'system', 'logs', 'setup'];
+/* The seven cards this page actually has, read off the markup. This list said dashboard,
+   lighting, images, printer, network, system, logs and setup: two of those exist. The other
+   six are another tree's names, and asking for one navigated nowhere, so every row after the
+   first measured the page that was already up and printed the name it had asked for. */
+const PAGES = ['status', 'theme', 'printer', 'sta', 'ap', 'settings', 'logs'];
 const COMBOS = [
   { theme: 'light', width: 1280 }, { theme: 'dark', width: 1280 },
   { theme: 'light', width: 390 },  { theme: 'dark', width: 390 },
@@ -113,10 +117,29 @@ async function run(page, label) {
       const tag = `${combo.theme}/${combo.width}`;
       console.log(`\n== ${tag}`);
       await pw.resetMock();
-      const { ctx, page } = await pw.open(browser, { theme: combo.theme, width: combo.width, hash: '#dashboard' });
+      const { ctx, page } = await pw.open(browser, { theme: combo.theme, width: combo.width, hash: '#status' });
+      /* Before a single ratio is measured: did the theme this row asked for actually land?
+         It did not, for as long as this file has existed. The page kept its preference under
+         the vent's key, so the four dark rows below were the light theme measured against
+         itself and every one of them passed. A row that cannot fail teaches nothing, so the
+         theme is now proven per combo: the class the page puts on <body>, and the luminance
+         of what it actually painted. */
+      const got = await page.evaluate(() => {
+        const cs = getComputedStyle(document.body);
+        const m = /^rgba?\(([^)]+)\)/.exec(cs.backgroundColor) || [];
+        const n = (m[1] || '0,0,0').split(',').map(Number);
+        const f = (v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); };
+        return { cls: document.body.className, lum: 0.2126 * f(n[0]) + 0.7152 * f(n[1]) + 0.0722 * f(n[2]) };
+      });
+      t(`${tag}: the page is wearing the theme this row asked for`,
+        got.cls.split(/\s+/).indexOf(combo.theme) >= 0, got);
+      t(`${tag}: and it painted ${combo.theme === 'dark' ? 'a dark' : 'a light'} ground`,
+        combo.theme === 'dark' ? got.lum < 0.2 : got.lum > 0.5, got);
       for (const p of PAGES) {
-        await page.evaluate((h) => { location.hash = '#' + h; }, p);
-        await pw.waitCard(page, p);
+        await page.evaluate((h) => show_card(h), p);
+        /* The verdict was thrown away here, which is how a page that never came up got measured
+           anyway. It is a row of its own now. */
+        if (!await pw.waitCard(page, p)) { t(`${tag} ${p}: the page came up`, false); continue; }
         await run(page, `${tag} ${p}`);
       }
       // the furniture: dialog with two buttons, the toast, the fault banner
@@ -129,7 +152,7 @@ async function run(page, label) {
       await ctx.close();
       // the waiting state: no push, so the banner shows and the content is dimmed (skipped)
       await pw.knob('PS_NO_PUSH', '1');
-      const w = await pw.open(browser, { theme: combo.theme, width: combo.width, hash: '#dashboard', waitForState: false });
+      const w = await pw.open(browser, { theme: combo.theme, width: combo.width, hash: '#status', waitForState: false });
       await w.page.waitForSelector('#ps-banner-waiting', { state: 'visible', timeout: 3000 }).catch(() => {});
       await run(w.page, `${tag} waiting state`);
       await w.ctx.close();

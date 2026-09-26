@@ -135,7 +135,7 @@ frame for frame, plus the first-run page:
 | **Printer** | scan, bind by serial number and address with the access code, unbind |
 | **Wi-Fi** | scan and connect, the host name, and a fixed address instead of DHCP |
 | **Hotspot** | its name, its password, its address, and whether it comes up at all |
-| **Settings** | language, theme, the device's name, firmware version and update, restart and the two resets named honestly, the twenty feature switches, and every setting as one file |
+| **Settings** | language, theme, the device's name, firmware version and update, restart and the two resets named honestly, the twenty-one feature switches, and every setting as one file |
 | **Logs** | what the page and the device said to each other, credentials replaced by their length |
 | **Setup** | the first-run page: language, Wi-Fi, idle colour |
 
@@ -144,7 +144,7 @@ over every page in both.
 
 ### Lighting
 
-Twenty switches, every one off by default. The full table with defaults and
+Twenty-one switches, every one off by default. The full table with defaults and
 dependencies is [docs/FEATURES.md](docs/FEATURES.md).
 
 | Setting | What it does |
@@ -176,7 +176,7 @@ dependencies is [docs/FEATURES.md](docs/FEATURES.md).
 
 Twenty-four. English is the only hand-written table; every other language is translated
 from it and checked against it on every build for missing keys, extra keys and
-placeholders. A language ships when all 590 strings are in it, and the build prints how
+placeholders. A language ships when all 404 strings are in it, and the build prints how
 many of each table's values are still identical to English, so a gap cannot hide behind a
 complete key list.
 
@@ -456,7 +456,7 @@ moved no layout. [docs/CONFIG.md](docs/CONFIG.md) has every key, its range and i
 
 | Command | What it proves |
 | --- | --- |
-| `tools/ui/harness/sweep.sh` | 15 rows against the mock device, 464 checks: every control's exact wire frame on an idle and a printing fixture, the socket refused, the JSON API as the factory and as a clone, the rebind decision, contrast on every page in both themes at both widths, one row per card behind a switch (AMS, stages, preview, fixed address, settings file, stage images), the printer controls against a printing printer, and the renderer's own numbers |
+| `tools/ui/harness/sweep.sh` | 16 rows against the mock device, 475 checks: every control's exact wire frame on an idle and a printing fixture, the socket refused, the JSON API as the factory and as a clone, the rebind decision, contrast on every page in both themes at both widths, one row per card behind a switch (AMS, stages, preview, fixed address, settings file, stage images), the printer controls against a printing printer, the renderer's own numbers, and every painted text region measured from the screenshot in both themes at both widths |
 | `make test-fw` | on the host, compiling the shipping code with plain gcc, 285 checks: the config blob and its migrations (81), the effect engine (73), the rebind decision (13), the fault codes (24), the hotspot's name (34), the printer's own announcement (19), and the state document and inbound dispatcher against the protocol (41) |
 | `make test-hook` | 69 cases over the pre-commit hook, including two that assert its binary classifier rather than only its effect |
 | `make residue` | the tracked tree carries nothing of the vendor's expression |

@@ -51,7 +51,16 @@ function logs_request() {
   var x = new XMLHttpRequest();
   x.open('GET', '/api/logs', true);
   x.timeout = 5000;
-  x.onload = function () { if (x.status === 200) logs_fill(x.responseText); };
+  x.onload = function () {
+    /* A device without this route answers the 302 that every absent route answers, and it
+       points at the page itself. The browser follows it, so what arrives here is a 200
+       carrying the whole UI, and the log view showed the page's own source as though the
+       device had written it: a megabyte of HTML in a <pre>, which is also slow enough to
+       be noticed. The log is text/plain and nothing else is. */
+    var ct = (x.getResponseHeader('Content-Type') || '').toLowerCase();
+    if (x.status === 200 && ct.indexOf('text/plain') === 0) logs_fill(x.responseText);
+    else logs_fill('');
+  };
   x.onerror = function () {};
   x.ontimeout = function () {};
   try { x.send(); } catch (e) {}
@@ -165,7 +174,16 @@ function render_stats_fill(d) {
   var card = document.getElementById('ps-card-render');
   /* A number the device did not send is a dash, never a zero: "no frames yet" and "it has
      drawn nothing since boot" are different answers and one of them is alarming. */
-  if (!d || typeof d.kind !== 'string') { if (card) card.hidden = true; return; }
+  if (!d || typeof d.kind !== 'string') {
+    if (card) card.hidden = true;
+    /* And stop asking. A device with the switch off answers the 302 every absent route
+       answers, which points at the page itself, so the browser follows it and this poll
+       downloads the whole UI every two seconds for a card that is not even on screen. Once is
+       a probe; twice a second forever is a fault. Opening the card again, or the Refresh
+       button, asks once more, which is how it comes back if the switch goes on. */
+    render_poll_stop();
+    return;
+  }
   if (card) card.hidden = false;
   setText('ps-rd-kind', render_kind_text(d));
   setText('ps-rd-fps', isNum(d.fps) && d.fps >= 0 ? String(d.fps) : DASH);

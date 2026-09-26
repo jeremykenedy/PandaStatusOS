@@ -173,6 +173,16 @@ bool ps_fx_allowed(uint32_t features, int fx)
 /* speed 0..100 -> frame interval, geometric: each equal step in speed multiplies the frame
  * RATE by a constant, because liveliness reads as a ratio. 16 ms at 100 so the fast end
  * stays smooth, 500 ms at 0 so it is a slow pulse rather than a stall. */
+/* D1: the frame end for end, in place. See ps.h for why this is the frame and not an
+ * argument to the render. */
+void ps_fx_flip(ps_rgba_t *px, size_t n)
+{
+    if (!px || n < 2) return;
+    for (size_t i = 0, j = n - 1; i < j; i++, j--) {
+        ps_rgba_t t = px[i]; px[i] = px[j]; px[j] = t;
+    }
+}
+
 uint32_t ps_fx_period(uint8_t speed)
 {
     if (speed > 100) speed = 100;

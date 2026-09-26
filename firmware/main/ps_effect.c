@@ -123,6 +123,10 @@ static void effect_task(void *arg)
     (void)arg;
     for (;;) {
         uint32_t wait_ms = render();
+        /* D1: last of all, after the base, the layers and the diagnostic, so one switch turns
+         * the whole bar round and nothing has to know about it. */
+        ps_lock(); bool flip = (g_ps.cfg.features & PS_FEAT_BAR_FLIP) != 0; ps_unlock();
+        if (flip) ps_fx_flip(s_frame, CONFIG_PS_LED_COUNT);
         ps_led_write(s_frame, CONFIG_PS_LED_COUNT);
         /* After the write, not before: a frame counted is a frame that reached the driver. */
         s_frames++;

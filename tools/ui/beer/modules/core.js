@@ -253,7 +253,7 @@ function apply_direction() {
 function set_language(lang) {
   if (!lang || lang === g_language) return;
   g_language = lang;
-  try { localStorage.setItem('pv_lang', lang); } catch (e) {}
+  try { localStorage.setItem('ps_lang', lang); } catch (e) {}
   apply_direction();
   apply_translations();
 }
@@ -1486,7 +1486,7 @@ function init_ui() {
   /* language: stored preference, else English (device settings.language
      overrides once part 0 arrives). Recorded as a gap: the spec is thin on
      where the UI language is sourced pre-connect. */
-  try { var stored = localStorage.getItem('pv_lang'); if (stored) g_language = stored; } catch (e) {}
+  try { var stored = localStorage.getItem('ps_lang'); if (stored) g_language = stored; } catch (e) {}
 
   apply_direction();
   apply_translations();

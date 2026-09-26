@@ -26,9 +26,11 @@ features beyond its clone, the faults it found, and its harness suite.
 | Named effects saved and copied between states | A14, `presets` |
 | More than seven effects | Twenty-four |
 | Per-effect brightness, speed and direction | A4, `effect_params` |
-| Twenty-four languages, every key complete | Twenty-four, 590 keys |
+| Twenty-four languages, every key complete | Twenty-four, 404 keys |
 | Printer fans and print speed over `printer_ctl` | Three fan sliders and four speed levels on the Printer controls card, `t-pctl.js` (2026-09-26) |
 | Render stats on the page | The Renderer card on the Logs page, `GET /api/render`, `t-render.js` (2026-09-26) |
+| A master direction, exclusive-or with the effect's own | Bit 21 `bar_flip`, applied to the finished frame, `fx_test.c` (2026-09-26) |
+| `pixels.js`: contrast from the pixels that were painted | `tools/ui/harness/pixels.js`, 842 regions, both themes, both widths, three CVD simulations, with a control sample (2026-09-26) |
 
 ## What has not
 
@@ -93,12 +95,41 @@ Two things here are deliberate and worth keeping:
 The vent puts the same numbers on its Status page and reads them out of its status root; here
 they are a route, because the socket document is pinned to the factory's six roots.
 
-### 4. What a segment is
+### 4. What a segment is — the direction is DONE 2026-09-26, the segment model is a decision
 
-The vent has per-strip LED counts, a contiguous "one long run" layout, and a three-way
-direction (master, per-strip, per-effect). Here the strip is one run of twenty-five and
-the factory's `block` root is stored, reported and drawn by nothing: the Lights card
-says so in its own text. Direction here is per-effect only.
+The vent has three things under this heading, and they are not the same size on this
+hardware.
+
+**Direction: done.** The vent's three-way flip is master, per-strip, per-effect, combined by
+exclusive-or so that no one of them silently wins. Per-effect was already here. The master is
+now bit 21 `bar_flip`, applied to the finished frame in `ps_effect.c` after the base, both
+layers and the diagnostic, so one switch turns the whole bar round and nothing else has to
+know about it. `fx_test.c` pins both halves: the arithmetic (end for end, and the middle pixel
+of an odd bar stays put) and the property that makes it a flip rather than a direction, which
+is that the progress bar rendered backwards and then flipped is byte for byte the progress bar
+rendered forwards.
+
+**Per-strip: does not apply, and that is a fact rather than a gap.** The vent drives two
+physical outputs, which is why it has a count and a flip per strip. This device drives one:
+GPIO 5, twenty-five pixels, both read out of the stock firmware
+([HARDWARE-FACTS.md](HARDWARE-FACTS.md)). There is no second strip to give its own count or
+its own direction to.
+
+**The segment model: a decision, not a missing implementation.** The factory's `block` root
+is stored and reported here and drawn by nothing, and the reason is now written down: the
+device reports exactly ONE block, id 0, `#FFFFFFFF`, in the observed connect-time push and in
+all three fixtures. A segment on this hardware, as the factory means it, is the whole bar. So
+there is nothing to divide and nothing being missed.
+
+What the vent's layout buys that this does not have is the other thing: a bar deliberately
+CUT UP by its owner, twelve pixels showing the print and thirteen showing the nozzle
+temperature, say. That is not parity with the factory's blocks and not a port of the vent's
+per-strip counts; it is a feature of this project's own, and a large one: a segment table in
+its own NVS blob, a resolve and a phase per segment, an editor, a route and its harnesses.
+It is Jeremy's call whether that is wanted, and it is the one place under this heading where
+building without asking would mean inventing semantics for a root that belongs to the factory.
+The renderer now has the seam for it: the flip is applied where a per-segment transform would
+go.
 
 ### 5. The harness classes this suite does not have
 
@@ -107,9 +138,9 @@ same things, it is whole classes of check that do not exist here:
 
 | Vent harness | What it catches | Here |
 |---|---|---|
-| `pixels.js` | text painted the colour of the ground beneath it, per region, both themes, every page | nothing. `contrast.js` measures 44 pairs |
+| `pixels.js` | text painted the colour of the ground beneath it, per region, both themes, every page | DONE 2026-09-26: 842 regions, and what it found is below |
 | `i18n` | a key that resolves to nothing at runtime | the build checks the tables; the page is never walked |
-| `undefcheck` | the string "undefined" reaching the page | nothing |
+| `undefcheck` | the string "undefined" reaching the page | folded into `pixels.js`: nothing painted may read as a bare key, as `undefined` or as `NaN` |
 | `quietload` | anything written to the console on a cold load | only inside other harnesses |
 | `slowload`, `slowland` | a device that answers late, and one that does not answer at all | `nows.js` covers the socket refusing, nothing covers slow |
 | `navsize`, `align`, `cursors`, `fontcheck` | the chrome's own geometry, alignment, pointer and font | nothing |
@@ -119,6 +150,34 @@ same things, it is whole classes of check that do not exist here:
 
 `pixels.js` is the one that matters most. On the vent it was 3932 regions and it is what
 found that the light theme had never been rendered under a check at all.
+
+Here it was the dark theme, and it was worse than that. Writing it turned up four faults in
+the harness suite itself, each of which had been quietly making the suite agree with the page:
+
+1. **The dark theme had never been rendered.** The page kept its theme preference under
+   `pv_theme`, the sibling project's prefix, while the harness sets `ps_theme`. The page never
+   saw the preference and fell back to its default, which is light, so all four "dark" rows of
+   `contrast.js` measured the light theme against itself and passed. The key is `ps_theme` now,
+   the two others beside it (`ps_nav`, `ps_lang`) with it, and `build_firmware.py` fails the
+   build on a storage key that is not this project's. Both harnesses now prove the theme landed
+   before measuring anything through it.
+2. **Six of the eight pages it walked do not exist.** `contrast.js` asked for dashboard,
+   lighting, images, network, system and setup, which are another tree's names; this page has
+   status, theme, printer, sta, ap, settings and logs. `waitCard` returned true for a card that
+   is not there (with nothing active, every card agrees that it is not the active one), so the
+   harness walked on and measured whatever was already on screen, eight times, printing the
+   names it had asked for. Thirty-two of its rows were one page. `waitCard` now requires the
+   card to exist, and both harnesses treat it not coming up as a failure of its own.
+3. **The Logs page was showing the page's own source.** A device without `/api/logs` answers
+   the 302 that every absent route answers, the browser follows it, and the XHR comes back with
+   a 200 carrying the whole UI, which went straight into the log view: a megabyte of HTML in a
+   `<pre>`. The log is `text/plain` and nothing else is, and that is now the test. The renderer
+   card had the same shape and stops polling once the route has said it is not there.
+4. **Two thirds of the string table was a vent's.** 201 keys that nothing on this page reaches:
+   a flap, its endstops, its material policy, two LED strips, a camera. And fourteen keys that
+   the page does reach and that called this device a vent, in every dialog an owner sees, in
+   all twenty-four languages. The fourteen are rewritten and the 201 are gone, which took the
+   page from 1450 KB to 1208 KB and the firmware from 19% free to 24%.
 
 ### 6. The light-theme faults the vent found, unchecked here
 

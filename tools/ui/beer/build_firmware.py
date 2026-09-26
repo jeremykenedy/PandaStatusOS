@@ -141,6 +141,28 @@ assert _attr_markup == _attr_css, (
 print('page attribute agrees in markup and CSS: %s' % ', '.join(sorted(_attr_markup)))
 print('%d pages, each marked data-card and each reachable from both navs; no inline handlers' % len(_cards))
 
+# ── every browser-storage key belongs to this project ─────────────────
+#
+# The page kept its theme preference under pv_theme, which is the sibling project's prefix.
+# The cost was not cosmetic: the contrast harness sets ps_theme, so the page never saw the
+# preference, fell back to its default (light), and every "dark" row in that harness measured
+# the light theme against itself and passed. The dark theme had never been rendered under a
+# check at all. Two more keys, pv_nav and pv_lang, were the same mistake waiting.
+#
+# A storage key is an interface between the page and everything that drives it, so it is
+# checked here rather than trusted: every key literal in the spliced page must be ps_.
+_keys = set(re.findall(r"(?:getItem|setItem|removeItem)\(\s*'([A-Za-z0-9_]+)'", '\n'.join(js_out)))
+_keys |= set(re.findall(r'(?:getItem|setItem|removeItem)\(\s*"([A-Za-z0-9_]+)"', '\n'.join(js_out)))
+# Both idioms the page uses: the key written at the call, and the key held in a NAME_KEY
+# constant, which is how the theme and the nav preferences are stored.
+_keys |= set(re.findall(r"_KEY\s*=\s*'([A-Za-z0-9_]+)'", '\n'.join(js_out)))
+_wrongkeys = sorted(k for k in _keys if not k.startswith('ps_'))
+assert not _wrongkeys, (
+    'browser storage keys that are not this project\'s: %s. A key another project\'s prefix '
+    'owns is a key nothing driving this page will set, and a harness that sets the right one '
+    'silently tests the default instead.' % _wrongkeys)
+print('%d browser storage key(s), every one of them ours: %s' % (len(_keys), ', '.join(sorted(_keys))))
+
 # ── every key the page looks up must exist ────────────────────────────────
 #
 # tr() falls back to the key's own English, so a key no language carries is

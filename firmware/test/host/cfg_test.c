@@ -66,7 +66,7 @@ int main(void)
                      | PS_FEAT_FX_TEMP | PS_FEAT_HOT_WARNING | PS_FEAT_ERROR_FLASH
                      | PS_FEAT_PREVIEW | PS_FEAT_PRESETS | PS_FEAT_STAGE_EFFECTS
                      | PS_FEAT_CONFIG_IO | PS_FEAT_RESTART | PS_FEAT_AUTO_REBIND
-                     | PS_FEAT_DIAGNOSTICS | PS_FEAT_STATIC_IP;
+                     | PS_FEAT_DIAGNOSTICS | PS_FEAT_STATIC_IP | PS_FEAT_BAR_FLIP;
         t("every feature bit is inside the known mask", (all & ~PS_FEAT_KNOWN) == 0, (long)(all & ~PS_FEAT_KNOWN));
         t("and the mask claims no bit that is not one", (PS_FEAT_KNOWN & ~all) == 0, (long)(PS_FEAT_KNOWN & ~all));
         t("and the bridge is outside it", (PS_FEAT_KNOWN & PS_FEAT_BRIDGE) == 0, 0);

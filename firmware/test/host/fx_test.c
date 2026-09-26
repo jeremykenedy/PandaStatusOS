@@ -20,6 +20,37 @@ int main(void)
 {
     ps_fx_phase_t p; ps_rgba_t px[16], py[16];
 
+    /* D1: the master flip.
+     *
+     * Two properties. The first is arithmetic: the frame comes back end for end, and on an odd
+     * bar the middle pixel does not move. The second is the one that makes this a FLIP rather
+     * than a direction: an effect rendered backwards and then flipped is the same frame as the
+     * same effect rendered forwards, so the master switch and the effect's own direction
+     * compose by exclusive-or and neither of them wins silently. A bar mounted upside down
+     * running an effect that was already reversed shows the effect the right way round. */
+    {
+        ps_rgba_t a[5] = { { 1, 0, 0, 255 }, { 2, 0, 0, 255 }, { 3, 0, 0, 255 }, { 4, 0, 0, 255 }, { 5, 0, 0, 255 } };
+        ps_fx_flip(a, 5);
+        t("the flip reverses the frame", a[0].r == 5 && a[1].r == 4 && a[3].r == 2 && a[4].r == 1, a[0].r);
+        t("and an odd bar keeps its middle pixel where it was", a[2].r == 3, a[2].r);
+        ps_fx_flip(a, 5);
+        t("flipping twice is the frame it started as", a[0].r == 1 && a[4].r == 5, a[0].r);
+        ps_fx_flip(a, 1); ps_fx_flip(a, 0); ps_fx_flip(NULL, 25);
+        t("one pixel, no pixels and no frame at all are all left alone", a[0].r == 1, a[0].r);
+
+        /* the composition, on the effect whose whole shape is position: the progress bar */
+        ps_fx_in_t half = { 40, -1000, 0, 0 };
+        ps_fx_phase_t pf, pr;
+        ps_fx_phase_init(&pf); ps_fx_phase_init(&pr);
+        ps_rgba_t fwd[16], rev[16];
+        ps_fx_render(PS_FX_PROGRESS, AMBER, BLACK, 100, 50, false, 0, &half, &pf, fwd, 16);
+        ps_fx_render(PS_FX_PROGRESS, AMBER, BLACK, 100, 50, true,  0, &half, &pr, rev, 16);
+        t("the progress bar drawn backwards is not the same frame as forwards", !same(fwd, rev, 16), 0);
+        ps_fx_flip(rev, 16);
+        t("but flipped it is, which is what makes the master switch an exclusive-or",
+          same(fwd, rev, 16), 0);
+    }
+
     /* the speed curve */
     t("speed 100 is 16 ms", ps_fx_period(100) == 16, ps_fx_period(100));
     t("speed 0 is 500 ms", ps_fx_period(0) == 500, ps_fx_period(0));

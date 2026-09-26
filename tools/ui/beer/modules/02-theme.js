@@ -54,7 +54,13 @@ function chrome_use_href(svgId, href) {
 /* ---------------------------------------------------------------------
    1. Theme preference: auto / light / dark (§4)
 
-   The preference is a browser thing, kept in localStorage under pv_theme.
+   The preference is a browser thing, kept in localStorage under ps_theme.
+   It was pv_theme until 2026-09-26, which is the vent's prefix on this
+   device's page, and the cost of that was not cosmetic: the contrast
+   harness sets ps_theme, so every "dark" row in it had been measuring the
+   light theme against itself since the harness was written. The dark theme
+   had never been rendered under a check at all. Renaming the key resets
+   one stored preference per browser, once.
    Beer and theme.css read the theme from a class on <body>: `light`,
    `dark`, or NO class for auto, in which case prefers-color-scheme
    decides (theme.css, project.css §19). Auto is deliberately the absence
@@ -62,7 +68,7 @@ function chrome_use_href(svgId, href) {
    machine paints light from its first frame.
    ------------------------------------------------------------------- */
 
-var THEME_STORE_KEY = 'pv_theme';
+var THEME_STORE_KEY = 'ps_theme';
 var THEME_PREFS = ['auto', 'light', 'dark'];
 
 /* the icon the top-bar button shows for each state (sprite symbol ids) */
@@ -171,10 +177,10 @@ function theme_watch_system() {
    Beer lays the rail out from `nav.left`; its expanded form is the same
    nav wearing `max` (beer.trim.css: nav.max:is(.left,...) widens to
    12.75rem and lays each item out as a row). Pinning is that one class,
-   remembered under pv_nav so a reload comes back the way it was left.
+   remembered under ps_nav so a reload comes back the way it was left.
    ------------------------------------------------------------------- */
 
-var NAV_STORE_KEY = 'pv_nav';
+var NAV_STORE_KEY = 'ps_nav';
 var NAV_PINNED_CLASS = 'max';
 var NAV_STORE_PINNED = 'max';   /* the stored value names the class it restores */
 

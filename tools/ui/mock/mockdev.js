@@ -151,7 +151,13 @@ let STATE = null;
 let booting = false;                    // true while a "restart" is in progress
 let LANDED = null;                      // {build, page, until}: the image an ota_fw upload installed (PS_OTA_LANDS)
 let FEAT = null;                        // the clone's feature document (PS_CLONE); null until first asked
-const FEATURE_NAMES = ['state_brightness', 'state_effects', 'effect_colours', 'effect_params', 'effect_ramp', 'fx_progress', 'fx_progress_anim', 'fx_barber', 'fx_hue_ramp', 'fx_temp', 'hot_warning', 'error_flash', 'preview', 'presets', 'stage_effects', 'config_io', 'restart', 'auto_rebind', 'diagnostics', 'static_ip'];
+const FEATURE_NAMES = ['state_brightness', 'state_effects', 'effect_colours', 'effect_params', 'effect_ramp', 'fx_progress', 'fx_progress_anim', 'fx_barber', 'fx_hue_ramp', 'fx_temp', 'hot_warning', 'error_flash', 'preview', 'presets', 'stage_effects', 'config_io', 'restart', 'auto_rebind', 'diagnostics', 'static_ip', 'bar_flip'];
+// Bits 1..N of the names above, which is what the device's own PS_FEAT_KNOWN comes to. This
+// was the literal 0x1FFFE, bits 1 to 16, for as long as there have been twenty bits: a
+// settings file exported from a device with the fixed address or the diagnostics switch on
+// was refused whole by the mock and by nothing else. Derived now, so a name added above is a
+// bit the import accepts.
+const FEATURE_BITS_KNOWN = ((1 << (FEATURE_NAMES.length + 1)) - 2);
 const FX_SELECTABLE = 17;
 // which effect ids the bits allow, as the firmware's ps_fx_allowed(): the seventeen need only the
 // effect switch; the ones that read the print each wait for their own
@@ -850,7 +856,7 @@ async function handleHttp(req, res) {
     const str = (v, max) => v === undefined || (typeof v === 'string' && v.length <= max);
     const ipOk = (v) => v === undefined || v === '' || (typeof v === 'string' && /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/.test(v) && v.split('.').every((n) => Number(n) <= 255));
     if (!isObj(j) || !Object.keys(j).every((k) => TOP.includes(k))) return refuse();
-    if (j.features !== undefined && (!Number.isInteger(j.features) || j.features < 0 || j.features > 0x1FFFE)) return refuse();
+    if (j.features !== undefined && (!Number.isInteger(j.features) || j.features < 0 || j.features > FEATURE_BITS_KNOWN)) return refuse();
     if (j.wifi !== undefined && (!isObj(j.wifi) || !Object.keys(j.wifi).every((k) => ['ssid', 'password'].includes(k)) || !str(j.wifi.ssid, 32) || !str(j.wifi.password, 64))) return refuse();
     if (j.ap !== undefined && (!isObj(j.ap) || !Object.keys(j.ap).every((k) => ['ssid', 'password', 'ip', 'on'].includes(k)) || !str(j.ap.ssid, 32) || !str(j.ap.password, 64) || !ipOk(j.ap.ip) || (j.ap.on !== undefined && j.ap.on !== 0 && j.ap.on !== 1))) return refuse();
     if (!str(j.hostname, 32) || !str(j.language, 7)) return refuse();

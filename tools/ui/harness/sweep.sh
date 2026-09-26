@@ -46,6 +46,10 @@ ROWS=(
 
   # --- the design system: every page, both themes, both widths, the furniture ---
   "p2-idle.json      | contrast.js | "
+  # and the same question asked of the pixels that were actually painted, which is the only
+  # way to see a gradient, a plate, a shadow or a cover: every page, both themes, both widths,
+  # each region also measured through the three dichromacies
+  "p2-idle.json      | pixels.js | "
 
   # --- the page, card by card, against the clone's own routes ---
   "p2-idle.json      | t-ams.js      | PS_CLONE=1"
