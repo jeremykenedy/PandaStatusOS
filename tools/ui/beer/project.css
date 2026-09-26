@@ -367,8 +367,19 @@ nav.bottom > a {
    direction disappears against half of them. Drawn light over dark AND
    dark over light, so there is an edge whatever lands inside.
    ────────────────────────────────────────────────────────────────────── */
+/* The dialog scrolls inside itself on a phone, and a scroll that reaches its end must not
+   start moving the page underneath. The footer with the buttons is Beer's own sticky one. */
+#ps-color-picker { overscroll-behavior: contain; }
+#ps-color-picker > footer.fixed {
+  min-block-size: auto;
+  padding-block: 0.5rem 0;
+  /* out to the dialog's edges, so nothing scrolling past shows beside the buttons */
+  margin-inline: calc(var(--_padding, 1.5rem) * -1);
+  padding-inline: var(--_padding, 1.5rem);
+}
+
 .hsl-preview {
-  block-size: 6rem;
+  block-size: 4rem;
   border-radius: 0.75rem;
   box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.55), 0 0 0 1px rgb(0 0 0 / 0.45);
 }
@@ -397,7 +408,7 @@ nav.bottom > a {
 }
 
 .swatch-row > button > .chip {
-  block-size: 2.25rem;
+  block-size: 1.75rem;
   border-radius: 0.5rem;
   box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.55), 0 0 0 1px rgb(0 0 0 / 0.45);
 }

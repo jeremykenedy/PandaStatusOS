@@ -662,8 +662,19 @@ nav.bottom > a {
    direction disappears against half of them. Drawn light over dark AND
    dark over light, so there is an edge whatever lands inside.
    ────────────────────────────────────────────────────────────────────── */
+/* The dialog scrolls inside itself on a phone, and a scroll that reaches its end must not
+   start moving the page underneath. The footer with the buttons is Beer's own sticky one. */
+#ps-color-picker { overscroll-behavior: contain; }
+#ps-color-picker > footer.fixed {
+  min-block-size: auto;
+  padding-block: 0.5rem 0;
+  /* out to the dialog's edges, so nothing scrolling past shows beside the buttons */
+  margin-inline: calc(var(--_padding, 1.5rem) * -1);
+  padding-inline: var(--_padding, 1.5rem);
+}
+
 .hsl-preview {
-  block-size: 6rem;
+  block-size: 4rem;
   border-radius: 0.75rem;
   box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.55), 0 0 0 1px rgb(0 0 0 / 0.45);
 }
@@ -692,7 +703,7 @@ nav.bottom > a {
 }
 
 .swatch-row > button > .chip {
-  block-size: 2.25rem;
+  block-size: 1.75rem;
   border-radius: 0.5rem;
   box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.55), 0 0 0 1px rgb(0 0 0 / 0.45);
 }
@@ -3210,11 +3221,16 @@ body.is-waiting .waiting-hide { visibility: hidden; }
     <input type="text" id="ps-hsl-hsl" maxlength="20" placeholder=" ">
     <label for="ps-hsl-hsl" data-str="ui_hue_saturation_lightness">Hue, saturation, lightness</label>
   </div>
-  <nav class="right-align wrap">
-    <button class="transparent" id="ps-hsl-reset" data-str="ui_reset_to_default">Reset to default</button>
-    <button class="transparent" id="ps-hsl-cancel" data-str="cancel">Cancel</button>
-    <button class="fill" id="ps-hsl-confirm" data-str="confirm">Use this colour</button>
-  </nav>
+  <!-- The buttons stay in view however tall the dialog gets. With fourteen named presets the
+       content is taller than a phone, and a confirm button that has to be scrolled to is a
+       colour that cannot be chosen by anyone who does not know to scroll a dialog. -->
+  <footer class="fixed">
+    <nav class="right-align wrap">
+      <button class="transparent" id="ps-hsl-reset" data-str="ui_reset_to_default">Reset to default</button>
+      <button class="transparent" id="ps-hsl-cancel" data-str="cancel">Cancel</button>
+      <button class="fill" id="ps-hsl-confirm" data-str="confirm">Use this colour</button>
+    </nav>
+  </footer>
 </dialog>
 
 <!-- The firmware upload. Hidden, because a bare file input is the ugliest
@@ -5162,6 +5178,13 @@ if (document.readyState === 'loading') {
         borderWidth: 0,
         layout: [{ component: window.iro.ui.Wheel },
                  { component: window.iro.ui.Slider, options: { sliderType: 'value' } }]
+      });
+      /* The wheel picks hue and saturation and keeps the value, so a colour that starts
+         black stays black wherever the wheel is tapped, and a background that was never set
+         opens the picker on black. Any interaction that begins on a value of zero is given
+         full value first; a drag on the value strip then sets its own. */
+      iroPicker.on('input:start', function () {
+        try { if (iroPicker.color.value === 0) iroPicker.color.value = 100; } catch (e) {}
       });
       iroPicker.on('color:change', function (c) {
         mark(c.hexString);

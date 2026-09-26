@@ -152,6 +152,13 @@
         layout: [{ component: window.iro.ui.Wheel },
                  { component: window.iro.ui.Slider, options: { sliderType: 'value' } }]
       });
+      /* The wheel picks hue and saturation and keeps the value, so a colour that starts
+         black stays black wherever the wheel is tapped, and a background that was never set
+         opens the picker on black. Any interaction that begins on a value of zero is given
+         full value first; a drag on the value strip then sets its own. */
+      iroPicker.on('input:start', function () {
+        try { if (iroPicker.color.value === 0) iroPicker.color.value = 100; } catch (e) {}
+      });
       iroPicker.on('color:change', function (c) {
         mark(c.hexString);
         if (preview) preview.style.background = c.hexString;
