@@ -250,12 +250,47 @@ function apply_direction() {
   el.setAttribute('lang', g_language === 'zh' ? 'zh-Hans' : g_language);
 }
 
+/* Everything JavaScript wrote, said again in the language now set.
+
+   apply_translations() covers the markup's own [data-str] elements and nothing else. The
+   effect names in a select, the feature switches' labels, the link words, the chip on the
+   top bar and every card row a module built are strings tr() produced at render time, and
+   until this existed they kept the language they were rendered in: pick Polish, and the
+   switches stayed English until the next push happened to redraw them. t-i18n.js found it.
+
+   Two halves. The core's own handlers are run again from the merged document, which is
+   what a push does, so nothing here knows how any card is drawn. A module that renders from
+   a document of its own (the features, the bridge, the logs) registers with on_language()
+   and redraws from what it holds. */
+/* The modules load before this file (the build splices them in name order and core.js
+   sorts last), so a module registers by pushing onto window.g_lang_hooks itself, and
+   this picks up whatever is already there rather than starting a new list over it. */
+var g_lang_hooks = window.g_lang_hooks || [];
+window.g_lang_hooks = g_lang_hooks;
+function on_language(fn) { g_lang_hooks.push(fn); }
+
+function rerender_for_language() {
+  if (g_have_first_state) {
+    render_chrome();
+    render_status();
+    if (g_state.sta) handle_sta(g_state.sta);
+    if (g_state.ap) handle_ap();
+    if (g_state.printer) { handle_printer(g_state.printer); handle_pctl(); }
+    if (g_state.settings) { handle_settings(); if (window.render_lighting) render_lighting(); }
+  }
+  for (var i = 0; i < g_lang_hooks.length; i++) { try { g_lang_hooks[i](); } catch (e) {} }
+}
+
 function set_language(lang) {
   if (!lang || lang === g_language) return;
   g_language = lang;
   try { localStorage.setItem('ps_lang', lang); } catch (e) {}
+  /* The merged document says what the page speaks now, so the redraw below does not put
+     the old language back before the device has echoed the new one. */
+  if (g_state.settings) g_state.settings.language = lang;
   apply_direction();
   apply_translations();
+  rerender_for_language();
 }
 
 /* ---------------------------------------------------------------------
@@ -535,9 +570,15 @@ function flush_out_queue() {
    then says nothing is to reopen it, a few times, and then stop and let the page say so. */
 function start_state_ask() {
   stop_state_ask();
-  g_ask_tries = 0;
   g_ask_timer = setInterval(function () {
-    if (g_have_first_state || g_ask_tries >= ASK_MAX) { stop_state_ask(); return; }
+    if (g_have_first_state) { stop_state_ask(); return; }
+    /* Reopened ASK_MAX times to no answer: stop reopening and leave this socket open, so a
+       device that is there and slow lands the moment it speaks. The count is NOT reset on
+       each open: it was, so the page closed every socket two seconds in for ever, and a
+       device that took longer than that to send its first frame could never be used at all
+       (t-slow.js found it against a mock made slow on purpose). It is reset when a state
+       arrives, so an outage later gets its own five tries. */
+    if (g_ask_tries >= ASK_MAX) { stop_state_ask(); return; }
     g_ask_tries++;
     try { if (g_sock) g_sock.close(); } catch (e) {}
   }, 2000);
@@ -571,12 +612,13 @@ function ws_open() {
        into g_out_queue instead. */
     if (document.body) document.body.classList.add('is-waiting');
     g_have_first_state = false;
+    render_chrome();             /* the chip says so too, not the last state it saw */
     /* And the backlog goes with it. Replaying a queue of vent commands minutes
        after they were given drives the flap from intent the user has long
        since abandoned; whatever they want when the link is back, they can ask
        for again against a page that is showing them the truth. */
     if (g_out_queue && g_out_queue.length) {
-      console.log('[pv] link closed, dropping ' + g_out_queue.length + ' queued message(s)');
+      console.log('[ps] link closed, dropping ' + g_out_queue.length + ' queued message(s)');
       g_out_queue.length = 0;
     }
     setTimeout(ws_open, 2000);   /* keep the page alive if the link drops */
@@ -626,6 +668,7 @@ function ws_recv(data) {
         roots in one frame), so its arrival is what proves the device is talking. */
   if (!g_have_first_state && msg.settings !== undefined) {
     g_have_first_state = true;
+    g_ask_tries = 0;
     stop_state_ask();
     if (document.body) document.body.classList.remove('is-waiting');
   }
@@ -640,7 +683,12 @@ function ws_recv(data) {
   if (msg.wifi !== undefined) handle_wifi(msg.wifi);
   if (msg.sta !== undefined) handle_sta(msg.sta);
   if (msg.ap !== undefined) handle_ap();
-  if (msg.printer !== undefined) { handle_printer(msg.printer); handle_pctl(); }
+  if (msg.printer !== undefined) {
+    handle_printer(msg.printer); handle_pctl();
+    /* the device pushes this root when the printer reports something new; the print
+       document is asked for again on the spot, not on 01-print.js's idle poll */
+    if (window.print_poll_soon) print_poll_soon();
+  }
   if (msg.settings !== undefined) {
     handle_settings();
     /* settings carries the bar: current_mode, and list2[mode] with its brightness and its
@@ -688,6 +736,16 @@ function render_chrome() {
     setHidden('ps-top-pct', true);
     setHidden('ps-top-prog', true);
     setHidden('ps-top-prog-fill', true);
+  } else if (!window.g_last_print) {
+    /* The device is talking and no print document has come: before the first /api/print
+       answer, and for ever on a device that does not serve it (the factory answers that path
+       with its 302). The chip then says what the socket does say, which is the link, rather
+       than the waiting word it was left with. t-slow.js found it saying "waiting" over a live
+       page. */
+    var link = vp.state;
+    if (dot) dot.setAttribute('class', 'ux_top_dot ' + (link === 3 ? 'is-idle' : (isNum(link) && link >= 4) ? 'is-err' : 'is-wait'));
+    setText('ps-top-state', isNum(link) ? tr('ui_link_state_' + link, '') : '');
+    setHidden('ps-top-pct', true);
   }
 
   /* Version badge */
@@ -879,7 +937,7 @@ function cfg_save_detail(s) {
   for (var i = 0; i < 6; i++) if (bits & (2 << i)) states.push(device_state_name(i));
   if (states.length) which.push(tr('ui_lighting', 'Lighting') + ' (' + states.join(', ') + ')');
   var err = isNum(s.cfg_save_err) ? s.cfg_save_err : 0;
-  if (err && NVS_ERRS[err]) console.log('[pv] save failed: ' + NVS_ERRS[err] + ' (' + err + ')');
+  if (err && NVS_ERRS[err]) console.log('[ps] save failed: ' + NVS_ERRS[err] + ' (' + err + ')');
   var code = err ? '0x' + err.toString(16).toUpperCase() : '';
   if (!which.length) return code;
   return which.join('; ') + (code ? ' \u2014 ' + code : '');
@@ -1440,6 +1498,7 @@ function init_ui() {
 
   apply_direction();
   apply_translations();
+  render_chrome();               /* the chip's one word before the device speaks; nothing else called this before a frame */
   wire_navigation();
   wire_dialog_close();
 
@@ -1496,3 +1555,4 @@ window.dialog_dismiss = dialog_dismiss;
 window.toast_show = toast_show;
 window.apply_translations = apply_translations;
 window.set_language = set_language;
+window.on_language = on_language;

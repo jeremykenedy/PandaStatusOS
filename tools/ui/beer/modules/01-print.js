@@ -221,8 +221,13 @@
     return (g_last && g_last.printing) ? FAST : SLOW;
   }
 
+  var g_polled_at = 0;
+  var g_inflight = false;
   function poll() {
+    g_polled_at = Date.now();
+    g_inflight = true;
     var done = function () {
+      g_inflight = false;
       if (g_timer) clearTimeout(g_timer);
       g_timer = setTimeout(poll, interval());
     };
@@ -242,6 +247,17 @@
     x.ontimeout = done;
     try { x.send(); } catch (e) { done(); }
   }
+
+  /* The socket's printer root just moved (core.js calls this on every printer push): ask
+     for the print document now rather than on the idle half-minute poll, so a print that
+     starts is on the chip and the job strip within the second. One ask per 1.5 s at most,
+     because a print in progress moves that root about once a second. */
+  window.print_poll_soon = function () {
+    if (g_inflight) return;
+    var wait = Math.max(0, 1500 - (Date.now() - g_polled_at));
+    if (g_timer) clearTimeout(g_timer);
+    g_timer = setTimeout(poll, wait);
+  };
 
   function start() {
     render_print(null);

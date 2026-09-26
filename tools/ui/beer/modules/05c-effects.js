@@ -349,6 +349,7 @@
     });
   }
   window.refresh_features = refresh;
+  (window.g_lang_hooks = window.g_lang_hooks || []).push(function () { if (g_doc) render_effects(); });
 
   /* ---- wiring --------------------------------------------------- */
 

@@ -200,6 +200,11 @@
     build_rows();
   }
   window.render_images = render_images;
+  (window.g_lang_hooks = window.g_lang_hooks || []).push(function () {
+    var list = byId('ps-img-list');
+    if (list) list.dataset.built = '';
+    render_images();
+  });
 
   function refresh() {
     var x = new XMLHttpRequest();

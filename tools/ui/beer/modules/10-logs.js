@@ -38,9 +38,11 @@ function strip_ansi(s) {
   return s.replace(/\u001b\[[0-9;]*[A-Za-z]/g, '');
 }
 
+var g_logs_last = null;      /* what the view was last filled with, for a redraw in another language */
 function logs_fill(text) {
   var view = document.getElementById('ps-log-view');
   if (!view) return;
+  g_logs_last = text;
   var t = (typeof text === 'string') ? strip_ansi(text).replace(/\s+$/, '') : '';
   view.textContent = t || tr('ui_no_logs', 'Nothing logged yet.');
   /* Newest at the bottom, so the interesting end is the end you land on. */
@@ -170,8 +172,10 @@ function render_kind_text(d) {
   return DASH;                                  /* "none": nothing drawn yet */
 }
 
+var g_render_last = null;
 function render_stats_fill(d) {
   var card = document.getElementById('ps-card-render');
+  g_render_last = d;
   /* A number the device did not send is a dash, never a zero: "no frames yet" and "it has
      drawn nothing since boot" are different answers and one of them is alarming. */
   if (!d || typeof d.kind !== 'string') {
@@ -245,3 +249,8 @@ if (document.readyState === 'loading') {
   module10_init();
 }
 
+/* A language change: the sentence a log that is empty shows, and the renderer's kind word. */
+(window.g_lang_hooks = window.g_lang_hooks || []).push(function () {
+  if (g_logs_last !== null) logs_fill(g_logs_last);
+  if (g_render_last) render_stats_fill(g_render_last);
+});

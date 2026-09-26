@@ -77,6 +77,23 @@ ROWS=(
   "p2-idle.json      | t-picker.js   | "
   "p2-idle.json      | t-inprog.js   | PS_CLONE=1"
   "p2-idle.json      | t-model.js    | "
+
+  # --- the harness classes the vent runs and this suite did not (PARITY item 5) ---
+  # quietload: a cold load and every page write nothing to the console, both fixtures
+  "p2-idle.json      | t-quiet.js    | PS_CLONE=1"
+  "p2-printing.json  | t-quiet.js    | PS_CLONE=1 PS_PRINT_PERCENT=37"
+  # i18n at run time: twenty-four languages on the page itself, including what JavaScript painted
+  "p2-printing.json  | t-i18n.js     | PS_CLONE=1 PS_PRINT_PERCENT=37"
+  # layout, navsize, align, coldstart: the page's shape at both widths in both themes
+  "p2-idle.json      | t-layout.js   | PS_CLONE=1"
+  # cursors, fontcheck, marks: the chrome as it renders
+  "p2-idle.json      | t-chrome.js   | PS_CLONE=1"
+  # slowload and slowland: a device that answers late, one slower than the reopen, one that never answers
+  "p2-idle.json      | t-slow.js     | PS_DELAY=1200"
+  "p2-idle.json      | t-slow.js     | PS_DELAY=4000"
+  "p2-idle.json      | t-slow.js     | PS_NO_PUSH=1"
+  # topbar: the chip through waiting, the link, idle, a print, its end, a failed link, and the socket gone
+  "p2-idle.json      | t-topbar.js   | PS_CLONE=1 PS_DELAY=1200"
 )
 
 pass=0; fail=0; failed=()

@@ -1632,4 +1632,55 @@ differently: then one of them is wrong in a way the contract has to settle.
 
 ---
 
+## D-057 The printer root is pushed when the report changes; a silent socket is reopened five times, then held; a language pick redraws everything
+
+**Date** 2026-09-26 · **Reversal** cheap (each is a few lines, and each has a harness row that fails without it)
+
+Three faults, found by the harness classes the vent had and this suite did not (parity item
+5), the day those were written. None was visible against the mock, because the mock had been
+doing what the page assumed; each was visible on the device, or would have been.
+
+**The device never pushed the printer root after connect.** `ps_printer.c` pushed it on
+connect and when the link's own state moved, and at no other time; the mock pushed it
+whenever the printer reported something new, because the page was built to that. So on the
+device the lamp, the fans, the spools, the temperatures and the state word on the dashboard
+were whatever the printer had said when the page opened, for as long as it stayed open. Now
+a report that changes any of what the root carries pushes it, at most once a second, a change
+inside that second riding the next report; and the page asks `/api/print` again on each such
+push, so a print that starts is on the chip within the second rather than on the idle
+half-minute poll. `t-topbar.js` drives it through the mock's `/__printer_status`, which is
+the same shape the device now has.
+
+**A silent socket was reopened for ever.** The page's rule was to reopen a socket that opens
+and says nothing, a few times, then stop. The count was reset on every open, so it never
+stopped, and a device that took longer than two seconds to send its first frame (a slow
+device, a busy one, one mid-OTA) could never be used at all: every socket was closed two
+seconds in. Five reopens now, then the sixth socket is held, so a slow device lands the
+moment it speaks; the count is reset when a state arrives, so a later outage gets its own
+five. `t-slow.js`, three rows.
+
+**A language pick left the page half in the old language.** `apply_translations()` covered
+the markup's `[data-str]` elements; everything a module had painted with `tr()` at render
+time (the effect list, the stage list, the feature switches, the link words, the chip) kept
+the language it was drawn in until something happened to redraw it. `set_language()` now
+runs the core's handlers again from the merged document and the modules' registered redraws
+from their own, and writes the language into the merged document first so that redraw does
+not put the old one back before the device has echoed the new. `t-i18n.js`, all twenty-four.
+
+**And one smaller one.** The chip was blank before the first frame and, on a device without
+`/api/print` (the factory answers it with a 302), said "waiting" over a live page for ever:
+the waiting word was written only on a push, and nothing else ever wrote the chip. It is
+drawn at boot, and once the device talks it says the link's own word until the print document
+comes.
+
+**Alternatives.** Pushing the printer root on every report (a 3 KB frame a second to every
+page, for a card that changes once a minute when idle). Keeping the reopen count and letting
+a slow device fail (the rule's own comment said otherwise). A page reload on a language pick
+(loses the card, the scroll and any field being typed into).
+
+**What would change it.** A printer that reports several times a second: the once-a-second
+cap would then matter more than the change detection, and would want to be a setting.
+
+---
+
 *Entries continue below as the run proceeds.*

@@ -80,6 +80,8 @@
   function fill_stages() {
     var sel = byId('ps-pv-stage');
     if (!sel || sel.dataset.built === '1') return;
+    var keep = sel.value;
+    sel.textContent = '';
     var none = document.createElement('option');
     none.value = '';
     none.textContent = tr('ui_none', 'None');
@@ -90,6 +92,7 @@
       o.textContent = tr('ui_stage_' + slot, slot.replace(/_/g, ' '));
       sel.appendChild(o);
     });
+    if (keep) sel.value = keep;
     sel.dataset.built = '1';
   }
 
@@ -129,6 +132,11 @@
     if (active) start_tick(); else stop_tick();
   }
   window.render_preview = render_preview;
+  (window.g_lang_hooks = window.g_lang_hooks || []).push(function () {
+    var sel = byId('ps-pv-stage');
+    if (sel) sel.dataset.built = '';
+    render_preview();
+  });
 
   /* While a pin is running the device is asked once a second, because the countdown
      has to be the device's and not a guess: the pin can end early from elsewhere. */

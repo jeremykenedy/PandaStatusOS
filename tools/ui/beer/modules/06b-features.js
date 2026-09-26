@@ -55,9 +55,11 @@
     try { x.send(JSON.stringify(body)); } catch (e) { done(null); }
   }
 
+  var g_last_doc = null;
   function render_features(doc) {
     var list = byId('ps-feat-list');
     if (!list) return;
+    g_last_doc = doc || g_last_doc;
     var f = (doc && doc.features) || null;
     if (!f) { list.textContent = ''; return; }
 
@@ -128,4 +130,11 @@
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', refresh);
   else refresh();
+  /* The rows are rebuilt only when the set of names changes, so a language change has to
+     forget the set it built for and draw the same names again in the new words. */
+  (window.g_lang_hooks = window.g_lang_hooks || []).push(function () {
+    var list = byId('ps-feat-list');
+    if (list) list.dataset.sig = '';
+    if (g_last_doc) render_features(g_last_doc);
+  });
 })();

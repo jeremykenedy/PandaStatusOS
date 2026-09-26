@@ -315,16 +315,62 @@ static void apply_report(const char *json, size_t len)
     cJSON_Delete(doc);
 }
 
+/* What the socket's printer root carries under `status` (ps_state.c root_printer), folded
+ * into one number, so a report that changed any of it is told apart from one that did not. */
+static uint32_t status_digest(void)
+{
+    uint32_t h = 2166136261u;
+#define MIX(p, n) do { const uint8_t *q_ = (const uint8_t *)(p); for (size_t k_ = 0; k_ < (n); k_++) { h ^= q_[k_]; h *= 16777619u; } } while (0)
+    ps_lock();
+    MIX(&g_ps.light_chamber, sizeof g_ps.light_chamber); MIX(g_ps.temp_c, sizeof g_ps.temp_c);
+    MIX(&g_ps.fan_part, 1); MIX(&g_ps.fan_aux, 1); MIX(&g_ps.fan_chamber, 1); MIX(&g_ps.filament_in, 1);
+    MIX(&g_ps.ams_humidity, 1); MIX(&g_ps.ams_humidity_pct, 1); MIX(&g_ps.ams_temp_c, sizeof g_ps.ams_temp_c);
+    MIX(g_ps.trays, sizeof g_ps.trays); MIX(&g_ps.tray_count, 1); MIX(&g_ps.tray_now, 1);
+    MIX(g_ps.gcode_state, sizeof g_ps.gcode_state); MIX(g_ps.hms_code, sizeof g_ps.hms_code);
+    MIX(g_ps.printer_rssi, sizeof g_ps.printer_rssi); MIX(g_ps.nozzle_type, sizeof g_ps.nozzle_type); MIX(g_ps.nozzle_dia, sizeof g_ps.nozzle_dia);
+    ps_unlock();
+#undef MIX
+    return h;
+}
+
+/* A report that changed the status is pushed to every page, at most once a second.
+ *
+ * Until this existed the printer root went out on connect and when the link's own state
+ * moved, and at no other time: the lamp, the fans, the spools and the printer's state word
+ * on the dashboard were whatever the printer had said when the page opened, for as long as it
+ * stayed open. The page was built against a mock that pushes the root whenever the printer
+ * reports something new (t-pctl.js, the `/__printer_status` route), which is what this makes
+ * the device do as well. The chip on the top bar follows too: the page asks /api/print again
+ * as soon as this root arrives (01-print.js), instead of on its idle half-minute poll.
+ *
+ * A change inside the second after a push is not lost: it is held and goes out with the next
+ * report, which the printer sends every second or so. */
+#define PS_STATUS_PUSH_MIN_US 1000000
+static void push_status_if_changed(void)
+{
+    static uint32_t s_last_digest;
+    static int64_t  s_last_push_us;
+    static bool     s_pending;
+    uint32_t d = status_digest();
+    if (d != s_last_digest) { s_last_digest = d; s_pending = true; }
+    if (!s_pending) return;
+    int64_t now = esp_timer_get_time();
+    if (now - s_last_push_us < PS_STATUS_PUSH_MIN_US) return;
+    s_last_push_us = now;
+    s_pending = false;
+    ps_ws_push(PS_ROOT_PRINTER, -1);
+}
+
 static void on_data(esp_mqtt_event_handle_t ev)
 {
     if (ev->topic_len && strncmp(ev->topic, s_topic_report, ev->topic_len) != 0) return;
-    if (ev->total_data_len <= ev->data_len && ev->current_data_offset == 0) { apply_report(ev->data, ev->data_len); return; }
+    if (ev->total_data_len <= ev->data_len && ev->current_data_offset == 0) { apply_report(ev->data, ev->data_len); push_status_if_changed(); return; }
     /* pieces: assemble by offset, apply when the last one lands */
     if (ev->current_data_offset == 0) { free(s_assembly); s_assembly = malloc(ev->total_data_len + 1); s_assembled = 0; if (!s_assembly) return; }
     if (!s_assembly || ev->current_data_offset + ev->data_len > ev->total_data_len) return;
     memcpy(s_assembly + ev->current_data_offset, ev->data, ev->data_len);
     s_assembled = ev->current_data_offset + ev->data_len;
-    if (s_assembled >= (size_t)ev->total_data_len) { apply_report(s_assembly, s_assembled); free(s_assembly); s_assembly = NULL; s_assembled = 0; }
+    if (s_assembled >= (size_t)ev->total_data_len) { apply_report(s_assembly, s_assembled); free(s_assembly); s_assembly = NULL; s_assembled = 0; push_status_if_changed(); }
 }
 
 static void on_mqtt(void *arg, esp_event_base_t base, int32_t id, void *data)

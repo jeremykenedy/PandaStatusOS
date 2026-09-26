@@ -137,20 +137,22 @@ go.
 
 ### 5. The harness classes this suite does not have
 
-The vent runs forty harnesses. This tree runs fifteen. The gap is not coverage of the
-same things, it is whole classes of check that do not exist here:
+The vent runs forty harnesses. This tree ran fifteen when this was written and runs
+twenty-two now. The gap was not coverage of the same things, it was whole classes of check
+that did not exist here; each is a row below, and the four faults the new rows found on their
+first run are written in their rows:
 
 | Vent harness | What it catches | Here |
 |---|---|---|
 | `pixels.js` | text painted the colour of the ground beneath it, per region, both themes, every page | DONE 2026-09-26: 842 regions, and what it found is below |
-| `i18n` | a key that resolves to nothing at runtime | the build checks the tables; the page is never walked |
-| `undefcheck` | the string "undefined" reaching the page | folded into `pixels.js`: nothing painted may read as a bare key, as `undefined` or as `NaN` |
-| `quietload` | anything written to the console on a cold load | only inside other harnesses |
-| `slowload`, `slowland` | a device that answers late, and one that does not answer at all | `nows.js` covers the socket refusing, nothing covers slow |
-| `navsize`, `align`, `cursors`, `fontcheck` | the chrome's own geometry, alignment, pointer and font | nothing |
-| `marks`, `herocheck` | the artwork as it actually renders | nothing |
-| `topbar` | the state dot through its transition, without racing the device's own push | nothing |
-| `coldstart`, `layout` | first paint, and the page's shape | nothing |
+| `i18n` | a key that resolves to nothing at runtime | DONE 2026-09-26: `t-i18n.js`, the page itself in all twenty-four languages, every card active and nothing hidden: no bare key, no `undefined`, every English key carried, `<html lang>` and `dir` right, and what JavaScript painted (a switch label, the effect list, the stage list, the top chip, a link word) in the language chosen. Found that a language pick left every string written at render time in the old language until something redrew it; `set_language()` now redraws the core's cards from the merged document and the modules from their own (98 checks) |
+| `undefcheck` | the string "undefined" reaching the page | folded into `pixels.js`: nothing painted may read as a bare key, as `undefined` or as `NaN`; `t-i18n.js` asks the same of every language |
+| `quietload` | anything written to the console on a cold load | DONE 2026-09-26: `t-quiet.js`, both fixtures, both themes, both widths, every page: console output of any type, page errors, requests that did not complete, responses of 400 or worse (20 checks a row) |
+| `slowload`, `slowland` | a device that answers late, and one that does not answer at all | DONE 2026-09-26: `t-slow.js`, three rows. Found that a silent socket was reopened every two seconds for ever, the retry count reset on each open, so a device slower than that to send its first frame could never be used; it is reopened five times now and the sixth socket is held. Found the chip blank before the first frame and saying "waiting" over a live page on any device without `/api/print`; the chip is drawn at boot and, once the device talks, says the link's own word until the print document comes |
+| `navsize`, `align`, `cursors`, `fontcheck` | the chrome's own geometry, alignment, pointer and font | DONE 2026-09-26: `t-layout.js` (the rail and the bottom bar seven entries at one size; card titles on one edge per kind and column) and `t-chrome.js` (every pressable thing shows the pointer and nothing disabled does; the embedded Roboto is loaded and honoured) |
+| `marks`, `herocheck` | the artwork as it actually renders | DONE 2026-09-26: `t-chrome.js`: this theme's mark decoded and on screen with the other away, every icon pointing at a symbol the sprite carries, the theme button through its three states and back |
+| `topbar` | the state dot through its transition, without racing the device's own push | DONE 2026-09-26: `t-topbar.js`: waiting, the link's word, idle, a print at a stage and a percentage, the next report, the print's end, a failed link, the socket gone; every change made through the mock and waited for. Found that the device never pushed the printer root after connect (the lamp, fans, spools and state word on the dashboard were whatever the printer had said when the page opened): `ps_printer.c` pushes it when a report changes the status, at most once a second, and the page asks for the print document on each push instead of on its idle half-minute |
+| `coldstart`, `layout` | first paint, and the page's shape | DONE 2026-09-26: `t-layout.js`: the first state on screen inside 2.5 s with the top bar in place and one card active; nothing on any card wider than the screen, no sideways scroll, at 360 and 1280 in both themes |
 
 `pixels.js` is the one that matters most. On the vent it was 3932 regions and it is what
 found that the light theme had never been rendered under a check at all.

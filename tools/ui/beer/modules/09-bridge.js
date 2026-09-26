@@ -285,6 +285,7 @@
     watch();
     if (g_card_shown) start();
     window.bridge_refresh = get;          /* the harness, and anything else that needs a read */
+    (window.g_lang_hooks = window.g_lang_hooks || []).push(function () { if (g_doc) render(g_doc); });
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
