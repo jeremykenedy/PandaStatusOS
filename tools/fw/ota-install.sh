@@ -43,8 +43,16 @@ probe() {   # sets P_STATUS P_BUILD P_PAGE for the device at $HOST
 }
 verdict() {   # EXPECT_BUILD EXPECT_PAGE BEFORE_BUILD BEFORE_PAGE against P_*; exits
     if [ "$P_BUILD" = "$1" ] && [ "$P_PAGE" = "$2" ] && { [ "$3" != "$1" ] || [ "$4" != "$2" ]; }; then
-        say "FLASHED: the device now reports build $1 and serves the page the image carries. Both moved."
-        say "next: run this same image once more so both app slots hold it, then tools/fw/golden.sh http <host>"
+        # What moved, exactly. This line said "Both moved" whenever either did, and the log is
+        # the record: an install that changed only the firmware carries the page it already had,
+        # and saying otherwise is the same kind of claim as treating the 200 as evidence.
+        local moved
+        if [ "$3" != "$1" ] && [ "$4" != "$2" ]; then moved="Both moved."
+        elif [ "$3" != "$1" ]; then moved="The build moved; the page did not, because this image carries the page the device was already serving."
+        else moved="The page moved and the build id did not, which the build id (the ELF's own hash) should make impossible. Look before trusting it."
+        fi
+        say "FLASHED: the device now reports build $1 and serves the page the image carries. $moved"
+        say "next: build once more (every build is a new id) and install that too, so both app slots carry this commit; then tools/fw/golden.sh http <host>"
         exit 0
     fi
     say "NOT LANDED: expected build $1 / page ${2:0:16}, device reports build $P_BUILD / page ${P_PAGE:0:16}."

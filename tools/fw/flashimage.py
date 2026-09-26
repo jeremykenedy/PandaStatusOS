@@ -265,9 +265,20 @@ def inspect(img):
     gifs = gif_scan(img, entries)
     ids = [f"{a['name']}={a['desc']['project']}/{a['desc']['version']}/{a['desc']['build']}" if a["desc"] else f"{a['name']}=empty" for a in apps]
     builds = {a["desc"]["build"] for a in apps if a["desc"]}
+    # The same COMMIT is a weaker claim than the same build, and the one that can actually be
+    # reached: the build id is the ELF's hash and the ELF carries its own compile time, so the
+    # same commit built twice is two builds, and ota-install.sh will not install an image the
+    # device already reports because an upload of it could not be told from no upload. The
+    # version string names the commit (git describe) unless the tree was dirty, when it names
+    # nothing that can be checked out again, so a dirty version never counts.
+    versions = {(a["desc"]["project"], a["desc"]["version"]) for a in apps if a["desc"]}
+    same_build = len(apps) >= 2 and len(builds) == 1 and all(a["desc"] for a in apps)
+    # The same build is the same code whatever the version string says, dirty or not.
+    same_commit = same_build or (len(apps) >= 2 and all(a["desc"] for a in apps) and len(versions) == 1
+                                 and not next(iter(versions))[1].endswith("-dirty"))
     return {"size": len(img), "sha256": sha256(img), "bootloader_magic": bool(img) and img[0] == APP_MAGIC,
             "table": entries, "md5_ok": md5_ok, "apps": apps, "gifs": gifs,
-            "slot_summary": " ".join(ids), "same_build": len(apps) >= 2 and len(builds) == 1 and all(a["desc"] for a in apps)}
+            "slot_summary": " ".join(ids), "same_build": same_build, "same_commit": same_commit}
 
 def print_inspect(r):
     print(f"image: {r['size']} bytes  sha256 {r['sha256']}")
@@ -280,6 +291,7 @@ def print_inspect(r):
         d = a["desc"]
         print(f"  {a['name']:<8s} 0x{a['offset']:06x}  " + (f"{d['project']} {d['version']}  idf {d['idf']}  built {d['date']} {d['time']}  build {d['build']}" if d else "no app image (no 0xE9 / esp_app_desc)"))
     print(f"both slots the same build: {'yes' if r['same_build'] else 'no'}")
+    print(f"both slots the same commit: {'yes' if r['same_commit'] else 'no'}")
     print(f"animations found outside the app slots: {len(r['gifs'])}")
     for g in r["gifs"]:
         print(f"  {g['partition']:<10s} 0x{g['offset']:06x}  {g['length']:>8d} B  {g['width']}x{g['height']}  {g['sha256']}")

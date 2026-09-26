@@ -461,7 +461,7 @@ moved no layout. [docs/CONFIG.md](docs/CONFIG.md) has every key, its range and i
 | `make test-fw` | on the host, compiling the shipping code with plain gcc, 298 checks: the config blob and its migrations (81), the effect engine (79), the rebind decision (13), the fault codes (24), the hotspot's name (34), the printer's own announcement (19), and the state document and inbound dispatcher against the protocol (48) |
 | `make test-hook` | 68 cases over the pre-commit hook, including two that assert its binary classifier rather than only its effect |
 | `make residue` | the tracked tree carries nothing of the vendor's expression |
-| `make test-flash-tools` | 57 cases over the flash tools, against a synthetic image and the mock |
+| `make test-flash-tools` | 58 cases over the flash tools, against a synthetic image and the mock |
 | `python3 tools/ui/beer/build_firmware.py` | rebuilds the served page from its sources; it refuses to finish if a string in the markup has no key, if a key is missing from a language, or if the page's structure has drifted |
 
 The first four of those run on every push

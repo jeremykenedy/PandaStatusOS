@@ -105,6 +105,7 @@ J="$($FI inspect --json "$IMG")"
 py() { echo "$J" | python3 -c "import json,sys; r=json.load(sys.stdin); print($1)"; }
 t "parses 7 partitions with a good md5" "$([ "$(py 'len(r["table"])')" = 7 ] && [ "$(py 'r["md5_ok"]')" = True ]; echo $?)"
 t "both app slots carry pandastatusos, the same build" "$([ "$(py 'r["same_build"]')" = True ] && [ "$(py 'r["apps"][1]["desc"]["project"]')" = pandastatusos ]; echo $?)"
+t "and the same build is reported as the same commit, dirty tree or not" "$([ "$(py 'r["same_commit"]')" = True ]; echo $?)"
 t "finds the fifteen animations" "$([ "$(py 'len(r["gifs"])')" = 15 ]; echo $?)" "$(py 'len(r["gifs"])')"
 t "the fifteen hashes are distinct" "$([ "$(py 'len({g["sha256"] for g in r["gifs"]})')" = 15 ]; echo $?)"
 t "bootloader magic seen at 0x0" "$([ "$(py 'r["bootloader_magic"]')" = True ]; echo $?)"

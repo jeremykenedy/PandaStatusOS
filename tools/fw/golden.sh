@@ -62,7 +62,17 @@ record_capture() {   # <file> <method> <note>   verify structure, hash, 444, man
     echo
     echo "recorded: $f"
     echo "          sha256 $sha, $size bytes, chmod 444, manifest line appended"
-    [ "$same" = "yes" ] || echo "NOTE: the two app slots differ. A rollback boots the other one. Flash the same image twice before a golden meant as a restore point."
+    local commit; commit="$(echo "$info" | awk '/both slots the same commit/{print $NF}')"
+    if [ "$same" = "yes" ]; then :
+    elif [ "$commit" = "yes" ]; then
+        echo "both slots carry the same commit, built twice: a rollback boots the same code. This golden is a restore point."
+    else
+        # The advice this line used to give, "flash the same image twice", could not be followed:
+        # ota-install.sh refuses an image the device already reports, because an upload of it
+        # could not be told from no upload. What can be followed is a fresh build of the same
+        # commit, which is a different build and the same code.
+        echo "NOTE: the two app slots hold different code. A rollback boots the other one. Install this commit twice, a fresh build each time, before a golden meant as a restore point."
+    fi
 }
 
 case "$MODE" in
