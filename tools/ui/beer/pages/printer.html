@@ -1,7 +1,14 @@
 <!-- ══════════════════════════════════════════════════════════════════════
-     PRINTER
-     Which printer this vent watches, and how it reaches it. Four fields and
-     one button; the scan fills the first three from the network.
+     BINDINGS
+     The two things this device binds to: a printer, and a vent. The page was
+     called Printer while it held one of them; it holds both now and neither
+     name covers the other, so what a person reads changed and the card id did
+     not (ps-card-printer), which keeps the router and every harness that names
+     it working. See docs/PANDAVENT-BRIDGE.md, "Where it lives on the page".
+
+     Printer first: four fields and one button, and the scan fills the first
+     three from the network. The vent under it, in the same shape, so the two
+     bindings are read top to bottom in one place.
      ══════════════════════════════════════════════════════════════════ -->
 <section id="ps-card-printer" data-card>
 
@@ -42,6 +49,92 @@
       <span id="ps-timer-printer-bind"></span>
       <span id="ps-span-printer-bind"></span>
     </button>
+  </article>
+
+  <!-- ── The vent ────────────────────────────────────────────────────
+       Behind the bridge switch, which is bit 0 and defaults off: with it off
+       there is no route to ask, so this card is not on the page at all and
+       nothing here mentions a vent.
+
+       Same shape as the card above. What is different is the middle: two
+       devices that have never met show each other the same six digits and a
+       person confirms on both, so there is a row here that exists only while
+       that is happening. The two copy buttons are at the bottom, inside this
+       card rather than on the Lighting page, because they are part of what
+       being bound to a vent means and someone who has not bound one should
+       not be offered them. -->
+  <article class="card-divided" id="ps-card-vent" hidden>
+    <nav>
+      <h6 class="card-title max" id="lbl_bind_vent" data-str="ui_bind_a_vent">Bind a vent</h6>
+      <button class="circle transparent" id="ps-btn-vent-scan" title="Find vents" data-str-title="ui_find_vents">
+        <svg class="i" id="ps-img-scan-vent"><use href="#i-search"/></svg>
+      </button>
+    </nav>
+    <div class="small-text" data-str="ui_vent_help">This device finds vents running our firmware on the
+      same network. Pick yours, or type its address.</div>
+
+    <div class="field label suffix border">
+      <select id="ps-vent-name"></select>
+      <label for="ps-vent-name" data-str="ui_vent">Vent</label>
+      <svg class="i"><use href="#i-caret"/></svg>
+    </div>
+
+    <div class="field label border">
+      <input type="text" id="ps-vent-ip" maxlength="21" value="" placeholder=" ">
+      <label for="ps-vent-ip" data-str="ui_ip_address">IP address</label>
+    </div>
+
+    <button class="border responsive" id="ps-btn-vent-bind">
+      <svg class="i" id="ps-img-vent-bind"><use href="#i-link-off"/></svg>
+      <span id="ps-span-vent-bind"></span>
+    </button>
+
+    <!-- The link, in the device's own words. Not drawn until there is something bound,
+         because "Unbound" under an empty form says nothing the form does not. -->
+    <ul class="list border" id="ps-vent-link-row" hidden>
+      <li>
+        <svg class="i"><use href="#i-link"/></svg>
+        <div class="max" data-str="ui_state">State</div>
+        <span class="small-text" id="ps-vent-link"></span>
+      </li>
+    </ul>
+
+    <!-- Only while a pairing is waiting for the person. -->
+    <div id="ps-vent-pair" hidden>
+      <div class="small-text" data-str="ui_pairing_help">Both devices show the same six digits. Check that
+        they match, then confirm on each.</div>
+      <div class="pair-code">
+        <span class="small-text" data-str="ui_pairing_code">Pairing code</span>
+        <strong id="ps-vent-code" aria-live="polite"></strong>
+        <span class="small-text" id="ps-vent-code-left"></span>
+      </div>
+      <nav class="wrap btn-row">
+        <button class="fill" id="ps-btn-vent-confirm">
+          <svg class="i"><use href="#i-check"/></svg>
+          <span data-str="ui_confirm">Confirm</span>
+        </button>
+        <button class="border" id="ps-btn-vent-cancel">
+          <svg class="i"><use href="#i-close"/></svg>
+          <span data-str="cancel">Cancel</span>
+        </button>
+      </nav>
+    </div>
+
+    <!-- Only once a vent is actually talking: there is nothing to copy from otherwise. -->
+    <div id="ps-vent-copy" hidden>
+      <div class="small-text" data-str="ui_copy_help">Each of these copies once, when you press it. Nothing
+        follows afterwards: press again to copy again.</div>
+      <nav class="wrap btn-row">
+        <button class="border" id="ps-btn-vent-copy-colours">
+          <svg class="i"><use href="#i-palette"/></svg>
+          <span data-str="ui_copy_colours">Copy the vent's colours</span>
+        </button>
+        <button class="border" id="ps-btn-vent-copy-effect">
+          <svg class="i"><use href="#i-lighting"/></svg>
+          <span data-str="ui_copy_effect">Copy the vent's effect</span>
+        </button>
+      </nav>
+    </div>
   </article>
 
 </section>

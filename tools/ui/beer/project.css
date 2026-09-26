@@ -343,6 +343,25 @@ nav.bottom > a {
   font-size: 0.875rem;
 }
 
+/* ── 9b  The pairing code ───────────────────────────────────────────────
+   Six digits a person reads off two devices and compares. They are the whole
+   point of the row, so they are the biggest thing in it, spaced out enough to
+   be read one at a time, and in the face the rest of the page uses rather than
+   a monospace that would make them look like a serial number.
+   ────────────────────────────────────────────────────────────────────── */
+.pair-code {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  padding: 0.5rem 0;
+}
+.pair-code > strong {
+  font-size: 1.75rem;
+  letter-spacing: 0.25em;
+  line-height: 1.2;
+}
+
 /* ── 10  The colour picker's preview ───────────────────────────────────
    It holds whatever colour is being chosen, so an outline in one
    direction disappears against half of them. Drawn light over dark AND

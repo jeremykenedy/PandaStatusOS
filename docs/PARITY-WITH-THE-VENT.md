@@ -218,11 +218,24 @@ Three things were asked for: the two copy switches inside a bind-a-vent card, a 
 card on the dashboard, and a vent settings page that has to speak to three different
 firmwares (the factory's, PandaVent OS's, and DragonVent's).
 
-That document sets the order of work, and step 2 of it is done: **the mock vent is built**
-(`tools/ui/mock/mockvent.js`), with `tools/ui/harness/vent.js` holding it to the contract in
-32 assertions and a row in the sweep. Nothing of the device side exists yet, which is the
-point of the order: the page and the firmware are built against a vent that can be made to
-lie, and the real vent is not touched until they are.
+That document sets the order of work. Steps 2 and the page half of 3 are done:
+
+- **The mock vent** (`tools/ui/mock/mockvent.js`), with `tools/ui/harness/vent.js` holding it
+  to the contract in 32 assertions and a row in the sweep.
+- **The first of the three things asked for**: a vent is bound the way a printer is, on the
+  same page, which is now called Bindings in both navs because it holds two of them. The card
+  carries the scan, the address, the bind and unbind, the six-digit pairing code with the
+  device's own countdown, the link in the device's words, and the two copy buttons, which
+  appear only once a vent is actually talking. `mockdev.js` holds a real bridge client for
+  this, not a pretence of one: `t-bridge.js` runs the page, the device and the vent together,
+  32 assertions, nothing simulated in between.
+- The two frames the copies are made of (`light {request}` and `fx`) were missing from the
+  contract, which described the copies before they had a wire. They are written into it now.
+
+**The device half is not built**: `ps_bridge.c` does not exist. Items 9 (the vent card on the
+dashboard) and 10 (the vent settings page, three firmwares) are still open, and 10 stays
+unwritten until each of the three surfaces has been read the way this project reads a
+surface.
 
 ## Catalogued elsewhere, still open
 

@@ -169,7 +169,11 @@ function fxAllowed(id, features) {
 }
 const fxDefault = (colour) => ({ effect: 0, brightness: 50, speed: 100, bright_end: 0, opt: 0, aux: 0, colours: [colour, colour, '#000000FF', '#000000FF'] });
 function featDefaults() {
-  return { features: { state_brightness: false, state_effects: false, effect_colours: false, effect_params: false, effect_ramp: false, fx_progress: false, fx_progress_anim: false, fx_barber: false, fx_hue_ramp: false, fx_temp: false, hot_warning: false, error_flash: false, preview: false, presets: false, stage_effects: false, config_io: false, restart: false, auto_rebind: false, diagnostics: false, static_ip: false },
+  // `bridge` is bit 0 and is deliberately NOT in FEATURE_NAMES: that list is the bits the
+  // settings file carries, 1 upward, and the firmware keeps bit 0 out of PS_FEAT_KNOWN until
+  // ps_bridge.c exists to be turned on. It is in this document because the page behind it is
+  // built first, against the contract, which is what this mock is for.
+  return { features: { bridge: false, state_brightness: false, state_effects: false, effect_colours: false, effect_params: false, effect_ramp: false, fx_progress: false, fx_progress_anim: false, fx_barber: false, fx_hue_ramp: false, fx_temp: false, hot_warning: false, error_flash: false, preview: false, presets: false, stage_effects: false, config_io: false, restart: false, auto_rebind: false, diagnostics: false, static_ip: false },
            config: { state_brightness: [[50, 50, 50], [50, 50, 50]],
                      state_effects: [fxDefault('#FFFFFFFF'), fxDefault('#FFFFFFFF'), fxDefault('#FF0000FF')],
                      temp_gradient: { source: 0, lo: 25, hi: 250 },
@@ -203,7 +207,7 @@ function featApply(j) {
   if (f === undefined && c === undefined) return false;
   if (f !== undefined && (typeof f !== 'object' || f === null || Array.isArray(f))) return false;
   if (c !== undefined && (typeof c !== 'object' || c === null || Array.isArray(c))) return false;
-  if (f) for (const k of Object.keys(f)) if (!FEATURE_NAMES.includes(k) || typeof f[k] !== 'boolean') return false;
+  if (f) for (const k of Object.keys(f)) if ((k !== 'bridge' && !FEATURE_NAMES.includes(k)) || typeof f[k] !== 'boolean') return false;
   let sb = null, se = null, tg = null, hw = null, ef = null, si = null;
   const after = Object.assign({}, FEAT.features, f || {});          // the bits this document leaves in force
   if (c) for (const k of Object.keys(c)) {
@@ -291,6 +295,155 @@ let PRESETS = { presets: [], max: 8 };  // A14: the named effects
 const SLOT_NAMES = ['standby', 'nozzle_heating', 'bed_heating', 'bed_leveling', 'homing', 'nozzle_cleaning', 'calibrating_flow', 'xy_mesh_mode_sweep', 'filament_check_location', 'filament_cut', 'filament_pull_back_cur', 'filament_push_new', 'filament_purge_old', 'printing_ok', 'printing'];
 function stagesDefault() { return { stages: SLOT_NAMES.map((slot) => Object.assign({ slot, set: false, name: '' }, fxDefault('#FFFFFFFF'))), current: 0 }; }
 let STAGES = stagesDefault();           // B1, B2: the per-stage rows
+
+// ---------------------------------------------------------------------------------------
+// The vent bridge (docs/PANDAVENT-BRIDGE.md), behind feature bit 0.
+//
+// This is a REAL client, not a pretence: it opens a socket to the bound vent, runs the
+// pairing exchange, proves itself with the token on every later hello, keeps the last vent
+// report and sends commands. The firmware's ps_bridge.c has to do exactly this, so having it
+// here means the page is built against the contract rather than against a fake of it, and the
+// two implementations can be compared frame for frame against tools/ui/harness/vent.js.
+//
+// What it does NOT do is discover anything: a node process cannot answer mDNS for a device
+// that is not there. A scan returns what PS_VENTS names, which is the harness telling the
+// device what is on its network, and binding by address is the contract's own fallback.
+const BRIDGE_LINK = { UNBOUND: 0, CONNECTING: 2, CONNECTED: 3, IP_ERR: 4, ID_ERR: 5, UNPAIRED: 6 };
+let BRIDGE = bridgeFresh();
+function bridgeFresh() {
+  return {
+    self: { id: sha256hex('pandabridge-mock-status-' + PORT).slice(0, 16), kind: 'status', name: 'ps-mock' },
+    link: BRIDGE_LINK.UNBOUND,
+    bound: null,          // { id, name, ip }
+    token: null,          // what pairing produced, kept against bound.id
+    pair: null,           // { code, until }  while a pairing is waiting for the person
+    vent: null,           // the last vent report, as received
+    light: null,          // the vent's own light document, when it has been asked for one
+    fx: null,             // and one bar state's effect
+    found: [],            // what the last scan turned up
+    scanning: false,
+    ws: null,
+    nonce: null,
+    peerNonce: null,
+    seq: 0,
+  };
+}
+function sha256hex(x) { return crypto.createHash('sha256').update(x).digest('hex'); }
+const bridgeCode = (na, nb, ia, ib) => String(BigInt('0x' + sha256hex(na + nb + ia + ib)) % 1000000n).padStart(6, '0');
+const bridgeToken = (na, nb, ia, ib) => sha256hex(na + nb + ia + ib + 'pandabridge');
+
+function bridgeOn() { return knobFlag('PS_CLONE') && FEAT && FEAT.features.bridge; }
+
+function bridgeSay(root, body) {
+  const ws = BRIDGE.ws;
+  if (!ws || ws.readyState !== 1) return false;
+  BRIDGE.seq += 1;
+  ws.send(JSON.stringify({ [root]: Object.assign({ seq: BRIDGE.seq }, body) }));
+  return true;
+}
+
+function bridgeDrop(link) {
+  if (BRIDGE.ws) { try { BRIDGE.ws.close(); } catch (e) { /* already gone */ } }
+  BRIDGE.ws = null;
+  BRIDGE.link = link;
+  BRIDGE.pair = null;
+}
+
+// Open the socket to the bound vent and run the exchange. Nothing here blocks: the page polls
+// the document and watches `link` move, which is what the page will do against the firmware.
+function bridgeConnect() {
+  if (!BRIDGE.bound || !BRIDGE.bound.ip) return;
+  let WebSocket = null;
+  try { WebSocket = require('ws'); } catch (e) { return; }
+  bridgeDrop(BRIDGE_LINK.CONNECTING);
+  const url = `ws://${BRIDGE.bound.ip}/bridge`;
+  const ws = new WebSocket(url);
+  BRIDGE.ws = ws;
+  BRIDGE.nonce = crypto.randomBytes(16).toString('hex');
+  ws.on('open', () => {
+    log({ ev: 'bridge_open', detail: url });
+    bridgeSay('hello', {
+      ver: 1, id: BRIDGE.self.id, kind: 'status', name: BRIDGE.self.name,
+      nonce: BRIDGE.nonce,
+      auth: BRIDGE.token ? sha256hex(BRIDGE.token + BRIDGE.nonce) : undefined,
+      caps: ['vent_state', 'light'],
+    });
+  });
+  ws.on('message', (d) => {
+    let f = null;
+    try { f = JSON.parse(d.toString()); } catch (e) { return; }
+    const root = Object.keys(f)[0], body = f[root] || {};
+    log({ ev: 'bridge_in', detail: root });
+    if (root === 'hello') {
+      BRIDGE.peerNonce = body.nonce;
+      /* The identity is the bind. A vent answering under another one is not this vent, and
+         the page has to be able to say so rather than quietly following the new one. */
+      if (BRIDGE.bound.id && body.id !== BRIDGE.bound.id) { bridgeDrop(BRIDGE_LINK.ID_ERR); return; }
+      if (!BRIDGE.bound.id) BRIDGE.bound.id = body.id;
+      if (body.name) BRIDGE.bound.name = body.name;
+      if (body.pair === true) {
+        /* It holds no token for us: show the six digits and wait for the person. */
+        BRIDGE.pair = {
+          code: bridgeCode(BRIDGE.nonce, body.nonce, BRIDGE.self.id, body.id),
+          token: bridgeToken(BRIDGE.nonce, body.nonce, BRIDGE.self.id, body.id),
+          until: Date.now() + 60000,
+        };
+        BRIDGE.link = BRIDGE_LINK.UNPAIRED;
+        return;
+      }
+      BRIDGE.link = BRIDGE_LINK.CONNECTED;
+      /* Prove ourselves over the nonce it just sent. */
+      bridgeSay('hello', { ver: 1, id: BRIDGE.self.id, kind: 'status', name: BRIDGE.self.name,
+                           nonce: BRIDGE.nonce, auth: sha256hex(BRIDGE.token + body.nonce), caps: ['vent_state', 'light'] });
+      return;
+    }
+    if (root === 'pair' && body.confirm === true) {
+      BRIDGE.token = BRIDGE.pair ? BRIDGE.pair.token : BRIDGE.token;
+      BRIDGE.pair = null;
+      BRIDGE.link = BRIDGE_LINK.CONNECTED;
+      log({ ev: 'bridge_paired', detail: BRIDGE.bound.id });
+      return;
+    }
+    if (root === 'vent') { BRIDGE.vent = body; BRIDGE.link = BRIDGE_LINK.CONNECTED; return; }
+    /* The answers to the two asks the copies are made of. Kept, and anyone waiting is woken. */
+    if (root === 'light' && body.colours) { BRIDGE.light = body; bridgeWake('light', body); return; }
+    if (root === 'fx' && body.effect !== undefined) { BRIDGE.fx = body; bridgeWake('fx', body); return; }
+    if (root === 'bye') { bridgeDrop(BRIDGE_LINK.UNPAIRED); return; }
+  });
+  ws.on('error', () => { bridgeDrop(BRIDGE.token ? BRIDGE_LINK.IP_ERR : BRIDGE_LINK.IP_ERR); });
+  ws.on('close', () => { if (BRIDGE.link === BRIDGE_LINK.CONNECTED) BRIDGE.link = BRIDGE_LINK.CONNECTING; BRIDGE.ws = null; });
+}
+
+/* Ask the vent for something and wait for the answer, or give up. The firmware will do this
+   with a queue and a timer; here it is a promise, and the shape is the same: one ask, one
+   answer, and a copy that does not happen rather than a copy of nothing. */
+const bridgeWaiters = [];
+function bridgeWake(root, body) {
+  for (let i = bridgeWaiters.length - 1; i >= 0; i--) {
+    if (bridgeWaiters[i].root === root) { bridgeWaiters[i].done(body); bridgeWaiters.splice(i, 1); }
+  }
+}
+function bridgeAsk(root, ask, ms) {
+  return new Promise((resolve) => {
+    let settled = false;
+    const done = (b) => { if (!settled) { settled = true; resolve(b); } };
+    bridgeWaiters.push({ root, done });
+    if (!bridgeSay(root, ask)) return done(null);
+    later(ms || 1500, () => done(null));
+  });
+}
+
+function bridgeDoc() {
+  return {
+    self: BRIDGE.self,
+    link: BRIDGE.link,
+    bound: BRIDGE.bound ? { id: BRIDGE.bound.id || '', name: BRIDGE.bound.name || '', ip: BRIDGE.bound.ip || '' } : null,
+    pair: BRIDGE.pair ? { code: BRIDGE.pair.code, left: Math.max(0, Math.round((BRIDGE.pair.until - Date.now()) / 1000)) } : null,
+    vent: BRIDGE.vent || null,
+    found: BRIDGE.found,
+    scanning: BRIDGE.scanning,
+  };
+}
 // the whole presets list from its JSON, or null; validated under the bits in force
 function presetsParse(v) {
   if (!Array.isArray(v) || v.length > 8) return null;
@@ -714,7 +867,7 @@ async function handleHttp(req, res) {
   if (p === '/__sent') { res.writeHead(200, { 'Content-Type': 'application/json' }); return res.end(JSON.stringify(SENT)); }
   if (p === '/__pushed') { res.writeHead(200, { 'Content-Type': 'application/json' }); return res.end(JSON.stringify(PUSHED)); }
   if (p === '/__state') { res.writeHead(200, { 'Content-Type': 'application/json' }); return res.end(JSON.stringify(STATE)); }
-  if (p === '/__reset' && req.method === 'POST') { await readBody(req, 1 << 16); STATE = loadFixture(FIXTURE); SENT.length = 0; PUSHED.length = 0; LANDED = null; FEAT = null; PREVIEW = null; PRESETS = { presets: [], max: 8 }; STAGES = stagesDefault(); clearTimers(); log({ ev: 'debug_reset' }); res.writeHead(200); return res.end('ok'); }
+  if (p === '/__reset' && req.method === 'POST') { await readBody(req, 1 << 16); STATE = loadFixture(FIXTURE); SENT.length = 0; PUSHED.length = 0; LANDED = null; FEAT = null; PREVIEW = null; PRESETS = { presets: [], max: 8 }; STAGES = stagesDefault(); bridgeDrop(0); BRIDGE = bridgeFresh(); clearTimers(); log({ ev: 'debug_reset' }); res.writeHead(200); return res.end('ok'); }
   if (p === '/__knob' && req.method === 'POST') {
     const { body } = await readBody(req, 1 << 16);
     try { const k = JSON.parse(body.toString('utf8')); KNOBS[k.name] = k.value; log({ ev: 'knob', detail: `${k.name}=${k.value}` }); res.writeHead(200); return res.end('ok'); }
@@ -798,6 +951,118 @@ async function handleHttp(req, res) {
     res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }); res.end('{"restarting":true}');
     restart('api/restart', null);
     return;
+  }
+  if (p === '/api/bridge' && knobFlag('PS_CLONE') && FEAT && FEAT.features.bridge) {
+    // The page's whole view of the bridge, and the five things it can ask for. One key per
+    // action, taken whole or refused whole, and the answer to a POST is the same document a
+    // GET would give, which is the rule every write route here keeps.
+    //
+    //   {"scan":true}                  what is on the network (PS_VENTS, see above)
+    //   {"bind":{"ip":"…"}}            or {"id":"…"} to take one from the scan list
+    //   {"pair":{"confirm":true}}      the person has read the six digits on both devices
+    //   {"pair":{"cancel":true}}
+    //   {"unbind":true}
+    //   {"copy":{"what":"colours"}}    the vent's three state colours into this mode's three
+    //   {"copy":{"what":"effect","state":0..2}}
+    if (req.method === 'GET') { res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }); return res.end(JSON.stringify(bridgeDoc())); }
+    if (req.method !== 'POST') { res.writeHead(405); return res.end(); }
+    const { body } = await readBody(req, 1 << 12);
+    let j = {}; try { j = JSON.parse(body.toString('utf8')); } catch (_) { res.writeHead(400); return res.end('refused'); }
+    const rec = { t: Date.now(), rel_ms: Date.now() - t0, api: '/api/bridge', text: JSON.stringify({ api: '/api/bridge', body: j }), frame: j, roots: ['api'] };
+    SENT.push(rec);
+    const answer = () => { res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }); res.end(JSON.stringify(bridgeDoc())); };
+    const refuse = (why) => { rec.error = why; log({ ev: 'api_refused', detail: 'bridge: ' + why }); res.writeHead(400); res.end('refused'); };
+
+    if (j.scan === true) {
+      // PS_VENTS is "name@ip,name@ip": the harness saying what is on this network, because
+      // nothing here can answer mDNS for a device it does not own.
+      BRIDGE.scanning = true;
+      const list = String(knob('PS_VENTS', '')).split(',').filter(Boolean).map((e) => {
+        const [name, ip] = e.split('@');
+        return { id: '', name: name || 'vent', ip: ip || '', kind: 'vent' };
+      });
+      later(knobNum('PS_SCAN_MS', 120), async () => {
+        // Each candidate is asked who it is, which is exactly what binding by hand does.
+        for (const c of list) {
+          try {
+            const r = await fetch(`http://${c.ip}/bridge/id`);
+            if (r.ok) { const d = await r.json(); c.id = d.id || ''; c.name = d.name || c.name; c.kind = d.kind || 'vent'; }
+          } catch (e) { /* a candidate that does not answer stays in the list without an id */ }
+        }
+        BRIDGE.found = list;
+        BRIDGE.scanning = false;
+        log({ ev: 'bridge_scan', detail: `${list.length} found` });
+      });
+      return answer();
+    }
+
+    if (j.bind && typeof j.bind === 'object') {
+      const ip = typeof j.bind.ip === 'string' ? j.bind.ip.trim() : '';
+      const id = typeof j.bind.id === 'string' ? j.bind.id.trim() : '';
+      const pick = id ? BRIDGE.found.find((c) => c.id === id) : null;
+      const addr = ip || (pick ? pick.ip : '');
+      if (!addr) return refuse('no address');
+      BRIDGE.bound = { id: pick ? pick.id : (id || ''), name: pick ? pick.name : '', ip: addr };
+      BRIDGE.token = null; BRIDGE.vent = null;
+      bridgeConnect();
+      return answer();
+    }
+
+    if (j.pair && typeof j.pair === 'object') {
+      if (j.pair.cancel === true) { BRIDGE.pair = null; bridgeDrop(BRIDGE_LINK.UNPAIRED); return answer(); }
+      if (j.pair.confirm !== true) return refuse('pair needs confirm or cancel');
+      if (!BRIDGE.pair) return refuse('nothing to confirm');
+      if (Date.now() > BRIDGE.pair.until) { BRIDGE.pair = null; return refuse('the code has expired'); }
+      bridgeSay('pair', { confirm: true });
+      return answer();
+    }
+
+    if (j.unbind === true) {
+      bridgeDrop(BRIDGE_LINK.UNBOUND);
+      BRIDGE = Object.assign(bridgeFresh(), { found: BRIDGE.found, self: BRIDGE.self });
+      log({ ev: 'bridge_unbound' });
+      return answer();
+    }
+
+    if (j.copy && typeof j.copy === 'object') {
+      // The two copy switches. Each is a one-time copy with an obvious moment and an obvious
+      // undo, not a subscription: the contract says why. Refused unless there is a vent to
+      // copy FROM, because copying nothing over something is worse than not copying.
+      if (BRIDGE.link !== BRIDGE_LINK.CONNECTED || !BRIDGE.vent) return refuse('no vent to copy from');
+      const what = j.copy.what;
+      if (what === 'colours') {
+        const answer = await bridgeAsk('light', { request: true });
+        const cols = (answer && Array.isArray(answer.colours) ? answer.colours : []).slice(0, 3);
+        if (cols.length !== 3) return refuse('the vent has not said what its colours are');
+        const m = STATE.settings.list2[STATE.settings.current_mode];
+        m.rgb_rgba = cols.map((c) => String(c));
+        pushAfterChange(null, ['settings']);
+        log({ ev: 'bridge_copy', detail: 'colours' });
+        return answer();
+      }
+      if (what === 'effect') {
+        const st = Number(j.copy.state);
+        if (!(st >= 0 && st <= 2)) return refuse('which state');
+        const fx = await bridgeAsk('fx', { request: true, state: st });
+        if (!fx || typeof fx !== 'object' || fx.effect === undefined) return refuse('the vent has not said what its effect is');
+        if (!FEAT.features.state_effects) return refuse('per-state effects are switched off here');
+        /* An effect id this device's bits do not allow is refused with the reason rather than
+           downgraded: a bar quietly showing a different effect from the one that was copied is
+           worse than a copy that did not happen. */
+        const need = { 17: 'fx_progress', 18: 'fx_progress_anim', 19: 'fx_barber', 9: 'fx_hue_ramp', 20: 'fx_temp' }[fx.effect];
+        if (need && !FEAT.features[need]) return refuse('that effect needs ' + need + ', which is off here');
+        const row = FEAT.config.state_effects[st];
+        Object.assign(row, {
+          effect: fx.effect, brightness: fx.brightness, speed: fx.speed,
+          opt: fx.opt || 0, aux: fx.aux || 0,
+          colours: Array.isArray(fx.colours) ? fx.colours.slice(0, 4) : row.colours,
+        });
+        log({ ev: 'bridge_copy', detail: 'effect -> state ' + st });
+        return answer();
+      }
+      return refuse('copy what');
+    }
+    return refuse('nothing asked for');
   }
   if (p === '/api/render' && knobFlag('PS_CLONE') && FEAT && FEAT.features.diagnostics) {
     // C8: what the renderer is doing. Behind the diagnostics switch, like the firmware's, so

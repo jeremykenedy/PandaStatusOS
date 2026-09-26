@@ -159,6 +159,32 @@ through this frame and does not open its own. Which one polls is decided at pair
 Sent when coordinated lighting is on at the sender; the receiver applies it as if it
 had come from its own page, so the same three state colours and mode show on both bars.
 
+### `light`, asking rather than telling
+
+```json
+{ "light": { "seq": 10, "request": true } }
+```
+
+The same root with `request` instead of a payload means "send me yours". The peer answers
+with its own `light` frame, above. This is what the colour copy is made of: one ask, one
+answer, and the copy is made from what came back. Added 2026-09-26, because the copies were
+agreed in this document before they had frames, and a copy cannot be built out of a
+subscription that does not exist.
+
+### `fx`, one bar state's effect, either direction
+
+```json
+{ "fx": { "seq": 11, "request": true, "state": 1 } }
+{ "fx": { "seq": 12, "state": 1, "effect": 19, "brightness": 80, "speed": 50,
+          "opt": 16, "aux": 4, "colours": ["#FFFFFFFF", "#000000FF", "#FF0000FF", "#00FF00FF"] } }
+```
+
+`state` is 0 idle, 1 printing, 2 error, the three bar states both devices have. The reply
+carries the effect exactly as the sender holds it: its id, its four colours, its timing, its
+options (the direction bit among them) and its one spare byte. The receiver applies it as its
+own or refuses it whole, and an effect id the receiver's feature bits do not allow is refused
+with the reason rather than downgraded, which is the rule this document already sets.
+
 ### `backup`, either direction
 
 ```json
@@ -213,7 +239,13 @@ during any of it.
 1. This document, agreed by both projects. **Done.**
 2. The mock vent. **Done 2026-09-26**, with the harness that holds it to the document.
 3. PandaStatusOS side: the flag, discovery, pairing, `vent` in and `light` out, on the page
-   behind the flag, with harnesses and screenshots.
+   behind the flag, with harnesses and screenshots. **The page half is done, 2026-09-26**:
+   the card, the scan, the bind, the pairing code, the link, the two copies and the unbind,
+   driven through `mockdev.js`, which holds a REAL bridge client rather than a pretence of
+   one. `t-bridge.js` runs the three processes together, 32 assertions, a row in the sweep.
+   **The device half is not**: `ps_bridge.c` does not exist, so the switch that turns this on
+   is the mock's, and the firmware's bit 0 is still outside `PS_FEAT_KNOWN` until there is
+   something behind it to turn on.
 4. Vent side, in its own repository, against a mock status.
 5. Shared printer state and backups, last, because they carry the most consequence.
 

@@ -47,6 +47,10 @@
  *   PV_ID=<16 hex>            this vent's identity, default deterministic from the port
  *   PV_NAME=<name>            its hostname, default "pandaventos"
  *   PV_CAPS=a,b,c             what it says it can consume and produce
+ *   PV_LIGHT_MODE/PV_LIGHT_BRIGHT/PV_LIGHT_COLOURS   what it answers light{request} with
+ *   PV_FX_ID/PV_FX_BRIGHT/PV_FX_SPEED/PV_FX_OPT/PV_FX_AUX/PV_FX_COLOURS   and fx{request}
+ *   PV_NO_LIGHT=1 / PV_NO_FX=1   it refuses to say, which is what a vent that has nothing
+ *                                to copy looks like from the other end
  *
  * Debug, not protocol, in the shape mockdev.js uses:
  *   GET  /__state    what the vent believes right now
@@ -251,8 +255,41 @@ function handle(ws, text) {
   }
 
   if (root === 'light') {
+    /* `request` is the ask; anything else is the peer telling us its own. */
+    if (body.request === true) {
+      if (knobFlag('PV_NO_LIGHT')) { send(ws, 'ack', { seq: body.seq, ok: false }); return; }
+      send(ws, 'light', {
+        mode: knobNum('PV_LIGHT_MODE', 1),
+        brightness: knobNum('PV_LIGHT_BRIGHT', 80),
+        colours: String(knob('PV_LIGHT_COLOURS', '#11FF22FF,#3344FFFF,#FF0000FF')).split(',').filter(Boolean),
+      });
+      return;
+    }
     STATE.light = body;
     if (!knobFlag('PV_NO_ACK')) send(ws, 'ack', { seq: body.seq, ok: true });
+    return;
+  }
+
+  if (root === 'fx') {
+    /* One bar state's effect, asked for and answered. The knobs describe a vent running the
+       barber pole on its printing state, which is a thing a vent can run and this device can
+       be told to run too, so the copy has somewhere to land. */
+    if (body.request === true) {
+      const st = Number(body.state);
+      if (!(st >= 0 && st <= 2)) { send(ws, 'ack', { seq: body.seq, ok: false }); return; }
+      if (knobFlag('PV_NO_FX')) { send(ws, 'ack', { seq: body.seq, ok: false }); return; }
+      send(ws, 'fx', {
+        state: st,
+        effect: knobNum('PV_FX_ID', 19),
+        brightness: knobNum('PV_FX_BRIGHT', 80),
+        speed: knobNum('PV_FX_SPEED', 50),
+        opt: knobNum('PV_FX_OPT', 16),
+        aux: knobNum('PV_FX_AUX', 4),
+        colours: String(knob('PV_FX_COLOURS', '#11FF22FF,#000000FF,#FF0000FF,#00FF00FF')).split(',').filter(Boolean),
+      });
+      return;
+    }
+    send(ws, 'ack', { seq: body.seq, ok: true });
     return;
   }
 
