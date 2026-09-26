@@ -158,6 +158,8 @@ JS_ONLY = {
     'ui_pick_magenta': 'Magenta',
     'ui_pick_pink': 'Pink',
     'ui_pick_off': 'Off',
+    # The bound printer's model line on the Bindings page (O3), built from printer.model.
+    'ui_model': 'Model',
     # Set from JS when the password is revealed (the shown state's title).
     'ui_hide_the_password': 'Hide the password',
 }

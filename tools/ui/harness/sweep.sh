@@ -76,6 +76,7 @@ ROWS=(
   "p2-idle.json      | t-render.js   | PS_CLONE=1"
   "p2-idle.json      | t-picker.js   | "
   "p2-idle.json      | t-inprog.js   | PS_CLONE=1"
+  "p2-idle.json      | t-model.js    | "
 )
 
 pass=0; fail=0; failed=()

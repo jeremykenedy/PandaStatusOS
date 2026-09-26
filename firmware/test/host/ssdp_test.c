@@ -23,7 +23,7 @@ static const char REAL[] =
     "USN: ABCDEFGHIJKLMNO\r\n"
     "Cache-Control: max-age=1800\r\n"
     "DevModel.bambu.com: N7\r\n"
-    "DevName.bambu.com: P2S Left\r\n"
+    "DevName.bambu.com: Shop P2S\r\n"
     "DevConnect.bambu.com: secure\r\n"
     "DevBind.bambu.com: occupied\r\n"
     "DevInf.bambu.com: wlan0\r\n"
@@ -37,7 +37,8 @@ int main(void)
     t("it is recognised", ps_ssdp_parse_printer(REAL, sizeof REAL - 1, &h) == 1, 0);
     t("  the address comes from Location", !strcmp(h.ip, "192.168.1.58"), h.ip);
     t("  the serial comes from USN", !strcmp(h.sn, "ABCDEFGHIJKLMNO"), h.sn);
-    t("  the name comes from DevName.bambu.com", !strcmp(h.name, "P2S Left"), h.name);
+    t("  the name comes from DevName.bambu.com", !strcmp(h.name, "Shop P2S"), h.name);
+    t("  the model code comes from DevModel.bambu.com", !strcmp(h.model, "N7"), h.model);
 
     printf("\nshapes that must still work\n");
     {
@@ -45,8 +46,9 @@ int main(void)
            case-sensitive and neither is this */
         const char s[] = "NOTIFY * HTTP/1.1\r\nlocation: 192.168.1.56\r\n"
                          "nt: URN:BambuLab-Com:Device:3DPrinter:1\r\nnts: SSDP:ALIVE\r\n"
-                         "usn: 000000000000001\r\ndevname.bambu.com: P2S Right\r\n\r\n";
-        t("header names in any case", ps_ssdp_parse_printer(s, sizeof s - 1, &h) == 1 && !strcmp(h.name, "P2S Right"), h.name);
+                         "usn: 000000000000001\r\ndevname.bambu.com: Bench P2S\r\n\r\n";
+        t("header names in any case", ps_ssdp_parse_printer(s, sizeof s - 1, &h) == 1 && !strcmp(h.name, "Bench P2S"), h.name);
+        t("no model line is survivable: an empty code, not a stale one", h.model[0] == 0, h.model);
     }
     {
         /* SSDP defines Location as a URL; one firmware version may well send one */

@@ -28,6 +28,9 @@
       <label for="ps-printer-name" data-str="ui_printer">Printer</label>
       <svg class="i"><use href="#i-caret"/></svg>
     </div>
+    <!-- Which printer it is, as the printer itself announces it on the network (O3). Shown
+         once the device has heard the bound printer announce a model; nothing before. -->
+    <div class="small-text" id="ps-printer-model" hidden></div>
 
     <div class="field label border">
       <input type="text" id="ps-printer-sn" maxlength="15" value="" placeholder=" ">

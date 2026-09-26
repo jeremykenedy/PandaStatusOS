@@ -296,7 +296,7 @@ uint8_t ps_stage_from_report(const char *gcode_state, int stg_cur);
 typedef struct { char ssid[33]; int8_t rssi; } ps_wifi_hit_t;          /* INFERENCE shape */
 /* INFERENCE shape. `sn` is the clone's own: the wire's printer.list carries name and ip only
  * (parity), and the serial is used inside the device to match a moved printer (C7). */
-typedef struct { char name[33]; char ip[16]; char sn[33]; } ps_printer_hit_t;
+typedef struct { char name[33]; char ip[16]; char sn[33]; char model[16]; } ps_printer_hit_t;   /* model: the code the printer announces, e.g. N7 */
 
 /* C7: what a rebind scan concluded. The numbers are the wire's own printer.scan states
  * (4 sn not matched, 5 ip not changed, 6 new ip applied), so the page needs nothing new. */
@@ -306,6 +306,7 @@ typedef struct { char name[33]; char ip[16]; char sn[33]; } ps_printer_hit_t;
  * multicast 239.255.255.250, UDP 2021, NT urn:bambulab-com:device:3dprinter:1. */
 int ps_ssdp_parse_printer(const char *buf, size_t len, ps_printer_hit_t *out);
 void ps_printer_discover_start(void);   /* the always-on listener for those announcements */
+bool ps_printer_model_of(const char *sn, char *out, size_t n);   /* the code that serial announced, if heard */
 #define PS_SSDP_GROUP  "239.255.255.250"
 #define PS_SSDP_PORT   2021        /* where both units were observed announcing */
 #define PS_SSDP_PORT2  1990        /* what their own Host header claims; listened to as well */

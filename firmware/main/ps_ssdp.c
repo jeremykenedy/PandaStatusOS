@@ -8,7 +8,7 @@
  *     Location: <the printer's IPv4 address>
  *     USN: <the serial number>
  *     DevName.bambu.com: <the name its owner gave it>
- *     DevModel.bambu.com: <a model code>
+ *     DevModel.bambu.com: <a model code: N7 on both P2S units here>
  *
  * That is every field the bind form needs except the access code, which is a secret the
  * printer does not broadcast and the owner has to read off its screen.
@@ -119,6 +119,8 @@ int ps_ssdp_parse_printer(const char *buf, size_t len, ps_printer_hit_t *out)
             value_of(line, n, out->sn, sizeof out->sn);
         } else if (key_is(line, n, "DevName.bambu.com")) {
             value_of(line, n, out->name, sizeof out->name);
+        } else if (key_is(line, n, "DevModel.bambu.com")) {
+            value_of(line, n, out->model, sizeof out->model);   /* the page turns the code into a name it knows */
         }
     }
 

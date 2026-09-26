@@ -23,6 +23,7 @@
     "ip": "192.0.2.20",
     "state": 3,
     "scan": 5,
+    "model": "N7",
     "status": {
       "printer_light": 1,
       "nozzle_temp": 216,
@@ -112,12 +113,13 @@
         "rssi": -71
       }
     ],
-    "printer_scan_results_shape": "{name, ip, sn}: name and ip are the factory's assumed shape, still INFERENCE; sn is this project's own addition, read from the printer's SSDP announcement (ps_ssdp.c)",
+    "printer_scan_results_shape": "{name, ip, sn, model}: name and ip are the factory's assumed shape, still INFERENCE; sn and model are this project's own additions, read from the printer's SSDP announcement (ps_ssdp.c)",
     "printer_scan_results": [
       {
         "name": "Mock P2S",
         "ip": "192.0.2.20",
-        "sn": "MOCKSN000000001"
+        "sn": "MOCKSN000000001",
+        "model": "N7"
       }
     ],
     "ws_theme": {

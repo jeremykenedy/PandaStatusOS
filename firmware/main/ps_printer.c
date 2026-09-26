@@ -582,6 +582,23 @@ static int seen_copy(ps_printer_hit_t *out, int max)
     return n;
 }
 
+/* The model code the bound printer announced, for the page to name it. Nothing is stored:
+ * the listener hears every printer every minute or so, and the answer is whatever it last
+ * heard from the serial that is bound. A printer that has not announced itself since boot,
+ * or one whose announcement carried no code, is an empty string, and the page shows nothing
+ * rather than a guess. The freshness window does not apply: a model does not go stale. */
+bool ps_printer_model_of(const char *sn, char *out, size_t n)
+{
+    if (!out || n == 0) return false;
+    out[0] = 0;
+    if (!s_seen_lock || !sn || !sn[0]) return false;
+    xSemaphoreTake(s_seen_lock, portMAX_DELAY);
+    for (int i = 0; i < s_seen_n; i++)
+        if (!strcmp(s_seen[i].sn, sn) && s_seen[i].model[0]) { snprintf(out, n, "%s", s_seen[i].model); break; }
+    xSemaphoreGive(s_seen_lock);
+    return out[0] != 0;
+}
+
 /* Ask anything listening to announce itself now, so a scan does not have to wait out the gap
  * between a printer's own announcements. Sent to the group on every port one was observed on
  * and on SSDP's own, because the two units disagreed about which port they were using. */

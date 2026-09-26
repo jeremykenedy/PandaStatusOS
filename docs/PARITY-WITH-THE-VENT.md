@@ -254,8 +254,8 @@ behind whichever one takes the longest. Each line is updated as it lands.
 |---|---|---|
 | O1 | While an effect is kept inside the printed part, the unfilled part runs an effect of its own (any effect that does not draw the progress), in the unlit colour, defaulting to solid, which with the unlit colour left dark is off | open |
 | O2 | Kept inside the printed part defaults to on | open |
-| O3 | The printer page shows which Bambu printer it is (the model) | open |
-| O4 | The dashboard shows the humidity inside the printer, the way it shows the AMS humidity | open |
+| O3 | The printer page shows which Bambu printer it is (the model) | DONE 2026-09-26: the printer's own SSDP model code, `printer.model` on the wire, named on the Bindings page (`N7` is the P2S; nine codes known, an unknown one is shown as itself), `t-model.js` |
+| O4 | The dashboard shows the humidity inside the printer, the way it shows the AMS humidity | NOT POSSIBLE: a full report captured from the P2S on 2026-09-26 (337 distinct fields) carries humidity for the AMS only (`ams.ams[].humidity`, `humidity_raw`); the printer reports no chamber humidity, so there is nothing to show |
 | O5 | The AMS card on a phone: two trays by two, and the material readable rather than cut after a letter or two | DONE 2026-09-26: two columns under 600px, the chip text wraps instead of being cut, `t-ams.js` G1 and G2 |
 
 ## Catalogued elsewhere, still open

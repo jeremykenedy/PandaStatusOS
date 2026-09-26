@@ -97,6 +97,10 @@ static cJSON *root_printer(void)
     cJSON_AddStringToObject(o, "ip", ip);
     cJSON_AddNumberToObject(o, "state", g_ps.printer_state);
     cJSON_AddNumberToObject(o, "scan", g_ps.printer_scan);
+    /* Which printer it is, as the printer itself announces it (O3): the model code from its
+     * SSDP NOTIFY, looked up by the bound serial in the listener's table. The clone's own
+     * member; the factory document has no such thing. Absent until the printer has been heard. */
+    { char model[16]; if (ps_printer_model_of(g_ps.cfg.printer_sn, model, sizeof model)) cJSON_AddStringToObject(o, "model", model); }
     if (g_ps.printer_scan == PS_PSCAN_DONE) {
         cJSON *l = cJSON_AddArrayToObject(o, "list");                   /* entry shape INFERENCE */
         for (int i = 0; i < g_ps.printer_hits; i++) { cJSON *e = cJSON_CreateObject(); cJSON_AddStringToObject(e, "name", g_ps.printer_list[i].name); cJSON_AddStringToObject(e, "ip", g_ps.printer_list[i].ip);
@@ -104,7 +108,9 @@ static cJSON *root_printer(void)
                otherwise makes a person copy off the printer by hand. The factory's own list
                shape is an INFERENCE and was never seen carrying anything, because the factory
                has no discovery either. */
-            cJSON_AddStringToObject(e, "sn", g_ps.printer_list[i].sn); cJSON_AddItemToArray(l, e); }
+            cJSON_AddStringToObject(e, "sn", g_ps.printer_list[i].sn);
+            if (g_ps.printer_list[i].model[0]) cJSON_AddStringToObject(e, "model", g_ps.printer_list[i].model);
+            cJSON_AddItemToArray(l, e); }
     }
     /* What the printer says it is doing, as opposed to what it is called. Only the members
      * the printer has actually reported go in: a light it never mentioned is absent, and the

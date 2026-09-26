@@ -26,7 +26,7 @@ the page never asks.
 | `wifi` | `ssid`, `password`, `scan`, `list` | |
 | `sta` | `ip`, `hostname`, `state` | `auth_err_reason`, observed on a stock unit, not handled by the factory page; shown by this page as a bare reason code |
 | `ap` | `ssid`, `password`, `ip`, `on` | |
-| `printer` | `name`, `state`, `scan`, `list` | `sn`, `access_code`, `ip`, observed on a stock unit, not handled by the factory page; this page shows the serial number and address and never the access code |
+| `printer` | `name`, `state`, `scan`, `list` | `sn`, `access_code`, `ip`, observed on a stock unit, not handled by the factory page; this page shows the serial number and address and never the access code. This project's own additions: `status` (what the printer reports) and `model`, the code the bound printer announces over SSDP (`DevModel.bambu.com`, `N7` on a P2S), present only once it has been heard; `list` entries carry `sn` and `model` the same way |
 | `settings` | `list2`, `current_mode`, `fw_version`, `img_version`, `language`, `printing_ui_type`, `follow`, `on` | `img_version` was never observed on the wire |
 | `block` | `blocklist` | |
 

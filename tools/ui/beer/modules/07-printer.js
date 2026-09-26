@@ -61,6 +61,26 @@ function pcard_set_field(id, val) {
 }
 
 /* ---------------------------------------------------------------------
+   The model (O3). A printer announces a model code on the network and the
+   device passes it on as printer.model; this turns the code into the name
+   on the box. The codes are what the printers say, gathered from the two
+   units here (N7) and from what other owners have published for theirs; a
+   code this table does not know is shown as itself rather than guessed at.
+   ------------------------------------------------------------------- */
+
+var PS_PRINTER_MODELS = {
+  'N7': 'P2S', 'BL-P001': 'X1 Carbon', 'BL-P002': 'X1', 'C11': 'P1P', 'C12': 'P1S',
+  'C13': 'X1E', 'N1': 'A1 mini', 'N2S': 'A1', 'O1D': 'H2D'
+};
+
+function printer_model_name(code) {
+  if (typeof code !== 'string' || !code) return '';
+  var name = PS_PRINTER_MODELS[code.trim()];
+  return name ? 'Bambu Lab ' + name : code.trim();
+}
+window.printer_model_name = printer_model_name;
+
+/* ---------------------------------------------------------------------
    Scan (§6.4, P§7.4): {"printer":{"scan":1}}. The spinner goes on now;
    the scan-result document (P§3) is what module 1 settles it with.
    ------------------------------------------------------------------- */

@@ -49,6 +49,9 @@ void ps_effect_notify(void) { rec("effect"); }
 void ps_printer_bind(void) { rec("printer_bind"); }
 void ps_printer_unbind(void) { rec("printer_unbind"); }
 void ps_printer_scan(void) { rec("printer_scan"); }
+/* the model the listener heard for a serial: the test decides what was heard */
+static char heard_model[16];
+bool ps_printer_model_of(const char *sn, char *out, size_t n) { (void)sn; if (!heard_model[0]) { out[0] = 0; return false; } snprintf(out, n, "%s", heard_model); return true; }
 int ps_printer_light_set(const char *node, int on) { char b[64]; snprintf(b, sizeof b, "light:%s:%d", node ? node : "-", on ? 1 : 0); rec(b); return 0; }
 
 /* The two IDF calls ps_state.c makes for itself. Time stands still on the host, and
@@ -97,6 +100,12 @@ int main(void)
     cJSON *pr = cJSON_GetObjectItemCaseSensitive(d, "printer");
     t("printer carries name, sn, access_code, ip, state, scan", cJSON_GetObjectItemCaseSensitive(pr, "name") && cJSON_GetObjectItemCaseSensitive(pr, "sn") && cJSON_GetObjectItemCaseSensitive(pr, "access_code") && cJSON_GetObjectItemCaseSensitive(pr, "ip") && cJSON_GetObjectItemCaseSensitive(pr, "state") && cJSON_GetObjectItemCaseSensitive(pr, "scan"), doc);
     t("printer carries no list until a scan finished", cJSON_GetObjectItemCaseSensitive(pr, "list") == NULL, doc);
+    t("and no model until the printer has been heard announcing one", cJSON_GetObjectItemCaseSensitive(pr, "model") == NULL, doc);
+    { snprintf(heard_model, sizeof heard_model, "N7");
+      char *doc2 = ps_state_json(PS_ROOT_PRINTER); cJSON *d2 = cJSON_Parse(doc2);
+      cJSON *m = cJSON_GetObjectItemCaseSensitive(cJSON_GetObjectItemCaseSensitive(d2, "printer"), "model");
+      t("once heard, printer.model is the code the printer announced (O3)", cJSON_IsString(m) && !strcmp(m->valuestring, "N7"), doc2);
+      heard_model[0] = 0; cJSON_Delete(d2); cJSON_free(doc2); }
     cJSON *bl = cJSON_GetObjectItemCaseSensitive(cJSON_GetObjectItemCaseSensitive(d, "block"), "blocklist");
     cJSON *b0 = cJSON_GetArrayItem(bl, 0);
     t("block.blocklist[0] is {blockID, blockrgba #RRGGBBAA}", b0 && cJSON_GetObjectItemCaseSensitive(b0, "blockID")->valuedouble == 0 && !strcmp(cJSON_GetObjectItemCaseSensitive(b0, "blockrgba")->valuestring, "#FFFFFFFF"), doc);

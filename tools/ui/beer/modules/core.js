@@ -1000,6 +1000,18 @@ function handle_printer(printer) {
     g_cur_printer = { name: printer.name, sn: printer.sn, access_code: printer.access_code, ip: printer.ip };
   }
 
+  /* 6.1b The model (O3): the device says which printer it has heard the bound serial
+     announce itself as. Absent until heard, and the line stays away until then. */
+  var modelEl = byId('ps-printer-model');
+  if (modelEl) {
+    /* From the merged document, not the push: a push that leaves the member out is not
+       the printer becoming unknown, and an empty string is the device saying so. */
+    var model = (g_state.printer || {}).model;
+    var have = typeof model === 'string' && model.length > 0;
+    modelEl.hidden = !have;
+    if (have) modelEl.textContent = tr('ui_model', 'Model') + ': ' + (window.printer_model_name ? printer_model_name(model) : model);
+  }
+
   /* 6.2 Bind state */
   if (printer.state !== undefined) paint_printer_bind(printer.state);
 
@@ -1040,7 +1052,7 @@ function rebuild_printer_list(list) {
 
   /* Nothing bound yet, which is every first setup.
      The picker shows its first option whether or not anything selected it,
-     so after a scan the name read "P2S Right" while the serial and address
+     so after a scan the name read the first printer's while the serial and address
      sat empty: the fields are only filled on a `change` event, and building
      options in script fires none. The card then asked for a serial the vent
      already knew. Fill from the same entry the picker is showing -- the

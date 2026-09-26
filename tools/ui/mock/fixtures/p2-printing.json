@@ -23,6 +23,7 @@
     "ip": "192.0.2.20",
     "state": 3,
     "scan": 5,
+    "model": "N7",
     "status": {
       "printer_light": 1,
       "fan_part": 40,
