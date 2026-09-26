@@ -27,7 +27,12 @@ extern const char *const ps_gif_slot_names[PS_GIF_SLOTS];
 #define PS_CAP_OTA_IMG  0x6E0000u
 #define PS_CAP_GIF      0x180000u
 
-#define PS_FW_VERSION   "V1.0.0"     /* what settings.fw_version reports; the factory's was V1.0.0 */
+/* What settings.fw_version and /api/info report. The stock unit read V1.0.0 on
+ * 2026-08-27 (docs/protocol-websocket.md, which keeps that number because it is a
+ * record of the factory and not of this). This is 2.0.0 because none of the factory
+ * application is in here: it is a reimplementation from the outside, and a version
+ * that reads like the firmware it replaced would say the opposite. */
+#define PS_FW_VERSION   "V2.0.0"
 
 /* ---------------------------------------------------------- the stored config ---- */
 /* Fixed-width members only, laid out so the host tests and the target agree on every

@@ -366,7 +366,7 @@
   "ui_left": "left",
   "ui_lighting": "Pag-iilaw",
   "ui_lights": "Mga ilaw",
-  "ui_lights_help": "Isang kulay para sa bawat segment ng bar na iniuulat ng device. Ito ang payak na kulay ng segment, at nakapatong dito ang mga effect sa itaas.",
+  "ui_lights_help": "Isang kulay bawat segment ng bar, ayon sa mga segment na iniuulat ng device. Naiimbak ito at naiuulat pabalik, pero wala pang gumuguhit nito: hindi pa natutukoy kung saan sa strip tumutugma ang isang segment. Ang ipinapakita ng bar ay ang mga effect sa itaas.",
   "ui_lights_on": "Bukas ang ilaw",
   "ui_link_state_0": "Hindi naka-bind",
   "ui_link_state_1": "Hindi naka-bind",

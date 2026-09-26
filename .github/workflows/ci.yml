@@ -44,6 +44,9 @@ jobs:
           python3 tools/art/gen_marks.py --check
           python3 tools/art/gen_banner.py --check
 
+      - name: Every vendored file matches the hash its own README records
+        run: python3 tools/ui/vendor_check.py
+
       - name: Host tests
         run: make test-fw
 

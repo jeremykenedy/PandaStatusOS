@@ -366,7 +366,7 @@
   "ui_left": "left",
   "ui_lighting": "Pencahayaan",
   "ui_lights": "Lampu",
-  "ui_lights_help": "Satu warna untuk tiap segmen bilah yang dilaporkan perangkat. Ini warna dasar segmen, dan efek di atas digambar di atasnya.",
+  "ui_lights_help": "Satu warna untuk tiap segmen bilah, sesuai segmen yang dilaporkan perangkat. Warna disimpan dan dilaporkan kembali, tetapi belum digambar: apa yang diwakili sebuah segmen pada strip belum dipastikan. Yang ditampilkan bilah adalah efek di atas.",
   "ui_lights_on": "Lampu menyala",
   "ui_link_state_0": "Belum dikaitkan",
   "ui_link_state_1": "Belum dikaitkan",

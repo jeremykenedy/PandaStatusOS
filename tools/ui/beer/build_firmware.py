@@ -122,6 +122,23 @@ print('body structure: nav, nav, header, main, footer, each a direct child of <b
 
 _inline = re.findall(r'\son[a-z]+="[^"]*"', out)
 assert not _inline, 'inline handlers in the markup: %s' % _inline[:5]
+
+# The attribute the markup carries and the attribute the stylesheets select on have to be
+# the same string, and nothing else in the page will tell you when they are not. The
+# sibling tree drifted to data-ps-card in its markup while its CSS kept data-card, which
+# killed `[data-card]:not(.active) { display: none }`: every page rendered at once, stacked
+# down the document, and the whole masonry block was dead with it. Both faults are silent.
+# This compares the two sets and fails the build if they differ by one character.
+_attr_markup = set(re.findall(r'<[^>]*\s(data-[a-z-]*(?:card|page))\b', out))
+_attr_css = set()
+for _sheet in ('project.css', 'app.css'):
+    _attr_css |= set(re.findall(r'\[(data-[a-z-]*(?:card|page))\]', r(_sheet)))
+assert _attr_markup and _attr_css, 'no page attribute found in the markup or in the CSS'
+assert _attr_markup == _attr_css, (
+    'the markup and the stylesheets name the page attribute differently: markup has %s, '
+    'CSS selects %s. Every rule on the other name is dead, including the one that hides '
+    'the pages that are not active.' % (sorted(_attr_markup), sorted(_attr_css)))
+print('page attribute agrees in markup and CSS: %s' % ', '.join(sorted(_attr_markup)))
 print('%d pages, each marked data-card and each reachable from both navs; no inline handlers' % len(_cards))
 
 # ── every key the page looks up must exist ────────────────────────────────

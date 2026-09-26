@@ -366,7 +366,7 @@
   "ui_left": "left",
   "ui_lighting": "燈光",
   "ui_lights": "燈",
-  "ui_lights_help": "俾裝置報告嘅燈條每一段設定顏色。呢個係每段本身嘅顏色，上面嘅效果會蓋喺佢上面。",
+  "ui_lights_help": "燈條每段一隻色，段數由裝置自己報。色會儲存同回報，但暫時唔會畫出嚟：一段對應燈帶邊度仲未確定。燈條顯示嘅係上面嘅效果。",
   "ui_lights_on": "燈著咗",
   "ui_link_state_0": "未綁定",
   "ui_link_state_1": "未綁定",

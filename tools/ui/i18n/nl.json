@@ -366,7 +366,7 @@
   "ui_left": "left",
   "ui_lighting": "Verlichting",
   "ui_lights": "Lichten",
-  "ui_lights_help": "Een kleur per segment van de balk dat het apparaat meldt. Dit is de gewone segmentkleur, waar de effecten hierboven overheen worden getekend.",
+  "ui_lights_help": "Eén kleur per segment van de balk, zoals het apparaat zijn segmenten meldt. Hij wordt bewaard en teruggemeld, maar nog niet getekend: waar een segment op de strip op slaat, staat niet vast. Wat de balk laat zien zijn de effecten hierboven.",
   "ui_lights_on": "Lichten aan",
   "ui_link_state_0": "Niet gekoppeld",
   "ui_link_state_1": "Niet gekoppeld",

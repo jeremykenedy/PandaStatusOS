@@ -366,7 +366,7 @@
   "ui_left": "left",
   "ui_lighting": "Éclairage",
   "ui_lights": "Lumières",
-  "ui_lights_help": "Une couleur pour chaque segment de la barre que l appareil signale. C est la couleur de base du segment, et les effets ci-dessus se dessinent par-dessus.",
+  "ui_lights_help": "Une couleur par segment de la barre, selon les segments que l'appareil annonce. Elle est enregistrée et renvoyée, mais rien ne la dessine encore : ce à quoi un segment correspond sur le ruban n'est pas établi. Ce que la barre affiche, ce sont les effets ci-dessus.",
   "ui_lights_on": "Lumières allumées",
   "ui_link_state_0": "Non associée",
   "ui_link_state_1": "Non associée",

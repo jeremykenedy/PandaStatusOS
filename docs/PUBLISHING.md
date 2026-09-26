@@ -98,21 +98,33 @@ grep -vE '^(#|[[:space:]]*$)' "$F" | awk 'length($0) >= 4' > /tmp/ps-forbidden.$
 ## 4. The licence audit
 
 ```
-python3 tools/ui/build/build.py --check     # every vendored file's sha256 matches its README row
+python3 tools/ui/vendor_check.py            # every vendored file's sha256 matches its own README
 python3 tools/art/gen_marks.py --check      # the marks are exactly what the generator produces
 python3 tools/art/gen_banner.py --check     # so are the banners
-python3 tools/ui/gen_icons.py --check       # and the generated stage icons
-python3 tools/ui/normalize_icons.py --check # every drawn icon is normalised and carries no export furniture
 for d in firmware/main/vendor/*/; do echo "$d"; grep -E '^\| (version|licence)' "$d/README.md"; done
-git grep -nwE 'MPL|Mozilla Public License' -- . ':!docs/DECISIONS.md' ':!firmware/main/vendor/coloris/README.md' ':!firmware/main/vendor/README.md' ':!docs/PUBLISHING.md'
+git grep -nwE 'MPL|Mozilla Public License' -- . ':!docs/DECISIONS.md' ':!docs/PUBLISHING.md'
 ```
 
-Every dependency has a row; every row states a version and a licence; the MPL search
-prints nothing (the prose that explains why iro.js was excluded, and this checklist's own
-command, are the files it skips). Provenance: the marks
-and the banner are generated from primitives (D-010, D-030); the Heroicons are 2.2.0,
-hashed one by one; the project's own icons are Jeremy Kenedy's, first-party under the
-repository licence, recorded in `tools/ui/src/ARTWORK.md` (D-031); nothing else is artwork.
+Every dependency has a row; every row states a version and a licence; every vendored
+file's hash matches what its own README records.
+
+The MPL search does NOT print nothing any more, and that is the point of running it. iro.js
+5.5.2 is the colour wheel the Lighting page uses and it is Mozilla Public License 2.0, so
+the search has to find it, in these places and no others: the iro directory's own
+`README.md` naming the licence and `LICENSE.txt` carrying its text, the row in
+`firmware/main/vendor/README.md` and that file's general prose about mixed terms, the row
+in the repository README's vendored components table, and `firmware/main/ui.html`, which
+is the built page and is where the upstream banner actually ships. A hit anywhere else is
+a component nobody wrote down. MPL-2.0 is file-level copyleft: the file ships
+unmodified, its upstream banner stays at the top of the block the page splices it into, and
+the build refuses to finish if that banner is not there. Nothing else in the tree is MPL.
+
+Coloris, MIT, was the picker before iro.js and was removed from the tree once nothing
+spliced it; DECISIONS.md is where that history lives.
+
+Provenance: the marks and the banner are generated from primitives (D-010, D-030); the
+Heroicons are 2.2.0, hashed one by one; the project's own icons are Jeremy Kenedy's,
+first-party under the repository licence (D-031); nothing else is artwork.
 
 ## 5. The history: who, and what, ever
 

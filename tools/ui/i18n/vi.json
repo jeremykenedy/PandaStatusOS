@@ -366,7 +366,7 @@
   "ui_left": "left",
   "ui_lighting": "Chiếu sáng",
   "ui_lights": "Đèn",
-  "ui_lights_help": "Một màu cho mỗi đoạn của thanh mà thiết bị báo. Đây là màu nền của đoạn, và các hiệu ứng ở trên được vẽ đè lên.",
+  "ui_lights_help": "Mỗi đoạn của thanh có một màu, theo các đoạn mà thiết bị báo. Màu được lưu và báo lại, nhưng chưa có gì vẽ nó: một đoạn ứng với phần nào trên dải đèn vẫn chưa xác định. Thanh đang hiển thị các hiệu ứng ở trên.",
   "ui_lights_on": "Bật đèn",
   "ui_link_state_0": "Chưa ghép nối",
   "ui_link_state_1": "Chưa ghép nối",

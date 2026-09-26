@@ -474,11 +474,6 @@ Nothing ships without a row in
 | [Heroicons](https://github.com/tailwindlabs/heroicons) | 2.2.0 | MIT | outline icons for generic chrome, hashed one by one |
 | Roboto | pending | SIL OFL 1.1 | reserved; the page uses the system font until a subset is vendored |
 
-[Coloris](https://github.com/melloware/coloris-npm) 0.25.0, MIT, is still in
-`firmware/main/vendor/` and is no longer part of the page: it was the colour picker before
-iro.js replaced it, and the build splices neither of its files. It stays vendored, with its
-licence, until it is either used again or removed.
-
 The drawn icons and the marks are first-party work under this repository's licence, not
 vendored components.
 

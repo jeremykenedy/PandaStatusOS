@@ -366,7 +366,7 @@
   "ui_left": "left",
   "ui_lighting": "Lighting",
   "ui_lights": "Lights",
-  "ui_lights_help": "A colour for each segment of the bar the device reports. This is the plain per-segment colour, and the effects above are drawn over it.",
+  "ui_lights_help": "One colour per segment of the bar, as the device reports its segments. It is stored and reported back, and nothing draws it yet: what a segment maps to on the strip is not established. The effects above are what the bar shows.",
   "ui_lights_on": "Lights on",
   "ui_link_state_0": "Unbound",
   "ui_link_state_1": "Unbound",

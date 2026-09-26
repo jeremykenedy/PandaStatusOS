@@ -366,7 +366,7 @@
   "ui_left": "left",
   "ui_lighting": "Oświetlenie",
   "ui_lights": "Światła",
-  "ui_lights_help": "Kolor dla każdego segmentu paska, który zgłasza urządzenie. To zwykły kolor segmentu, a efekty powyżej rysowane są na nim.",
+  "ui_lights_help": "Jeden kolor na każdy segment paska, zgodnie z segmentami, które zgłasza urządzenie. Jest zapisywany i zwracany, ale nic go jeszcze nie rysuje: to, czemu segment odpowiada na taśmie, nie zostało ustalone. Pasek pokazuje efekty powyżej.",
   "ui_lights_on": "Światła włączone",
   "ui_link_state_0": "Brak powiązania",
   "ui_link_state_1": "Brak powiązania",

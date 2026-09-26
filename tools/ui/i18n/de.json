@@ -366,7 +366,7 @@
   "ui_left": "left",
   "ui_lighting": "Beleuchtung",
   "ui_lights": "Licht",
-  "ui_lights_help": "Eine Farbe je Segment des Balkens, das das Gerät meldet. Das ist die schlichte Segmentfarbe, über die die Effekte oben gezeichnet werden.",
+  "ui_lights_help": "Eine Farbe je Segment des Balkens, so wie das Gerät seine Segmente meldet. Sie wird gespeichert und zurückgemeldet, aber noch nicht gezeichnet: worauf ein Segment auf dem Streifen zeigt, ist nicht geklärt. Was der Balken zeigt, sind die Effekte darüber.",
   "ui_lights_on": "Licht an",
   "ui_link_state_0": "Nicht gebunden",
   "ui_link_state_1": "Nicht gebunden",

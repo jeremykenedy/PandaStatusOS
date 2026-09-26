@@ -366,7 +366,7 @@
   "ui_left": "left",
   "ui_lighting": "Iluminação",
   "ui_lights": "Luzes",
-  "ui_lights_help": "Uma cor para cada segmento da barra que o dispositivo comunica. É a cor simples do segmento, e os efeitos acima são desenhados por cima.",
+  "ui_lights_help": "Uma cor por cada segmento da barra, conforme os segmentos que o dispositivo reporta. É guardada e devolvida, mas ainda não é desenhada: a que parte da fita corresponde um segmento não está estabelecido. O que a barra mostra são os efeitos acima.",
   "ui_lights_on": "Luzes acesas",
   "ui_link_state_0": "Sem associação",
   "ui_link_state_1": "Sem associação",

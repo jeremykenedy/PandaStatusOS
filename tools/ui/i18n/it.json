@@ -366,7 +366,7 @@
   "ui_left": "left",
   "ui_lighting": "Illuminazione",
   "ui_lights": "Luci",
-  "ui_lights_help": "Un colore per ogni segmento della barra che il dispositivo riporta. È il colore di base del segmento, e gli effetti sopra vi vengono disegnati sopra.",
+  "ui_lights_help": "Un colore per ogni segmento della barra, secondo i segmenti che il dispositivo riporta. Viene salvato e restituito, ma non viene ancora disegnato: a cosa corrisponda un segmento sulla striscia non è stabilito. Quello che la barra mostra sono gli effetti qui sopra.",
   "ui_lights_on": "Luci accese",
   "ui_link_state_0": "Non associato",
   "ui_link_state_1": "Non associato",
