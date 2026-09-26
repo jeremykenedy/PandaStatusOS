@@ -433,6 +433,7 @@ moved no layout. [docs/CONFIG.md](docs/CONFIG.md) has every key, its range and i
 | [firmware/SAFETY.md](firmware/SAFETY.md) | what will brick the device, and what will not |
 | [docs/DECISIONS.md](docs/DECISIONS.md) | every decision, its alternatives, its reversal cost |
 | [docs/ROADMAP.md](docs/ROADMAP.md) | what may be built, in tiers, and what each tier waits on |
+| [docs/PARITY-WITH-THE-VENT.md](docs/PARITY-WITH-THE-VENT.md) | what the sibling project's page does that this one does not, checked against both trees |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | the standing rules, the clean-room rule, the sweep, the naming convention |
 | [CHANGELOG.md](CHANGELOG.md) | what changed |
 
