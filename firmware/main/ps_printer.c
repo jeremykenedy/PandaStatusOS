@@ -295,6 +295,21 @@ static void apply_report(const char *json, size_t len)
         ps_lock(); bool moved = g_ps.temp_c[i] != v; g_ps.temp_c[i] = (int16_t)v; ps_unlock();
         if (moved) ps_effect_notify();
     }
+    /* The printer answers a command in a report of its own: the command's name, a result and,
+     * for a refusal, a reason. Written to the log, so a control that did nothing on the printer
+     * says why on the Logs page. A printer without Developer Mode refuses the fans and the
+     * speed this way while it takes the light. The periodic status report is not an answer. */
+    static const char *const ANSWERS[] = { "print", "system" };
+    for (size_t e = 0; e < sizeof ANSWERS / sizeof ANSWERS[0]; e++) {
+        cJSON *env = cJSON_GetObjectItemCaseSensitive(doc, ANSWERS[e]);
+        cJSON *cmd = env ? cJSON_GetObjectItemCaseSensitive(env, "command") : NULL;
+        cJSON *res = env ? cJSON_GetObjectItemCaseSensitive(env, "result") : NULL;
+        if (!cJSON_IsString(cmd) || !cmd->valuestring || !cJSON_IsString(res) || !res->valuestring) continue;
+        if (!strcmp(cmd->valuestring, "push_status")) continue;
+        cJSON *why = cJSON_GetObjectItemCaseSensitive(env, "reason");
+        const char *w = (cJSON_IsString(why) && why->valuestring) ? why->valuestring : "";
+        ESP_LOGI(TAG, "the printer answered %.24s: %.16s%s%.64s", cmd->valuestring, res->valuestring, w[0] ? ", " : "", w);
+    }
     cJSON_Delete(doc);
 }
 
