@@ -27,7 +27,7 @@ features beyond its clone, the faults it found, and its harness suite.
 | More than seven effects | Twenty-four |
 | Per-effect brightness, speed and direction | A4, `effect_params` |
 | Twenty-four languages, every key complete | Twenty-four, 404 keys |
-| Printer fans and print speed over `printer_ctl` | Three fan sliders and four speed levels on the Printer controls card, `t-pctl.js` (2026-09-26) |
+| Printer fans and print speed over `printer_ctl` | Three fan sliders on the Printer controls card, `t-pctl.js` (2026-09-26). The speed control was built and then taken out the same day: the printer refuses `print_speed` without Developer Mode, and the owner had it removed (D-053) |
 | Render stats on the page | The Renderer card on the Logs page, `GET /api/render`, `t-render.js` (2026-09-26) |
 | A master direction, exclusive-or with the effect's own | Bit 21 `bar_flip`, applied to the finished frame, `fx_test.c` (2026-09-26) |
 | `pixels.js`: contrast from the pixels that were painted | `tools/ui/harness/pixels.js`, 842 regions, both themes, both widths, three CVD simulations, with a control sample (2026-09-26) |
@@ -40,11 +40,13 @@ item keeps its number and says so, so that a list written against this file stil
 
 ### 1. Printer controls, beyond the one lamp — DONE 2026-09-26
 
-`apply_printer_ctl()` now takes three shapes: `{fan,percent}`, `{speed}` and the `{light,on}`
-it already had. The card carries a slider per fan the printer has actually named and a
-four-level speed control, `ps_printer_fan_set()` sends `M106 P1|P2|P3 S0..255` and
-`ps_printer_speed_set()` sends `print_speed` with "1".."4", both inside the `print` envelope
-that Developer Mode under LAN Only Mode gates. `t-pctl.js` is the harness, 41 assertions,
+`apply_printer_ctl()` takes two shapes: `{fan,percent}` and the `{light,on}` it already had.
+The card carries a slider per fan the printer has actually named; `ps_printer_fan_set()`
+sends `M106 P1|P2|P3 S0..255` inside the `print` envelope that Developer Mode under LAN Only
+Mode gates. A four-level speed control (`{speed}`, `print_speed` "1".."4") was built with
+them and removed the same day at the owner's word, after the printer answered every press
+with `mqtt message verify failed` (D-052, D-053); the level the printer runs at stays on the
+job strip as a reading. `t-pctl.js` is the harness, 35 assertions,
 and the mock grew `printer_ctl` (recorded always, echoed under `PS_PCTL_ECHO`), a
 `printer.status` on the printing fixture, `speed_level` on `/api/print`, and a
 `/__printer_status` debug route so a harness can make the printer report whatever it likes.

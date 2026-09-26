@@ -1496,4 +1496,23 @@ of this project's own.
 
 ---
 
+## D-053 The print speed control is removed; the fans stay until the owner says the same
+
+**Date** 2026-09-26 · **Reversal** cheap (one markup block, one handler, one firmware shape)
+
+**The owner's word, after D-052:** a control that does not work comes off the page. The four
+speed levels are gone from the Printer controls card, the `{speed}` shape is gone from
+`printer_ctl` (a frame that still carries it is ignored, not refused), and `print_speed` is no
+longer something this firmware can send. The level the printer is running at is still shown on
+the job strip, because that is a reading and readings are exempt from the check.
+
+**The fan sliders stay for now.** They fail the same way on this printer for the same reason,
+but they were not what he asked about, and a slider that a Developer Mode printer would take is
+not the same thing as a control that never works. They go the moment he says so.
+
+**What would change it.** Developer Mode on the printer, or a certificate of this project's
+own (D-052): the control is one markup block and one handler to put back.
+
+---
+
 *Entries continue below as the run proceeds.*

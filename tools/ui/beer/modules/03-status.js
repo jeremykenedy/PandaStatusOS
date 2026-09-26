@@ -137,16 +137,17 @@ function light_settle_tick() {
 }
 
 /* ---------------------------------------------------------------------
-   3b. The fans and the print speed
+   3b. The fans
    ---------------------------------------------------------------------
 
    The same route as the lights and the same silence afterwards: the device stores nothing
    and pushes nothing for printer_ctl, and what the fan actually ends up doing arrives in
    the printer's next report. The difference is what the printer will accept. `ledctrl` is
    not signature-checked and these are: they ride in the `print` envelope, which the printer
-   refuses unless Developer Mode is on under LAN Only Mode. Both are sent regardless. A
+   refuses unless Developer Mode is on under LAN Only Mode. They are sent regardless. A
    printer with it on takes them, one without it answers `mqtt message verify failed`, and
-   the card already carries the line that says so.
+   the card already carries the line that says so. The print speed control that sat beside
+   them is gone for that reason (D-053); the fans stay for now, at the owner's word.
 
    A slider is not a switch, so the hold is simpler: while a drag is in progress, or for a
    moment after one ends, the reported value does not repaint the control. `input` paints
@@ -203,16 +204,6 @@ function fan_slider_changed(ev) {
   fan_paint_value(el.id);
 }
 
-function speed_clicked(ev) {
-  var btn = ev.target.closest ? ev.target.closest('button[data-level]') : null;
-  if (!btn || !status_device_ready()) return;
-  var level = Number(btn.getAttribute('data-level'));
-  if (!(level >= 1 && level <= 4)) return;
-  ws_push('printer_ctl', { speed: level });
-  /* The printer reports the level it is actually running at, in its own time, and module 1
-     paints the row from that. Marking the button now would be this page's opinion. */
-}
-
 /* ---------------------------------------------------------------------
    4. Wiring: one init, every listener added here, no inline handlers
    ------------------------------------------------------------------- */
@@ -226,8 +217,6 @@ function init_status_card() {
     status_wire(fid, 'input', fan_slider_input);
     status_wire(fid, 'change', fan_slider_changed);
   }
-  var sp = byId('ps-pctl-speed');
-  if (sp) sp.addEventListener('click', speed_clicked);
 }
 
 if (document.readyState === 'loading') {

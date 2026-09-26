@@ -108,7 +108,7 @@
         <label class="switch"><input type="checkbox" id="ps-pctl-chamber-light" aria-labelledby="lbl-pctl-chamber-light"><span></span></label>
       </li>
 
-      <!-- The fans and the print speed. Each row appears only once the printer has
+      <!-- The fans. Each row appears only once the printer has
            reported that fan, for the same reason the light rows do: a slider at zero for a
            fan nobody has mentioned is a reading, and it would be a made up one. The number
            on the right is the slider's own value: while a finger is on it that is where the
@@ -144,15 +144,10 @@
       </li>
 
     </ul>
-    <div class="padding" id="ps-pctl-speed-wrap" hidden>
-      <div class="small-text" data-str="ui_print_speed">Print speed</div>
-      <nav class="segmented" id="ps-pctl-speed" role="radiogroup" aria-label="Print speed" data-str-aria="ui_print_speed">
-        <button data-level="1" role="radio" aria-checked="false" data-str="speed_word_1">Silent</button>
-        <button data-level="2" role="radio" aria-checked="false" data-str="speed_word_2">Standard</button>
-        <button data-level="3" role="radio" aria-checked="false" data-str="speed_word_3">Sport</button>
-        <button data-level="4" role="radio" aria-checked="false" data-str="speed_word_4">Ludicrous</button>
-      </nav>
-    </div>
+    <!-- There is no print speed control here. There was one, four levels, and the printer
+         answered every press with "mqtt message verify failed": print_speed is a signed
+         command on this firmware, and this device signs nothing (D-052, D-053). The level
+         the printer is running at is still shown on the job strip, as a reading. -->
     <div class="padding">
       <div class="small-text" id="ps-pctl-locked" hidden data-str="ui_the_printer_is_refusing_commands_t">The printer is refusing commands. Turn on
         Developer Mode, under LAN Only Mode, on the printer's own screen.</div>

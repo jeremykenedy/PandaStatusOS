@@ -147,27 +147,14 @@ const shown = (page, id) => page.$eval('#' + id + '-value', (e) => e.textContent
       await waitFor(page, "Number(document.getElementById('ps-pctl-fan-aux').value) === 35"),
       await val(page, 'ps-pctl-fan-aux'));
 
-    // ---- E: the print speed ----
-    t('E1 four levels, which is what the printer has', await page.$$eval('#ps-pctl-speed button[data-level]', (b) => b.length) === 4);
-    t('E2 the level from the print document is the one marked',
-      await page.$eval('#ps-pctl-speed button[data-level="2"]', (b) => b.classList.contains('is-on') && b.getAttribute('aria-checked') === 'true'));
-    t('E3 and it is marked for a reader who cannot see the mark',
-      await page.$$eval('#ps-pctl-speed button[data-level]', (b) => b.filter((x) => x.getAttribute('aria-checked') === 'true').length) === 1);
-
-    mark = (await pctl()).length;
-    await page.click('#ps-pctl-speed button[data-level="4"]');
-    fresh = await since(mark, 1);
-    t('E4 tapping a level sends one command naming it', fresh.length === 1 && fresh[0].frame.printer_ctl.speed === 4,
-      fresh.map((r) => r.text));
-    t('E5 the tapped button does not mark itself: the page waits for the printer',
-      await page.$eval('#ps-pctl-speed button[data-level="4"]', (b) => !b.classList.contains('is-on')) &&
-      await page.$eval('#ps-pctl-speed button[data-level="2"]', (b) => b.classList.contains('is-on')));
-
-    await post('/__knob', { name: 'PS_PRINT_SPEED', value: '4' });
-    t('E6 the printer reports the level it is running at: the mark moves there',
-      await waitFor(page, "document.querySelector('#ps-pctl-speed button[data-level=\"4\"]').classList.contains('is-on')", 6000));
-    t('E7 and leaves where it was',
-      await page.$eval('#ps-pctl-speed button[data-level="2"]', (b) => !b.classList.contains('is-on')));
+    // ---- E: no print speed control ----
+    /* There were four level buttons here. The printer refused every one of them with
+       "mqtt message verify failed" and the owner had them taken out (D-053). The level
+       the printer runs at is still a reading on the job strip. */
+    t('E1 there is no speed control on the card', (await page.$$('#ps-pctl-speed, #ps-pctl-speed-wrap, button[data-level]')).length === 0);
+    t('E2 and the running level is still shown on the job strip as a reading',
+      await page.$$eval('#ps-job-meta span', (ss) => ss.some((x) => x.textContent.trim() === 'Standard')),
+      await page.$$eval('#ps-job-meta span', (ss) => ss.map((x) => x.textContent.trim())));
 
     // ---- I: the lamp, which rides the same root and settles the same way ----
     /* The lamp had no harness before the fans arrived. It is here because the switch is the
@@ -232,8 +219,6 @@ const shown = (page, id) => page.$eval('#' + id + '-value', (e) => e.textContent
     await post('/__printer_move', { ip: '' });          // state 4: nothing answers there
     t('G1 the whole card goes away with the print',
       await waitFor(page, "document.getElementById('ps-card-pctl').hidden"));
-    t('G2 and the speed control with it',
-      await page.$eval('#ps-pctl-speed-wrap', (e) => e.hidden));
 
     t('H1 no page errors, no console errors', errors.length === 0, errors);
     await ctx.close();

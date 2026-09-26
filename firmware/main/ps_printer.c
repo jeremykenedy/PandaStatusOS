@@ -530,21 +530,6 @@ int ps_printer_fan_set(int which, int percent)
     return post(CMD_SEND, what, body, n);
 }
 
-/* print_speed takes 1 to 4: silent, standard, sport, ludicrous. The same four the printer's
- * own screen offers and the same four the print strip names. */
-int ps_printer_speed_set(int level)
-{
-    if (level < 1 || level > 4) return -1;
-    static unsigned seq = 1;
-    char body[128];
-    int n = snprintf(body, sizeof body,
-        "{\"print\":{\"sequence_id\":\"%u\",\"command\":\"print_speed\",\"param\":\"%d\"}}",
-        seq++, level);
-    if (n <= 0 || n >= (int)sizeof body) return -1;
-    char what[40]; snprintf(what, sizeof what, "print speed %d", level);
-    return post(CMD_SEND, what, body, n);
-}
-
 int ps_printer_start(void)
 {
     ps_lock(); bool bound = g_ps.cfg.printer_sn[0] && g_ps.cfg.printer_ip[0]; ps_unlock();

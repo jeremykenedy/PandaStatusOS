@@ -344,11 +344,14 @@ static uint32_t apply_printer(cJSON *m, int client)
     return 0;
 }
 
-/* The page asking the printer to do something. Three shapes, one per thing:
+/* The page asking the printer to do something. Two shapes, one per thing:
  *
  *   { light:"chamber_light"|"work_light", on:0|1 }
  *   { fan:"part"|"aux"|"chamber", percent:0..100 }
- *   { speed:1..4 }
+ *
+ * There was a third, { speed:1..4 }, and the owner had it taken out once the printer had
+ * refused every one of them: print_speed is a signed command on this firmware and this
+ * device signs nothing (D-052, D-053). A frame that still carries it is ignored.
  *
  * It is its own root and not a member of "printer" on purpose: "printer" is where the
  * binding lives, and a message that changes which printer this device talks to and a
@@ -360,9 +363,9 @@ static uint32_t apply_printer(cJSON *m, int client)
  * printer refuses leaves the page showing the truth rather than the request. The page holds
  * a flipped switch against stale pushes for a few seconds on its own.
  *
- * The light is the one the printer takes without Developer Mode. The fan and the speed go
- * in the `print` envelope, which is signature-checked, so they need it. Both are sent
- * anyway: a printer that has it accepts them, and the card says what is required. */
+ * The light is the one the printer takes without Developer Mode. The fans go in the `print`
+ * envelope, which is signature-checked, so they need it. They are sent anyway: a printer
+ * that has it accepts them, and the card says what is required. */
 static uint32_t apply_printer_ctl(cJSON *m, int client)
 {
     (void)client;
@@ -376,12 +379,6 @@ static uint32_t apply_printer_ctl(cJSON *m, int client)
         int pct = num(m, "percent", -1);
         if (pct < 0 || pct > 100) return 0;
         ps_printer_fan_set(which, pct);
-        return 0;
-    }
-    if (has(m, "speed")) {
-        int level = num(m, "speed", -1);
-        if (level < 1 || level > 4) return 0;
-        ps_printer_speed_set(level);
         return 0;
     }
     const char *light = str(m, "light");

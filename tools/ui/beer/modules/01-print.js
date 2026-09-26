@@ -109,11 +109,6 @@
     render_printer_card(d);
     g_last = d;
     window.g_last_print = d;
-    /* The speed control lives on module 1's Printer controls card, but the level the printer
-       is RUNNING at arrives here, not in printer.status, so the control is repainted from
-       here. Module 1 repaints it on a printer push; without this line a level change would
-       sit stale until the next push, which while idle is thirty seconds away. */
-    if (typeof handle_pctl === 'function') handle_pctl();
   }
   window.render_print = render_print;
 

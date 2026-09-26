@@ -1341,22 +1341,6 @@ function handle_pctl() {
     if (fel) setText(f.id + '-value', fmtPct(Number(fel.value)));
   }
 
-  /* The speed control. The level the printer is running at comes with the print document,
-     not with the printer's status, so it is read from there; with no print running there is
-     no level to mark and none is marked. */
-  var lvl = (window.g_last_print && isNum(window.g_last_print.speed_level)) ? window.g_last_print.speed_level : 0;
-  var spWrap = byId('ps-pctl-speed-wrap');
-  var spNav = byId('ps-pctl-speed');
-  if (spWrap) spWrap.hidden = (printer.state !== 3);
-  if (spNav) {
-    var btns = spNav.querySelectorAll('button[data-level]');
-    for (var bi = 0; bi < btns.length; bi++) {
-      var on = Number(btns[bi].getAttribute('data-level')) === lvl;
-      btns[bi].classList.toggle('is-on', on);
-      btns[bi].setAttribute('aria-checked', on ? 'true' : 'false');
-    }
-  }
-
   if (card) card.hidden = (printer.state !== 3) || (!hasCL && !hasWL && !anyFan);
 
   setHidden('ps-pctl-locked', !g_pctl_locked);

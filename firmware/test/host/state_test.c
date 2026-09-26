@@ -51,7 +51,6 @@ void ps_printer_unbind(void) { rec("printer_unbind"); }
 void ps_printer_scan(void) { rec("printer_scan"); }
 int ps_printer_light_set(const char *node, int on) { char b[64]; snprintf(b, sizeof b, "light:%s:%d", node ? node : "-", on ? 1 : 0); rec(b); return 0; }
 int ps_printer_fan_set(int which, int percent) { char b[64]; snprintf(b, sizeof b, "fan:%d:%d", which, percent); rec(b); return 0; }
-int ps_printer_speed_set(int level) { char b[64]; snprintf(b, sizeof b, "speed:%d", level); rec(b); return 0; }
 
 /* The two IDF calls ps_state.c makes for itself. Time stands still on the host, and
  * there is no access point, so the document leaves the signal out: which is the shape
@@ -179,9 +178,7 @@ int main(void)
     ch = apply("{\"printer_ctl\":{\"fan\":\"nose\",\"percent\":50,\"device_wakeup\":1}}");
     t("a fan this printer does not have sends nothing", ch == 0 && !called(calls, "fan:"), calls);
     ch = apply("{\"printer_ctl\":{\"speed\":4,\"device_wakeup\":1}}");
-    t("printer_ctl speed reaches the printer", ch == 0 && called(calls, "speed:4"), calls);
-    ch = apply("{\"printer_ctl\":{\"speed\":0,\"device_wakeup\":1}}");
-    t("a speed level outside one to four sends nothing", ch == 0 && !called(calls, "speed:"), calls);
+    t("a speed frame from an older page is ignored: the control is gone (D-053)", ch == 0 && calls[0] == 0, calls);
 
     /* ---- the edges ---- */
     ch = apply("{\"settings\":{\"rgb_info_brightness\":10}}");

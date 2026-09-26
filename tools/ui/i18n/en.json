@@ -315,7 +315,6 @@
   "ui_presets_help": "A named copy of an effect. Save the state you are editing, then apply it to another state or to a print stage.",
   "ui_preview_state_15s": "Preview state for 15 seconds",
   "ui_primary_colour": "Primary colour",
-  "ui_print_speed": "Print speed",
   "ui_printer": "Printer",
   "ui_printer_state_0": "Idle",
   "ui_printer_state_1": "Preparation",
