@@ -166,6 +166,10 @@ JS_ONLY = {
     'ui_model': 'Model',
     # Set from JS when the password is revealed (the shown state's title).
     'ui_hide_the_password': 'Hide the password',
+    # The vent link's own words (09-bridge.js LINK_WORD and fw_word): link 7 is a bound vent
+    # whose firmware has no bridge half, and a found vent is named by what it runs.
+    'ui_vent_no_bridge': "This vent's firmware has no bridge to talk to yet",
+    'ui_vent_factory': 'factory firmware',
 }
 for _k, _t in JS_ONLY.items():
     keys.setdefault(_k, _t)

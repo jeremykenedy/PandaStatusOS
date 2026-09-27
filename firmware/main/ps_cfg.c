@@ -159,8 +159,9 @@ void ps_cfg_factory_defaults(ps_cfg_t *c)
         c->fx[s].effect = PS_FX_STATIC; c->fx[s].brightness = 50; c->fx[s].speed = 100;
         c->fx[s].bright_end = 0; c->fx[s].aux = 0; c->fx[s].fx_unlit = PS_FX_STATIC;
         /* O2: kept inside the progress by default. Read only under A4, and only while a job is
-         * on, so a default device is still at parity and an idle bar still fills. */
-        c->fx[s].opt = PS_FX_OPT_IN_PROGRESS;
+         * on, so a default device is still at parity and an idle bar still fills. The flag says
+         * the default has been applied, so the clamp does not apply it again. */
+        c->fx[s].opt = PS_FX_OPT_IN_PROGRESS; c->fx[s].flags = PS_FX_FLAG_INPROG_SET;
         c->fx[s].colour[0] = c->fx[s].colour[1] = c->mode[PS_MODE_H2D].colour[s];
         c->fx[s].colour[2] = c->fx[s].colour[3] = (ps_rgba_t){ 0, 0, 0, 0xFF };
     }
@@ -175,7 +176,28 @@ void ps_cfg_factory_defaults(ps_cfg_t *c)
      * chamber reading never triggers it, which is the right answer for that machine too. */
     c->hot_src = PS_TEMP_CHAMBER; c->hot_c = 50; c->hot_colour = (ps_rgba_t){ 0xFF, 0, 0, 0xFF };
     c->err_colour = (ps_rgba_t){ 0xFF, 0, 0, 0xFF }; c->err_brightness = 50; c->err_speed = 50;
-    memset(c->_pad2, 0, sizeof c->_pad2);
+    c->temp_unit = PS_UNIT_C;                          /* O6: Celsius unless the page is told otherwise */
+    c->_pad2 = 0;
+}
+
+/* One stored effect, wherever it lives (a state's entry, a preset, a stage row): the ids
+ * are switch indices and the numbers are percentages, so both are bounded; the unfilled
+ * part's effect may be anything that does not draw the progress (O1).
+ *
+ * And the one migration a blob of this layout has (O2): an entry written before the
+ * kept-inside option existed carries opt without 0x20 and the flag clear, which is "never
+ * offered", not "turned off". It gets the default, on, once; the flag then says so, and an
+ * entry the page has written since (the flag set) keeps whatever was chosen. Without this
+ * the default reached new devices only, and the one device this was asked for on kept
+ * every effect at full width. */
+static void fx_clamp(ps_fx_cfg_t *f)
+{
+    if (f->effect >= PS_FX_COUNT) f->effect = PS_FX_STATIC;
+    if (f->brightness > 100) f->brightness = 100;
+    if (f->speed > 100) f->speed = 100;
+    if (f->bright_end > 100) f->bright_end = 100;
+    if (f->fx_unlit >= PS_FX_COUNT || !ps_fx_unlit_ok(f->fx_unlit)) f->fx_unlit = PS_FX_STATIC;
+    if (!(f->flags & PS_FX_FLAG_INPROG_SET)) { f->opt |= PS_FX_OPT_IN_PROGRESS; f->flags |= PS_FX_FLAG_INPROG_SET; }
 }
 
 /* Every value read from flash that is used as an index or a range is bounded here, with
@@ -191,13 +213,7 @@ void ps_cfg_clamp(ps_cfg_t *c)
         if (c->mode[m].speed > 100) c->mode[m].speed = 100;
         for (int i = 0; i < 3; i++) if (c->state_brightness[m][i] > 100) c->state_brightness[m][i] = 100;
     }
-    for (int s = 0; s < 3; s++) {                                          /* effect id is a switch index */
-        if (c->fx[s].effect >= PS_FX_COUNT) c->fx[s].effect = PS_FX_STATIC;
-        if (c->fx[s].brightness > 100) c->fx[s].brightness = 100;
-        if (c->fx[s].speed > 100) c->fx[s].speed = 100;
-        if (c->fx[s].bright_end > 100) c->fx[s].bright_end = 100;
-        if (c->fx[s].fx_unlit >= PS_FX_SELECTABLE) c->fx[s].fx_unlit = PS_FX_STATIC;   /* O1: only the seventeen */
-    }
+    for (int s = 0; s < 3; s++) fx_clamp(&c->fx[s]);                      /* effect id is a switch index */
     /* v4: the sources index temp_c[], the degrees are bounded, the percentages are 0..100 */
     if (c->temp_src >= PS_TEMP_COUNT) c->temp_src = PS_TEMP_NOZZLE;
     if (c->hot_src >= PS_TEMP_COUNT) c->hot_src = PS_TEMP_NOZZLE;
@@ -209,6 +225,7 @@ void ps_cfg_clamp(ps_cfg_t *c)
     if (c->hot_c > PS_TEMP_MAX) c->hot_c = PS_TEMP_MAX;
     if (c->err_brightness > 100) c->err_brightness = 100;
     if (c->err_speed > 100) c->err_speed = 100;
+    if (c->temp_unit > PS_UNIT_F) c->temp_unit = PS_UNIT_C;                  /* O6: two units, or Celsius */
     /* strings must terminate: a blob from a different build could carry a full array */
     c->wifi_ssid[sizeof c->wifi_ssid - 1] = 0;         c->wifi_password[sizeof c->wifi_password - 1] = 0;
     c->ap_ssid[sizeof c->ap_ssid - 1] = 0;             c->ap_password[sizeof c->ap_password - 1] = 0;
@@ -247,6 +264,7 @@ int ps_cfg_load(ps_cfg_t *c)
         for (int s = 0; s < 3; s++) {
             c->fx[s].effect = o->fx[s].effect; c->fx[s].brightness = o->fx[s].brightness; c->fx[s].speed = o->fx[s].speed;
             c->fx[s].bright_end = o->fx[s].bright_end; c->fx[s].opt = o->fx[s].opt; c->fx[s].aux = o->fx[s].aux;
+            c->fx[s].flags = 0;                        /* a v3 entry never saw the kept-inside option: the clamp gives it the default (O2) */
             for (int i = 0; i < 4; i++) c->fx[s].colour[i] = (ps_rgba_t){ o->fx[s].colour[i].r, o->fx[s].colour[i].g, o->fx[s].colour[i].b, o->fx[s].colour[i].a };
         }
         ps_cfg_clamp(c);
@@ -310,11 +328,7 @@ void ps_presets_clamp(ps_presets_t *s)
     if (s->count > PS_PRESETS_MAX) s->count = PS_PRESETS_MAX;
     for (int i = 0; i < PS_PRESETS_MAX; i++) {
         s->p[i].name[PS_PRESET_NAME - 1] = 0;
-        ps_fx_cfg_t *f = &s->p[i].fx;
-        if (f->effect >= PS_FX_COUNT) f->effect = PS_FX_STATIC;
-        if (f->brightness > 100) f->brightness = 100;
-        if (f->speed > 100) f->speed = 100;
-        if (f->bright_end > 100) f->bright_end = 100;
+        fx_clamp(&s->p[i].fx);
     }
 }
 /* ---- C9: the fixed address. Same shape as the two blobs below it: magic first, size
@@ -448,10 +462,7 @@ void ps_stages_clamp(ps_stages_t *s)
         ps_stage_row_t *r = &s->row[i];
         if (r->set > 1) r->set = 1;
         r->name[PS_PRESET_NAME - 1] = 0;
-        if (r->fx.effect >= PS_FX_COUNT) r->fx.effect = PS_FX_STATIC;
-        if (r->fx.brightness > 100) r->fx.brightness = 100;
-        if (r->fx.speed > 100) r->fx.speed = 100;
-        if (r->fx.bright_end > 100) r->fx.bright_end = 100;
+        fx_clamp(&r->fx);
     }
 }
 int ps_stages_load(ps_stages_t *s)

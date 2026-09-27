@@ -49,6 +49,8 @@ this table with it.
 | `temp_src` | u8 | 0 nozzle, 1 bed, 2 chamber | 0 | v4 | `config.temp_gradient.source`; which reading the gradient follows (A10) |
 | `hot_src`, `hot_c`, `hot_colour` | u8, i16, RGBA | a source, 0 to 500, any | 0, 50, red | v4 | `config.hot_warning.source`, `.threshold`, `.colour`; the layer's source, threshold and colour, read while bit 11 is set (A11) |
 | `err_colour`, `err_brightness`, `err_speed` | RGBA, u8, u8 | any, 0 to 100, 0 to 100 | red, 50, 50 | v4 | `config.error_flash.colour`, `.brightness`, `.speed`; the layer's colour, brightness and rate, read while bit 12 is set (A12) |
+| `temp_unit` | u8 | 0 Celsius, 1 Fahrenheit | 0 | v4, in what was the first byte of `_pad2`, so every stored blob reads Celsius | `config.temp_unit` as `"c"` or `"f"`, and `temp_unit` in the settings file; the unit the page shows temperatures in (O6). Nothing on the device reads it: every temperature here stays in degrees C |
+| `fx[3].flags` | u8 | bit 0 | set | v4, in what was the effect's padding byte | not on the wire. Bit 0 says the effect's `opt` has been through a firmware that knows the kept-inside option (0x20); a blob without it gets that option turned on once on load, so a device that predates O2 comes up with the default a new one has, and a device where it was turned off keeps it off from then on |
 
 The colour indices are 0 idle, 1 printing, 2 error. The mode indices are 0 Music,
 1 H2D. Colours are stored as four bytes and written to the wire in the format the

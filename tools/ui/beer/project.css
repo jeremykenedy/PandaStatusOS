@@ -1033,8 +1033,16 @@ main article { background-color: var(--card); }
 }
 
 /* A card that is the whole point of its page takes the whole width. The columns
-   stop above it and start again below it. */
+   stop above it and start again below it. The margin under the last card of the
+   tallest column is cut off at the column's end (a margin at a column break is
+   truncated, by the multicol rules), so the spanner carries the gap itself: it
+   sat 5px under that card while every other gap was 20 (Settings, 2026-09-26). */
 [data-card].active > article.span-all { column-span: all; }
+/* Important because section 31 zeroes every card's top margin (important, for
+   the first card of each column); a spanner is never that card. */
+@media only screen and (min-width: 840px) {
+  [data-card].active > article.span-all { margin-block-start: 1.25rem !important; }
+}
 
 
 /* ── 30  The segmented control ───────────────────────────────────────────
@@ -1317,12 +1325,15 @@ nav.bottom {
   padding-block-start: 1rem;
 }
 /* A labelled field carries its label floating half a line ABOVE its own box,
-   so the divider drawn at the top of that box's margin cut through the label.
-   Padding does not help -- the label is positioned against the box, not the
-   content -- so the gap has to come from the margin, which is where the line
-   is drawn. */
+   and Beer positions that label against the field's box, not its content: the
+   1rem of top padding the rule above gives every block pushed the input down
+   and left the label where it was, sitting on the divider, which is exactly
+   what the Bindings page showed (Access code, IP address, each with a line
+   through its label). So a labelled field takes no padding: the whole gap is
+   margin, and its line is drawn up in that margin, 1.5rem above the box, so
+   there is a full rem of air between the line and the label. */
 .card-divided > .field.label,
-.card-divided > nav:has(> .field.label) { margin-block-start: 1.5rem !important; }
+.card-divided > nav:has(> .field.label) { margin-block-start: 2.5rem !important; padding-block-start: 0; }
 .card-divided > :is(.field, .slider, nav, .segmented, .grid, .small-text)::before {
   content: '';
   position: absolute;
@@ -1330,6 +1341,8 @@ nav.bottom {
   inset-inline: calc(-1 * var(--_padding, 1rem));
   border-block-start: 1px solid var(--outline-variant);
 }
+.card-divided > .field.label::before,
+.card-divided > nav:has(> .field.label)::before { inset-block-start: -1.5rem; }
 /* Intro blocks -- the first child (the title or the title row), the block
    right after the title, and a block grouped under a label/description/spacer
    -- get neither the gap nor the line. */
@@ -1348,6 +1361,15 @@ nav.bottom {
 .card-divided > :is(.small-text, .space) + :is(.field, .slider, nav, .segmented, .grid)::before {
   content: none;
 }
+/* A description introduces the labelled field under it and the two stay
+   grouped (no line between them), but the field's floating label still
+   needs room above the box, or it lands on the description's last line. */
+.card-divided > :is(.small-text, .space) + .field.label,
+.card-divided > :is(.small-text, .space) + nav:has(> .field.label) { margin-block-start: 1rem !important; }
+/* A note that belongs to the control ABOVE it (the printer's model under the
+   printer picker): no line, half a rem down, and the next field keeps its gap. */
+.card-divided > .field + .small-text.field-note { margin-block-start: 0.5rem !important; padding-block-start: 0; }
+.card-divided > .field + .small-text.field-note::before { content: none; }
 /* the spacer's own height is not needed once a divider does the separating */
 .card-divided > .space { display: none; }
 

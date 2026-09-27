@@ -109,6 +109,7 @@
     x.onload = function () {
       if (x.status === 200) {
         try { g_doc = JSON.parse(x.responseText); } catch (e) {}
+        if (window.temp_unit_apply) temp_unit_apply(g_doc);
         render_effects();
         if (after) after(true);
         return;
@@ -177,13 +178,14 @@
     sel.value = want;
   }
 
-  /* O1: the unfilled part's list is the seventeen that need no live input, each greyed
-     when its switch is off, the same way the main list does it. */
+  /* O1: the unfilled part's list is every effect that does not draw the progress, each
+     greyed when its switch is off, the same way the main list does it. */
   function fill_unlit_list(want) {
     var sel = byId('ps-fx-unlit');
     if (!sel) return;
     if (!sel.options.length) {
-      for (var id = 0; id < FX_SELECTABLE; id++) {
+      for (var id = 0; id < FX_COUNT; id++) {
+        if (DRAWS_PROGRESS[id]) continue;
         var o = document.createElement('option');
         o.value = String(id);
         sel.appendChild(o);
@@ -228,6 +230,15 @@
     if (!el || document.activeElement === el) return;
     el.value = isNum(v) ? String(v) : '';
   }
+  /* A temperature the device holds in °C, shown in the page's unit (core.js O6). The
+     bounds move with it: 0..500 °C is 32..932 °F. */
+  function set_deg(id, c) {
+    var el = byId(id);
+    if (!el) return;
+    el.min = String(deg_shown(0));
+    el.max = String(deg_shown(500));
+    set_num(id, isNum(c) ? deg_shown(c) : c);
+  }
   function set_range(id, out, v) {
     var el = byId(id);
     if (el && isNum(v) && document.activeElement !== el) el.value = String(v);
@@ -266,13 +277,17 @@
     show('ps-tg-card', !!feats().fx_temp);
     var tg = c.temp_gradient || {};
     set_sel('ps-tg-source', tg.source);
-    set_num('ps-tg-lo', tg.lo);
-    set_num('ps-tg-hi', tg.hi);
+    set_deg('ps-tg-lo', tg.lo);
+    set_deg('ps-tg-hi', tg.hi);
 
     show('ps-hw-card', !!feats().hot_warning);
     var hw = c.hot_warning || {};
     set_sel('ps-hw-source', hw.source);
-    set_num('ps-hw-threshold', hw.threshold);
+    set_deg('ps-hw-threshold', hw.threshold);
+    /* O6: the three degree fields and their suffixes follow the page's unit; the device
+       keeps °C and set_deg/deg_field convert at the edge. */
+    var sfx = document.querySelectorAll('.ps-deg');
+    for (var i = 0; i < sfx.length; i++) sfx[i].textContent = deg();
     paint_swatch('ps-hw-colour', hw.colour);
 
     show('ps-ef-card', !!feats().error_flash);
@@ -316,8 +331,10 @@
     var inprog = byId('ps-fx-inprog');
     var kept = !!((f.opt || 0) & OPT_IN_PROGRESS);
     if (inprog) inprog.checked = kept;
-    /* O1: and what the rest of the bar does meanwhile, offered only while it is kept. */
-    show('ps-fx-unlit-wrap', inprogOn && kept);
+    /* O1: and what the rest of the bar does meanwhile: offered while the effect is kept
+       inside the progress, and for the three that draw the progress themselves, which
+       leave the same part of the bar unfilled. */
+    show('ps-fx-unlit-wrap', (inprogOn && kept) || !!(f_.effect_params && DRAWS_PROGRESS[id]));
     fill_unlit_list(isNum(f.fx_unlit) ? f.fx_unlit : 0);
 
     show('ps-fxp-card', !!f_.effect_params);
@@ -344,11 +361,15 @@
   function refresh(after) {
     get(function (doc) {
       if (doc) g_doc = doc;
+      if (window.temp_unit_apply) temp_unit_apply(g_doc);
       render_effects();
       if (after) after();
     });
   }
   window.refresh_features = refresh;
+  /* The Settings card changes the temperature unit through the same route and wants the
+     same handling of the answer, so the sender is published rather than written twice. */
+  window.features_post = post;
   (window.g_lang_hooks = window.g_lang_hooks || []).push(function () { if (g_doc) render_effects(); });
 
   /* ---- wiring --------------------------------------------------- */
@@ -360,6 +381,18 @@
       var v = el.value === '' ? NaN : Number(el.value);
       if (!isFinite(v) || v < 0) { render_effects(); return; }
       apply(Math.round(v));
+    });
+  }
+  /* The same for a degree field: what was typed is in the page's unit, what is sent is °C,
+     and a value the device would refuse (outside 0..500 °C) is put back rather than sent. */
+  function deg_field(id, apply) {
+    var el = byId(id);
+    if (!el) return;
+    el.addEventListener('change', function () {
+      var v = el.value === '' ? NaN : Number(el.value);
+      var c = isFinite(v) ? deg_stored(Math.round(v)) : NaN;
+      if (!isFinite(c) || c < 0 || c > 500) { render_effects(); return; }
+      apply(c);
     });
   }
 
@@ -465,12 +498,12 @@
 
     var tgs = byId('ps-tg-source');
     if (tgs) tgs.addEventListener('change', function () { send_cfg({ temp_gradient: { source: Number(tgs.value) } }); });
-    num_field('ps-tg-lo', function (v) { send_cfg({ temp_gradient: { lo: v } }); });
-    num_field('ps-tg-hi', function (v) { send_cfg({ temp_gradient: { hi: v } }); });
+    deg_field('ps-tg-lo', function (v) { send_cfg({ temp_gradient: { lo: v } }); });
+    deg_field('ps-tg-hi', function (v) { send_cfg({ temp_gradient: { hi: v } }); });
 
     var hws = byId('ps-hw-source');
     if (hws) hws.addEventListener('change', function () { send_cfg({ hot_warning: { source: Number(hws.value) } }); });
-    num_field('ps-hw-threshold', function (v) { send_cfg({ hot_warning: { threshold: v } }); });
+    deg_field('ps-hw-threshold', function (v) { send_cfg({ hot_warning: { threshold: v } }); });
     var hwc = byId('ps-hw-colour');
     if (hwc) hwc.addEventListener('click', function () {
       picker_open(hwc, function (hex) { send_cfg({ hot_warning: { colour: hex + 'FF' } }); });

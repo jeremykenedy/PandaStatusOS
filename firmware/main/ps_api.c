@@ -87,11 +87,11 @@ static bool fx_parse(cJSON *o, ps_fx_cfg_t *f, uint32_t feat)
         else if (!strcmp(k, "brightness")) { if (v > 100) return false; f->brightness = (uint8_t)v; }
         else if (!strcmp(k, "speed"))      { if (v > 100) return false; f->speed = (uint8_t)v; }
         else if (!strcmp(k, "bright_end")) { if (v > 100) return false; f->bright_end = (uint8_t)v; }
-        else if (!strcmp(k, "opt"))        { if (v > PS_FX_OPT_ALL) return false; f->opt = (uint8_t)v; }
+        else if (!strcmp(k, "opt"))        { if (v > PS_FX_OPT_ALL) return false; f->opt = (uint8_t)v; f->flags |= PS_FX_FLAG_INPROG_SET; }   /* a written opt is a decided one (O2) */
         else if (!strcmp(k, "aux"))        { if (v > 255) return false; f->aux = (uint8_t)v; }
-        /* O1: one of the seventeen that need no live input, under the same switch as the
-         * effect itself; echoing the stored id is never a change to refuse */
-        else if (!strcmp(k, "fx_unlit"))   { if (v != f->fx_unlit && (v >= PS_FX_SELECTABLE || !ps_fx_allowed(feat, v))) return false; f->fx_unlit = (uint8_t)v; }
+        /* O1: any effect that does not draw the progress, under its own switch; echoing the
+         * stored id is never a change to refuse */
+        else if (!strcmp(k, "fx_unlit"))   { if (v != f->fx_unlit && (!ps_fx_unlit_ok(v) || !ps_fx_allowed(feat, v))) return false; f->fx_unlit = (uint8_t)v; }
         else return false;
     }
     return true;
@@ -130,6 +130,9 @@ char *ps_features_json(void)
     /* C9: the fixed address. Always in the document, switch or no switch, so the page can
      * show what is stored before the switch is turned on and a person is not typing into a
      * form they cannot see. An unset field is an empty string, not 0.0.0.0. */
+    /* O6: the unit the page shows temperatures in. Always in the document; the device holds
+     * every temperature in degrees C and the page does the arithmetic. */
+    cJSON_AddStringToObject(cfg, "temp_unit", g_ps.cfg.temp_unit == PS_UNIT_F ? "f" : "c");
     cJSON *si = cJSON_AddObjectToObject(cfg, "static_ip");
     { char b[16];
       cJSON_AddNumberToObject(si, "on", g_ps.netcfg.on);
@@ -167,6 +170,7 @@ int ps_features_apply(const char *json, size_t len)
     int hw_src, hw_c; ps_rgba_t hw_colour; bool have_hw = false;
     int ef_brightness, ef_speed; ps_rgba_t ef_colour; bool have_ef = false;
     ps_netcfg_t si; bool have_si = false;
+    int unit = -1;
     ps_lock();
     uint32_t after = (g_ps.cfg.features | set) & ~clear;               /* the bits this document leaves in force */
     tg_src = g_ps.cfg.temp_src; tg_lo = g_ps.cfg.temp_lo; tg_hi = g_ps.cfg.temp_hi;   /* partial objects overlay the stored values */
@@ -227,6 +231,12 @@ int ps_features_apply(const char *json, size_t len)
                     else { cJSON_Delete(root); return -1; }
                 }
                 have_ef = true;
+            } else if (it->string && !strcmp(it->string, "temp_unit")) {
+                /* O6: "c" or "f", nothing else; the letter, so a file reads as what it means */
+                if (!cJSON_IsString(it) || !it->valuestring) { cJSON_Delete(root); return -1; }
+                if (!strcmp(it->valuestring, "c")) unit = PS_UNIT_C;
+                else if (!strcmp(it->valuestring, "f")) unit = PS_UNIT_F;
+                else { cJSON_Delete(root); return -1; }
             } else if (it->string && !strcmp(it->string, "static_ip")) {
                 if (!cJSON_IsObject(it)) { cJSON_Delete(root); return -1; }
                 ps_lock(); si = g_ps.netcfg; ps_unlock();          /* a partial object overlays what is stored */
@@ -272,6 +282,7 @@ int ps_features_apply(const char *json, size_t len)
     if (have_ef && (g_ps.cfg.err_brightness != ef_brightness || g_ps.cfg.err_speed != ef_speed || memcmp(&g_ps.cfg.err_colour, &ef_colour, sizeof ef_colour) != 0)) {
         g_ps.cfg.err_brightness = (uint8_t)ef_brightness; g_ps.cfg.err_speed = (uint8_t)ef_speed; g_ps.cfg.err_colour = ef_colour; changed = true;
     }
+    if (unit >= 0 && g_ps.cfg.temp_unit != unit) { g_ps.cfg.temp_unit = (uint8_t)unit; changed = true; }
     /* C9: stored whether the switch is on or not, so turning it off does not lose the
      * address, and the interface is told either way. The change lands on the next
      * association; the page says so rather than pretending the device has moved. */
@@ -284,8 +295,10 @@ int ps_features_apply(const char *json, size_t len)
      * solid, so what is stored is always something the bits in force can render, and the next
      * whole-table POST from the page is not refused for carrying it. The seventeen that come with
      * state_effects are left alone when that switch goes off: they wait for it to come back. */
-    for (int s = 0; s < 3; s++)
+    for (int s = 0; s < 3; s++) {
         if (g_ps.cfg.fx[s].effect >= PS_FX_SELECTABLE && !ps_fx_allowed(g_ps.cfg.features, g_ps.cfg.fx[s].effect)) { g_ps.cfg.fx[s].effect = PS_FX_STATIC; changed = true; }
+        if (g_ps.cfg.fx[s].fx_unlit >= PS_FX_SELECTABLE && !ps_fx_allowed(g_ps.cfg.features, g_ps.cfg.fx[s].fx_unlit)) { g_ps.cfg.fx[s].fx_unlit = PS_FX_STATIC; changed = true; }
+    }
     if (changed) ps_cfg_save(&g_ps.cfg);
     bool net_apply = net_moved || ((set | clear) & PS_FEAT_STATIC_IP);
     ps_netcfg_t saved = g_ps.netcfg;
@@ -857,6 +870,7 @@ char *ps_config_json(void)
     cJSON *tg = cJSON_AddObjectToObject(doc, "temp_gradient"); cJSON_AddNumberToObject(tg, "source", c->temp_src); cJSON_AddNumberToObject(tg, "lo", c->temp_lo); cJSON_AddNumberToObject(tg, "hi", c->temp_hi);
     cJSON *hw = cJSON_AddObjectToObject(doc, "hot_warning"); cJSON_AddNumberToObject(hw, "source", c->hot_src); cJSON_AddNumberToObject(hw, "threshold", c->hot_c); cJSON_AddItemToObject(hw, "colour", wire_colour(c->hot_colour));
     cJSON *ef = cJSON_AddObjectToObject(doc, "error_flash"); cJSON_AddItemToObject(ef, "colour", wire_colour(c->err_colour)); cJSON_AddNumberToObject(ef, "brightness", c->err_brightness); cJSON_AddNumberToObject(ef, "speed", c->err_speed);
+    cJSON_AddStringToObject(doc, "temp_unit", c->temp_unit == PS_UNIT_F ? "f" : "c");   /* O6 */
     cJSON *pl = cJSON_AddArrayToObject(doc, "presets");
     for (int i = 0; i < g_ps.presets.count; i++) { cJSON *o = fx_json(&g_ps.presets.p[i].fx); cJSON_AddStringToObject(o, "name", g_ps.presets.p[i].name); cJSON_AddItemToArray(pl, o); }
     cJSON *st = cJSON_AddArrayToObject(doc, "stages");
@@ -889,11 +903,11 @@ static bool only_keys(cJSON *o, const char *const *keys, int nkeys)
 int ps_config_apply(const char *json, size_t len)
 {
     static const char *const TOP[] = { "layout", "features", "wifi", "ap", "hostname", "printer", "language", "mode", "modes", "blocks",
-                                       "state_brightness", "state_effects", "temp_gradient", "hot_warning", "error_flash", "presets", "stages" };
+                                       "state_brightness", "state_effects", "temp_gradient", "hot_warning", "error_flash", "presets", "stages", "temp_unit" };
     static const char *const WIFI_K[] = { "ssid", "password" }, *const AP_K[] = { "ssid", "password", "ip", "on" },
                       *const PR_K[] = { "name", "sn", "ip", "access_code" }, *const MODE_K[] = { "brightness", "speed", "colours" }, *const BLK_K[] = { "id", "colour" };
     cJSON *root = cJSON_ParseWithLength(json, len);
-    if (!root || !cJSON_IsObject(root) || !only_keys(root, TOP, 17)) { cJSON_Delete(root); return -1; }
+    if (!root || !cJSON_IsObject(root) || !only_keys(root, TOP, 18)) { cJSON_Delete(root); return -1; }
     ps_cfg_t next; ps_lock(); next = g_ps.cfg; ps_unlock();
     /* 1. the parity fields, validated into a copy */
     cJSON *v;
@@ -960,8 +974,8 @@ int ps_config_apply(const char *json, size_t len)
     {
         cJSON *sub = cJSON_CreateObject(), *f = cJSON_AddObjectToObject(sub, "features"), *cfg = cJSON_AddObjectToObject(sub, "config");
         for (size_t i = 0; i < N_FEATURES; i++) cJSON_AddBoolToObject(f, FEATURES[i].name, (next.features & FEATURES[i].bit) != 0);
-        static const char *const CFG_K[] = { "state_brightness", "state_effects", "temp_gradient", "hot_warning", "error_flash" };
-        for (int i = 0; i < 5; i++) { cJSON *item = cJSON_DetachItemFromObjectCaseSensitive(root, CFG_K[i]); if (item) cJSON_AddItemToObject(cfg, CFG_K[i], item); }
+        static const char *const CFG_K[] = { "state_brightness", "state_effects", "temp_gradient", "hot_warning", "error_flash", "temp_unit" };
+        for (int i = 0; i < 6; i++) { cJSON *item = cJSON_DetachItemFromObjectCaseSensitive(root, CFG_K[i]); if (item) cJSON_AddItemToObject(cfg, CFG_K[i], item); }
         char *s = cJSON_PrintUnformatted(sub); cJSON_Delete(sub);
         int rc = s ? ps_features_apply(s, strlen(s)) : -1;
         cJSON_free(s);
@@ -977,6 +991,7 @@ int ps_config_apply(const char *json, size_t len)
     ps_rgba_t hcol = g_ps.cfg.hot_colour, ecol = g_ps.cfg.err_colour;
     next.features = feat_now; memcpy(next.fx, fx_now, sizeof next.fx); memcpy(next.state_brightness, sb_now, sizeof next.state_brightness);
     next.temp_lo = tlo; next.temp_hi = thi; next.hot_c = hc; next.temp_src = tsrc; next.hot_src = hsrc; next.err_brightness = eb; next.err_speed = es; next.hot_colour = hcol; next.err_colour = ecol;
+    next.temp_unit = g_ps.cfg.temp_unit;                                /* O6, set by step 3 as well */
     ps_cfg_clamp(&next);
     g_ps.cfg = next;
     ps_cfg_save(&g_ps.cfg);

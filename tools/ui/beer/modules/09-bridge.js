@@ -57,7 +57,17 @@
     4: ['ui_link_state_4', 'IP error'],
     5: ['ui_vent_wrong_one', 'A different vent answered at that address'],
     6: ['ui_vent_unpaired', 'Not paired yet'],
+    7: ['ui_vent_no_bridge', 'This vent\'s firmware has no bridge to talk to yet'],
   };
+
+  /* What a found vent runs, after its name. The bridge's own is the plain case and says
+     nothing; the factory firmware and a PandaVentOS from before its half of the bridge are
+     named, because binding either gets link 7 and a person should see that coming. */
+  function fw_word(fw) {
+    if (fw === 'factory') return tr('ui_vent_factory', 'factory firmware');
+    if (fw === 'pandaventos') return 'PandaVentOS';
+    return '';
+  }
 
   function el(id) { return document.getElementById(id); }
   function show(id, on) { var e = el(id); if (e) e.hidden = !on; }
@@ -117,7 +127,7 @@
        empty select, which reads as a page that has not loaded. */
     var sel = el('ps-vent-name');
     if (sel && document.activeElement !== sel) {
-      var want = (d.found || []).map(function (v) { return (v.name || v.ip) + '|' + v.ip; }).join(',');
+      var want = (d.found || []).map(function (v) { return (v.name || v.ip) + '|' + v.ip + '|' + (v.fw || ''); }).join(',');
       if (sel.getAttribute('data-filled') !== want) {
         sel.setAttribute('data-filled', want);
         sel.textContent = '';
@@ -128,7 +138,8 @@
         (d.found || []).forEach(function (v) {
           var o = document.createElement('option');
           o.value = v.ip;
-          o.textContent = (v.name || tr('ui_vent', 'Vent')) + (v.ip ? ' · ' + v.ip : '');
+          var fw = fw_word(v.fw);
+          o.textContent = (v.name || tr('ui_vent', 'Vent')) + (v.ip ? ' · ' + v.ip : '') + (fw ? ' · ' + fw : '');
           sel.appendChild(o);
         });
         if (d.bound && d.bound.ip) sel.value = d.bound.ip;
@@ -210,6 +221,16 @@
     });
   }
 
+  /* A pick from the list writes the vent's address into the field, the way the printer's
+     picker fills its three (07-printer.js pcard_on_pick): the field is what gets bound, and
+     after an unbind it still holds the last vent, so a pick that left it alone would bind
+     the old one again. */
+  function pick() {
+    var sel = el('ps-vent-name'), ip = el('ps-vent-ip');
+    if (!sel || !ip) return;
+    ip.value = sel.value || '';
+  }
+
   function bind() {
     if (g_doc && g_doc.bound && (g_doc.bound.ip || g_doc.bound.id)) { post({ unbind: true }); return; }
     var typed = (el('ps-vent-ip') || {}).value || '';
@@ -277,6 +298,7 @@
 
   function init() {
     wire('ps-btn-vent-scan', 'click', scan);
+    wire('ps-vent-name', 'change', pick);
     wire('ps-btn-vent-bind', 'click', bind);
     wire('ps-btn-vent-confirm', 'click', confirmPair);
     wire('ps-btn-vent-cancel', 'click', cancelPair);

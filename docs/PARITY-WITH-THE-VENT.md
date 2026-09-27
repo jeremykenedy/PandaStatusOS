@@ -262,11 +262,24 @@ behind whichever one takes the longest. Each line is updated as it lands.
 
 | # | Asked for | Status |
 |---|---|---|
-| O1 | While an effect is kept inside the printed part, the unfilled part runs an effect of its own (any effect that does not draw the progress), in the unlit colour, defaulting to solid, which with the unlit colour left dark is off | DONE 2026-09-26: `fx_unlit` per state, the seventeen that need no live input, a list under the switch on the Lighting page, D-055, `fx_test.c`, `t-inprog.js` |
-| O2 | Kept inside the printed part defaults to on | DONE 2026-09-26: on in the factory defaults, and it applies only while a job is on so an idle bar still fills, D-055 |
+| O1 | While an effect is kept inside the printed part, the unfilled part runs an effect of its own (any effect that does not draw the progress), in the unlit colour, defaulting to solid, which with the unlit colour left dark is off; and, the owner's second word, beside the three progress effects too | DONE 2026-09-26, completed 2026-09-27: `fx_unlit` per state, any of the twenty-one effects that do not draw the progress, offered under the switch and beside the progress bar, the animated one and the barber pole, where it runs on the part their fill has not reached (`ps_fx_progress_lit`), D-055, D-058, `fx_test.c`, `t-inprog.js` |
+| O2 | Kept inside the printed part defaults to on | DONE 2026-09-26, completed 2026-09-27: on in the factory defaults and, through the effect's `flags` byte, on once for every stored blob that predates the option, so it reaches the device this was asked for; it applies only while a job is on so an idle bar still fills, D-055, D-058 |
 | O3 | The printer page shows which Bambu printer it is (the model) | DONE 2026-09-26: the printer's own SSDP model code, `printer.model` on the wire, named on the Bindings page (`N7` is the P2S; nine codes known, an unknown one is shown as itself), `t-model.js` |
-| O4 | The dashboard shows the humidity inside the printer, the way it shows the AMS humidity | NOT POSSIBLE: a full report captured from the P2S on 2026-09-26 (337 distinct fields) carries humidity for the AMS only (`ams.ams[].humidity`, `humidity_raw`); the printer reports no chamber humidity, so there is nothing to show |
+| O4 | The dashboard shows the humidity inside the printer, the way it shows the AMS humidity | NOT POSSIBLE: a full report captured from the P2S on 2026-09-26 (337 distinct fields) carries humidity for the AMS only (`ams.ams[].humidity`, `humidity_raw`); the printer reports no chamber humidity, so there is nothing to show. Asked again 2026-09-26 and re-verified against the capture (46 messages, 336 field paths): the chamber block is a temperature and a state, nothing else, D-058 |
 | O5 | The AMS card on a phone: two trays by two, and the material readable rather than cut after a letter or two | DONE 2026-09-26: two columns under 600px, the chip text wraps instead of being cut, `t-ams.js` G1 and G2 |
+| O6 | A Celsius or Fahrenheit switch on the Settings page, Celsius by default; every temperature on the display follows it | DONE 2026-09-27: a segment on the Settings card's Appearance block, kept on the device (`temp_unit`, `config.temp_unit`, in the settings file) so every browser reads the same unit; the device holds °C and the page converts every reading and the three degree fields on the Lighting page, both ways; D-058, `cfg_test.c`, `t-units.js` |
+
+O1 and O2, revisited the same day: the first cut applied the default to new devices only (an
+existing device's stored effects kept the bit clear, so the switch read off on the one device
+this was asked for) and offered seventeen effects for the unfilled part rather than every
+effect that does not draw the progress; nor was the unfilled part offered beside the three
+effects that draw the progress themselves, which leave exactly that part of the bar dark.
+All three fixed 2026-09-27 (D-058). From the same review: the vent scan found nothing on a
+network with two vents on it, because it looked for the bridge record alone; it now finds the
+factory firmware and PandaVentOS by their stock socket and says, on a bind, that there is no
+bridge there yet (`link` 7). The Device name save sent the vent's key and took nothing; it
+sends the hostname. The Bindings page's labels and the Settings page's card spacing, both
+called out from screenshots, are fixed in `project.css`.
 
 ## Catalogued elsewhere, still open
 

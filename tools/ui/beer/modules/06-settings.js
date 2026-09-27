@@ -186,25 +186,35 @@ function s6_pick_language(code) {
 }
 
 /* ---------------------------------------------------------------------
-   3. Device name (§5.2)
+   3. Device name
+
+   This device has ONE name, the hostname: what the bar above shows, what the
+   network calls it, and one DNS label (ps_netname.c sanitises it: a space
+   becomes a hyphen). The card is the same field the Wi-Fi page has, so it
+   writes the same root, {"sta":{"hostname"}}, and the device answers
+   set_hostname, which module 1 turns into the "restart to take the new name"
+   dialog. It wrote settings.device_name until 2026-09-26, a key the vent had
+   and this firmware never did, so Save name did nothing at all.
    ------------------------------------------------------------------- */
 
 function s6_device_name_save() {
   var input = s6_el('ps-settings-device-name');
   if (!input) return;
-  ws_push('settings', { device_name: input.value });
+  var name = (input.value || '').trim();
+  if (!name) { toast_show('ui_enter_a_host_name', 3000, 'Enter a host name first.'); return; }
+  ws_push('sta', { hostname: name });
 }
 
-/* An empty string tells the device to restore its compiled default, so the
-   page does not have to know what that name is (P§7.5). */
+/* An empty name is the device's compiled default, so the page does not have
+   to know what that name is. */
 function s6_device_name_reset() {
-  ws_push('settings', { device_name: '' });
+  ws_push('sta', { hostname: '' });
 }
 
 function s6_note_device_name() {
   s6_dialog('device_name', 'Device name',
     'ui_note_device_name_text',
-    'This is what the page calls the vent, in the corner of the bar above. It is separate from the hostname, which is what the network calls it. Handy when you have two.',
+    'This device has one name. It is what the network calls it and what the bar above shows, and adding .local to it opens this page from anything on the same network. One word: letters, digits and hyphens; a space becomes a hyphen. The device restarts to take a new name.',
     [{ key: 'ui_ok', fallback: 'OK' }]);
 }
 
@@ -360,11 +370,44 @@ function s6_watch_shown(id) {
   obs.observe(node, { attributes: true, attributeFilter: ['class'] });
 }
 
+/* O6: the temperature unit segment. Painted from core.js's g_temp_unit, which every
+   features document sets; a press sends the unit to the device and paints the answer,
+   never the press. */
+var S6_UNIT_SEGMENT = { c: 'ps-unit-c', f: 'ps-unit-f' };
+
+function s6_unit_paint() {
+  /* core.js is the last module in the build, so the unit is read through window: at the
+     first paint it may not be declared yet, and the default is the device's, °C. */
+  var cur = window.g_temp_unit || 'c';
+  for (var u in S6_UNIT_SEGMENT) {
+    if (!Object.prototype.hasOwnProperty.call(S6_UNIT_SEGMENT, u)) continue;
+    var btn = s6_el(S6_UNIT_SEGMENT[u]);
+    if (!btn) continue;
+    var on = (u === cur);
+    btn.classList.toggle('is-on', on);
+    btn.setAttribute('aria-checked', on ? 'true' : 'false');
+  }
+}
+
+function s6_wire_unit() {
+  for (var u in S6_UNIT_SEGMENT) {
+    if (!Object.prototype.hasOwnProperty.call(S6_UNIT_SEGMENT, u)) continue;
+    (function (unit) {
+      s6_on(S6_UNIT_SEGMENT[unit], 'click', function () {
+        if (unit === (window.g_temp_unit || 'c') || !window.features_post) return;
+        features_post({ config: { temp_unit: unit } }, function () { s6_unit_paint(); });
+      });
+    })(u);
+  }
+  s6_unit_paint();
+}
+
 function settings_init() {
   s6_build_language_select();
   s6_build_language_list();
   settings_language_sync();
   s6_wire_language();
+  s6_wire_unit();
   s6_watch_shown('ps-card-settings');
   s6_watch_shown('ps-page-language');
 
@@ -386,3 +429,6 @@ if (document.readyState === 'loading') {
 }
 
 window.settings_language_sync = settings_language_sync;
+/* The unit segment follows every redraw (core.js rerender_all), the way the rest of the
+   JS-painted page does. */
+(window.g_lang_hooks = window.g_lang_hooks || []).push(s6_unit_paint);

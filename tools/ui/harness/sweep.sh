@@ -70,7 +70,7 @@ ROWS=(
   "p2-printing.json  | t-pctl.js     | PS_CLONE=1 PS_PRINT_PERCENT=37 PS_PRINT_SPEED=2"
   # the vent card on the Bindings page, with a real vent at the other end of a real socket:
   # three processes, nothing simulated in between
-  "p2-idle.json      | t-bridge.js   | PS_CLONE=1 PS_WITH_VENT=1 PS_VENTS=pandaventos@127.0.0.1:8299"
+  "p2-idle.json      | t-bridge.js   | PS_CLONE=1 PS_WITH_VENT=1 PS_VENTS=pandaventos@127.0.0.1:8299 PS_VENTS_STOCK=PandaVent@192.0.2.77:factory"
   # C8 on the page: the renderer's own numbers, and the poll that has to stop when the card
   # closes, which is invisible from the page and obvious from the mock's request log
   "p2-idle.json      | t-render.js   | PS_CLONE=1"
@@ -94,6 +94,9 @@ ROWS=(
   "p2-idle.json      | t-slow.js     | PS_NO_PUSH=1"
   # topbar: the chip through waiting, the link, idle, a print, its end, a failed link, and the socket gone
   "p2-idle.json      | t-topbar.js   | PS_CLONE=1 PS_DELAY=1200"
+  # O6: the temperature unit, chosen on the Settings card, held by the device, honoured by
+  # every reading and every degree field on the page
+  "p2-printing.json  | t-units.js    | PS_CLONE=1 PS_PRINT_PERCENT=37 PS_PRINT_NOZZLE=220 PS_PRINT_BED=60 PS_PRINT_CHAMBER=35"
 )
 
 pass=0; fail=0; failed=()

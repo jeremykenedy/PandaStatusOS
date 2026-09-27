@@ -21,6 +21,14 @@
       <button id="ps-theme-light" role="radio" aria-checked="false" data-str="appearance_light">Light</button>
       <button id="ps-theme-dark"  role="radio" aria-checked="false" data-str="appearance_dark">Dark</button>
     </nav>
+
+    <!-- O6: stored on the device (config.temp_unit), so every browser sees the same unit.
+         The device itself holds °C; the page converts on the way out and back. -->
+    <div class="small-text" data-str="ui_temperature_unit">Temperature unit</div>
+    <nav class="segmented" id="ps-unit-seg" role="radiogroup" aria-label="Temperature unit">
+      <button id="ps-unit-c" role="radio" aria-checked="true"  data-str="ui_celsius">Celsius</button>
+      <button id="ps-unit-f" role="radio" aria-checked="false" data-str="ui_fahrenheit">Fahrenheit</button>
+    </nav>
   </article>
 
   <article class="card-divided">

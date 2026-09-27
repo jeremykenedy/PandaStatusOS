@@ -63,7 +63,8 @@ async function fresh(page) {
     t('B2 the switch shows under the list', await waitFor(page, rowShown));
     t('B3 and starts on: a new device keeps its effects inside the progress (O2)', (await page.$eval('#ps-fx-inprog', (e) => e.checked)) === true && ((await opt(1)) & IN_PROGRESS) !== 0, await opt(1));
     t('B4 with it on, the unfilled part\'s own effect is offered', await waitFor(page, unlitShown));
-    t('B5 seventeen to choose from, none that draws the progress', await page.$$eval('#ps-fx-unlit option', (o) => o.length) === 17);
+    t('B5 twenty-one to choose from: every effect but the three that draw the progress', await page.$$eval('#ps-fx-unlit option', (o) => o.map((x) => x.value).join(',')) === '0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,20,21,22,23', await page.$$eval('#ps-fx-unlit option', (o) => o.length));
+    t('B5b the ones behind a switch that is off are greyed, not hidden', await page.$eval('#ps-fx-unlit option[value="22"]', (o) => o.disabled) === true && await page.$eval('#ps-fx-unlit option[value="1"]', (o) => o.disabled) === false);
     t('B6 and it starts solid, which with the unlit colour dark is off', (await page.$eval('#ps-fx-unlit', (e) => e.value)) === '0' && (await unlit(1)) === 0, await unlit(1));
     const before0 = await opt(0), before2 = await opt(2);
 
@@ -79,11 +80,17 @@ async function fresh(page) {
     const r0 = await post({ config: { state_effects: bad0 } });
     t('C4 a progress draw as the unfilled part\'s effect is refused', r0.status === 400 && (await unlit(1)) === 1, [r0.status, await unlit(1)]);
 
-    // ---- D. the three that draw the progress do not offer it ----
+    // ---- D. the three that draw the progress do not offer the switch, and do offer the unfilled part ----
     await page.selectOption('#ps-fx-effect', '17');
     await sleep(400);
     t('D1 the progress bar is chosen', (await feats()).config.state_effects[1].effect === 17);
     t('D2 and the switch goes away for it', await waitFor(page, rowHidden));
+    t('D2b but the unfilled part\'s effect stays offered: the bar itself leaves that part unfilled', await waitFor(page, unlitShown));
+    await page.selectOption('#ps-fx-unlit', '6');
+    await sleep(400);
+    t('D2c and the device takes the rainbow for the part the bar has not reached', (await unlit(1)) === 6, await unlit(1));
+    await page.selectOption('#ps-fx-unlit', '1');
+    await sleep(400);
     await page.selectOption('#ps-fx-effect', '6');
     await sleep(400);
     t('D3 back on the rainbow the switch returns, still on', (await waitFor(page, rowShown)) && (await page.$eval('#ps-fx-inprog', (e) => e.checked)) === true);

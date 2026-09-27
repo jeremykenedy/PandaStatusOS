@@ -169,6 +169,8 @@ function fxAllowed(id, features) {
   if (id < FX_SELECTABLE) return !!features.state_effects;
   return FX_NEEDS[id] ? !!features[FX_NEEDS[id]] : false;
 }
+// the three that draw the progress themselves: not offered for the unfilled part, and the kept-inside switch means nothing to them
+const DRAWS_PROGRESS = { 17: 1, 18: 1, 19: 1 };
 // opt 0x20: kept inside the progress by default (O2); fx_unlit 0: the unfilled part solid (O1)
 const fxDefault = (colour) => ({ effect: 0, brightness: 50, speed: 100, bright_end: 0, opt: 0x20, aux: 0, fx_unlit: 0, colours: [colour, colour, '#000000FF', '#000000FF'] });
 function featDefaults() {
@@ -180,7 +182,9 @@ function featDefaults() {
                      hot_warning: { source: 0, threshold: 50, colour: '#FF0000FF' },
                      error_flash: { colour: '#FF0000FF', brightness: 50, speed: 50 },
                      // C9: always in the document, switch or no switch, as the firmware sends it
-                     static_ip: { on: 0, ip: '', mask: '', gw: '', dns: '' } } };
+                     static_ip: { on: 0, ip: '', mask: '', gw: '', dns: '' },
+                     // O6: the unit the page shows temperatures in; the device itself always holds °C
+                     temp_unit: 'c' } };
 }
 const isColour = (s) => typeof s === 'string' && /^#[0-9A-Fa-f]{8}$/.test(s);
 // one stored effect from its JSON: every key optional, any unknown key or bad value refuses (as the firmware does)
@@ -195,7 +199,7 @@ function fxParse(o, cur, features) {
     else if (k === 'brightness' || k === 'speed' || k === 'bright_end') { if (v > 100) return null; }
     else if (k === 'opt') { if (v > 0x3F) return null; }                                    // PS_FX_OPT_ALL: 0x20 is A4's kept-inside-the-progress
     else if (k === 'aux') { if (v > 255) return null; }
-    else if (k === 'fx_unlit') { if (v !== cur.fx_unlit && (v >= 17 || !fxAllowed(v, features))) return null; }   // O1: the seventeen, under the same switch
+    else if (k === 'fx_unlit') { if (v !== cur.fx_unlit && (DRAWS_PROGRESS[v] || !fxAllowed(v, features))) return null; }   // O1: anything that does not draw the progress, under its own switch
     else return null;
     out[k] = v;
   }
@@ -209,7 +213,7 @@ function featApply(j) {
   if (f !== undefined && (typeof f !== 'object' || f === null || Array.isArray(f))) return false;
   if (c !== undefined && (typeof c !== 'object' || c === null || Array.isArray(c))) return false;
   if (f) for (const k of Object.keys(f)) if (!FEATURE_NAMES.includes(k) || typeof f[k] !== 'boolean') return false;
-  let sb = null, se = null, tg = null, hw = null, ef = null, si = null;
+  let sb = null, se = null, tg = null, hw = null, ef = null, si = null, tu = null;
   const after = Object.assign({}, FEAT.features, f || {});          // the bits this document leaves in force
   if (c) for (const k of Object.keys(c)) {
     const v = c[k];
@@ -255,6 +259,10 @@ function featApply(j) {
         out[kk] = n;
       }
       ef = out;
+    } else if (k === 'temp_unit') {
+      // O6: "c" or "f", nothing else (the firmware refuses any other string)
+      if (v !== 'c' && v !== 'f') return false;
+      tu = v;
     } else if (k === 'static_ip') {
       // C9: every key optional; on is 0/1 or a boolean, the four addresses are dotted quads or
       // empty (which clears that field). The device clamps after: no address means the switch
@@ -283,9 +291,13 @@ function featApply(j) {
   if (hw) FEAT.config.hot_warning = hw;
   if (ef) FEAT.config.error_flash = ef;
   if (si) FEAT.config.static_ip = si;
+  if (tu) FEAT.config.temp_unit = tu;
   // a switch going off takes its effects with it (the firmware's rule): a stored id that needed
   // the bit falls back to solid; the seventeen wait for state_effects to come back
-  for (const e of FEAT.config.state_effects) if (e.effect >= FX_SELECTABLE && !fxAllowed(e.effect, FEAT.features)) e.effect = 0;
+  for (const e of FEAT.config.state_effects) {
+    if (e.effect >= FX_SELECTABLE && !fxAllowed(e.effect, FEAT.features)) e.effect = 0;
+    if (e.fx_unlit >= FX_SELECTABLE && !fxAllowed(e.fx_unlit, FEAT.features)) e.fx_unlit = 0;
+  }
   return true;
 }
 const timers = new Set();               // every pending timer, outside STATE
@@ -309,7 +321,7 @@ let STAGES = stagesDefault();           // B1, B2: the per-stage rows
 // What it does NOT do is discover anything: a node process cannot answer mDNS for a device
 // that is not there. A scan returns what PS_VENTS names, which is the harness telling the
 // device what is on its network, and binding by address is the contract's own fallback.
-const BRIDGE_LINK = { UNBOUND: 0, CONNECTING: 2, CONNECTED: 3, IP_ERR: 4, ID_ERR: 5, UNPAIRED: 6 };
+const BRIDGE_LINK = { UNBOUND: 0, CONNECTING: 2, CONNECTED: 3, IP_ERR: 4, ID_ERR: 5, UNPAIRED: 6, NO_BRIDGE: 7 };
 let BRIDGE = bridgeFresh();
 function bridgeFresh() {
   return {
@@ -980,21 +992,27 @@ async function handleHttp(req, res) {
 
     if (j.scan === true) {
       // PS_VENTS is "name@ip,name@ip": the harness saying what is on this network, because
-      // nothing here can answer mDNS for a device it does not own.
+      // nothing here can answer mDNS for a device it does not own. PS_VENTS_STOCK is the same
+      // for vents the device would find on its stock socket and cannot bridge to yet:
+      // "name@ip:factory,name@ip:pandaventos" (the firmware sniffs; the mock is told).
       BRIDGE.scanning = true;
       const list = String(knob('PS_VENTS', '')).split(',').filter(Boolean).map((e) => {
         const [name, ip] = e.split('@');
-        return { id: '', name: name || 'vent', ip: ip || '', kind: 'vent' };
+        return { id: '', name: name || 'vent', ip: ip || '', kind: 'vent', fw: 'unknown' };
+      });
+      const stock = String(knob('PS_VENTS_STOCK', '')).split(',').filter(Boolean).map((e) => {
+        const [name, rest] = e.split('@'); const [ip, fw] = String(rest || '').split(':');
+        return { id: '', name: name || 'PandaVent', ip: ip || '', kind: 'vent', fw: fw === 'pandaventos' ? 'pandaventos' : 'factory' };
       });
       later(knobNum('PS_SCAN_MS', 120), async () => {
         // Each candidate is asked who it is, which is exactly what binding by hand does.
         for (const c of list) {
           try {
             const r = await fetch(`http://${c.ip}/bridge/id`);
-            if (r.ok) { const d = await r.json(); c.id = d.id || ''; c.name = d.name || c.name; c.kind = d.kind || 'vent'; }
+            if (r.ok) { const d = await r.json(); c.id = d.id || ''; c.name = d.name || c.name; c.kind = d.kind || 'vent'; c.fw = 'bridge'; }
           } catch (e) { /* a candidate that does not answer stays in the list without an id */ }
         }
-        BRIDGE.found = list;
+        BRIDGE.found = list.concat(stock);
         BRIDGE.scanning = false;
         log({ ev: 'bridge_scan', detail: `${list.length} found` });
       });
@@ -1009,6 +1027,11 @@ async function handleHttp(req, res) {
       if (!addr) return refuse('no address');
       BRIDGE.bound = { id: pick ? pick.id : (id || ''), name: pick ? pick.name : '', ip: addr };
       BRIDGE.token = null; BRIDGE.vent = null;
+      /* A vent the scan found on its stock socket has a web server and no bridge behind it
+         (the factory firmware, or a PandaVentOS from before its half): the device says so
+         with link 7 rather than dialling a socket that is not there. */
+      const stockHit = BRIDGE.found.find((c) => c.ip === addr && (c.fw === 'factory' || c.fw === 'pandaventos'));
+      if (stockHit) { bridgeDrop(BRIDGE_LINK.NO_BRIDGE); return answer(); }
       bridgeConnect();
       return answer();
     }
@@ -1110,7 +1133,7 @@ async function handleHttp(req, res) {
       return { layout: 'PS04', features: bits, wifi: { ssid: STATE.wifi.ssid }, ap: { ssid: STATE.ap.ssid, ip: STATE.ap.ip, on: STATE.ap.on }, hostname: STATE.sta.hostname,
                printer: { name: STATE.printer.name, sn: STATE.printer.sn, ip: STATE.printer.ip }, language: STATE.settings.language, mode: STATE.settings.current_mode, modes,
                blocks: (STATE.block.blocklist || []).map((b) => ({ id: b.blockID, colour: toH2D(b.blockrgba) })),
-               state_brightness: FEAT.config.state_brightness, state_effects: FEAT.config.state_effects, temp_gradient: FEAT.config.temp_gradient, hot_warning: FEAT.config.hot_warning, error_flash: FEAT.config.error_flash,
+               state_brightness: FEAT.config.state_brightness, state_effects: FEAT.config.state_effects, temp_gradient: FEAT.config.temp_gradient, hot_warning: FEAT.config.hot_warning, error_flash: FEAT.config.error_flash, temp_unit: FEAT.config.temp_unit,
                presets: PRESETS.presets, stages: STAGES.stages };
     };
     if (req.method === 'GET') { res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store', 'Content-Disposition': 'attachment; filename="pandastatusos-settings.json"' }); return res.end(JSON.stringify(exportDoc())); }
@@ -1121,7 +1144,7 @@ async function handleHttp(req, res) {
     try { j = JSON.parse(body.toString('utf8')); } catch (_) { rec.error = 'not json'; SENT.push(rec); log({ ev: 'api_refused', detail: 'not json' }); res.writeHead(400); return res.end('refused'); }
     rec.text = JSON.stringify({ api: '/api/config', body: j }); rec.frame = j; rec.roots = ['api'];
     const refuse = () => { rec.error = 'refused'; SENT.push(rec); log({ ev: 'api_refused', detail: 'config' }); res.writeHead(400); res.end('refused'); };
-    const TOP = ['layout', 'features', 'wifi', 'ap', 'hostname', 'printer', 'language', 'mode', 'modes', 'blocks', 'state_brightness', 'state_effects', 'temp_gradient', 'hot_warning', 'error_flash', 'presets', 'stages'];
+    const TOP = ['layout', 'features', 'wifi', 'ap', 'hostname', 'printer', 'language', 'mode', 'modes', 'blocks', 'state_brightness', 'state_effects', 'temp_gradient', 'hot_warning', 'error_flash', 'temp_unit', 'presets', 'stages'];
     const isObj = (o) => o && typeof o === 'object' && !Array.isArray(o);
     const str = (v, max) => v === undefined || (typeof v === 'string' && v.length <= max);
     const ipOk = (v) => v === undefined || v === '' || (typeof v === 'string' && /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/.test(v) && v.split('.').every((n) => Number(n) <= 255));
@@ -1139,7 +1162,7 @@ async function handleHttp(req, res) {
     // the feature settings and the switches go through the features route's own validation, on a copy
     const saved = JSON.parse(JSON.stringify(FEAT));
     const feats = {}; if (j.features !== undefined) FEATURE_NAMES.forEach((k, i) => { feats[k] = !!(j.features & featBit(i)); });
-    const cfg = {}; for (const k of ['state_brightness', 'state_effects', 'temp_gradient', 'hot_warning', 'error_flash']) if (j[k] !== undefined) cfg[k] = j[k];
+    const cfg = {}; for (const k of ['state_brightness', 'state_effects', 'temp_gradient', 'hot_warning', 'error_flash', 'temp_unit']) if (j[k] !== undefined) cfg[k] = j[k];
     const sub = {}; if (Object.keys(feats).length) sub.features = feats; if (Object.keys(cfg).length) sub.config = cfg;
     if (Object.keys(sub).length && !featApply(sub)) { FEAT = saved; return refuse(); }
     let presets = null, stages = null;

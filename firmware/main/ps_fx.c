@@ -175,6 +175,25 @@ bool ps_fx_draws_progress(int fx)
     return fx == PS_FX_PROGRESS || fx == PS_FX_PROGRESS_ANIM || fx == PS_FX_BARBER;
 }
 
+bool ps_fx_unlit_ok(int fx)
+{
+    return fx >= 0 && fx < PS_FX_COUNT && !ps_fx_draws_progress(fx);
+}
+
+/* The three progress draws light `progress_shown` percent of the run, eased, with the boundary
+ * pixel lit partially; everything from the first pixel they left dark is the unfilled part.
+ * A barber pole with no job fills the whole run, so it leaves nothing. */
+int ps_fx_progress_lit(const ps_fx_phase_t *p, int fx, int n)
+{
+    if (n < 0) n = 0;
+    float lit = p->progress_shown * (float)n / 100.0f;
+    if (fx == PS_FX_BARBER && lit < 0.5f) return n;
+    int c = (int)lit; if ((float)c < lit) c++;                /* ceil, without the header */
+    if (c < 0) c = 0;
+    if (c > n) c = n;
+    return c;
+}
+
 void ps_fx_progress_span(int percent, int n, bool reverse, int *off, int *len)
 {
     if (n < 0) n = 0;
@@ -281,10 +300,12 @@ void ps_fx_resolve_stage(const ps_cfg_t *c, uint8_t mode, uint8_t st, bool job_a
          * the whole bar is the effect, so the option can default to on (O2) without an idle
          * bar going dark. The three effects that draw the progress ignore it. */
         o->in_progress = (f->opt & PS_FX_OPT_IN_PROGRESS) && !ps_fx_draws_progress(o->fx) && job_active;
-        /* O1: the unfilled part runs an effect of its own then, one of the seventeen that
-         * need no live input, in the unlit colour. Solid is the plain fill the renderer
+        /* O1: the unfilled part runs an effect of its own then, and so does the part one of
+         * the three progress draws leaves dark: any effect that does not draw the progress,
+         * under its own switch, in the unlit colour. Solid is the plain fill the renderer
          * already does, so it is -1 here; so is anything the bits do not allow. */
-        if (o->in_progress && f->fx_unlit > PS_FX_STATIC && f->fx_unlit < PS_FX_SELECTABLE && ps_fx_allowed(feat, f->fx_unlit))
+        bool unfilled = o->in_progress || (ps_fx_draws_progress(o->fx) && job_active);
+        if (unfilled && f->fx_unlit > PS_FX_STATIC && ps_fx_unlit_ok(f->fx_unlit) && ps_fx_allowed(feat, f->fx_unlit))
             o->fx_unlit = f->fx_unlit;
     }
 }

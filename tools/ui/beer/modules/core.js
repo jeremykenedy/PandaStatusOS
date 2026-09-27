@@ -51,6 +51,13 @@
 
 var DASH = '—';           /* em dash — the "value never reported" mark */
 var DEG = '°C';
+var DEG_F = '°F';
+
+/* O6: the unit the page shows temperatures in. The device holds every temperature in °C and
+   the unit rides in the features document (config.temp_unit, "c" or "f"), so every browser
+   that opens this device sees the same choice. Nothing here converts what is sent to the
+   device except through deg_stored(). */
+var g_temp_unit = 'c';
 
 function byId(id) { return document.getElementById(id); }
 
@@ -121,7 +128,20 @@ function hexColour(c) {
 /* formatting -------------------------------------------------------- */
 
 function fmtPct(v) { return v + '%'; }
-function fmtTemp(v) { return v + ' ' + DEG; }
+function deg() { return g_temp_unit === 'f' ? DEG_F : DEG; }
+function deg_shown(c) { return g_temp_unit === 'f' ? Math.round(c * 9 / 5 + 32) : c; }
+function deg_stored(v) { return g_temp_unit === 'f' ? Math.round((v - 32) * 5 / 9) : v; }
+function fmtTemp(v) { return deg_shown(v) + ' ' + deg(); }
+
+/* Every /api/features document that arrives passes through here. A unit that differs from
+   the one on screen redraws the whole page, the way a language change does, so a reading
+   painted a minute ago is not left in the old unit beside one painted now. */
+function temp_unit_apply(doc) {
+  var u = doc && doc.config && doc.config.temp_unit;
+  if ((u !== 'c' && u !== 'f') || u === g_temp_unit) return;
+  g_temp_unit = u;
+  rerender_all();
+}
 
 function fmtRemain(min) {
   var h = Math.floor(min / 60);
@@ -269,7 +289,9 @@ var g_lang_hooks = window.g_lang_hooks || [];
 window.g_lang_hooks = g_lang_hooks;
 function on_language(fn) { g_lang_hooks.push(fn); }
 
-function rerender_for_language() {
+/* Redraw everything painted from JavaScript: the language and the temperature unit both
+   need it. The markup's own [data-str] words are apply_translations()'s job, not this. */
+function rerender_all() {
   if (g_have_first_state) {
     render_chrome();
     render_status();
@@ -280,6 +302,7 @@ function rerender_for_language() {
   }
   for (var i = 0; i < g_lang_hooks.length; i++) { try { g_lang_hooks[i](); } catch (e) {} }
 }
+function rerender_for_language() { rerender_all(); }
 
 function set_language(lang) {
   if (!lang || lang === g_language) return;

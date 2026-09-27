@@ -70,6 +70,35 @@ Manual entry is the fallback and works the same way the printer bind does: type 
 name or an address, and the device fetches `GET /bridge/id` from it, which answers the
 same fields as the TXT record.
 
+### The scan, as the device half does it — BUILT 2026-09-27
+
+A scan has to turn up the vents that exist today, not only the ones running a bridge, or
+the owner presses Scan on a network with two vents on it and reads "0 vents found". So
+`ps_bridge.c do_scan()` looks three times:
+
+1. **The bridge record.** A browse of `_pandabridge._tcp` for 3 s; every `kind=vent` is a
+   vent running a firmware with the bridge half, listed with its `id` and `fw` `bridge`.
+2. **Every web server on the network, and the factory's name.** A browse of `_http._tcp`
+   (PandaVentOS advertises one, instance = its hostname, port 80), plus a query for the
+   host name `PandaVent`, which is the factory firmware's default (`PandaVent.local`). Port
+   80 only, this unit's own address skipped, duplicates dropped, at most 8 candidates.
+3. **A sniff of each candidate's stock socket.** A 1.5 s TCP connect and an upgrade to `/ws`
+   (the stock vent socket, kept by PandaVentOS too) and up to 1.5 s of reading whatever the
+   vent pushes first. The stock document has a root only a vent has, `rgb_mode`; a
+   PandaVentOS adds `settings.os_name: "PandaVentOS"`. `rgb_mode` alone makes it `fw`
+   `factory`; with the name, `fw` `pandaventos`; a web server with neither is not a vent and
+   is not listed. The byte stream is scanned as it arrives, with the last 31 bytes kept
+   across reads so a key split by a read boundary is still seen, and no JSON is parsed: a
+   sniff is a question, not a parse of a document this firmware does not otherwise know.
+
+Each entry in `found` carries `fw` (`bridge`, `factory`, `pandaventos`, or `unknown`), and the
+page prints the factory firmware and PandaVentOS after the name, because binding either
+one gets `link` 7: a web server answered at the address and had no `/bridge` to upgrade to.
+The device says so rather than dialling a socket that is not there, and tries again after
+the unpaired wait (30 s), so a vent that is reflashed with the bridge half is picked up
+without a page visit. The mock is told what the firmware sniffs (`PS_VENTS_STOCK`), and
+`t-bridge.js` binds one to see the 7.
+
 ## Pairing
 
 Pairing is a one-time exchange that produces a shared token. Both devices show the

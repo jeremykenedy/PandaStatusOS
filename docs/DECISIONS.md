@@ -1683,4 +1683,82 @@ cap would then matter more than the change detection, and would want to be a set
 
 ---
 
+## D-058 The owner's list, second pass: the kept-inside default reaches every device, the unfilled part runs beside the progress draws, the scan finds vents without a bridge, and the page shows the unit the owner reads in
+
+**Date** 2026-09-27 · **Reversal** the flags byte and the unit byte are in the blob for good (padding turned into fields); everything else is a few lines each, with a harness or test row that fails without it
+
+The owner read the first pass of his list (O1, O2 in PARITY-WITH-THE-VENT.md) against the
+device and named what was not done. This entry is what changed, and one thing that could not.
+
+**O2, the default.** The kept-inside option (0x20) was on for a new device and for nobody
+else: a blob saved by any earlier firmware loaded with it off, and the owner's unit had such a
+blob. A default that only reaches fresh flash is not a default. The effect struct's padding
+byte is now `flags`, bit 0 meaning "this `opt` has been through a firmware that knows the
+option"; `fx_clamp()` turns the option on once for a blob without the bit and sets it, and a
+POST that carries `opt` sets it too, so an owner who turns it off stays off. The v3→v4
+migration leaves the bit clear so a migrated blob gets the same treatment. Eleven cfg_test
+rows, including the second load being identical to the first.
+
+**O1, the unfilled part.** Two faults. The list offered the progress bar and nothing else as
+the unfilled part's effect, because `fill_unlit_list` was written against the wrong
+predicate; and the effect ran only when the kept-inside option was on, which made it
+meaningless for the three effects that draw the progress themselves (17, 18, 19) and so hide
+the option. The owner's second word on it was that he wants it there too, and it is: the
+engine's `ps_fx_progress_lit()` says how many LEDs the eased fill has reached, and the unlit
+effect renders on the rest, for those three as for any effect kept inside. Any effect that
+does not itself draw the progress may be the unfilled part's (`ps_fx_unlit_ok()`), under its
+own bit; twenty-one in the list. `t-inprog.js` rows B5, D2b, D2c; fx_test rows for the lit
+count.
+
+**The scan.** `do_scan()` browsed `_pandabridge._tcp` and nothing else, so on a network with
+two vents, neither running the bridge half, it said "0 vents found", which the owner read as
+"does not work". It now also browses `_http._tcp`, asks for the factory's default host name
+(`PandaVent`), and sniffs each candidate's stock `/ws` socket for the root only a vent has
+(`rgb_mode`) and the name only PandaVentOS adds (`settings.os_name`). Found entries carry
+`fw`; binding a `factory` or `pandaventos` one is `link` 7, "this vent's firmware has no
+bridge to talk to yet", said outright rather than a socket that never comes up, and retried
+on the unpaired cadence so a reflash is picked up. The sniff parses nothing: it watches the
+byte stream for two keys, keeping a tail across reads. PANDAVENT-BRIDGE.md, "The scan".
+
+**O6, the unit.** A Celsius / Fahrenheit segment on the Settings card. It is kept on the
+device (`temp_unit`, the first byte of what was `_pad2`; `config.temp_unit` as `"c"`/`"f"`;
+in the settings file) rather than in the browser, because the owner said "the app", and an
+app with two browsers open should not read two units. The device holds and takes every
+temperature in °C; the page converts at its edge, `fmtTemp()` for every reading and the three
+degree fields on the Lighting page both ways, and a unit change redraws the whole page the way
+a language pick does (D-057's `rerender_all()`, which the language path now calls). The unit
+is taken only from a document fresh off the device, never from a module's cached copy: the
+first cut applied it in `render_features()`, which the language hook also calls with the last
+document that module saw, and a stale "c" there undid a fresh "f" from the Settings card.
+`t-units.js`, 27 rows.
+
+**Three smaller ones, from the same review.** The Device name save sent `settings.device_name`,
+the vent's key; this device has one name, the hostname, and the save now sends `sta.hostname`.
+The Bindings page's floating labels sat on the card dividers and the vent's empty field showed
+a large in-box label with no notch: `.card-divided` now spaces its labelled fields with margin
+rather than padding, and a field that is always floated carries `active` on the input as well as
+the label, because the notch is a clip-path on the input. The Settings page's spanner card sat
+5 px under the tallest column: a margin at a multicol column break is truncated, so the spanner
+carries a top margin of its own. And a pick from the vent list writes the address into the
+field, as the printer's picker does, because after an unbind the field still held the last vent
+and a pick that left it alone bound the old one again (found by the new `t-bridge.js` rows).
+
+**What could not be done.** O4, the printer's chamber humidity on the dashboard beside the
+AMS's: the P2S report has none. Re-verified against 46 captured messages and 336 distinct field
+paths: humidity appears only under `.print.ams.ams[].humidity` and `humidity_raw`; the chamber
+block carries a temperature and a state and nothing else. A number there would be one this
+project made up (the same reason the AMS humidity is drawn as the level it is).
+
+**Alternatives.** Applying the kept-inside default by bumping the blob version (would have
+re-defaulted every other field too). Keeping the unit in `localStorage` (per browser, against
+the ask). Parsing the stock vent's document in the sniff (a JSON parser for a document this
+firmware does not otherwise know, for two keys). Guessing a chamber humidity from the AMS's
+(no).
+
+**What would change it.** A vent firmware that answers `/bridge/id` on its stock port would
+make the sniff unnecessary for it; the scan already prefers the bridge record when there is
+one. A printer that reports a chamber humidity would put O4 back on the list.
+
+---
+
 *Entries continue below as the run proceeds.*

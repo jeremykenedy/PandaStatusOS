@@ -321,6 +321,23 @@ int main(void)
       c.features |= PS_FEAT_FX_PROGRESS; c.fx[1].effect = PS_FX_PROGRESS; c.fx[1].opt = PS_FX_OPT_IN_PROGRESS;
       ps_fx_resolve(&c, PS_MODE_H2D, PS_BAR_PRINTING, true, &k);
       t("the progress bar ignores it: it already draws only the progress", k.fx == PS_FX_PROGRESS && !k.in_progress, k.in_progress);
+      /* O1 again: the part a progress draw leaves dark runs the unfilled part's effect too */
+      c.fx[1].fx_unlit = PS_FX_RAINBOW; ps_fx_resolve(&c, PS_MODE_H2D, PS_BAR_PRINTING, true, &k);
+      t("beside the progress bar the unfilled part runs its own effect while a job is on", k.fx == PS_FX_PROGRESS && k.fx_unlit == PS_FX_RAINBOW, k.fx_unlit);
+      ps_fx_resolve(&c, PS_MODE_H2D, PS_BAR_PRINTING, false, &k);
+      t("and not without one", k.fx_unlit < 0, k.fx_unlit);
+      c.features |= PS_FEAT_FX_TEMP; c.fx[1].fx_unlit = PS_FX_TEMP_GRADIENT; ps_fx_resolve(&c, PS_MODE_H2D, PS_BAR_PRINTING, true, &k);
+      t("an effect that reads a live input may be the unfilled part's, under its own bit", k.fx_unlit == PS_FX_TEMP_GRADIENT, k.fx_unlit);
+      c.features &= ~PS_FEAT_FX_TEMP; ps_fx_resolve(&c, PS_MODE_H2D, PS_BAR_PRINTING, true, &k);
+      t("and not with that bit off", k.fx_unlit < 0, k.fx_unlit);
+      t("unlit_ok: every effect but the three progress draws", ps_fx_unlit_ok(PS_FX_TEMP_GRADIENT) && ps_fx_unlit_ok(PS_FX_PALETTE) && ps_fx_unlit_ok(PS_FX_PROGRESS_HUE)
+        && !ps_fx_unlit_ok(PS_FX_PROGRESS) && !ps_fx_unlit_ok(PS_FX_PROGRESS_ANIM) && !ps_fx_unlit_ok(PS_FX_BARBER) && !ps_fx_unlit_ok(PS_FX_COUNT) && !ps_fx_unlit_ok(-1), 0);
+      /* where the progress draw's own eased fill stops is where the unfilled part starts */
+      { ps_fx_phase_t ph; ps_fx_phase_init(&ph);
+        ph.progress_shown = 50.0f;  t("progress_lit: half of sixteen is eight", ps_fx_progress_lit(&ph, PS_FX_PROGRESS, 16) == 8, ps_fx_progress_lit(&ph, PS_FX_PROGRESS, 16));
+        ph.progress_shown = 33.3f;  t("progress_lit: a part-lit boundary pixel counts as lit (5.33 -> 6)", ps_fx_progress_lit(&ph, PS_FX_PROGRESS_ANIM, 16) == 6, ps_fx_progress_lit(&ph, PS_FX_PROGRESS_ANIM, 16));
+        ph.progress_shown = 0.0f;   t("progress_lit: a pole with no job fills the run and leaves nothing", ps_fx_progress_lit(&ph, PS_FX_BARBER, 16) == 16 && ps_fx_progress_lit(&ph, PS_FX_PROGRESS, 16) == 0, ps_fx_progress_lit(&ph, PS_FX_BARBER, 16));
+        ph.progress_shown = 100.0f; t("progress_lit: a full bar leaves nothing either", ps_fx_progress_lit(&ph, PS_FX_PROGRESS, 16) == 16, 0); }
 
       /* every effect writes only the pixels it is handed, so a span that grows or shrinks
        * between frames never reaches past it: render into the middle of a guarded buffer */

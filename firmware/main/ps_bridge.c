@@ -67,9 +67,14 @@ static const char *TAG = "ps_bridge";
 #define BR_FOUND_MAX        8
 #define BR_QUEUE            8
 
-enum { LINK_UNBOUND = 0, LINK_CONNECTING = 2, LINK_CONNECTED = 3, LINK_IP_ERR = 4, LINK_ID_ERR = 5, LINK_UNPAIRED = 6 };
+enum { LINK_UNBOUND = 0, LINK_CONNECTING = 2, LINK_CONNECTED = 3, LINK_IP_ERR = 4, LINK_ID_ERR = 5, LINK_UNPAIRED = 6, LINK_NO_BRIDGE = 7 };
 
-typedef struct { char id[17]; char name[33]; char ip[16]; } found_t;
+/* What a found vent runs, as far as the scan can tell (docs/PANDAVENT-BRIDGE.md, "The scan"). */
+enum { VENT_FW_UNKNOWN = 0, VENT_FW_BRIDGE, VENT_FW_PANDAVENTOS, VENT_FW_FACTORY };
+static const char *const VENT_FW_NAMES[] = { "unknown", "bridge", "pandaventos", "factory" };
+typedef struct { char id[17]; char name[33]; char ip[16]; uint8_t fw; } found_t;
+#define BR_SNIFF_MS         1500     /* how long the scan listens to a candidate's stock socket */
+#define BR_SNIFF_CONNECT_MS 1500
 
 enum { REQ_POKE = 1, REQ_SCAN, REQ_CONNECT, REQ_DROP, REQ_PAIR_CONFIRM, REQ_PAIR_CANCEL, REQ_ASK_LIGHT, REQ_ASK_FX };
 typedef struct { uint8_t kind; uint8_t arg; } req_t;
@@ -283,7 +288,7 @@ static bool resolve(uint32_t *out)
 
 /* ---- opening the socket ---------------------------------------------------------------- */
 
-static int tcp_connect(uint32_t addr)
+static int tcp_connect(uint32_t addr, uint32_t connect_ms)
 {
     int fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (fd < 0) return -1;
@@ -294,7 +299,7 @@ static int tcp_connect(uint32_t addr)
     int rc = connect(fd, (struct sockaddr *)&sa, sizeof sa);
     if (rc < 0 && errno != EINPROGRESS) { close(fd); return -1; }
     fd_set wf; FD_ZERO(&wf); FD_SET(fd, &wf);
-    struct timeval tv = { .tv_sec = BR_CONNECT_MS / 1000, .tv_usec = 0 };
+    struct timeval tv = { .tv_sec = connect_ms / 1000, .tv_usec = (connect_ms % 1000) * 1000 };
     if (select(fd + 1, NULL, &wf, NULL, &tv) <= 0) { close(fd); return -1; }
     int err = 0; socklen_t l = sizeof err;
     if (getsockopt(fd, SOL_SOCKET, SO_ERROR, &err, &l) < 0 || err) { close(fd); return -1; }
@@ -306,54 +311,70 @@ static int tcp_connect(uint32_t addr)
     return fd;
 }
 
-/* RFC 6455 section 4: the upgrade request, and the one header that proves the other end
- * read our key rather than answering 101 to anything. Bytes past the head are frame data
- * and stay in the buffer. */
-static bool ws_handshake(const char *ipstr)
+static bool send_all(int fd, const uint8_t *p, size_t n)
+{
+    while (n) {
+        int w = send(fd, p, n, 0);
+        if (w <= 0) return false;
+        p += w; n -= (size_t)w;
+    }
+    return true;
+}
+
+/* RFC 6455 section 4 on any socket: the upgrade request for `path`, and the one header that
+ * proves the other end read our key rather than answering 101 to anything. Bytes past the
+ * head are frame data and stay in buf, *have of them. 1 when the socket is upgraded, 0 when
+ * nothing usable came back, -1 when a web server answered and it was not an upgrade: that is
+ * a device without this socket, which for the bridge's own path is a vent whose firmware has
+ * no bridge yet, and the page is told so rather than "IP error". */
+static int ws_upgrade(int fd, const char *path, const char *ipstr, uint8_t *buf, size_t cap, size_t *have)
 {
     uint8_t raw[16]; esp_fill_random(raw, sizeof raw);
     unsigned char key[32]; size_t klen = 0;
-    if (mbedtls_base64_encode(key, sizeof key, &klen, raw, sizeof raw) != 0) return false;
+    if (mbedtls_base64_encode(key, sizeof key, &klen, raw, sizeof raw) != 0) return 0;
     key[klen] = 0;
     char req[256];
     int n = snprintf(req, sizeof req,
-                     "GET /bridge HTTP/1.1\r\nHost: %s\r\nUpgrade: websocket\r\nConnection: Upgrade\r\n"
-                     "Sec-WebSocket-Key: %s\r\nSec-WebSocket-Version: 13\r\n\r\n", ipstr, (char *)key);
-    if (n <= 0 || n >= (int)sizeof req || !send_raw((const uint8_t *)req, (size_t)n)) return false;
+                     "GET %s HTTP/1.1\r\nHost: %s\r\nUpgrade: websocket\r\nConnection: Upgrade\r\n"
+                     "Sec-WebSocket-Key: %s\r\nSec-WebSocket-Version: 13\r\n\r\n", path, ipstr, (char *)key);
+    if (n <= 0 || n >= (int)sizeof req || !send_all(fd, (const uint8_t *)req, (size_t)n)) return 0;
 
     char cat[80]; snprintf(cat, sizeof cat, "%s258EAFA5-E914-47DA-95CA-C5AB0DC85B11", (char *)key);
     unsigned char sha[20];
-    if (mbedtls_sha1((const unsigned char *)cat, strlen(cat), sha) != 0) return false;
+    if (mbedtls_sha1((const unsigned char *)cat, strlen(cat), sha) != 0) return 0;
     unsigned char want[32]; size_t wlen = 0;
-    if (mbedtls_base64_encode(want, sizeof want, &wlen, sha, sizeof sha) != 0) return false;
+    if (mbedtls_base64_encode(want, sizeof want, &wlen, sha, sizeof sha) != 0) return 0;
     want[wlen] = 0;
 
-    s_have = 0;
+    *have = 0;
     char *end = NULL;
     int64_t deadline = now_us() + (int64_t)BR_HANDSHAKE_MS * 1000;
     while (!end) {
-        if (now_us() > deadline || s_have >= sizeof s_rx - 1) return false;
-        int got = recv(s_sock, s_rx + s_have, sizeof s_rx - 1 - s_have, 0);
-        if (got <= 0) return false;
-        s_have += (size_t)got;
-        s_rx[s_have] = 0;
-        end = strstr((char *)s_rx, "\r\n\r\n");
+        if (now_us() > deadline || *have >= cap - 1) return 0;
+        int got = recv(fd, buf + *have, cap - 1 - *have, 0);
+        if (got <= 0) return 0;
+        *have += (size_t)got;
+        buf[*have] = 0;
+        end = strstr((char *)buf, "\r\n\r\n");
     }
-    if (strncmp((char *)s_rx, "HTTP/1.1 101", 12) != 0) return false;
+    if (strncmp((char *)buf, "HTTP/1.", 7) != 0) return 0;
+    if (strncmp((char *)buf, "HTTP/1.1 101", 12) != 0) return -1;
     bool accepted = false;
-    for (char *line = strstr((char *)s_rx, "\r\n"); line && line < end; line = strstr(line + 2, "\r\n")) {
+    for (char *line = strstr((char *)buf, "\r\n"); line && line < end; line = strstr(line + 2, "\r\n")) {
         char *h = line + 2;
         if (strncasecmp(h, "Sec-WebSocket-Accept:", 21) != 0) continue;
         h += 21; while (*h == ' ' || *h == '\t') h++;
         accepted = strncmp(h, (char *)want, wlen) == 0;
         break;
     }
-    if (!accepted) return false;
-    size_t head = (size_t)((end + 4) - (char *)s_rx);
-    memmove(s_rx, s_rx + head, s_have - head);
-    s_have -= head;
-    return true;
+    if (!accepted) return 0;
+    size_t head = (size_t)((end + 4) - (char *)buf);
+    memmove(buf, buf + head, *have - head);
+    *have -= head;
+    return 1;
 }
+
+static int ws_handshake(const char *ipstr) { return ws_upgrade(s_sock, "/bridge", ipstr, s_rx, sizeof s_rx, &s_have); }
 
 static void connect_once(void)
 {
@@ -366,7 +387,7 @@ static void connect_once(void)
         return;
     }
     char ipstr[16]; inet_ntop(AF_INET, &addr, ipstr, sizeof ipstr);
-    int fd = tcp_connect(addr);
+    int fd = tcp_connect(addr, BR_CONNECT_MS);
     if (fd < 0) {
         ESP_LOGW(TAG, "no answer at %s", ipstr);
         lock(); s.link = LINK_IP_ERR; unlock();
@@ -374,8 +395,17 @@ static void connect_once(void)
         return;
     }
     s_sock = fd;
-    if (!ws_handshake(ipstr)) {
-        ESP_LOGW(TAG, "%s does not serve a bridge", ipstr);
+    int up = ws_handshake(ipstr);
+    if (up < 0) {
+        /* A web server, and no bridge behind it: the factory vent, or a PandaVentOS from
+         * before its half of the bridge. Said as what it is, and tried again on the slow
+         * clock rather than the backoff, since it is not going to change in a minute. */
+        ESP_LOGW(TAG, "%s answers but has no bridge to talk to", ipstr);
+        sock_drop(LINK_NO_BRIDGE); wait_unpaired();
+        return;
+    }
+    if (up == 0) {
+        ESP_LOGW(TAG, "%s did not upgrade the socket", ipstr);
         sock_drop(LINK_IP_ERR);
         schedule_retry();
         return;
@@ -597,11 +627,66 @@ static void pump(void)
 
 /* ---- the page's requests, on the task ---------------------------------------------------- */
 
-/* The scan: whoever advertises the service and calls itself a vent. Another status device is
- * not offered, and neither is this one. */
+/* ---- the scan --------------------------------------------------------------------------- */
+
+/* Open a candidate's STOCK socket at /ws and read what it says for a moment. Both the factory
+ * vent and PandaVentOS answer a new socket with their whole document, unprompted, and that
+ * document carries a root only a vent has (`rgb_mode`, with the vent's own switches in it)
+ * and, when the firmware is ours, `"os_name":"PandaVentOS"`. The bytes are searched as they
+ * arrive, across frame boundaries, so a document too long for any buffer here still answers.
+ * A status device (this one, or its twin) answers with a document that has neither, and is
+ * dropped; so is anything that does not upgrade the socket. Returns a VENT_FW_*, or 0. */
+static int sniff_vent(uint32_t addr, const char *ipstr)
+{
+    int fd = tcp_connect(addr, BR_SNIFF_CONNECT_MS);
+    if (fd < 0) return 0;
+    uint8_t buf[512]; size_t have = 0;
+    int up = ws_upgrade(fd, "/ws", ipstr, buf, sizeof buf, &have);
+    int fw = 0;
+    if (up == 1) {
+        static const char VENT_MARK[] = "\"rgb_mode\"", OS_MARK[] = "\"os_name\":\"PandaVentOS\"";
+        const size_t KEEP = 31;                                    /* longer than either mark */
+        struct timeval to = { .tv_sec = 0, .tv_usec = 250000 };
+        setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &to, sizeof to);
+        int64_t deadline = now_us() + (int64_t)BR_SNIFF_MS * 1000;
+        bool vent = false;
+        while (now_us() < deadline && fw == 0) {
+            if (have > KEEP) { memmove(buf, buf + have - KEEP, KEEP); have = KEEP; }
+            int got = recv(fd, buf + have, sizeof buf - 1 - have, 0);
+            if (got == 0) break;
+            if (got < 0) continue;                                 /* a quiet quarter second */
+            have += (size_t)got;
+            buf[have] = 0;
+            /* memmem by hand: the payload is text, but a frame header in it is not */
+            for (size_t i = 0; i + sizeof OS_MARK - 1 <= have; i++) if (!memcmp(buf + i, OS_MARK, sizeof OS_MARK - 1)) { fw = VENT_FW_PANDAVENTOS; break; }
+            if (!vent) for (size_t i = 0; i + sizeof VENT_MARK - 1 <= have; i++) if (!memcmp(buf + i, VENT_MARK, sizeof VENT_MARK - 1)) { vent = true; break; }
+        }
+        if (fw == 0 && vent) fw = VENT_FW_FACTORY;
+    }
+    close(fd);
+    return fw;
+}
+
+static bool found_has(const found_t *list, int n, const char *ip)
+{
+    for (int i = 0; i < n; i++) if (!strcmp(list[i].ip, ip)) return true;
+    return false;
+}
+
+/* The scan. The bridge's own record is the honest answer, and today nothing on the network
+ * carries it: the factory vent never will and PandaVentOS not until step 4. So after that
+ * browse the scan also browses `_http._tcp`, asks for the factory's default name, and looks
+ * at what each candidate serves on its stock socket (sniff_vent). This device's own address
+ * is skipped; anything that is not a vent is dropped. The list fills as it goes, so the page
+ * shows the first vent found while the rest are still being asked. */
 static void do_scan(void)
 {
     found_t list[BR_FOUND_MAX]; int n = 0;
+    memset(list, 0, sizeof list);
+    char mine[16]; ps_lock(); snprintf(mine, sizeof mine, "%s", g_ps.sta_ip); ps_unlock();
+    lock(); s.nfound = 0; unlock();
+
+    /* 1. the bridge's own record */
     mdns_result_t *r = NULL;
     if (mdns_query_ptr(BR_SERVICE, BR_PROTO, BR_SCAN_MS, BR_FOUND_MAX, &r) == ESP_OK) {
         for (const mdns_result_t *it = r; it && n < BR_FOUND_MAX; it = it->next) {
@@ -609,18 +694,61 @@ static void do_scan(void)
             if (!kind || strcmp(kind, "vent") != 0) continue;
             uint32_t a;
             if (!first_v4(it, &a)) continue;
-            memset(&list[n], 0, sizeof list[n]);
             snprintf(list[n].id, sizeof list[n].id, "%s", id ? id : "");
             snprintf(list[n].name, sizeof list[n].name, "%s", (name && name[0]) ? name : (it->instance_name ? it->instance_name : "vent"));
             inet_ntop(AF_INET, &a, list[n].ip, sizeof list[n].ip);
+            list[n].fw = VENT_FW_BRIDGE;
             n++;
         }
-        mdns_query_results_free(r);
+        mdns_query_results_free(r); r = NULL;
+    }
+    lock(); memcpy(s.found, list, sizeof list); s.nfound = n; unlock();
+
+    /* 2. everything that serves a web page, and the factory's default name */
+    found_t cand[BR_FOUND_MAX]; int nc = 0;
+    memset(cand, 0, sizeof cand);
+    if (mdns_query_ptr("_http", "_tcp", BR_SCAN_MS, 16, &r) == ESP_OK) {
+        for (const mdns_result_t *it = r; it && nc < BR_FOUND_MAX; it = it->next) {
+            uint32_t a;
+            if (it->port != BR_PORT || !first_v4(it, &a)) continue;
+            char ip[16]; inet_ntop(AF_INET, &a, ip, sizeof ip);
+            if (!strcmp(ip, mine) || found_has(list, n, ip) || found_has(cand, nc, ip)) continue;
+            const char *nm = it->instance_name && it->instance_name[0] ? it->instance_name : (it->hostname ? it->hostname : "");
+            snprintf(cand[nc].name, sizeof cand[nc].name, "%s", nm);
+            snprintf(cand[nc].ip, sizeof cand[nc].ip, "%s", ip);
+            nc++;
+        }
+        mdns_query_results_free(r); r = NULL;
+    }
+    {
+        esp_ip4_addr_t a4;
+        if (nc < BR_FOUND_MAX && mdns_query_a("PandaVent", 1000, &a4) == ESP_OK && a4.addr) {
+            char ip[16]; inet_ntop(AF_INET, &a4.addr, ip, sizeof ip);
+            if (strcmp(ip, mine) && !found_has(list, n, ip) && !found_has(cand, nc, ip)) {
+                snprintf(cand[nc].name, sizeof cand[nc].name, "PandaVent");
+                snprintf(cand[nc].ip, sizeof cand[nc].ip, "%s", ip);
+                nc++;
+            }
+        }
+    }
+
+    /* 3. ask each candidate what it is */
+    for (int i = 0; i < nc && n < BR_FOUND_MAX; i++) {
+        uint32_t a = 0; ip4_addr_t lit;
+        if (!ip4addr_aton(cand[i].ip, &lit)) continue;
+        a = lit.addr;
+        int fw = sniff_vent(a, cand[i].ip);
+        if (fw == 0) continue;
+        list[n] = cand[i]; list[n].fw = (uint8_t)fw;
+        if (!list[n].name[0]) snprintf(list[n].name, sizeof list[n].name, "PandaVent");
+        n++;
+        lock(); memcpy(s.found, list, sizeof list); s.nfound = n; unlock();
+        ESP_LOGI(TAG, "scan: %s at %s runs %s", list[n - 1].name, list[n - 1].ip, VENT_FW_NAMES[fw]);
     }
     lock();
     memcpy(s.found, list, sizeof list); s.nfound = n; s.scanning = false;
     unlock();
-    ESP_LOGI(TAG, "scan: %d vent%s found", n, n == 1 ? "" : "s");
+    ESP_LOGI(TAG, "scan: %d vent%s found (%d candidate%s asked)", n, n == 1 ? "" : "s", nc, nc == 1 ? "" : "s");
 }
 
 static void refuse_ask(void)
@@ -800,6 +928,7 @@ static char *doc_json(void)
         cJSON_AddStringToObject(f, "name", s.found[i].name);
         cJSON_AddStringToObject(f, "ip", s.found[i].ip);
         cJSON_AddStringToObject(f, "kind", "vent");
+        cJSON_AddStringToObject(f, "fw", VENT_FW_NAMES[s.found[i].fw < 4 ? s.found[i].fw : 0]);
         cJSON_AddItemToArray(found, f);
     }
     cJSON_AddBoolToObject(d, "scanning", s.scanning);

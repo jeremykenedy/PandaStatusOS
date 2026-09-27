@@ -30,21 +30,24 @@
     </div>
     <!-- Which printer it is, as the printer itself announces it on the network (O3). Shown
          once the device has heard the bound printer announce a model; nothing before. -->
-    <div class="small-text" id="ps-printer-model" hidden></div>
+    <div class="small-text field-note" id="ps-printer-model" hidden></div>
 
+    <!-- `active` on both the input and its label: the label floats whether the field is
+         filled or empty (Beer cuts the notch out of the input's outline on input.active), so
+         the printer's filled fields and the vent's empty one read the same way side by side. -->
     <div class="field label border">
-      <input type="text" id="ps-printer-sn" maxlength="15" value="" placeholder=" ">
-      <label for="ps-printer-sn" data-str="ui_serial_number">Serial number</label>
+      <input class="active" type="text" id="ps-printer-sn" maxlength="15" value="" placeholder=" ">
+      <label class="active" for="ps-printer-sn" data-str="ui_serial_number">Serial number</label>
     </div>
 
     <div class="field label border">
-      <input type="text" id="ps-printer-access-code" maxlength="8" value="" placeholder=" ">
-      <label for="ps-printer-access-code" data-str="printer_access_code">Access code</label>
+      <input class="active" type="text" id="ps-printer-access-code" maxlength="8" value="" placeholder=" ">
+      <label class="active" for="ps-printer-access-code" data-str="printer_access_code">Access code</label>
     </div>
 
     <div class="field label border">
-      <input type="text" id="ps-printer-ip" maxlength="15" value="" placeholder=" ">
-      <label for="ps-printer-ip" data-str="ui_ip_address">IP address</label>
+      <input class="active" type="text" id="ps-printer-ip" maxlength="15" value="" placeholder=" ">
+      <label class="active" for="ps-printer-ip" data-str="ui_ip_address">IP address</label>
     </div>
 
     <button class="border responsive" id="ps-btn-printer-bind">
@@ -83,8 +86,8 @@
     </div>
 
     <div class="field label border">
-      <input type="text" id="ps-vent-ip" maxlength="21" value="" placeholder=" ">
-      <label for="ps-vent-ip" data-str="ui_ip_address">IP address</label>
+      <input class="active" type="text" id="ps-vent-ip" maxlength="21" value="" placeholder=" ">
+      <label class="active" for="ps-vent-ip" data-str="ui_ip_address">IP address</label>
     </div>
 
     <button class="border responsive" id="ps-btn-vent-bind">

@@ -59,6 +59,12 @@ threshold in degrees Celsius (0 to 500) and the colour as `#RRGGBBAA`; any subse
 `config.error_flash` is `{colour, brightness, speed}`: the colour as `#RRGGBBAA`, the
 brightness 0 to 100, and the rate 0 to 100 on the engine's speed scale (the half period
 runs from 500 ms at 0 to 16 ms at 100); any subset overlays.
+`config.temp_unit` is `"c"` or `"f"` (O6): the unit the page shows every temperature in,
+kept on the device so every browser that opens it sees the same choice. It is a display
+setting and nothing else: the device holds and takes every temperature above in degrees
+Celsius whatever it says, and the page converts at its edge (the dashboard's readings, the
+three degree fields on the Lighting page and what is typed into them). Any other string
+is refused. It belongs to no switch, like the document's `build`.
 
 The live preview (A13) has its own route, because a pin is not a setting:
 

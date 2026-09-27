@@ -71,6 +71,12 @@ async function open(page) {
     t('C1 the scan turns up the vent on this network', !!found, found);
     t('C2 named as the vent names itself, with its address beside it',
       !!found && /pandaventos/.test(found[1].t) && found[1].v.includes('8299'), found && found[1]);
+    /* PS_VENTS_STOCK names a vent the scan finds on its stock socket, the way the firmware
+       sniffs a factory vent or a PandaVentOS from before its half of the bridge. */
+    const stock = found && found.find((o) => /192\.0\.2\.77/.test(o.v));
+    t('C3 a vent running the factory firmware is in the list too, and says so',
+      !!stock && /PandaVent · 192\.0\.2\.77 · factory firmware/.test(stock.t), stock);
+    t('C4 while the one with a bridge carries no such suffix', !!found && !/firmware/.test(found[1].t), found && found[1].t);
 
     // ---- D: binding, and the six digits ----
     await page.selectOption('#ps-vent-name', found[1].v);
@@ -169,6 +175,17 @@ async function open(page) {
     t('H4 and the dashboard stops carrying a card about a vent that is no longer bound',
       await until(async () => await hidden(page, 'ps-card-vent-status'), 5000));
     await page.evaluate(() => show_card('printer'));
+
+    // ---- H5: binding the factory vent: a web server answers, no bridge does ----
+    await page.selectOption('#ps-vent-name', '192.0.2.77');
+    await page.click('#ps-btn-vent-bind');
+    t('H5 binding a vent with no bridge half is link 7, not a socket that never comes up',
+      await until(async () => (await doc()).link === 7, 4000), (await doc()).link);
+    t('H6 and the page says what that means',
+      await until(async () => (await text(page, 'ps-vent-link')) === "This vent's firmware has no bridge to talk to yet", 3000), await text(page, 'ps-vent-link'));
+    t('H7 nothing to copy from a vent that is not talking', await hidden(page, 'ps-vent-copy'));
+    await page.click('#ps-btn-vent-bind');
+    t('H8 letting go works the same from there', await until(async () => (await doc()).link === 0, 4000));
 
     // ---- I: the switch off again ----
     await post(BASE, '/api/features', { features: { bridge: false } });

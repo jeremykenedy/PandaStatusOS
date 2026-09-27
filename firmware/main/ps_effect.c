@@ -116,12 +116,21 @@ static uint32_t render(void)
             wait = ps_fx_render(k.fx, k.colour, k.bg, b, k.speed, k.reverse, k.band, &in, &s_phase, s_frame + off, len);
         /* O1: the rest of the bar runs its own effect, in the unlit colour over black, at the
          * same brightness, speed and direction, with a phase of its own. Solid is the fill
-         * above, so nothing is drawn twice. The frame waits for whichever effect is sooner. */
-        if (k.in_progress && k.fx_unlit >= 0 && len < CONFIG_PS_LED_COUNT) {
-            int uoff = k.reverse ? 0 : len, ulen = CONFIG_PS_LED_COUNT - len;
-            uint32_t w2 = ps_fx_render(k.fx_unlit, k.bg, (ps_rgba_t){ 0, 0, 0, 0xFF }, b, k.speed, k.reverse, k.band, &in,
-                                       &s_phase_unlit, s_frame + uoff, ulen);
-            if (w2 < wait) wait = w2;
+         * above, so nothing is drawn twice. The frame waits for whichever effect is sooner.
+         * Beside a progress draw the rest starts where that draw's own eased fill stops, so
+         * the two never overlap and never leave a pixel between them. */
+        if (k.fx_unlit >= 0) {
+            int lit = k.in_progress ? len : ps_fx_draws_progress(k.fx) ? ps_fx_progress_lit(&s_phase, k.fx, CONFIG_PS_LED_COUNT) : CONFIG_PS_LED_COUNT;
+            int uoff = k.reverse ? 0 : lit, ulen = CONFIG_PS_LED_COUNT - lit;
+            if (ulen > 0) {
+                uint32_t w2;
+                if (k.fx_unlit == PS_FX_PALETTE || k.fx_unlit == PS_FX_PALETTE_SCROLL)
+                    w2 = ps_fx_render_palette(k.fx_unlit, k.stops, k.nstops, b, k.speed, k.reverse, &s_phase_unlit, s_frame + uoff, ulen);
+                else
+                    w2 = ps_fx_render(k.fx_unlit, k.bg, (ps_rgba_t){ 0, 0, 0, 0xFF }, b, k.speed, k.reverse, k.band, &in,
+                                      &s_phase_unlit, s_frame + uoff, ulen);
+                if (w2 < wait) wait = w2;
+            }
         }
     }
 

@@ -39,6 +39,7 @@
         /* Render what came back, never what was clicked. The route applies a
            document whole or refuses it whole, and a switch that shows the
            click rather than the answer lies whenever the answer is no. */
+        if (window.temp_unit_apply) temp_unit_apply(doc);
         render_features(doc);
         if (window.render_effects && window.refresh_features) window.refresh_features();
       } else {
@@ -121,7 +122,15 @@
     x.timeout = 5000;
     x.onload = function () {
       if (x.status !== 200) return;
-      try { render_features(JSON.parse(x.responseText)); } catch (e) {}
+      var doc = null;
+      try { doc = JSON.parse(x.responseText); } catch (e) {}
+      if (!doc) return;
+      /* O6: the unit is read here, from a document fresh off the device, and not in
+         render_features(): that one is also called from the language hook with the last
+         document this module saw, which may be older than what another module has since
+         been told, and an old unit must not win over a new one. */
+      if (window.temp_unit_apply) temp_unit_apply(doc);
+      render_features(doc);
     };
     /* A device that does not answer this route is a device without the clone's
        own surface. Nothing to report: the card simply stays empty. */

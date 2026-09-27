@@ -105,6 +105,10 @@ bool ps_fx_allowed(uint32_t features, int fx);   /* may this effect be chosen un
  * backwards; percent is clamped to 0..100 and a missing one (negative) fills nothing. */
 bool ps_fx_draws_progress(int fx);
 void ps_fx_progress_span(int percent, int n, bool reverse, int *off, int *len);
+/* O1: may this effect run on the unfilled part? Anything that does not draw the progress,
+ * under its own switch; a second progress bar on the part the progress has not reached is
+ * not a thing. */
+bool ps_fx_unlit_ok(int fx);
 void ps_fx_fill(ps_rgba_t *px, int n, ps_rgba_t colour, uint8_t bright100);   /* one colour, scaled */
 /* A11: a layer over whatever the base rendered, pure in time: one colour pulsing in and out
  * on a fixed period, at its own brightness. At the trough the base shows untouched; at the
@@ -126,6 +130,12 @@ bool ps_fx_layer_strobe(ps_rgba_t *px, int n, ps_rgba_t colour, uint8_t bright10
 #define PS_FX_OPT_REVERSE      0x10   /* this effect runs the other way round */
 #define PS_FX_OPT_IN_PROGRESS  0x20   /* this effect runs inside the printed part of the bar only (A4) */
 #define PS_FX_OPT_ALL          0x3F   /* every opt bit this build knows; anything above is refused */
+/* flags: what has been decided about this entry, as opposed to what it is set to. A blob
+ * written before the kept-inside option existed carries opt without 0x20 and no way to tell
+ * "turned off" from "never offered"; the flag is the way. It is set when the option's default
+ * is applied on load and whenever the page writes opt, so the default lands once (O2) and a
+ * choice to turn it off is kept. */
+#define PS_FX_FLAG_INPROG_SET  0x01
 typedef struct {
     uint8_t   effect;                  /* enum ps_fx */
     uint8_t   brightness;              /* 0..100 */
@@ -133,10 +143,10 @@ typedef struct {
     uint8_t   bright_end;              /* 0..100, the ramp's end */
     uint8_t   opt;                     /* PS_FX_OPT_* */
     uint8_t   aux;
-    uint8_t   fx_unlit;                /* O1: the effect on the part the print has not filled, while kept inside the
-                                          progress; one of the seventeen that need no live input, in the unlit colour.
-                                          Was padding, so every stored blob reads 0, which is solid. */
-    uint8_t   _pad;
+    uint8_t   fx_unlit;                /* O1: the effect on the part the print has not filled, while this one is kept
+                                          inside the progress or draws it; any effect that does not draw the progress,
+                                          in the unlit colour. Was padding, so every stored blob reads 0, which is solid. */
+    uint8_t   flags;                   /* PS_FX_FLAG_*; was padding, so every stored blob reads 0 */
     ps_rgba_t colour[4];               /* active printing, active not printing, inactive printing, inactive not printing */
 } ps_fx_cfg_t;                         /* 24 bytes */
 
@@ -155,6 +165,9 @@ typedef struct {
 
 uint32_t ps_fx_period(uint8_t speed);                              /* ms per frame for this speed */
 void     ps_fx_phase_init(ps_fx_phase_t *p);
+/* How many pixels one of the three progress effects has lit this frame, from its own eased
+ * fill, so the unfilled part's effect starts where the fill stops rather than a pixel off. */
+int      ps_fx_progress_lit(const ps_fx_phase_t *p, int fx, int n);
 /* A14: the palette effects: the stops laid across the strip piecewise-linear (PS_FX_PALETTE), or
  * wrapped round and scrolling (PS_FX_PALETTE_SCROLL); one stop is a solid, none is dark */
 uint32_t ps_fx_render_palette(int fx, const ps_rgba_t *stops, int nstops, uint8_t bright100, uint8_t speed, bool reverse,
@@ -230,8 +243,12 @@ typedef struct {
     ps_rgba_t err_colour;              /* A12: the error flash's colour */
     uint8_t   err_brightness;          /* A12: 0..100 */
     uint8_t   err_speed;               /* A12: the strobe rate as the engine's speed, 0..100 */
-    uint8_t   _pad2[2];
+    uint8_t   temp_unit;               /* O6: what the page shows temperatures in, PS_UNIT_*; the device itself only ever
+                                          holds degrees C. Was padding, so every stored blob reads 0, which is Celsius. */
+    uint8_t   _pad2;
 } ps_cfg_t;
+#define PS_UNIT_C 0
+#define PS_UNIT_F 1
 
 /* the whole blob and its NVS budget; both pinned in ps_cfg.c and in the host test */
 #define PS_CFG_SIZE      592
@@ -313,7 +330,8 @@ typedef struct { int fx; ps_rgba_t colour, bg; uint8_t brightness, speed; bool r
                  bool in_progress; int fx_unlit; } ps_fx_pick_t;
                  /* stops: the palette effects' colours, in order (A14); in_progress: draw inside the
                     printed part only, which is only ever so while a job is on (A4); fx_unlit: the
-                    effect on the rest of the bar then, in the unlit colour, -1 for the plain fill (O1) */
+                    effect on the unfilled part then, or beside one of the three progress draws while
+                    a job is on, in the unlit colour, -1 for the plain fill (O1) */
 void ps_fx_resolve(const ps_cfg_t *c, uint8_t mode, uint8_t st, bool job_active, ps_fx_pick_t *out);
 /* the same with a per-stage row (B1, B2): a set row replaces the state's entry while bit 15 is on;
  * NULL or an unset row inherits the state's, which is what the plain resolve does */

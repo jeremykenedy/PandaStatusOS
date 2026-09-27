@@ -87,6 +87,7 @@ int main(void)
     t("  each state's effect is kept inside the progress by default, and its unfilled part solid (O1, O2)",
       c.fx[0].opt == PS_FX_OPT_IN_PROGRESS && c.fx[1].opt == PS_FX_OPT_IN_PROGRESS && c.fx[2].opt == PS_FX_OPT_IN_PROGRESS
       && c.fx[0].fx_unlit == PS_FX_STATIC && c.fx[2].fx_unlit == PS_FX_STATIC, c.fx[1].opt);
+    t("  temperatures are shown in Celsius (O6)", c.temp_unit == PS_UNIT_C, c.temp_unit);
     t("  every nvs handle closed", opened == 0, opened);
 
     /* 2. defaults write through the pointer only, and are idempotent */
@@ -125,8 +126,22 @@ int main(void)
     t("block count clamped", c.block_count == PS_BLOCKS_MAX, c.block_count);
     t("brightness and speed clamped", c.mode[0].brightness == 100 && c.mode[1].speed == 100, c.mode[0].brightness);
     t("ap_on clamped", c.ap_on == 1, c.ap_on);
-    t("an unfilled-part effect outside the seventeen is clamped to solid", c.fx[1].fx_unlit == PS_FX_STATIC, c.fx[1].fx_unlit);
+    t("an unfilled-part effect that draws the progress is clamped to solid", c.fx[1].fx_unlit == PS_FX_STATIC, c.fx[1].fx_unlit);
     t("strings terminated", strlen(c.hostname) == sizeof c.hostname - 1 && strlen(c.printer_access_code) == sizeof c.printer_access_code - 1, (long)strlen(c.hostname));
+    wipe(); fill_distinct(&d); d.fx[0].fx_unlit = PS_FX_TEMP_GRADIENT; d.fx[1].fx_unlit = PS_FX_PALETTE_SCROLL; d.fx[2].fx_unlit = PS_FX_PROGRESS_HUE;
+    put(&d, sizeof d); ps_cfg_load(&c);
+    t("any effect that does not draw the progress may be the unfilled part's, live inputs and palettes included (O1)",
+      c.fx[0].fx_unlit == PS_FX_TEMP_GRADIENT && c.fx[1].fx_unlit == PS_FX_PALETTE_SCROLL && c.fx[2].fx_unlit == PS_FX_PROGRESS_HUE, c.fx[0].fx_unlit);
+
+    /* 6b. O2's one migration: an entry written before the kept-inside option existed (flags clear)
+     * gets the default on, once; an entry the page has written since keeps its choice */
+    wipe(); fill_distinct(&d); d.fx[1].opt = 0x11; d.fx[1].flags = 0; d.fx[2].opt = 0x11; d.fx[2].flags = PS_FX_FLAG_INPROG_SET;
+    put(&d, sizeof d); ps_cfg_load(&c);
+    t("an effect that never saw the option is kept inside the progress, and marked", c.fx[1].opt == 0x31 && (c.fx[1].flags & PS_FX_FLAG_INPROG_SET), c.fx[1].opt);
+    t("one that turned it off stays off", c.fx[2].opt == 0x11, c.fx[2].opt);
+    ps_cfg_save(&c); ps_cfg_load(&e);
+    t("and the default lands once: a second load changes nothing", memcmp(&e, &c, sizeof e) == 0, e.fx[1].opt);
+    t("a fresh default is on and marked", (ps_cfg_factory_defaults(&d), d.fx[0].opt == PS_FX_OPT_IN_PROGRESS && d.fx[0].flags == PS_FX_FLAG_INPROG_SET), d.fx[0].flags);
 
     /* 7. erase */
     wipe(); fill_distinct(&d); put(&d, sizeof d); ps_cfg_erase(); ps_cfg_load(&c);
@@ -193,7 +208,7 @@ int main(void)
         t("v3 blob is 572 bytes", sizeof o == 572, (long)sizeof o);
         memset(&c, 0xAA, sizeof c);
         t("load of a v3 blob returns 0", ps_cfg_load(&c) == 0, 0);
-        t("v3 -> v4: every v3 field survives", !strcmp(c.hostname, "t-host") && c.features == 0x5 && c.state_brightness[1][2] == 66 && c.fx[1].effect == PS_FX_CYLON && c.fx[1].brightness == 33 && c.fx[2].opt == 0x15 && c.fx[2].aux == 7 && c.fx[0].colour[3].g == 8 && c.fx[0].colour[3].a == 6, c.fx[1].effect);
+        t("v3 -> v4: every v3 field survives, and the kept-inside default lands on the way (opt 0x15 -> 0x35, O2)", !strcmp(c.hostname, "t-host") && c.features == 0x5 && c.state_brightness[1][2] == 66 && c.fx[1].effect == PS_FX_CYLON && c.fx[1].brightness == 33 && c.fx[2].opt == 0x35 && c.fx[2].aux == 7 && c.fx[0].colour[3].g == 8 && c.fx[0].colour[3].a == 6, c.fx[2].opt);
         /* hot_src is the CHAMBER, not the nozzle. It watched the nozzle at 50 C, and a nozzle
            is over 50 C for the whole of every print, so with A11's switch on the warning
            pulsed red over the bar from the first minute of a job to the last. This assert
@@ -227,6 +242,14 @@ int main(void)
     wipe(); put(&d, sizeof d); ps_cfg_load(&c);
     t("a source out of range clamps to the nozzle, the degrees to the bound, the percentages to 100", c.temp_src == PS_TEMP_NOZZLE && c.hot_src == PS_TEMP_NOZZLE && c.temp_hi == PS_TEMP_MAX && c.temp_lo == 0 && c.hot_c == PS_TEMP_MAX && c.err_brightness == 100 && c.err_speed == 100, c.temp_hi);
     t("a fresh default's gradient follows the nozzle from 25 to 250", (ps_cfg_factory_defaults(&d), d.temp_src == PS_TEMP_NOZZLE && d.temp_lo == 25 && d.temp_hi == 250), d.temp_hi);
+    /* O6: the unit the page shows, one byte that used to be padding; the device's own
+       temperatures stay in °C whatever it says */
+    fill_distinct(&d); d.temp_unit = PS_UNIT_F;
+    wipe(); put(&d, sizeof d); ps_cfg_load(&c);
+    t("the temperature unit round-trips as Fahrenheit", c.temp_unit == PS_UNIT_F, c.temp_unit);
+    fill_distinct(&d); d.temp_unit = 9;
+    wipe(); put(&d, sizeof d); ps_cfg_load(&c);
+    t("a unit that is neither clamps to Celsius", c.temp_unit == PS_UNIT_C, c.temp_unit);
 
     /* 13. A14: the named effects, their own blob beside the config */
     { ps_presets_t s, e; wipe();

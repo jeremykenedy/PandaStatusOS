@@ -158,8 +158,9 @@
           <input type="checkbox" id="ps-fx-inprog" aria-labelledby="lbl-fx-inprog"><span></span>
         </label>
       </nav>
-      <!-- O1: what the rest of the bar does meanwhile. One of the effects that need no live
-           input, in the unlit colour; solid with that colour left dark is off. -->
+      <!-- O1: what the rest of the bar does meanwhile: any effect that does not draw the
+           progress, in the unlit colour; solid with that colour left dark is off. Offered while
+           the effect is kept inside the progress, and for the three that draw the progress. -->
       <div id="ps-fx-unlit-wrap" hidden>
         <div class="field label suffix border">
           <select id="ps-fx-unlit"></select>
@@ -312,12 +313,12 @@
     <div class="field label border suffix">
       <input type="number" id="ps-tg-lo" min="0" max="500" step="1" inputmode="numeric">
       <label for="ps-tg-lo" data-str="ui_cold_end">Cold end</label>
-      <span class="small-text" data-str="ui_degrees_c">&#176;C</span>
+      <span class="small-text ps-deg" data-str="ui_degrees_c">&#176;C</span>
     </div>
     <div class="field label border suffix">
       <input type="number" id="ps-tg-hi" min="0" max="500" step="1" inputmode="numeric">
       <label for="ps-tg-hi" data-str="ui_hot_end">Hot end</label>
-      <span class="small-text" data-str="ui_degrees_c">&#176;C</span>
+      <span class="small-text ps-deg" data-str="ui_degrees_c">&#176;C</span>
     </div>
   </article>
 
@@ -338,7 +339,7 @@
     <div class="field label border suffix">
       <input type="number" id="ps-hw-threshold" min="0" max="500" step="1" inputmode="numeric">
       <label for="ps-hw-threshold" data-str="ui_threshold">Threshold</label>
-      <span class="small-text" data-str="ui_degrees_c">&#176;C</span>
+      <span class="small-text ps-deg" data-str="ui_degrees_c">&#176;C</span>
     </div>
     <nav class="swatch-row">
       <span class="max small-text" id="lbl-hw-colour" data-str="status_colour">Colour</span>
