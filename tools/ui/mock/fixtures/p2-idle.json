@@ -65,7 +65,9 @@
           "remain": 100
         }
       ],
-      "tray_now": 1
+      "tray_now": 1,
+      "door_open": 0,
+      "ams_units": 1
     }
   },
   "settings": {

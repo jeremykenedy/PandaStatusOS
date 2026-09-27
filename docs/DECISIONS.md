@@ -1852,4 +1852,58 @@ name as a string and neither parses it, so a rename is a rename.
 
 ---
 
+## D-061 The door from home_flag, an empty slot that says so, the vent's own spelling, and a page that follows its device
+
+**Date** 2026-09-27 · **Reversal** cheap; each has a harness row
+
+Four things from one evening of the owner using the unit, taken in the order he hit them.
+
+**The page did not follow the device.** He flashed twice and the page he had open kept
+running against a device it no longer matched: the °C/°F control was not on his Settings
+card and the vent list stayed empty while the device's own log said two vents were found on
+every scan. The socket reconnects after a restart as if nothing happened, and the old page's
+code runs on. Now every socket open after the first asks `/api/info`, and a build that
+differs from the one the page recorded reloads the page. The install script's "both moved"
+is true of the device; this makes it true of the page in front of him.
+
+**The scan called PandaVentOS a factory vent.** The sniff looked for `"os_name":"PandaVentOS"`
+unformatted, and PandaVentOS prints its document with cJSON_Print, so the key and the value
+are separated by a colon and a TAB. Both of his vents run PandaVentOS and both came up
+"factory firmware". The sniff matches the key, any run of blanks and one colon, then the
+value. It changes nothing about binding: neither firmware has the bridge half yet, so
+binding either still gets link 7 and the bar under it says why. The owner's word on that:
+binding needs to add something to the app other than saying it is bound. It does, once the
+vent's half exists (the dashboard's vent card, the two copies): that half is the next job
+and it is in the PandaVentOS repository, not here.
+
+**O8, the door.** A Door row on the printer card, open or closed, with its own icon each
+way. Read from `home_flag` bit 23, the field every Bambu client reads it from, masked as an
+unsigned 32-bit value because the P2S sends it as a signed number that arrives negative. Not
+from `stat`, which is what the vent reads and why the vent always says open: on one capture
+of this printer `stat` was `A48000` with bit 23 set while the door was shut, and on the next
+it was a 13-digit string of a different shape entirely. Checked against his printer with the
+door shut, live, before this was written: `home_flag` `0xC0675497`, bit 23 clear, eleven
+reports in twelve seconds. Every change is logged on the device with the flag's value, so a
+wrong reading is visible in the device's own log. Absent from the document until the printer
+has sent a `home_flag` at all, like every other member of `status`.
+
+**O7, the AMS.** An empty slot used to be dropped from the list, which closed the gap and
+renumbered the rest; a unit with nothing in it took the whole card with it. Now every slot
+the printer describes is in `trays`, an empty one flagged `empty` (the unit's own
+`tray_exist_bits` when the printer sends them, else nothing described), and `ams_units` says
+how many units there are. The page keeps the badge and prints None in the slot's place,
+dashed and quiet; a unit holding nothing says Empty once where the badges would be; no unit
+and no spools is no card, as before.
+
+**Alternatives.** Reading the door from `stat` (wrong, see above). Reading it from `hms`
+(a fault list; the door is not a fault). Dropping empty slots and numbering the rest
+(the thing he did not want). Polling `/api/info` on a timer for the build (a reconnect is
+the only time it can have changed).
+
+**What would change it.** A printer whose `home_flag` bit 23 does not follow the door; the
+device's log line is there to catch it, and the owner has been asked to open the door once
+and watch the row.
+
+---
+
 *Entries continue below as the run proceeds.*

@@ -22,10 +22,11 @@
    from an X1C firmware release before. Its absence is a normal state and
    says so, rather than reading as zero.
 
-   It does not draw a spool the printer has not described. A tray with no
-   type, no colour and no remaining is an empty slot; the device leaves it
-   out of the list, and a printer with no AMS sends no list at all, which
-   takes the whole card with it.
+   It does not invent a spool. A slot the printer describes as empty (its
+   exist bit clear, or nothing in it at all) keeps its badge and says None
+   (O7); a unit that is there and holds nothing says Empty where the badges
+   would be; and a printer with no AMS (ams_units 0, or no unit and no
+   spools described) has no card at all.
    ================================================================= */
 
 (function () {
@@ -89,10 +90,13 @@
     var s = st();
     var trays = Array.isArray(s.trays) ? s.trays : [];
 
-    /* No spools described is no AMS. project.css takes the card away with the block. */
-    wrap.hidden = trays.length === 0;
-    card.hidden = trays.length === 0;
-    if (card.hidden) { kv.textContent = ''; row.textContent = ''; return; }
+    /* O7: an AMS is an AMS whether or not it holds anything. The device says how many units
+       there are once the printer has; a device from before that says nothing, and then the
+       spools it describes are the only evidence. No unit and no spools is no card. */
+    var units = isNum(s.ams_units) ? s.ams_units : (trays.length ? 1 : 0);
+    card.hidden = units === 0 && trays.length === 0;
+    wrap.hidden = card.hidden;
+    if (card.hidden) { kv.textContent = ''; row.textContent = ''; row.dataset.sig = ''; return; }
 
     kv.textContent = '';
     var pct = isNum(s.ams_humidity_pct) ? s.ams_humidity_pct : null;
@@ -116,11 +120,23 @@
     /* Rebuilt only when the set of spools changes, so a chip is not pulled out from under
        a finger on every push. */
     var sig = trays.map(function (t) {
-      return [t.id, t.type || '', t.sub || '', isNum(t.remain) ? t.remain : '', t.colour || ''].join('~');
-    }).join('|') + '#' + (isNum(s.tray_now) ? s.tray_now : '');
+      return [t.id, t.empty ? 'e' : '', t.type || '', t.sub || '', isNum(t.remain) ? t.remain : '', t.colour || ''].join('~');
+    }).join('|') + '#' + (isNum(s.tray_now) ? s.tray_now : '') + '#' + units;
     if (row.dataset.sig === sig) return;
     row.dataset.sig = sig;
     row.textContent = '';
+
+    /* O7: a unit with nothing in any slot, or with no slot described at all, says Empty
+       once, where the badges would be, rather than four badges each saying None. */
+    var holding = trays.filter(function (t) { return !t.empty; }).length;
+    if (holding === 0) {
+      var none = document.createElement('div');
+      none.className = 'small-text ams-empty';
+      none.id = 'ps-trays-empty';
+      none.textContent = tr('ui_ams_empty', 'Empty');
+      row.appendChild(none);
+      return;
+    }
 
     trays.forEach(function (t) {
       var chip = document.createElement('div');
@@ -130,6 +146,7 @@
         chip.classList.add('is-now');
         chip.title = tr('ui_loaded', 'Loaded');
       }
+      if (t.empty) chip.classList.add('is-empty');
 
       var dot = document.createElement('i');
       dot.className = 'circle small swatch-dot';
@@ -138,13 +155,15 @@
       chip.appendChild(dot);
 
       var text = document.createElement('span');
-      /* The slot number is always there; what is in it may not be, and an empty slot says
-         so with the dash this page uses everywhere else rather than with a blank. */
+      /* The slot number is always there. An empty slot keeps its badge and says None (O7);
+         a slot with a spool the printer has not described says so with the dash this page
+         uses everywhere else rather than with a blank. */
       var parts = [];
       if (t.type) parts.push(t.type);
       if (t.sub && t.sub !== t.type) parts.push(t.sub);
       if (isNum(t.remain)) parts.push(fmtPct(t.remain));
-      text.textContent = (t.id + 1) + ' · ' + (parts.length ? parts.join(' · ') : DASH);
+      var what = t.empty ? tr('ui_none', 'None') : (parts.length ? parts.join(' · ') : DASH);
+      text.textContent = (t.id + 1) + ' · ' + what;
       chip.appendChild(text);
 
       row.appendChild(chip);

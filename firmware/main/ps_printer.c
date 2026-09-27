@@ -165,10 +165,37 @@ static void apply_report(const char *json, size_t len)
     cJSON *hw = print ? cJSON_GetObjectItemCaseSensitive(print, "hw_switch_state") : NULL;
     if (cJSON_IsNumber(hw)) { ps_lock(); g_ps.filament_in = hw->valuedouble ? 1 : 0; ps_unlock(); }
 
+    /* O8: the door. home_flag is a 32-bit field the printer sends as a SIGNED number (it
+     * arrives negative on the P2S), so it is masked as unsigned rather than compared. Bit 23
+     * is the door, the bit every Bambu client reads it from. The vent read `stat` instead:
+     * a different field, whose bit 23 was set with the door shut on one capture and which
+     * had a different width on the next, which is why the vent always says open. Checked
+     * against this printer with the door shut: bit clear. Logged on every change so a wrong
+     * reading is visible in the device's own log. */
+    cJSON *hf = print ? cJSON_GetObjectItemCaseSensitive(print, "home_flag") : NULL;
+    if (cJSON_IsNumber(hf)) {
+        uint32_t bits = (uint32_t)(int64_t)hf->valuedouble;
+        int8_t open = (bits & 0x00800000u) ? 1 : 0;
+        ps_lock(); int8_t was = g_ps.door_open; g_ps.door_open = open; ps_unlock();
+        if (was != open) ESP_LOGI(TAG, "door %s (home_flag %08x)", open ? "open" : "closed", (unsigned)bits);
+    }
+
     /* The first AMS unit's own readings, when there is one. */
     cJSON *ams = print ? cJSON_GetObjectItemCaseSensitive(print, "ams") : NULL;
     cJSON *amsl = ams ? cJSON_GetObjectItemCaseSensitive(ams, "ams") : NULL;
     cJSON *ams0 = cJSON_IsArray(amsl) ? cJSON_GetArrayItem(amsl, 0) : NULL;
+    /* O7: how many units there are is a fact of its own. A report that carries the ams
+     * block with an empty list is a printer with no AMS; one that carries none leaves the
+     * last count alone, because partial reports leave the block out. */
+    if (cJSON_IsArray(amsl)) { int u = cJSON_GetArraySize(amsl); ps_lock(); g_ps.ams_units = (int8_t)(u > 8 ? 8 : u); ps_unlock(); }
+    /* tray_exist_bits: one bit per slot, set when the unit feels a spool there. A hex string.
+     * -1 when the printer does not send it, and then the slot's own contents decide. */
+    long exist = -1;
+    if (ams) {
+        cJSON *eb = cJSON_GetObjectItemCaseSensitive(ams, "tray_exist_bits");
+        if (cJSON_IsString(eb) && eb->valuestring[0]) exist = strtol(eb->valuestring, NULL, 16);
+        else if (cJSON_IsNumber(eb)) exist = (long)eb->valuedouble;
+    }
     if (ams0) {
         cJSON *hu = cJSON_GetObjectItemCaseSensitive(ams0, "humidity");
         cJSON *tp = cJSON_GetObjectItemCaseSensitive(ams0, "temp");
@@ -232,9 +259,16 @@ static void apply_report(const char *json, size_t len)
                     ps_rgba_t c;
                     if (ps_rgba_from_wire(wire, &c) && (c.r || c.g || c.b)) { t.colour = c; t.has_colour = 1; }
                 }
-                /* A tray with nothing in it at all is not a spool: no type, no colour and no
-                 * remaining is an empty slot, and an empty slot is not drawn. */
-                if (t.type[0] || t.has_colour || t.remain >= 0) list[n++] = t;
+                /* O7: a slot with nothing in it is still a slot. It stays in the list, flagged,
+                 * so the page can say None where the spool would be rather than closing the gap
+                 * and renumbering the rest. Empty is the unit's own sensor when the printer
+                 * sends the exist bits, and otherwise nothing described: no type, no colour, no
+                 * remaining. */
+                bool described = t.type[0] || t.has_colour || t.remain >= 0;
+                if (exist >= 0 && t.id >= 0 && t.id < PS_TRAYS_MAX) t.empty = (exist & (1L << t.id)) ? 0 : 1;
+                else t.empty = described ? 0 : 1;
+                if (t.empty) { t.type[0] = 0; t.sub[0] = 0; t.has_colour = 0; t.remain = -1; }
+                list[n++] = t;
             }
             ps_lock();
             memcpy(g_ps.trays, list, sizeof list);
@@ -324,6 +358,7 @@ static uint32_t status_digest(void)
     ps_lock();
     MIX(&g_ps.light_chamber, sizeof g_ps.light_chamber); MIX(g_ps.temp_c, sizeof g_ps.temp_c);
     MIX(&g_ps.fan_part, 1); MIX(&g_ps.fan_aux, 1); MIX(&g_ps.fan_chamber, 1); MIX(&g_ps.filament_in, 1);
+    MIX(&g_ps.door_open, 1); MIX(&g_ps.ams_units, 1);
     MIX(&g_ps.ams_humidity, 1); MIX(&g_ps.ams_humidity_pct, 1); MIX(&g_ps.ams_temp_c, sizeof g_ps.ams_temp_c);
     MIX(g_ps.trays, sizeof g_ps.trays); MIX(&g_ps.tray_count, 1); MIX(&g_ps.tray_now, 1);
     MIX(g_ps.gcode_state, sizeof g_ps.gcode_state); MIX(g_ps.hms_code, sizeof g_ps.hms_code);

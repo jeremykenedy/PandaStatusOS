@@ -29,7 +29,9 @@
       "fan_part": 40,
       "fan_aux": 70,
       "fan_chamber": 0,
-      "uptime_s": 0
+      "uptime_s": 0,
+      "door_open": 0,
+      "ams_units": 0
     }
   },
   "settings": {

@@ -631,6 +631,7 @@ function ws_open() {
   sock.onopen = function () {
     flush_out_queue();
     if (!g_have_first_state) start_state_ask();
+    build_check();
   };
   sock.onmessage = function (ev) {
     if (!g_ui_ready) { g_inbound_queue.push(ev.data); return; }
@@ -1033,6 +1034,29 @@ var H2D_SUFFIX = {
 };
 
 var g_page_build = null;      /* the build id behind this page, asked for once */
+
+/* The build this page came from, checked on every socket open after the first. A device
+   that was flashed while the page was open comes back with a new build and a new page,
+   and the socket reconnects to it as if nothing happened: the old page then keeps running
+   against a device it no longer matches, which is how the Settings card came up without
+   the control the device had just gained and the vent list stayed empty while the device's
+   own log said two were found. A different build reloads the page. The first answer is
+   only recorded, and an answer that fails to arrive changes nothing. */
+var g_device_build = null;
+function build_check() {
+  var x = new XMLHttpRequest();
+  x.open('GET', '/api/info', true);
+  x.timeout = 5000;
+  x.onload = function () {
+    if (x.status !== 200) return;
+    var b = null;
+    try { b = JSON.parse(x.responseText).build || null; } catch (e) {}
+    if (!b) return;
+    if (g_device_build && b !== g_device_build) { location.reload(); return; }
+    g_device_build = b;
+  };
+  try { x.send(); } catch (e) {}
+}
 
 function handle_settings() {
   var s = g_state.settings || {};

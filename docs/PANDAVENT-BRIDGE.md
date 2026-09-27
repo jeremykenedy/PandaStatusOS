@@ -85,9 +85,12 @@ the owner presses Scan on a network with two vents on it and reads "0 vents foun
 3. **A sniff of each candidate's stock socket.** A 1.5 s TCP connect and an upgrade to `/ws`
    (the stock vent socket, kept by PandaVentOS too) and up to 1.5 s of reading whatever the
    vent pushes first. The stock document has a root only a vent has, `rgb_mode`; a
-   PandaVentOS adds `settings.os_name: "PandaVentOS"`. `rgb_mode` alone makes it `fw`
-   `factory`; with the name, `fw` `pandaventos`; a web server with neither is not a vent and
-   is not listed. The byte stream is scanned as it arrives, with the last 31 bytes kept
+   PandaVentOS adds `settings.os_name: "PandaVentOS"`, printed by cJSON_Print, so the key and
+   the value are separated by a colon and a tab, and the sniff matches the key, blanks, one
+   colon, blanks, then the value (the first cut matched the unformatted spelling and called
+   both of the owner's PandaVentOS vents factory). `rgb_mode` alone makes it `fw` `factory`;
+   with the name, `fw` `pandaventos`; a web server with neither is not a vent and is not
+   listed. The byte stream is scanned as it arrives, with the last 31 bytes kept
    across reads so a key split by a read boundary is still seen, and no JSON is parsed: a
    sniff is a question, not a parse of a document this firmware does not otherwise know.
 

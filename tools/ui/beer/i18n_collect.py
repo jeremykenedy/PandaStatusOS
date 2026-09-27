@@ -177,6 +177,12 @@ JS_ONLY = {
     'ui_note_device_name_reset': 'Put the default name back?',
     'ui_name_saved': 'Name saved',
     'dlg_hostname_after': 'Afterwards it answers at',
+    # The printer card's door row (01-print.js, O8) and the AMS card's empty unit (04-ams.js, O7);
+    # an empty slot's badge uses ui_none, which the markup already carries.
+    'ui_door': 'Door',
+    'ui_door_open': 'Open',
+    'ui_door_closed': 'Closed',
+    'ui_ams_empty': 'Empty',
 }
 for _k, _t in JS_ONLY.items():
     keys.setdefault(_k, _t)

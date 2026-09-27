@@ -380,6 +380,7 @@ int ps_rebind_decide(const char *bound_sn, const uint8_t bound_ip[4], const ps_p
 typedef struct {
     int8_t    id;              /* the tray's own index, 0..3 */
     int8_t    remain;          /* percent left, -1 when the printer does not say */
+    uint8_t   empty;           /* O7: the slot is there and holds nothing (the exist bit clear, or nothing described) */
     uint8_t   has_colour;
     ps_rgba_t colour;
     char      type[12];        /* PLA, PETG, ABS ... */
@@ -424,13 +425,16 @@ typedef struct {
      * and an absent key in a partial report leaves the last value alone. */
     int8_t   fan_part, fan_aux, fan_chamber;     /* percent, 0..100 */
     int8_t   filament_in;                        /* the external spool sensor */
+    int8_t   door_open;                          /* O8: -1 unknown, 0 shut, 1 open; home_flag bit 23 */
+    int8_t   ams_units;                          /* O7: how many AMS units the printer describes, -1 until it has said */
     int8_t   ams_humidity;                       /* the AMS's own 1..5 level */
     int8_t   ams_humidity_pct;                   /* a real relative humidity, when the unit sends one; -1 otherwise */
     int16_t  ams_temp_c;
-    /* The first AMS unit's four trays, as the printer reports them. A tray it does not
-     * describe is not in the list at all; a field it leaves out of a tray it does describe
-     * is empty, and the page draws empty as unknown rather than as zero. tray_now is the
-     * one loaded, -1 when the printer names none. */
+    /* The first AMS unit's four trays, as the printer reports them: every slot it describes,
+     * an empty one flagged as empty (O7) so the page can say so rather than leave a gap. A
+     * field it leaves out of a tray it does describe is empty, and the page draws empty as
+     * unknown rather than as zero. tray_now is the one loaded, -1 when the printer names
+     * none. */
     ps_tray_t trays[PS_TRAYS_MAX];
     int8_t   tray_count;
     int8_t   tray_now;

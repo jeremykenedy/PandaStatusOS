@@ -94,9 +94,34 @@ async function waitFor(page, body, ms = 4000) {
       && await page.$eval('#ps-ams-kv', (e) => e.textContent.indexOf(tr('ui_ams_no_reading','')) >= 0),
       await page.$eval('#ps-ams-kv', (e) => e.textContent));
 
-    // ---- a printer with no AMS ----
+    // ---- O7: an empty slot keeps its badge and says None ----
+    await page.evaluate(() => { g_state.printer.status.trays[2] = { id: 2, empty: 1 }; render_ams(); });
+    t('E0a four badges still, the empty slot among them',
+      await page.$$eval('#ps-trays-row > .chip', (e) => e.length) === 4,
+      await page.$$eval('#ps-trays-row > .chip', (e) => e.length));
+    t('E0b and the empty one says None, in its slot\'s place',
+      (await page.$eval('#ps-tray-2', (e) => e.textContent)).trim() === '3 \u00b7 None'
+      && await page.$eval('#ps-tray-2', (e) => e.classList.contains('is-empty')),
+      await page.$eval('#ps-tray-2', (e) => e.textContent));
+    t('E0c with no colour of its own', await page.$eval('#ps-tray-2 .swatch-dot', (e) => e.classList.contains('is-unset')));
+
+    // ---- O7: a unit that is there and holds nothing says Empty ----
+    await page.evaluate(() => { g_state.printer.status.trays = [{ id: 0, empty: 1 }, { id: 1, empty: 1 }, { id: 2, empty: 1 }, { id: 3, empty: 1 }]; render_ams(); });
+    t('E0d every slot empty: the card stays, with its humidity and temperature',
+      (await page.$eval('#ps-card-ams', (e) => e.hidden)) === false && /31/.test(await page.$eval('#ps-ams-kv', (e) => e.textContent)));
+    t('E0e and the badges give way to one word, Empty',
+      await page.$$eval('#ps-trays-row > .chip', (e) => e.length) === 0
+      && (await page.$eval('#ps-trays-empty', (e) => e.textContent)).trim() === 'Empty',
+      await page.$eval('#ps-trays-row', (e) => e.textContent));
     await page.evaluate(() => { g_state.printer.status.trays = []; render_ams(); });
-    t('E1 no spools described, no card', await waitFor(page, "document.getElementById('ps-card-ams').hidden"));
+    t('E0f a unit the printer counts but describes no slot of is Empty too',
+      (await page.$eval('#ps-card-ams', (e) => e.hidden)) === false && (await page.$eval('#ps-trays-empty', (e) => e.textContent)).trim() === 'Empty');
+
+    // ---- a printer with no AMS ----
+    await page.evaluate(() => { g_state.printer.status.trays = []; g_state.printer.status.ams_units = 0; render_ams(); });
+    t('E1 no unit and no spools described, no card', await waitFor(page, "document.getElementById('ps-card-ams').hidden"));
+    await page.evaluate(() => { delete g_state.printer.status.ams_units; render_ams(); });
+    t('E2 a device from before the unit count: no spools described is still no card', await waitFor(page, "document.getElementById('ps-card-ams').hidden"));
 
     t('F1 no page errors, no console errors', errors.length === 0, errors);
     await ctx.close();

@@ -1198,6 +1198,10 @@ nav.btn-row { gap: 0.75rem; align-items: center; }
   text-align: start;
   line-height: 1.25;
 }
+/* O7: an empty slot keeps its badge, quieter than a spool's so the eye finds the spools
+   first; a unit with nothing in it says so once, across the row, in the note's voice. */
+.trays-grid > .chip.is-empty { color: var(--on-surface-variant); border-style: dashed; }
+.trays-grid > .ams-empty { grid-column: 1 / -1; padding-block: 0.25rem; }
 [data-card] > article:has(#ps-trays[hidden]) { display: none; }
 
 /* A spool chip is a READING, not a control. Beer gives every .chip a hover and an active

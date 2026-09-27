@@ -645,8 +645,12 @@ static int sniff_vent(uint32_t addr, const char *ipstr)
     int up = ws_upgrade(fd, "/ws", ipstr, buf, sizeof buf, &have);
     int fw = 0;
     if (up == 1) {
-        static const char VENT_MARK[] = "\"rgb_mode\"", OS_MARK[] = "\"os_name\":\"PandaVentOS\"";
-        const size_t KEEP = 31;                                    /* longer than either mark */
+        /* PandaVentOS prints its document with cJSON_Print, so the key and the value are
+         * separated by a colon and a TAB, not by a colon alone; the first cut of this looked
+         * for the unformatted spelling and called every PandaVentOS a factory vent. The value
+         * is matched after the key with any run of blanks and one colon between them. */
+        static const char VENT_MARK[] = "\"rgb_mode\"", OS_KEY[] = "\"os_name\"", OS_VAL[] = "\"PandaVentOS\"";
+        const size_t KEEP = 47;                                    /* longer than key, gap and value together */
         struct timeval to = { .tv_sec = 0, .tv_usec = 250000 };
         setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &to, sizeof to);
         int64_t deadline = now_us() + (int64_t)BR_SNIFF_MS * 1000;
@@ -659,7 +663,14 @@ static int sniff_vent(uint32_t addr, const char *ipstr)
             have += (size_t)got;
             buf[have] = 0;
             /* memmem by hand: the payload is text, but a frame header in it is not */
-            for (size_t i = 0; i + sizeof OS_MARK - 1 <= have; i++) if (!memcmp(buf + i, OS_MARK, sizeof OS_MARK - 1)) { fw = VENT_FW_PANDAVENTOS; break; }
+            for (size_t i = 0; i + sizeof OS_KEY - 1 <= have && fw == 0; i++) {
+                if (memcmp(buf + i, OS_KEY, sizeof OS_KEY - 1)) continue;
+                size_t j = i + sizeof OS_KEY - 1;
+                while (j < have && (buf[j] == ' ' || buf[j] == '\t' || buf[j] == '\r' || buf[j] == '\n')) j++;
+                if (j < have && buf[j] == ':') j++;
+                while (j < have && (buf[j] == ' ' || buf[j] == '\t' || buf[j] == '\r' || buf[j] == '\n')) j++;
+                if (j + sizeof OS_VAL - 1 <= have && !memcmp(buf + j, OS_VAL, sizeof OS_VAL - 1)) fw = VENT_FW_PANDAVENTOS;
+            }
             if (!vent) for (size_t i = 0; i + sizeof VENT_MARK - 1 <= have; i++) if (!memcmp(buf + i, VENT_MARK, sizeof VENT_MARK - 1)) { vent = true; break; }
         }
         if (fw == 0 && vent) fw = VENT_FW_FACTORY;

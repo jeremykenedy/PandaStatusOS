@@ -23,6 +23,8 @@ void ps_state_init(void)
     g_ps.light_chamber = g_ps.light_work = -1;
     g_ps.fan_part = g_ps.fan_aux = g_ps.fan_chamber = -1;
     g_ps.filament_in = -1;
+    g_ps.door_open = -1;
+    g_ps.ams_units = -1;
     g_ps.ams_humidity = -1;
     g_ps.ams_humidity_pct = -1;
     g_ps.ams_temp_c = PS_TEMP_NONE;
@@ -128,17 +130,26 @@ static cJSON *root_printer(void)
     if (g_ps.fan_aux     >= 0) cJSON_AddNumberToObject(st, "fan_aux", g_ps.fan_aux);
     if (g_ps.fan_chamber >= 0) cJSON_AddNumberToObject(st, "fan_chamber", g_ps.fan_chamber);
     if (g_ps.filament_in >= 0) cJSON_AddNumberToObject(st, "filament_in", g_ps.filament_in);
+    /* O8: the door, from home_flag bit 23 (the field every Bambu client reads it from). Not
+     * from `stat`, which is a different bitfield whose bit 23 sat set while the door was shut
+     * and which changed shape between two captures of the same printer. Absent until the
+     * printer has sent a home_flag at all. */
+    if (g_ps.door_open >= 0) cJSON_AddNumberToObject(st, "door_open", g_ps.door_open);
+    /* O7: how many AMS units there are, so an AMS with nothing in it is still an AMS */
+    if (g_ps.ams_units >= 0) cJSON_AddNumberToObject(st, "ams_units", g_ps.ams_units);
     if (g_ps.ams_humidity >= 0) cJSON_AddNumberToObject(st, "ams_humidity", g_ps.ams_humidity);
     if (g_ps.ams_humidity_pct >= 0) cJSON_AddNumberToObject(st, "ams_humidity_pct", g_ps.ams_humidity_pct);
     if (g_ps.ams_temp_c != PS_TEMP_NONE) cJSON_AddNumberToObject(st, "ams_temp", g_ps.ams_temp_c);
-    /* The spools. Absent entirely when the printer has described none, so a machine with no
-     * AMS produces no key and the page draws no card rather than an empty one. */
+    /* The spools: every slot the printer described, an empty one saying so (O7). Absent
+     * entirely when the printer has described none, so a machine with no AMS produces no
+     * key; ams_units above says whether there is a unit at all. */
     if (g_ps.tray_count > 0) {
         cJSON *tr = cJSON_AddArrayToObject(st, "trays");
         for (int i = 0; i < g_ps.tray_count && i < PS_TRAYS_MAX; i++) {
             const ps_tray_t *t = &g_ps.trays[i];
             cJSON *o = cJSON_CreateObject();
             cJSON_AddNumberToObject(o, "id", t->id);
+            if (t->empty) cJSON_AddNumberToObject(o, "empty", 1);
             if (t->type[0]) cJSON_AddStringToObject(o, "type", t->type);
             if (t->sub[0])  cJSON_AddStringToObject(o, "sub", t->sub);
             if (t->remain >= 0) cJSON_AddNumberToObject(o, "remain", t->remain);

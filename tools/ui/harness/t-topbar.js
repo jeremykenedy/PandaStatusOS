@@ -83,6 +83,17 @@ const until = (page, body, ms = 4000) => page.waitForFunction(new Function('retu
     const iperr = await word(page, 'ui_link_state_4', 'IP error');
     t('F1 a printer that cannot be reached: the chip says the link\'s error with the error dot', await until(page, `document.getElementById('ps-top-state').textContent === ${JSON.stringify(iperr)} && /is-err/.test(document.getElementById('ps-top-dot').getAttribute('class'))`, 8000), await chip(page));
 
+    /* O8: the door row on the printer card follows the report, closed and open, with its own
+       icon each way. The fixture starts shut, which is how the owner's printer stood when this
+       was checked against it (home_flag bit 23 clear). */
+    await page.evaluate(() => show_card('status'));
+    const doorRow = () => page.$eval('#ps-kv-printer', (ul) => { const li = Array.from(ul.querySelectorAll('li')).find((e) => /Door/.test(e.textContent)); if (!li) return null; const u = li.querySelector('use'); return { text: li.textContent.replace(/\s+/g, ' ').trim(), icon: u ? u.getAttribute('href') : null }; });
+    t('K1 the door row is there and says Closed, with the shut door icon', await until(page, "Array.from(document.querySelectorAll('#ps-kv-printer li')).some((e) => /Door/.test(e.textContent) && /Closed/.test(e.textContent))", 3000) && (await doorRow()).icon === '#i-door', await doorRow());
+    await report({ door_open: 1 });
+    t('K2 the printer reports it open: the row says Open with the open door icon, within the push', await until(page, "Array.from(document.querySelectorAll('#ps-kv-printer li')).some((e) => /Door/.test(e.textContent) && /Open/.test(e.textContent))", 3000) && (await doorRow()).icon === '#i-door-open', await doorRow());
+    await report({ door_open: 0 });
+    t('K3 and shut again', await until(page, "Array.from(document.querySelectorAll('#ps-kv-printer li')).some((e) => /Door/.test(e.textContent) && /Closed/.test(e.textContent))", 3000), await doorRow());
+
     /* the socket drops: back to the waiting word, not the last state seen */
     await pw.knob('PS_NO_PUSH', 1);
     await page.evaluate(() => { try { g_sock.close(); } catch (e) {} });

@@ -175,6 +175,14 @@
        dash: the card is what this printer reports, not a form with gaps in it. */
     var st = p.status || {};
 
+    /* O8: the door. The device reads it from the printer's home_flag (bit 23), the field
+       every Bambu client reads it from, and sends door_open only once the printer has
+       said; no row until then, like every other member here. */
+    if (isNum(st.door_open)) {
+      rows.push(kv_li_icon(st.door_open ? 'door-open' : 'door', tr('ui_door', 'Door'), null,
+        valueSpan(st.door_open ? tr('ui_door_open', 'Open') : tr('ui_door_closed', 'Closed'))));
+    }
+
     if (isNum(st.fan_part) || isNum(st.fan_aux) || isNum(st.fan_chamber)) {
       rows.push(kv_li_icon('fan', tr('status_fans', 'Fans'), null,
         valueSpan([st.fan_part, st.fan_aux, st.fan_chamber]
