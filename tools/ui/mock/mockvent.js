@@ -291,6 +291,9 @@ function handle(ws, text) {
       send(ws, 'fx', {
         state: st,
         effect: knobNum('PV_FX_ID', 19),
+        /* By name as well, the way the real vent answers: the two firmwares number their
+           effects differently, so the number is the sender's and the name is what carries. */
+        name: String(knob('PV_FX_NAME', 'barber')),
         brightness: knobNum('PV_FX_BRIGHT', 80),
         speed: knobNum('PV_FX_SPEED', 50),
         opt: knobNum('PV_FX_OPT', 16),

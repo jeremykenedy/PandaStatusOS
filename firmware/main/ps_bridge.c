@@ -1054,11 +1054,24 @@ static esp_err_t copy_effect(httpd_req_t *req, int st)
     const cJSON *v;
     if (!(feat & PS_FEAT_STATE_EFFECTS)) why = "per-state effects are switched off here";
     if (!why) {
-        v = cJSON_GetObjectItemCaseSensitive(o, "effect");
-        if (!cJSON_IsNumber(v) || v->valuedouble < 0 || v->valuedouble >= PS_FX_COUNT) why = "not an effect this device knows";
-        else if (!ps_fx_allowed(feat, (int)v->valuedouble)) why = "that effect needs a switch that is off here";
-        else fx.effect = (uint8_t)v->valuedouble;
+        /* By name when the vent gives one (the real vent does: its numbering is not this one's);
+           by number otherwise, which is the mock's, and the mock numbers as this device does. */
+        const cJSON *nm = cJSON_GetObjectItemCaseSensitive(o, "name");
+        int id = -1;
+        if (cJSON_IsString(nm) && nm->valuestring) {
+            id = ps_bridge_fx_id(nm->valuestring);
+            if (id < 0) why = "an effect this device does not have";
+        } else {
+            v = cJSON_GetObjectItemCaseSensitive(o, "effect");
+            if (!cJSON_IsNumber(v) || v->valuedouble < 0 || v->valuedouble >= PS_FX_COUNT) why = "not an effect this device knows";
+            else id = (int)v->valuedouble;
+        }
+        if (!why) {
+            if (!ps_fx_allowed(feat, id)) why = "that effect needs a switch that is off here";
+            else fx.effect = (uint8_t)id;
+        }
     }
+    if (!why && (v = cJSON_GetObjectItemCaseSensitive(o, "bright_end"))) { if (!cJSON_IsNumber(v) || v->valuedouble < 0 || v->valuedouble > 100) why = "bright_end"; else fx.bright_end = (uint8_t)v->valuedouble; }
     if (!why && (v = cJSON_GetObjectItemCaseSensitive(o, "brightness"))) { if (!cJSON_IsNumber(v) || v->valuedouble < 0 || v->valuedouble > 100) why = "brightness"; else fx.brightness = (uint8_t)v->valuedouble; }
     if (!why && (v = cJSON_GetObjectItemCaseSensitive(o, "speed")))      { if (!cJSON_IsNumber(v) || v->valuedouble < 0 || v->valuedouble > 100) why = "speed"; else fx.speed = (uint8_t)v->valuedouble; }
     if (!why && (v = cJSON_GetObjectItemCaseSensitive(o, "opt")))        { if (!cJSON_IsNumber(v) || v->valuedouble < 0 || v->valuedouble > PS_FX_OPT_ALL) why = "an option this build does not know"; else fx.opt = (uint8_t)v->valuedouble; }

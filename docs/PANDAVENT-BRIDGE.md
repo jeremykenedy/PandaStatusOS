@@ -236,7 +236,7 @@ subscription that does not exist.
 
 ```json
 { "fx": { "seq": 11, "request": true, "state": 1 } }
-{ "fx": { "seq": 12, "state": 1, "effect": 19, "brightness": 80, "speed": 50,
+{ "fx": { "seq": 12, "state": 1, "effect": 19, "name": "barber", "brightness": 80, "speed": 50,
           "opt": 16, "aux": 4, "colours": ["#FFFFFFFF", "#000000FF", "#FF0000FF", "#00FF00FF"] } }
 ```
 
@@ -245,6 +245,20 @@ carries the effect exactly as the sender holds it: its id, its four colours, its
 options (the direction bit among them) and its one spare byte. The receiver applies it as its
 own or refuses it whole, and an effect id the receiver's feature bits do not allow is refused
 with the reason rather than downgraded, which is the rule this document already sets.
+
+**The effect is named, not numbered** (settled 2026-09-27, when the vent side was written and
+the two numberings were put side by side: the vent appended its progress bar at 9, this device
+has it at 17). `effect` is the sender's own id and means nothing to the other end; `name` is
+what carries, from one list both firmwares hold: `static`, `breathing`, `strobing`, `wave`,
+`marquee`, `hue_cycle`, `rainbow`, `cylon`, `bounce`, `marquee_out`, `marquee_in`, `fill_out`,
+`fill_in`, `bounce_out`, `bounce_in`, `bounce_fill_out`, `bounce_fill_in`, `progress`,
+`progress_anim`, `barber`, `temp_gradient`; the vent alone has `anim`, this device alone
+`progress_hue`, `palette` and `palette_scroll`. A name the receiver has no effect for is
+refused by name. A reply with no `name` is read by number, which is what the mock vent sent
+before this was settled and what it still sends beside the name. The four colours are the
+vent's open/closed pairs in this device's printing/idle order (open while printing, closed
+while idle), and the option bits have the same values on both sides. `bright_end` rides
+along when the sender's ramp is set.
 
 ### `backup`, either direction
 
@@ -329,7 +343,21 @@ network at risk:
    **Not yet exercised against a vent**: the mock vent listens on the loopback only, so the
    device half has been built to the same frames the mock speaks and has not spoken to it;
    the first conversation is the bench job below, before the real vent is touched.
-4. Vent side, in its own repository, against a mock status.
+4. Vent side, in its own repository, against a mock status. **Written 2026-09-27**, in
+   PandaVentOS (`pv_bridge.c`, `pv_bridge_proto.c`, `pv_sha256.c`; `docs/bridge.md` there):
+   the socket at `/bridge`, `/bridge/id`, the `_pandabridge._tcp` record with `kind=vent`,
+   the counted hellos, the token per peer in its own NVS blob, `vent` on every change and
+   every 30 s, `open`/`close`/`policy`, `light` and `fx` answered by name. Its pure parts are
+   held to the same node numbers as this side's (`tools/bridgecheck`). The vent confirms a
+   pairing on its own side without a page: its stock socket takes commands from anything on
+   the LAN with no pairing at all, so a second confirmation there would protect nothing that
+   is not already open, and the six digits are logged there to be checked against this page.
+   **The bench for it** is `tools/ui/harness/vent-bench.js` here: the status side played by
+   hand against a real vent by address, speaking only the contract (no debug routes), 18
+   assertions: the identity, the pairing, the state, both asks, the commands and their acks,
+   a returning peer's proof, a wrong token turned away, a command before any hello refused.
+   It passes against the mock vent, which is what makes it an oracle for the real one.
+   Not yet run against a vent: that needs the vent flashed, which is the owner's call.
 5. Shared printer state and backups, last, because they carry the most consequence.
 
 ## Where it lives on the page

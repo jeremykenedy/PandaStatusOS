@@ -67,6 +67,33 @@ void ps_bridge_identity(const uint8_t mac[6], char out[17])
     ps_hex(d, 8, out);
 }
 
+/* ---- the effects, by name --------------------------------------------------------------
+ * An effect on the wire is NAMED. The two firmwares number their effects differently (the
+ * vent appended its progress bar at 9; here it is 17), so a copy that carried only a number
+ * would land on the wrong effect at the other end and nobody would know. A name means the
+ * same thing on both sides or is refused by name, which is the rule the contract already
+ * sets for an effect the receiver cannot run. This is this firmware's list, in its order;
+ * the vent's has "anim", which this device cannot run and refuses by name. */
+static const char *const FX_NAMES[PS_FX_COUNT] = {
+    "static", "breathing", "strobing", "wave", "marquee", "hue_cycle", "rainbow",
+    "cylon", "bounce", "marquee_out", "marquee_in", "fill_out", "fill_in",
+    "bounce_out", "bounce_in", "bounce_fill_out", "bounce_fill_in",
+    "progress", "progress_anim", "barber", "temp_gradient",
+    "progress_hue", "palette", "palette_scroll",
+};
+
+const char *ps_bridge_fx_name(int fx)
+{
+    return (fx >= 0 && fx < PS_FX_COUNT) ? FX_NAMES[fx] : NULL;
+}
+
+int ps_bridge_fx_id(const char *name)
+{
+    if (!name) return -1;
+    for (int i = 0; i < PS_FX_COUNT; i++) if (!strcmp(name, FX_NAMES[i])) return i;
+    return -1;
+}
+
 /* ---- RFC 6455 framing, the client side ----------------------------------------------- */
 
 size_t ps_ws_encode(uint8_t opcode, const uint8_t *payload, size_t len, const uint8_t mask[4],

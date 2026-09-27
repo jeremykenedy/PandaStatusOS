@@ -675,6 +675,8 @@ void ps_bridge_code(const char *na, const char *nb, const char *ia, const char *
 void ps_bridge_token(const char *na, const char *nb, const char *ia, const char *ib, char out[65]);
 void ps_bridge_auth(const char *token_hex, const char *nonce_hex, char out[65]);
 void ps_bridge_identity(const uint8_t mac[6], char out[17]);
+const char *ps_bridge_fx_name(int fx);          /* an effect on the wire is named, never numbered */
+int         ps_bridge_fx_id(const char *name);  /* -1 for a name this device has no effect for */
 
 enum { PS_WS_CONT = 0x0, PS_WS_TEXT = 0x1, PS_WS_BINARY = 0x2, PS_WS_CLOSE = 0x8, PS_WS_PING = 0x9, PS_WS_PONG = 0xA };
 typedef struct {

@@ -1906,4 +1906,43 @@ and watch the row.
 
 ---
 
+## D-062 The vent half of the bridge exists, effects cross the bridge by name, and the bench for a real vent
+
+**Date** 2026-09-27 · **Reversal** the vent side is its own repository's decision; the naming is in the contract for good
+
+**What happened.** The owner bound a vent and got link 7 and nothing else, and said so:
+binding needs to add something to the app. It could not, because no vent firmware had the
+bridge half; the contract's step 4 was the next job and it was in the PandaVentOS repository.
+It is written there now (`pv_bridge.c`, `pv_bridge_proto.c`, `pv_sha256.c`, `docs/bridge.md`),
+against the mock vent's behaviour, which is what this device was built against.
+
+**Effects are named on the wire.** Putting the two effect lists side by side showed the vent
+appended its progress bar at id 9 where this device has it at 17. A copy carrying a number
+would have landed on the wrong effect at the other end with nothing to say so. The `fx`
+frame carries `name` from one shared list; `effect` is the sender's own id and means nothing
+across the bridge. `copy_effect()` reads the name when there is one, the number otherwise
+(the mock's, which numbers as this device does), and refuses a name it has no effect for.
+Both firmwares hold the same table and both are tested on it.
+
+**The bench.** `tools/ui/harness/vent-bench.js` plays the status side against a real vent by
+address, speaking only the contract: the identity, the pairing (it prints the six digits the
+vent logs), the state, both asks, open and close with their acks and the moving state between,
+a returning peer's proof, a wrong token turned away, a command before any hello refused. It
+passes against the mock vent, which makes it an oracle for the real one. It has not run
+against a vent: that is a flash of the owner's vent, on his word.
+
+**The vent confirms on its own side.** The contract has both people confirm; the vent has no
+page for it and its stock socket takes commands from anything on the LAN with no pairing at
+all, so a second confirmation would protect nothing that is not already open. The six digits
+are logged on the vent for checking against this page.
+
+**Alternatives.** A shared numbering (renumbering one firmware's effects breaks every stored
+blob on that side). A page on the vent for the code (a day's work for a confirmation that
+guards an already-open door).
+
+**What would change it.** The vent's stock socket gaining a pairing of its own; then the
+bridge's should ask on both sides.
+
+---
+
 *Entries continue below as the run proceeds.*

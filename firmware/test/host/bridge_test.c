@@ -85,6 +85,17 @@ int main(void)
         t("every code is six digits, leading zeros kept", zeros_ok, NULL);
     }
 
+    /* ---- the effects, by name: what the vent sends and this device reads ---- */
+    t("the progress bar is 17 here and named progress on the wire", ps_bridge_fx_id("progress") == PS_FX_PROGRESS && !strcmp(ps_bridge_fx_name(PS_FX_PROGRESS), "progress"), ps_bridge_fx_name(PS_FX_PROGRESS));
+    t("the barber pole and the temperature gradient by name", ps_bridge_fx_id("barber") == PS_FX_BARBER && ps_bridge_fx_id("temp_gradient") == PS_FX_TEMP_GRADIENT, NULL);
+    t("stock's colour cycle is hue_cycle on the wire", ps_bridge_fx_id("hue_cycle") == PS_FX_HUE_CYCLE, NULL);
+    t("the vent's own animation player is a name this device refuses", ps_bridge_fx_id("anim") == -1 && ps_bridge_fx_id(NULL) == -1 && ps_bridge_fx_id("") == -1, NULL);
+    {
+        int distinct = 1;
+        for (int i = 0; i < PS_FX_COUNT && distinct; i++) for (int j = i + 1; j < PS_FX_COUNT; j++) if (!strcmp(ps_bridge_fx_name(i), ps_bridge_fx_name(j))) distinct = 0;
+        t("every effect has a name of its own, and each maps back to its id", distinct && ps_bridge_fx_id(ps_bridge_fx_name(PS_FX_PALETTE_SCROLL)) == PS_FX_PALETTE_SCROLL, NULL);
+    }
+
     /* ---- RFC 6455 section 5.7, byte for byte ---- */
     {
         const uint8_t mask[4] = { 0x37, 0xfa, 0x21, 0x3d };
