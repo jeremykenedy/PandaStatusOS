@@ -76,7 +76,7 @@ typedef struct { char id[17]; char name[33]; char ip[16]; uint8_t fw; } found_t;
 #define BR_SNIFF_MS         1500     /* how long the scan listens to a candidate's stock socket */
 #define BR_SNIFF_CONNECT_MS 1500
 
-enum { REQ_POKE = 1, REQ_SCAN, REQ_CONNECT, REQ_DROP, REQ_PAIR_CONFIRM, REQ_PAIR_CANCEL, REQ_ASK_LIGHT, REQ_ASK_FX };
+enum { REQ_POKE = 1, REQ_SCAN, REQ_CONNECT, REQ_DROP, REQ_PAIR_CONFIRM, REQ_PAIR_CANCEL, REQ_ASK_LIGHT, REQ_ASK_FX, REQ_NUDGE };
 typedef struct { uint8_t kind; uint8_t arg; } req_t;
 
 /* What the page can see, under s_mx. */
@@ -113,6 +113,11 @@ static uint32_t s_seq;
 static int      s_hellos_in;
 static int64_t  s_connected_us, s_last_rx_us, s_next_try_us;
 static uint32_t s_backoff_ms = BR_BACKOFF_MIN_MS;
+/* The last drop was a code nobody confirmed in its minute. The page reading the document is a
+ * person looking, and a person looking should not sit through the 30 s wait: the next read
+ * dials again at once (REQ_NUDGE). Only a lapse arms this; a vent that turned this device
+ * away, or a cancel, keeps its wait, or a page left open would knock every two seconds. */
+static bool     s_lapsed;
 static bool     s_advertised;
 static char     s_adv_name[33];
 
@@ -380,6 +385,7 @@ static int ws_handshake(const char *ipstr) { return ws_upgrade(s_sock, "/bridge"
 static void connect_once(void)
 {
     lock(); s.link = LINK_CONNECTING; unlock();
+    s_lapsed = false;                /* whatever this attempt comes to, it is not the lapse before it */
     uint32_t addr = 0;
     if (!resolve(&addr)) {
         ESP_LOGW(TAG, "the vent could not be found");
@@ -621,8 +627,9 @@ static void pump(void)
     }
     bool lapsed; lock(); lapsed = s.pairing && now > s.pair_until_us; unlock();
     if (lapsed) {
-        ESP_LOGI(TAG, "the pairing code lapsed; another in %d s", BR_UNPAIRED_WAIT_MS / 1000);
+        ESP_LOGI(TAG, "the pairing code lapsed; another in %d s, or at once while the page is open", BR_UNPAIRED_WAIT_MS / 1000);
         sock_drop(LINK_UNPAIRED); wait_unpaired();
+        s_lapsed = true;
     }
 }
 
@@ -792,6 +799,11 @@ static void handle(const req_t *r)
     case REQ_PAIR_CANCEL:
         ESP_LOGI(TAG, "pairing cancelled; another code in %d s", BR_UNPAIRED_WAIT_MS / 1000);
         sock_drop(LINK_UNPAIRED); wait_unpaired();
+        s_lapsed = false;            /* a cancel is a person saying not now; the wait stands */
+        break;
+    case REQ_NUDGE:
+        /* The page read the document while a lapsed code's wait was running: dial now. */
+        if (s_sock < 0 && s_lapsed) { s_lapsed = false; s_next_try_us = 0; ESP_LOGI(TAG, "the page is open; dialling for a fresh code now"); }
         break;
     case REQ_ASK_LIGHT:
     case REQ_ASK_FX: {
@@ -969,6 +981,10 @@ static esp_err_t refuse(httpd_req_t *req, const char *why)
 int ps_api_bridge_get(httpd_req_t *req)
 {
     if (!bit_on()) return ps_http_redirect_portal(req);
+    /* A read while the link says unpaired and no code stands is a person looking at a page
+       with nothing on it. The task decides whether that wait was a lapse it can cut short. */
+    bool waiting; lock(); waiting = s.link == LINK_UNPAIRED && !s.pairing; unlock();
+    if (waiting) post(REQ_NUDGE, 0);
     return reply_json(req, doc_json());
 }
 

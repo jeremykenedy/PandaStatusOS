@@ -1974,4 +1974,32 @@ the exclusion goes and the rule is one line again.
 
 ---
 
+## D-064 A person looking at the Bindings page is not made to wait for the next code
+
+**Date** 2026-09-26 · **Reversal** none; a gap in D-062's timing
+
+**What happened.** With the vent flashed and the unit bound, the owner opened the page and
+saw no pairing code anywhere. The device was doing what the contract says: a code for a
+minute, then 30 s with nothing, then another; the page shows the code only while one stands,
+and the link row says "Not paired yet" through the gap. Opened during a gap, the page looked
+broken. Reproduced against the unit: four reads inside a gap, link 6, no code; ten reads a
+minute later, the code on the page every time.
+
+**What was done.** A read of `/api/bridge` that finds the link unpaired with no code
+standing posts a nudge to the task; the task cuts the wait only when the drop before it was a
+lapse (`s_lapsed`), and dials at once. A page that is open therefore always has a code on it
+within one poll, and a page that is closed changes nothing. A `bye`, a proof that failed and
+a cancel keep their wait, or a page left open would knock on a vent that had just said no,
+every two seconds. `connect_once()` clears the flag, so a wait armed by an old lapse cannot
+cut a later, different wait.
+
+**Alternatives.** Showing the countdown to the next code through the gap (still a gap, and a
+person made to watch it). A longer code (a code on the page for five minutes is a code a
+person walked away from). Dialling on every read whatever the reason (the knocking above).
+
+**What would change it.** The vent gaining a page of its own that asks for confirmation;
+then the timing on this side follows the person on that one.
+
+---
+
 *Entries continue below as the run proceeds.*

@@ -153,9 +153,13 @@ identity answering at the bound address is reported (`link` 5) rather than follo
 Reconnects back off from 2 s to 30 s. A vent that will not have this device (a `bye`, a proof
 that fails, a pairing code that lapses or is cancelled) is tried again after 30 s, which with
 the minute the code stands means an unpaired binding left alone offers a fresh code for a
-minute of every minute and a half until it is confirmed or unbound. A socket that opens and
-says nothing for 10 s, or a paired vent silent for 90 s (three missed heartbeats), is dropped
-and dialled again.
+minute of every minute and a half until it is confirmed or unbound. Left alone is the
+point: while the Bindings page is open (it reads `/api/bridge` every two seconds), a read
+that finds the link unpaired with no code standing after a lapse makes the device dial at
+once, so the person looking sees the next code within a poll rather than after the wait. A
+vent that turned the device away, and a cancel, keep the full wait; only a lapse is cut.
+A socket that opens and says nothing for 10 s, or a paired vent silent for 90 s (three
+missed heartbeats), is dropped and dialled again.
 
 ## Transport
 
