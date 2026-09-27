@@ -1028,8 +1028,14 @@ main article { background-color: var(--card); }
   [data-card].active     { column-count: 2; column-gap: 1.25rem; }
   [data-card] > article  { margin-block-end: 1.25rem; }
 }
+/* Three columns from 1360 up, except on the dashboard. The dashboard has a handful of
+   cards and one of them (Printer) is tall: a third column there leaves the wall thin and
+   ragged, and it shows the same cards as two columns do, only narrower. Two columns from
+   840 up is the whole of its layout, at every width above that. (Owner's call,
+   2026-09-26; the vent still goes to three, so this is one place the two pages differ.)
+   The other pages have enough small cards to fill three. */
 @media only screen and (min-width: 1360px) {
-  [data-card].active { column-count: 3; }
+  [data-card].active:not(#ps-card-status) { column-count: 3; }
 }
 
 /* A card that is the whole point of its page takes the whole width. The columns

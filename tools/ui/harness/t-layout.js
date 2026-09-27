@@ -115,6 +115,33 @@ const CARDS = ['status', 'theme', 'settings', 'printer', 'sta', 'ap', 'logs'];
         await ctx.close();
       }
     }
+
+    /* columns: the dashboard's wall stays at two columns however wide the screen, where
+       the other pages go to three from 1360 up (project.css, the multicol block). Read off
+       the computed style, so a rule that stops matching is caught, not just a wall that
+       happened to balance into two. */
+    {
+      const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+      const page = await ctx.newPage();
+      await page.goto(`${pw.BASE}/`);
+      await page.waitForFunction(() => !document.body.classList.contains('is-waiting'), null, { timeout: 8000 }).catch(() => {});
+      const cols = {};
+      for (const card of ['status', 'settings', 'theme']) {
+        await page.evaluate((n) => show_card(n), card);
+        await pw.waitCard(page, card);
+        cols[card] = await page.evaluate(() => {
+          const s = getComputedStyle(document.querySelector('[data-card].active'));
+          const lefts = new Set([...document.querySelectorAll('[data-card].active article:not(.no-padding) .card-title')]
+            .map((h) => h.getBoundingClientRect()).filter((b) => b.width > 0).map((b) => Math.round(b.left)));
+          return { count: s.columnCount, edges: lefts.size };
+        });
+      }
+      t(`1440 status: columns, the dashboard wall is two columns wide, not three (${cols.status.count}, ${cols.status.edges} title edge(s))`,
+        cols.status.count === '2' && cols.status.edges <= 2, cols.status);
+      t(`1440 settings: columns, the other pages still go to three (${cols.settings.count}, ${cols.theme.count})`,
+        cols.settings.count === '3' && cols.theme.count === '3', { settings: cols.settings, theme: cols.theme });
+      await ctx.close();
+    }
   } catch (e) {
     console.log('  FAIL  harness threw: ' + (e && e.stack || e));
     t('the harness ran to the end', false);

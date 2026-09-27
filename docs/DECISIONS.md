@@ -1945,4 +1945,33 @@ bridge's should ask on both sides.
 
 ---
 
+## D-063 The dashboard stops at two columns
+
+**Date** 2026-09-26 · **Reversal** none; the first deliberate difference from the vent's layout
+
+**What happened.** The owner, on a wide screen: when the page gets to xl it makes no sense
+for the dashboard to go to three columns; it should stay at two. The wall's multicol rule
+(the masonry block in `project.css`) went to three columns from 1360px on every page, as
+the vent's does. On the dashboard that is a handful of cards, one of them (Printer) tall, spread
+thin across three columns that show nothing two do not.
+
+**What was done.** The three-column rule excludes `#ps-card-status`. The dashboard is two
+columns from 840px up, at every width above that; Lighting, Settings and the rest still go
+to three at 1360px, where their many small cards fill it. Verified by eye at 1440 and 1920
+against the mock, and `t-layout.js` reads the computed `column-count` off the dashboard (2)
+and off two other pages (3) at 1440, so a rule that stops matching is caught rather than a
+wall that happened to balance into two.
+
+**Alternatives.** Two columns everywhere (Settings at 1440 has room for three and uses it;
+the owner asked about the dashboard). A class on the section instead of its id (the
+stylesheet already addresses cards by their `ps-` ids; one more selector of the same shape
+is the smaller change). Changing the vent to match (not asked; it is a different page with
+more cards on it, and the two projects diverging here is the owner's call, recorded in
+PARITY as O9).
+
+**What would change it.** The dashboard growing enough cards that three columns fill; then
+the exclusion goes and the rule is one line again.
+
+---
+
 *Entries continue below as the run proceeds.*
