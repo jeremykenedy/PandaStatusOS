@@ -35,8 +35,8 @@
          what it is: a note about what the name becomes on the network. -->
     <nav>
       <div class="field label border max">
-        <input type="text" id="ps-sta-hostname" maxlength="32" value="" placeholder=" ">
-        <label for="ps-sta-hostname" id="lbl_hostname" data-str="hostname">Host name</label>
+        <input class="active" type="text" id="ps-sta-hostname" maxlength="32" value="" placeholder=" ">
+        <label class="active" for="ps-sta-hostname" id="lbl_hostname" data-str="hostname">Host name</label>
       </div>
       <button class="note-btn" id="ps-note-hostname" aria-labelledby="lbl_hostname" aria-haspopup="dialog">i</button>
     </nav>
@@ -64,22 +64,22 @@
     </nav>
 
     <div class="field label border">
-      <input type="text" id="ps-sip-ip" maxlength="15" inputmode="decimal" autocomplete="off" spellcheck="false" placeholder=" ">
-      <label for="ps-sip-ip" data-str="ui_ip_address">IP address</label>
+      <input class="active" type="text" id="ps-sip-ip" maxlength="15" inputmode="decimal" autocomplete="off" spellcheck="false" placeholder=" ">
+      <label class="active" for="ps-sip-ip" data-str="ui_ip_address">IP address</label>
     </div>
     <div class="field label border">
-      <input type="text" id="ps-sip-mask" maxlength="15" inputmode="decimal" autocomplete="off" spellcheck="false" placeholder=" ">
-      <label for="ps-sip-mask" data-str="ui_subnet_mask">Subnet mask</label>
+      <input class="active" type="text" id="ps-sip-mask" maxlength="15" inputmode="decimal" autocomplete="off" spellcheck="false" placeholder=" ">
+      <label class="active" for="ps-sip-mask" data-str="ui_subnet_mask">Subnet mask</label>
     </div>
     <div class="field label border">
-      <input type="text" id="ps-sip-gw" maxlength="15" inputmode="decimal" autocomplete="off" spellcheck="false" placeholder=" ">
-      <label for="ps-sip-gw" data-str="ui_gateway">Gateway</label>
+      <input class="active" type="text" id="ps-sip-gw" maxlength="15" inputmode="decimal" autocomplete="off" spellcheck="false" placeholder=" ">
+      <label class="active" for="ps-sip-gw" data-str="ui_gateway">Gateway</label>
     </div>
     <div class="field label border">
-      <input type="text" id="ps-sip-dns" maxlength="15" inputmode="decimal" autocomplete="off" spellcheck="false" placeholder=" ">
-      <label for="ps-sip-dns" data-str="ui_dns_server">DNS server</label>
+      <input class="active" type="text" id="ps-sip-dns" maxlength="15" inputmode="decimal" autocomplete="off" spellcheck="false" placeholder=" ">
+      <label class="active" for="ps-sip-dns" data-str="ui_dns_server">DNS server</label>
     </div>
-    <div class="small-text" data-str="ui_optional">Optional</div>
+    <div class="small-text field-note" data-str="ui_optional">Optional</div>
     <div class="small-text" id="ps-sip-note"></div>
     <button class="fill responsive" id="ps-sip-save">
       <svg class="i"><use href="#i-disk"/></svg>

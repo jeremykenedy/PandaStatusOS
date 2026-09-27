@@ -1095,13 +1095,25 @@ nav.segmented > button.is-on {
    child of a card that follows something gets the same 1rem of air, and the
    title's own following rule (section 24) is left to it.
    ────────────────────────────────────────────────────────────────────── */
-main article:not(.no-padding) >
+main :is(article:not(.no-padding), article.no-padding > .padding) >
   :is(.small-text, .field, .slider, nav, .grid, ul, pre, progress, button) +
   :is(.field, .slider, nav, .grid, button) {
   margin-block-start: 1rem;
 }
+/* A labelled field floats its label a line above its own box, so it needs a
+   rem more than the rest or the label lands on whatever is above it (the
+   hotspot's three fields sat label-on-box). The padded block inside a no-padding
+   card (the hotspot, the effect card) is a card's inside for this purpose. */
+main :is(article:not(.no-padding), article.no-padding > .padding) >
+  :is(.small-text, .field, .slider, nav, .grid, ul, pre, progress, button) + .field.label {
+  margin-block-start: 2rem;
+}
 /* A button group is buttons on one line with room to breathe between them. */
 nav.btn-row { gap: 0.75rem; align-items: center; }
+/* The unfilled part's field is wrapped in a div the rules above do not see: the
+   same air a labelled field gets, and its help text half a rem under its box. */
+#ps-fx-card > .padding > #ps-fx-unlit-wrap { margin-block-start: 2rem; }
+#ps-fx-unlit-wrap > .small-text { margin-block-start: 0.5rem; }
 
 /* Beer gives every .field a top margin of its own. Inside a list row that
    margin is not shared by the icon, the label or the switch beside it, so the
@@ -1370,8 +1382,20 @@ nav.bottom {
    printer picker): no line, half a rem down, and the next field keeps its gap. */
 .card-divided > .field + .small-text.field-note { margin-block-start: 0.5rem !important; padding-block-start: 0; }
 .card-divided > .field + .small-text.field-note::before { content: none; }
+/* ...which means the field under such a note is a new setting, not one the note
+   introduces: it keeps its line and its gap as if the note were not there. The
+   grouping rule above would otherwise swallow the divider between the printer
+   picker and the serial number while the card's other fields kept theirs. */
+.card-divided > .small-text.field-note + .field.label { margin-block-start: 2.5rem !important; padding-block-start: 0; }
+.card-divided > .small-text.field-note + .field.label::before { content: ''; inset-block-start: -1.5rem; }
 /* the spacer's own height is not needed once a divider does the separating */
 .card-divided > .space { display: none; }
+/* A note a module fills when it has something to say (the settings file's, the
+   preview's, the presets', the stages', the images', the fixed address's) is an
+   empty div until then, and an empty child still earned a divider and a band of
+   padding under the last control: a line over nothing at the foot of six cards.
+   Nothing to say, nothing drawn. */
+.card-divided > .small-text:empty { display: none; }
 
 
 /* ── 41  The current page, marked in the nav ─────────────────────────────

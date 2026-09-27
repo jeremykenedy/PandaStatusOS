@@ -1761,4 +1761,51 @@ one. A printer that reports a chamber humidity would put O4 back on the list.
 
 ---
 
+## D-059 Every labelled field floats its label, every card keeps one rhythm, and a note with nothing to say draws nothing
+
+**Date** 2026-09-27 · **Reversal** cheap (CSS and markup classes; the sweep's layout and contrast rows cover it)
+
+The owner sent screenshots of the Settings and Bindings pages and said the spacing and the
+labels were inconsistent. The two faults he pointed at were fixed under D-058; this entry is
+the pass made afterwards by looking at every page as rendered, because the layout harness
+measures alignment and contrast and not whether a label sits on a line or a card ends in an
+empty band. Six things, none of which any harness row failed on:
+
+- **A note with nothing to say drew a divider and a band.** Six cards carry an empty
+  `.small-text` a module fills when it has something to report (the settings file's, the
+  preview's, the presets', the stages', the images', the fixed address's). In a divided card
+  an empty child still earned its line and its padding, so the Settings file card ended in a
+  hairline over nothing. `.card-divided > .small-text:empty { display: none }`.
+- **The printer's model line swallowed the next divider.** The grouping rule says a
+  description introduces the field under it, so the serial number, sitting under the model
+  note, lost its line while the access code and the address kept theirs. A `.field-note`
+  belongs to the field above it, so the field under one is a new setting and keeps its line.
+- **The unfilled part's label sat on the kept-inside switch.** The effect card is a
+  no-padding card with a padded block inside, and the rhythm rule (section 31) reached only a
+  card's direct children. It now reaches `article.no-padding > .padding` too, which also
+  fixed the hotspot page, whose three fields sat label-on-box. A labelled field following
+  anything gets 2 rem, the rest 1 rem: the label floats a line above its own box and needs
+  the room.
+- **Labels floated on some fields and sat inside others.** Beer floats a label on focus, on
+  a value, on a select, or on `active`. A field that may be empty (the fixed address's four,
+  the preset name, the hotspot's, the degree fields before the document arrives) showed a
+  large in-box label beside fields that floated theirs. Every labelled text, password and
+  number field in the app now carries `active` on the input and the label both (the notch is
+  a clip-path on the input), the same rule the Bindings page got under D-058. The "Optional"
+  under the DNS field is a note on that field, not a setting of its own.
+- **Five English labels were in title case** ("Device Name", "Access Code", "Host Name",
+  "Factory Reset", "Lighting Now") beside sentence-case everything else. Sentence case, in the
+  English table only; the other twenty-three follow their own conventions.
+- **A pick from the vent list did not write the address into the field** (D-058, found by the
+  harness the same day).
+
+**Alternatives.** Hiding each note from its module (six modules to teach one rule). Leaving
+the in-box label as Beer's default for empty fields (two label styles on one page is what
+was complained about).
+
+**What would change it.** A screenshot-diff row in the sweep, so a band or a collision fails
+a build rather than waiting for an eye.
+
+---
+
 *Entries continue below as the run proceeds.*
