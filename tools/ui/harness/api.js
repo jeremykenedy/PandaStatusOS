@@ -39,7 +39,7 @@ async function post(path, body) {
   } else {
     let r = await get('/api/info');
     t('clone: GET /api/info answers the identification document', r.status === 200 && !!r.body && r.body.product === 'PandaStatusOS' && typeof r.body.build === 'string'
-      && typeof r.body.version === 'string' && typeof r.body.uptime_s === 'number' && typeof r.body.leds === 'number' && typeof r.body.features === 'number' && r.body.config_layout === 'PS04', r.body);
+      && typeof r.body.version === 'string' && typeof r.body.uptime_s === 'number' && typeof r.body.leds === 'number' && typeof r.body.features === 'number' && r.body.config_layout === 'PS05', r.body);
     t('clone: /api/info carries no network name, address, serial or credential', r.status === 200 && !/ssid|"ip"|"sn"|password|access_code|mac/i.test(JSON.stringify(r.body)), Object.keys(r.body || {}));
     r = await get('/api/state');
     t('clone: GET /api/state is the six-root document the socket pushes on connect', r.status === 200 && !!r.body && Object.keys(r.body).length === 6

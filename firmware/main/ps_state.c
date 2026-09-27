@@ -199,6 +199,9 @@ static cJSON *root_settings(void)
     cJSON_AddNumberToObject(o, "current_mode", g_ps.cfg.current_mode);
     cJSON_AddStringToObject(o, "fw_version", PS_FW_VERSION);
     cJSON_AddStringToObject(o, "language", g_ps.cfg.language);
+    /* The friendly name (v5, D-060), under the vent's key: a label for the bar above the
+     * page and for the bridge, never an address. The hostname stays in sta. */
+    cJSON_AddStringToObject(o, "device_name", ps_cfg_device_name(&g_ps.cfg));
     if (g_ps.img_version[0]) cJSON_AddStringToObject(o, "img_version", g_ps.img_version);   /* never observed; sent only once known */
     return o;
 }
@@ -272,9 +275,15 @@ static uint32_t apply_settings(cJSON *m, int client)
     }
     const char *lang = str(m, "language");
     if (lang) { copy_str(c->language, sizeof c->language, lang); changed |= PS_ROOT_SETTINGS; }
+    /* The friendly name, the vent's key and the vent's rule (empty or "default" puts the
+     * default back). Answered like the vent answers it, and pushed, so every open page's bar
+     * follows; nothing restarts, because nothing on the network changed (D-060). */
+    const char *dn = str(m, "device_name");
+    if (dn) { ps_cfg_set_device_name(c, dn); changed |= PS_ROOT_SETTINGS; }
     /* settings.on, settings.follow, settings.printing_ui_type: handled inbound by the factory
      * page, sent by no control of it (FACT). Not honoured here: the parity rule. */
     if (changed) { ps_cfg_save(c); ps_effect_notify(); }
+    if (dn) { ps_ws_response("set_device_name", true, NULL, client); ps_bridge_notify(); }
     return changed;
 }
 

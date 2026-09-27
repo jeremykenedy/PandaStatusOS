@@ -154,6 +154,23 @@ async function sectionB() {
   t('B20 hostname: answered by a response frame, not a state push', r.pushed && r.push.response && r.push.response.type === 'set_hostname' && r.push.response.ok === 1, r.push);
   t('B21 hostname: stored', (await state()).sta.hostname === 'renamed');
 
+  // D-060: the friendly name is a label under the vent's key, not the hostname. It is
+  // answered like the vent answers it AND the settings root is pushed with it, so every
+  // open page's bar follows; the hostname it does not touch.
+  {
+    const before = c.frames.length; send(c, 'settings', { device_name: 'Panda Status Two' });
+    await waitFrames(c, before + 2, 1500);
+    const got = c.frames.slice(before).map((x) => J(x.data));
+    const resp = got.find((x) => x.response), push = got.find((x) => x.settings);
+    t('B21b device_name: answered set_device_name ok', !!resp && resp.response.type === 'set_device_name' && resp.response.ok === 1, got);
+    t('B21c device_name: and the settings root is pushed carrying it', !!push && push.settings.device_name === 'Panda Status Two', got);
+    t('B21d device_name: the hostname is not touched', (await state()).sta.hostname === 'renamed');
+    const before2 = c.frames.length; send(c, 'settings', { device_name: 'default' });
+    await waitFrames(c, before2 + 2, 1500);
+    const push2 = c.frames.slice(before2).map((x) => J(x.data)).find((x) => x.settings);
+    t('B21e device_name: the word default puts the default back, shown rather than empty', !!push2 && push2.settings.device_name === 'Panda Status', push2);
+  }
+
   r = await sendExpectPush(c, 'ap', { ssid: 'x', password: 'y', ip: '192.0.2.99' });
   t('B22 ap with changed ip: response set_hotspot_ip (INFERENCE, D-014)', r.push && r.push.response && r.push.response.type === 'set_hotspot_ip', r.push);
   r = await sendExpectPush(c, 'ap', { ssid: 'x2', password: 'y', ip: '192.0.2.99' });

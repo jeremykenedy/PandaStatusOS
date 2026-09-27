@@ -42,8 +42,9 @@ extern const char *const ps_gif_slot_names[PS_GIF_SLOTS];
 #define PS_CFG_MAGIC_V1  0x50533031u   /* 'P' 'S' '0' '1': the first layout, 492 bytes, frozen in ps_cfg.c */
 #define PS_CFG_MAGIC_V2  0x50533032u   /* 'P' 'S' '0' '2': v1 plus state_brightness, 500 bytes, frozen in ps_cfg.c */
 #define PS_CFG_MAGIC_V3  0x50533033u   /* 'P' 'S' '0' '3': v2 plus the per-state effects, 572 bytes, frozen in ps_cfg.c */
-#define PS_CFG_MAGIC_V4  0x50533034u   /* 'P' 'S' '0' '4': v3 plus the temperature fields and the two layers */
-#define PS_CFG_MAGIC     PS_CFG_MAGIC_V4
+#define PS_CFG_MAGIC_V4  0x50533034u   /* 'P' 'S' '0' '4': v3 plus the temperature fields and the two layers, 592 bytes, frozen in ps_cfg.c */
+#define PS_CFG_MAGIC_V5  0x50533035u   /* 'P' 'S' '0' '5': v4 plus the device's friendly name */
+#define PS_CFG_MAGIC     PS_CFG_MAGIC_V5
 
 /* feature bits in ps_cfg_t.features. Every one defaults to 0 and leaves the device at
  * factory parity; docs/FEATURES.md is the table. */
@@ -246,12 +247,21 @@ typedef struct {
     uint8_t   temp_unit;               /* O6: what the page shows temperatures in, PS_UNIT_*; the device itself only ever
                                           holds degrees C. Was padding, so every stored blob reads 0, which is Celsius. */
     uint8_t   _pad2;
+    /* ---- v5, PS05: the friendly name (D-060). What the bar above the page and the vent
+     * bridge call this unit; a label, not an address. The hostname above is the network's
+     * name for it and stays what it was: the two are different things, and saving a label
+     * must never rename a device on the network or restart it. Empty means the default
+     * (ps_device_name() says which), so a fresh blob and a migrated one both read
+     * "Panda Status" without carrying the string. ---- */
+    char      device_name[33];         /* UTF-8, cut at a character boundary, no control characters */
+    uint8_t   _pad3[3];
 } ps_cfg_t;
 #define PS_UNIT_C 0
 #define PS_UNIT_F 1
+#define PS_DEVICE_NAME_DEFAULT "Panda Status"
 
 /* the whole blob and its NVS budget; both pinned in ps_cfg.c and in the host test */
-#define PS_CFG_SIZE      592
+#define PS_CFG_SIZE      628
 #define PS_CFG_NVS_BUDGET 2048
 
 /* A14: the named effects, a second blob under the same namespace with its own magic and
@@ -462,6 +472,11 @@ void ps_unlock(void);
 /* ---------------------------------------------------------------- ps_cfg.c ---- */
 void ps_cfg_factory_defaults(ps_cfg_t *c);   /* writes through c ONLY; touches no global */
 void ps_cfg_clamp(ps_cfg_t *c);              /* after load: indices and ranges read from flash */
+/* The friendly name (v5). set: empty or "default" clears it, anything else is copied cut
+ * at 32 bytes on a UTF-8 boundary with control characters dropped and the ends trimmed;
+ * touches c ONLY, saves nothing. get: what to show, the stored name or the default. */
+void ps_cfg_set_device_name(ps_cfg_t *c, const char *v);
+const char *ps_cfg_device_name(const ps_cfg_t *c);
 int  ps_cfg_load(ps_cfg_t *c);               /* defaults first, then overlay from NVS; 0 ok */
 int  ps_cfg_save(const ps_cfg_t *c);         /* 0 ok */
 int  ps_cfg_erase(void);                     /* factory_reset */

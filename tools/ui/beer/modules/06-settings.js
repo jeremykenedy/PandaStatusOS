@@ -188,33 +188,38 @@ function s6_pick_language(code) {
 /* ---------------------------------------------------------------------
    3. Device name
 
-   This device has ONE name, the hostname: what the bar above shows, what the
-   network calls it, and one DNS label (ps_netname.c sanitises it: a space
-   becomes a hyphen). The card is the same field the Wi-Fi page has, so it
-   writes the same root, {"sta":{"hostname"}}, and the device answers
-   set_hostname, which module 1 turns into the "restart to take the new name"
-   dialog. It wrote settings.device_name until 2026-09-26, a key the vent had
-   and this firmware never did, so Save name did nothing at all.
+   The friendly name, the vent's model (D-060): a label, shown in the bar
+   above and given to the vent bridge, written as {"settings":{"device_name"}}
+   and answered set_device_name, which module 1 turns into a toast. It is not
+   the hostname. The hostname is the network's name for the device, one DNS
+   label, and it lives on the Network page with its own restart. For one day
+   this card wrote the hostname instead, and saving a three-word label renamed
+   the device on the network, restarted it and left the page pointing at an
+   address that no longer answered.
    ------------------------------------------------------------------- */
 
 function s6_device_name_save() {
   var input = s6_el('ps-settings-device-name');
   if (!input) return;
   var name = (input.value || '').trim();
-  if (!name) { toast_show('ui_enter_a_host_name', 3000, 'Enter a host name first.'); return; }
-  ws_push('sta', { hostname: name });
+  if (!name) { s6_toast('ui_enter_a_name', 'Enter a name first.', 3000); return; }
+  ws_push('settings', { device_name: name });
 }
 
-/* An empty name is the device's compiled default, so the page does not have
-   to know what that name is. */
+/* The device owns the default string, so the page does not carry a second copy
+   that could drift from it: the word "default" asks for it (ps_cfg.c). Asked
+   first, because it throws away a name somebody typed and there is no undo. */
 function s6_device_name_reset() {
-  ws_push('sta', { hostname: '' });
+  s6_dialog('device_name', 'Device name',
+    'ui_note_device_name_reset', 'Put the default name back?',
+    [{ key: 'ui_yes', fallback: 'Yes', handler: function () { ws_push('settings', { device_name: 'default' }); } },
+     { key: 'cancel', fallback: 'Cancel' }]);
 }
 
 function s6_note_device_name() {
   s6_dialog('device_name', 'Device name',
     'ui_note_device_name_text',
-    'This device has one name. It is what the network calls it and what the bar above shows, and adding .local to it opens this page from anything on the same network. One word: letters, digits and hyphens; a space becomes a hyphen. The device restarts to take a new name.',
+    'A label: it is shown in the bar above, and a vent bound to this device sees it under this name. It does not change the address of this page. The network name is on the Network page, under Host name, and changing that one restarts the device.',
     [{ key: 'ui_ok', fallback: 'OK' }]);
 }
 

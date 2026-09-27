@@ -1808,4 +1808,48 @@ a build rather than waiting for an eye.
 
 ---
 
+## D-060 Two names after all: the label the bar shows is not the address the network answers to
+
+**Date** 2026-09-27 · **Reversal** the field is in the blob for good (v5); the rest is a few lines and a harness row · **Reverses** the "one name" part of D-058
+
+**What happened.** Under D-058 the Settings card's Device name was made to write the
+hostname, on the reasoning that this device had one name and a second field writing to
+the same place would be a lie. The owner typed a three-word name into it, pressed Save,
+was asked to restart, said yes, and the device came back under that name, hyphenated, as
+its `.local` address: the address he had it under stopped answering, the page he was
+looking at was pointing at a name that no longer existed, and from where he sat the device
+was gone. His words: the device's alias and its name are different things. They are. The
+vent, which is the standard here, has both: `settings.device_name` is a label and the
+hostname is an address, and saving the label restarts nothing.
+
+**Decided.** The config blob moves to v5 ("PS05", 628 bytes; v4 frozen at 592, one more
+arm in the chain, a cfg_test row that a v4 blob survives) with `device_name[33]`: UTF-8,
+cut at 32 bytes on a character boundary, control characters dropped, trimmed, empty
+meaning the default so the string "Panda Status" lives in one function. On the socket it
+is `settings.device_name`, always as shown, written with the vent's own key and the vent's
+own rule (empty or `"default"` puts the default back), answered `set_device_name`, and the
+settings root is pushed so every open page's bar follows. It goes in the settings file
+too. The bridge gives the vent this name in its hello, its TXT record and `/bridge/id`,
+because a label is what the other end's list is for and an address is not. The Settings
+card says "The name shown in the bar above", saves with a toast, and its reset asks first
+and sends the word; its note says where the network name lives. The bar shows the label,
+or the hostname on a device older than v5.
+
+**And the host name's own dialog does the one thing it could have done for him.** The
+page knows what the device will call itself (ps_netname.c's rule, mirrored in
+`host_label()`: one DNS label, hyphens for the rest, lower case), so the dialog now says
+"Afterwards it answers at http://bench-two.local/ (192.0.2.10)", and when the page was
+opened by a name, Restart follows the device to the new one after eight seconds. A page
+opened by address keeps its address, which still works.
+
+**Alternatives.** A separate NVS key for the label (keeps the blob at v4 but puts one
+setting outside the file and the factory-reset story). Deriving the label from the hostname
+(the thing he told me they are not). Leaving the hostname redirect out (the fault he hit
+would then still be a dead page, only with a better name for it).
+
+**What would change it.** The vent's key set changing under the bridge; both ends hold the
+name as a string and neither parses it, so a rename is a rename.
+
+---
+
 *Entries continue below as the run proceeds.*

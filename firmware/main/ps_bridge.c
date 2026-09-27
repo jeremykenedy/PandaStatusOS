@@ -120,10 +120,11 @@ static int64_t now_us(void) { return esp_timer_get_time(); }
 static void lock(void)   { xSemaphoreTake(s_mx, portMAX_DELAY); }
 static void unlock(void) { xSemaphoreGive(s_mx); }
 static bool bit_on(void) { ps_lock(); bool on = (g_ps.cfg.features & PS_FEAT_BRIDGE) != 0; ps_unlock(); return on; }
-static void hostname_copy(char *out, size_t n)
+/* What this unit is called on the bridge: the friendly name (v5, D-060), which is what the
+ * other end's page prints in its list, not the hostname, which is an address. */
+static void name_copy(char *out, size_t n)
 {
-    ps_lock(); snprintf(out, n, "%s", g_ps.cfg.hostname); ps_unlock();
-    if (!out[0]) snprintf(out, n, "status");
+    ps_lock(); snprintf(out, n, "%s", ps_cfg_device_name(&g_ps.cfg)); ps_unlock();
 }
 static void post(uint8_t kind, uint8_t arg)
 {
@@ -203,7 +204,7 @@ static bool say(const char *root, cJSON *body)
  * because there is no other nonce yet; the second proves over the vent's. */
 static bool send_hello(const char *over_nonce)
 {
-    char name[33]; hostname_copy(name, sizeof name);
+    char name[33]; name_copy(name, sizeof name);
     char token[65]; bool paired;
     lock(); paired = s.cfg.paired; memcpy(token, s.cfg.token, sizeof token); unlock();
     cJSON *b = cJSON_CreateObject();
@@ -808,7 +809,7 @@ static void take_requests(uint32_t ms)
 
 /* ---- being found ------------------------------------------------------------------------- */
 
-/* The service record, kept in step with the bit and with the hostname. mdns_init() belongs to
+/* The service record, kept in step with the bit and with the name. mdns_init() belongs to
  * ps_wifi.c and may run after this task starts, so a refusal is retried on the next tick and
  * logged only when it stops being one. */
 static void advertise(bool on)
@@ -817,7 +818,7 @@ static void advertise(bool on)
         if (s_advertised) { mdns_service_remove(BR_SERVICE, BR_PROTO); s_advertised = false; ESP_LOGI(TAG, "no longer advertised"); }
         return;
     }
-    char name[33]; hostname_copy(name, sizeof name);
+    char name[33]; name_copy(name, sizeof name);
     if (!s_advertised) {
         mdns_txt_item_t txt[] = { { "id", s.self_id }, { "kind", "status" }, { "ver", "1" }, { "name", name } };
         if (mdns_service_add(NULL, BR_SERVICE, BR_PROTO, BR_PORT, txt, 4) == ESP_OK) {
@@ -897,7 +898,7 @@ static cJSON *vent_json(const ps_vent_report_t *v)
 /* The page's whole view, the shape tools/ui/mock/mockdev.js bridgeDoc() gives. */
 static char *doc_json(void)
 {
-    char name[33]; hostname_copy(name, sizeof name);
+    char name[33]; name_copy(name, sizeof name);
     cJSON *d = cJSON_CreateObject();
     if (!d) return NULL;
     lock();
@@ -964,7 +965,7 @@ int ps_api_bridge_get(httpd_req_t *req)
 int ps_bridge_id_get(httpd_req_t *req)
 {
     if (!bit_on()) return ps_http_redirect_portal(req);
-    char name[33]; hostname_copy(name, sizeof name);
+    char name[33]; name_copy(name, sizeof name);
     cJSON *d = cJSON_CreateObject();
     if (!d) return reply_json(req, NULL);
     cJSON_AddStringToObject(d, "id", s.self_id);

@@ -130,8 +130,11 @@ const LOG = env('PS_LOG', '');
 
 const CONNECT_ROOTS = ['wifi', 'sta', 'ap', 'printer', 'settings', 'block'];
 const SETTINGS_PUSH_KEYS = ['list2', 'current_mode', 'fw_version', 'language'];
+// D-060: the friendly name, the vent's key, always in the push as shown (the default when
+// nothing is stored, the way ps_state.c sends it)
+const DEVICE_NAME_DEFAULT = 'Panda Status';
 const OUTBOUND_ROOTS = new Set(['settings', 'wifi', 'sta', 'ap', 'printer', 'block', 'printer_ctl']);
-const RESPONSE_TYPES = new Set(['set_hostname', 'set_ap', 'set_hotspot_ip', 'factory_reset', 'ota_fw', 'ota_img']);
+const RESPONSE_TYPES = new Set(['set_hostname', 'set_ap', 'set_hotspot_ip', 'factory_reset', 'ota_fw', 'ota_img', 'set_device_name']);
 const GIF_SLOTS = ['standby', 'nozzle_heating', 'bed_heating', 'bed_leveling', 'homing', 'nozzle_cleaning',
   'calibrating_flow', 'xy_mesh_mode_sweep', 'filament_check_location', 'filament_cut',
   'filament_pull_back_cur', 'filament_push_new', 'filament_purge_old', 'printing_ok', 'printing'];
@@ -543,6 +546,7 @@ function settingsPushBody() {
   const s = STATE.settings;
   const out = {};
   for (const k of SETTINGS_PUSH_KEYS) if (s[k] !== undefined) out[k] = s[k];
+  out.device_name = s.device_name || DEVICE_NAME_DEFAULT;
   if (knobFlag('PS_IMG_VERSION') && s.img_version !== undefined) out.img_version = s.img_version;
   // list2: emit brightness and rgb_rgba; emit speed only if the knob says the device does
   out.list2 = s.list2.map((e) => {
@@ -669,6 +673,15 @@ function applySettings(ws, m) {
     }
   }
   if ('language' in m && typeof m.language === 'string') { s.language = m.language; changed.push('settings'); }
+  // D-060: the friendly name. Empty or "default" puts the default back (the firmware's rule,
+  // ps_cfg_set_device_name: trimmed, cut at 32 bytes, control characters dropped); answered
+  // set_device_name like the vent answers it, and the settings root is pushed. No restart.
+  if ('device_name' in m && typeof m.device_name === 'string') {
+    const v = m.device_name.replace(/[\x00-\x1f\x7f]/g, '').trim();
+    s.device_name = (!v || v === 'default') ? '' : Buffer.from(v, 'utf8').subarray(0, 32).toString('utf8').replace(/\uFFFD$/, '').trim();
+    response(ws, 'set_device_name', true);
+    changed.push('settings');
+  }
   // The three dead controls. Handled inbound by the UI, never sent by it. If a frame
   // carries them, record that the device saw them and store them; whether the real
   // firmware honours them is unknown and untested.
@@ -911,7 +924,7 @@ async function handleHttp(req, res) {
     if (!FEAT) FEAT = featDefaults();
     let bits = 0; FEATURE_NAMES.forEach((k, i) => { if (FEAT.features[k]) bits |= featBit(i); });
     const info = { product: 'PandaStatusOS', build: LANDED ? LANDED.build : String(knob('PS_BUILD', 'mock')), version: (STATE.settings && STATE.settings.fw_version) || 'V1.0.0', idf: 'v5.3.1',
-                   uptime_s: Math.floor((Date.now() - t0) / 1000), heap_free: 180000, flash_size: 4194304, leds: 16, mode: (STATE.settings && STATE.settings.current_mode) || 0, features: bits, config_layout: 'PS04',
+                   uptime_s: Math.floor((Date.now() - t0) / 1000), heap_free: 180000, flash_size: 4194304, leds: 16, mode: (STATE.settings && STATE.settings.current_mode) || 0, features: bits, config_layout: 'PS05',
                    // Bytes one GIF slot may take. Zero is the answer on a unit whose flash carries no
                    // images partition, which is what the stock table read out of this hardware shows;
                    // PS_IMG_SLOT_BYTES exists so the other branch can be driven too.
@@ -1130,8 +1143,8 @@ async function handleHttp(req, res) {
     const exportDoc = () => {
       let bits = 0; FEATURE_NAMES.forEach((k, i) => { if (FEAT.features[k]) bits |= featBit(i); });
       const modes = (STATE.settings.list2 || []).map((m, i) => ({ brightness: m.brightness, speed: m.speed === undefined ? 100 : m.speed, colours: (m.rgb_rgba || []).map(toH2D) }));
-      return { layout: 'PS04', features: bits, wifi: { ssid: STATE.wifi.ssid }, ap: { ssid: STATE.ap.ssid, ip: STATE.ap.ip, on: STATE.ap.on }, hostname: STATE.sta.hostname,
-               printer: { name: STATE.printer.name, sn: STATE.printer.sn, ip: STATE.printer.ip }, language: STATE.settings.language, mode: STATE.settings.current_mode, modes,
+      return { layout: 'PS05', features: bits, wifi: { ssid: STATE.wifi.ssid }, ap: { ssid: STATE.ap.ssid, ip: STATE.ap.ip, on: STATE.ap.on }, hostname: STATE.sta.hostname,
+               printer: { name: STATE.printer.name, sn: STATE.printer.sn, ip: STATE.printer.ip }, device_name: STATE.settings.device_name || DEVICE_NAME_DEFAULT, language: STATE.settings.language, mode: STATE.settings.current_mode, modes,
                blocks: (STATE.block.blocklist || []).map((b) => ({ id: b.blockID, colour: toH2D(b.blockrgba) })),
                state_brightness: FEAT.config.state_brightness, state_effects: FEAT.config.state_effects, temp_gradient: FEAT.config.temp_gradient, hot_warning: FEAT.config.hot_warning, error_flash: FEAT.config.error_flash, temp_unit: FEAT.config.temp_unit,
                presets: PRESETS.presets, stages: STAGES.stages };
@@ -1144,7 +1157,7 @@ async function handleHttp(req, res) {
     try { j = JSON.parse(body.toString('utf8')); } catch (_) { rec.error = 'not json'; SENT.push(rec); log({ ev: 'api_refused', detail: 'not json' }); res.writeHead(400); return res.end('refused'); }
     rec.text = JSON.stringify({ api: '/api/config', body: j }); rec.frame = j; rec.roots = ['api'];
     const refuse = () => { rec.error = 'refused'; SENT.push(rec); log({ ev: 'api_refused', detail: 'config' }); res.writeHead(400); res.end('refused'); };
-    const TOP = ['layout', 'features', 'wifi', 'ap', 'hostname', 'printer', 'language', 'mode', 'modes', 'blocks', 'state_brightness', 'state_effects', 'temp_gradient', 'hot_warning', 'error_flash', 'temp_unit', 'presets', 'stages'];
+    const TOP = ['layout', 'features', 'wifi', 'ap', 'hostname', 'printer', 'language', 'mode', 'modes', 'blocks', 'state_brightness', 'state_effects', 'temp_gradient', 'hot_warning', 'error_flash', 'temp_unit', 'presets', 'stages', 'device_name'];
     const isObj = (o) => o && typeof o === 'object' && !Array.isArray(o);
     const str = (v, max) => v === undefined || (typeof v === 'string' && v.length <= max);
     const ipOk = (v) => v === undefined || v === '' || (typeof v === 'string' && /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/.test(v) && v.split('.').every((n) => Number(n) <= 255));
@@ -1153,6 +1166,7 @@ async function handleHttp(req, res) {
     if (j.wifi !== undefined && (!isObj(j.wifi) || !Object.keys(j.wifi).every((k) => ['ssid', 'password'].includes(k)) || !str(j.wifi.ssid, 32) || !str(j.wifi.password, 64))) return refuse();
     if (j.ap !== undefined && (!isObj(j.ap) || !Object.keys(j.ap).every((k) => ['ssid', 'password', 'ip', 'on'].includes(k)) || !str(j.ap.ssid, 32) || !str(j.ap.password, 64) || !ipOk(j.ap.ip) || (j.ap.on !== undefined && j.ap.on !== 0 && j.ap.on !== 1))) return refuse();
     if (!str(j.hostname, 32) || !str(j.language, 7)) return refuse();
+    if (j.device_name !== undefined && typeof j.device_name !== 'string') return refuse();
     if (j.printer !== undefined && (!isObj(j.printer) || !Object.keys(j.printer).every((k) => ['name', 'sn', 'ip', 'access_code'].includes(k)) || !str(j.printer.name, 32) || !str(j.printer.sn, 32) || !str(j.printer.access_code, 16) || !ipOk(j.printer.ip))) return refuse();
     if (j.mode !== undefined && j.mode !== 0 && j.mode !== 1) return refuse();
     if (j.modes !== undefined && (!Array.isArray(j.modes) || j.modes.length !== 2 || !j.modes.every((m) => isObj(m) && Object.keys(m).every((k) => ['brightness', 'speed', 'colours'].includes(k))
@@ -1175,6 +1189,7 @@ async function handleHttp(req, res) {
     if (j.hostname !== undefined) STATE.sta.hostname = j.hostname;
     if (j.printer) { for (const k of ['name', 'sn', 'ip', 'access_code']) if (j.printer[k] !== undefined) STATE.printer[k] = j.printer[k]; }
     if (j.language !== undefined) STATE.settings.language = j.language;
+    if (j.device_name !== undefined) { const v = j.device_name.replace(/[\x00-\x1f\x7f]/g, '').trim(); STATE.settings.device_name = (!v || v === 'default') ? '' : Buffer.from(v, 'utf8').subarray(0, 32).toString('utf8').replace(/\uFFFD$/, '').trim(); }
     if (j.mode !== undefined) STATE.settings.current_mode = j.mode;
     if (j.modes) j.modes.forEach((m, i) => { const cur = STATE.settings.list2[i]; if (m.brightness !== undefined) cur.brightness = m.brightness; if (m.speed !== undefined && i === 1) cur.speed = m.speed;
       if (m.colours) cur.rgb_rgba = m.colours.map((c) => i === 0 ? toH2D(c).slice(1, 7) : toH2D(c)); });

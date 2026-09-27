@@ -170,6 +170,13 @@ JS_ONLY = {
     # whose firmware has no bridge half, and a found vent is named by what it runs.
     'ui_vent_no_bridge': "This vent's firmware has no bridge to talk to yet",
     'ui_vent_factory': 'factory firmware',
+    # The friendly name's own words (06-settings.js, D-060): the empty-name toast, the reset
+    # confirm, the saved toast; and the tail the host name dialog gets when the page knows
+    # the address the device will answer at afterwards (core.js set_hostname).
+    'ui_enter_a_name': 'Enter a name first.',
+    'ui_note_device_name_reset': 'Put the default name back?',
+    'ui_name_saved': 'Name saved',
+    'dlg_hostname_after': 'Afterwards it answers at',
 }
 for _k, _t in JS_ONLY.items():
     keys.setdefault(_k, _t)

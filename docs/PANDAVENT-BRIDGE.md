@@ -59,7 +59,7 @@ Each device advertises one mDNS service:
 
 ```
 _pandabridge._tcp.local
-TXT  id=<16 hex>   kind=status|vent   ver=1   name=<hostname>
+TXT  id=<16 hex>   kind=status|vent   ver=1   name=<the friendly name; a label, not the hostname>
 ```
 
 `id` is the device's identity: the first 8 bytes of sha256 over its Wi-Fi station MAC,

@@ -668,7 +668,7 @@ int ps_api_info_get(httpd_req_t *req)
     cJSON_AddNumberToObject(doc, "mode", mode);
     cJSON_AddNumberToObject(doc, "features", (double)feat);
     cJSON_AddNumberToObject(doc, "image_slot_bytes", (double)ps_ota_slot_cap());   /* 0: this unit has no images partition */
-    cJSON_AddStringToObject(doc, "config_layout", "PS04");
+    cJSON_AddStringToObject(doc, "config_layout", "PS05");
     char *s = cJSON_PrintUnformatted(doc);
     cJSON_Delete(doc);
     return send_json(req, s);
@@ -847,11 +847,12 @@ char *ps_config_json(void)
     char ip[16];
     ps_lock();
     const ps_cfg_t *c = &g_ps.cfg;
-    cJSON_AddStringToObject(doc, "layout", "PS04");
+    cJSON_AddStringToObject(doc, "layout", "PS05");
     cJSON_AddNumberToObject(doc, "features", (double)c->features);
     cJSON *wifi = cJSON_AddObjectToObject(doc, "wifi"); cJSON_AddStringToObject(wifi, "ssid", c->wifi_ssid);
     cJSON *ap = cJSON_AddObjectToObject(doc, "ap"); cJSON_AddStringToObject(ap, "ssid", c->ap_ssid); ip_to_str(c->ap_ip, ip, sizeof ip); cJSON_AddStringToObject(ap, "ip", ip); cJSON_AddNumberToObject(ap, "on", c->ap_on);
     cJSON_AddStringToObject(doc, "hostname", c->hostname);
+    cJSON_AddStringToObject(doc, "device_name", ps_cfg_device_name(c));       /* v5: the friendly name, as shown */
     cJSON *pr = cJSON_AddObjectToObject(doc, "printer"); cJSON_AddStringToObject(pr, "name", c->printer_name); cJSON_AddStringToObject(pr, "sn", c->printer_sn); ip_to_str(c->printer_ip, ip, sizeof ip); cJSON_AddStringToObject(pr, "ip", ip);
     cJSON_AddStringToObject(doc, "language", c->language);
     cJSON_AddNumberToObject(doc, "mode", c->current_mode);
@@ -903,11 +904,11 @@ static bool only_keys(cJSON *o, const char *const *keys, int nkeys)
 int ps_config_apply(const char *json, size_t len)
 {
     static const char *const TOP[] = { "layout", "features", "wifi", "ap", "hostname", "printer", "language", "mode", "modes", "blocks",
-                                       "state_brightness", "state_effects", "temp_gradient", "hot_warning", "error_flash", "presets", "stages", "temp_unit" };
+                                       "state_brightness", "state_effects", "temp_gradient", "hot_warning", "error_flash", "presets", "stages", "temp_unit", "device_name" };
     static const char *const WIFI_K[] = { "ssid", "password" }, *const AP_K[] = { "ssid", "password", "ip", "on" },
                       *const PR_K[] = { "name", "sn", "ip", "access_code" }, *const MODE_K[] = { "brightness", "speed", "colours" }, *const BLK_K[] = { "id", "colour" };
     cJSON *root = cJSON_ParseWithLength(json, len);
-    if (!root || !cJSON_IsObject(root) || !only_keys(root, TOP, 18)) { cJSON_Delete(root); return -1; }
+    if (!root || !cJSON_IsObject(root) || !only_keys(root, TOP, 19)) { cJSON_Delete(root); return -1; }
     ps_cfg_t next; ps_lock(); next = g_ps.cfg; ps_unlock();
     /* 1. the parity fields, validated into a copy */
     cJSON *v;
@@ -927,6 +928,12 @@ int ps_config_apply(const char *json, size_t len)
         if (on) { if (!cJSON_IsNumber(on) || (on->valuedouble != 0 && on->valuedouble != 1)) goto refuse; next.ap_on = (uint8_t)on->valuedouble; }
     }
     if (!take_str(root, "hostname", next.hostname, sizeof next.hostname, NULL)) goto refuse;
+    /* v5: the friendly name, through its own setter (the cut and the control characters); a
+     * file from a PS04 device has none and keeps whatever this one is called */
+    if ((v = cJSON_GetObjectItemCaseSensitive(root, "device_name"))) {
+        if (!cJSON_IsString(v)) goto refuse;
+        ps_cfg_set_device_name(&next, v->valuestring);                /* any length: the setter cuts */
+    }
     if ((v = cJSON_GetObjectItemCaseSensitive(root, "printer"))) {
         if (!cJSON_IsObject(v) || !only_keys(v, PR_K, 4)) goto refuse;
         if (!take_str(v, "name", next.printer_name, sizeof next.printer_name, NULL) || !take_str(v, "sn", next.printer_sn, sizeof next.printer_sn, NULL)

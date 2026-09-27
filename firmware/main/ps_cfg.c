@@ -2,13 +2,13 @@
  * by size. Defaults are written first, then the stored layout is overlaid field by field,
  * never by a prefix copy: a struct that grows in the middle moves every byte after it.
  *
- * The chain below has four arms: v4 (current), v3, v2 and v1 (frozen below). The day a
- * fifth layout exists:
- *   1. copy the current ps_cfg_t into this file as ps_cfg_v4_t, static, with its own
+ * The chain below has five arms: v5 (current), v4, v3, v2 and v1 (frozen below). The day a
+ * sixth layout exists:
+ *   1. copy the current ps_cfg_t into this file as ps_cfg_v5_t, static, with its own
  *      _Static_assert on the literal size, referencing NO live type and NO live count;
- *   2. define PS_CFG_MAGIC_V5, point PS_CFG_MAGIC at it;
- *   3. add the v4 arm: defaults, overlay every v4 field, set what v5 added, save;
- *   4. extend firmware/test/host/cfg_test.c with a v4 blob that must survive.
+ *   2. define PS_CFG_MAGIC_V6, point PS_CFG_MAGIC at it;
+ *   3. add the v5 arm: defaults, overlay every v5 field, set what v6 added, save;
+ *   4. extend firmware/test/host/cfg_test.c with a v5 blob that must survive.
  * A frozen struct that points at a live type is correct only by luck. Grep this file for
  * the live names before every commit that touches a legacy block. */
 #include <string.h>
@@ -66,6 +66,28 @@ typedef struct {
 _Static_assert(sizeof(ps_cfg_v3_t) == 572, "the v3 layout is frozen at 572 bytes");
 _Static_assert(offsetof(ps_cfg_v3_t, fx) == 500 && sizeof(v3_fx_t) == 24, "the v3 layout moved");
 
+/* ---- v4, 'PS04', 592 bytes: frozen. v3 plus the temperature fields and the two layers; the
+ * effect entry's two padding bytes had become fx_unlit and flags by then. ---- */
+typedef struct { uint8_t effect, brightness, speed, bright_end, opt, aux, fx_unlit, flags; v1_rgba_t colour[4]; } v4_fx_t;
+typedef struct {
+    uint32_t magic, features;
+    char wifi_ssid[33], wifi_password[65], ap_ssid[33], ap_password[65], hostname[33];
+    char printer_name[33], printer_sn[33], printer_access_code[17], language[8];
+    uint8_t ap_ip[4], printer_ip[4], ap_on, current_mode, block_count, _pad0;
+    v1_mode_t mode[2];
+    v1_block_t block[15];
+    uint8_t state_brightness[2][3];
+    uint8_t _pad1[2];
+    v4_fx_t fx[3];
+    int16_t temp_lo, temp_hi;
+    uint8_t temp_src, hot_src;
+    int16_t hot_c;
+    v1_rgba_t hot_colour, err_colour;
+    uint8_t err_brightness, err_speed, temp_unit, _pad2;
+} ps_cfg_v4_t;
+_Static_assert(sizeof(ps_cfg_v4_t) == 592, "the v4 layout is frozen at 592 bytes");
+_Static_assert(offsetof(ps_cfg_v4_t, fx) == 500 && sizeof(v4_fx_t) == 24 && offsetof(ps_cfg_v4_t, temp_lo) == 572 && offsetof(ps_cfg_v4_t, err_speed) == 589, "the v4 layout moved");
+
 /* The fields v1, v2 and v3 share, overlaid by name from a frozen struct onto the live one.
  * One macro, three frozen types: the arms cannot disagree about a field. */
 #define OVERLAY_COMMON(c, o) do { \
@@ -98,6 +120,7 @@ _Static_assert(offsetof(ps_cfg_t, block) == 372, "block[] moved");
 _Static_assert(offsetof(ps_cfg_t, state_brightness) == 492, "the v2 fields must follow the v1 layout exactly");
 _Static_assert(offsetof(ps_cfg_t, fx) == 500 && sizeof(ps_fx_cfg_t) == 24, "the v3 fields must follow the v2 layout exactly");
 _Static_assert(offsetof(ps_cfg_t, temp_lo) == 572 && offsetof(ps_cfg_t, hot_colour) == 580 && offsetof(ps_cfg_t, err_speed) == 589, "the v4 fields must follow the v3 layout exactly");
+_Static_assert(offsetof(ps_cfg_t, device_name) == 592, "the v5 field must follow the v4 layout exactly");
 _Static_assert(sizeof(ps_mode_cfg_t) == 16 && sizeof(ps_block_cfg_t) == 8 && sizeof(ps_rgba_t) == 4, "sub-struct size changed");
 /* NVS keeps the old and the new copy resident during a rewrite; the budget is the blob
  * twice plus a page of slack against a 0x6000 partition shared with Wi-Fi credentials.
@@ -178,6 +201,41 @@ void ps_cfg_factory_defaults(ps_cfg_t *c)
     c->err_colour = (ps_rgba_t){ 0xFF, 0, 0, 0xFF }; c->err_brightness = 50; c->err_speed = 50;
     c->temp_unit = PS_UNIT_C;                          /* O6: Celsius unless the page is told otherwise */
     c->_pad2 = 0;
+    /* v5: no name stored means the default, so the string lives in one place (ps_cfg_device_name) */
+    c->device_name[0] = 0;
+}
+
+/* The friendly name, the vent's rule (pv_apply.c): empty or the word "default" puts the
+ * default back, so the page's reset button does not carry a copy of it. Anything else is
+ * taken as typed, within reason: 32 bytes, cut on a UTF-8 character boundary rather than
+ * in the middle of one, control characters dropped, spaces at the ends dropped. A name
+ * that is nothing but that is the default too. */
+void ps_cfg_set_device_name(ps_cfg_t *c, const char *v)
+{
+    char out[sizeof c->device_name];
+    size_t n = 0;
+    if (v && v[0] && strcmp(v, "default") != 0) {
+        const unsigned char *p = (const unsigned char *)v;
+        while (*p) {
+            if (*p < 0x20 || *p == 0x7F) { p++; continue; }              /* control characters are not a name */
+            size_t len = *p < 0x80 ? 1 : (*p & 0xE0) == 0xC0 ? 2 : (*p & 0xF0) == 0xE0 ? 3 : (*p & 0xF8) == 0xF0 ? 4 : 0;
+            size_t have = 0;                                              /* a lead byte and its continuations, whole */
+            if (len) for (have = 1; have < len && (p[have] & 0xC0) == 0x80; have++) { }
+            if (len == 0 || have < len) { p++; continue; }                /* a stray byte is not a character */
+            if (n + len > sizeof out - 1) break;                          /* the cut lands between characters */
+            memcpy(out + n, p, len);
+            n += len; p += len;
+        }
+    }
+    while (n && out[n - 1] == ' ') n--;
+    size_t lead = 0; while (lead < n && out[lead] == ' ') lead++;
+    memmove(c->device_name, out + lead, n - lead);
+    c->device_name[n - lead] = 0;
+}
+
+const char *ps_cfg_device_name(const ps_cfg_t *c)
+{
+    return c->device_name[0] ? c->device_name : PS_DEVICE_NAME_DEFAULT;
 }
 
 /* One stored effect, wherever it lives (a state's entry, a preset, a stage row): the ids
@@ -232,6 +290,10 @@ void ps_cfg_clamp(ps_cfg_t *c)
     c->hostname[sizeof c->hostname - 1] = 0;           c->printer_name[sizeof c->printer_name - 1] = 0;
     c->printer_sn[sizeof c->printer_sn - 1] = 0;       c->printer_access_code[sizeof c->printer_access_code - 1] = 0;
     c->language[sizeof c->language - 1] = 0;
+    /* v5: the friendly name is re-read through its own setter, so a blob written by
+     * another build cannot hand the page a control character or half a character */
+    c->device_name[sizeof c->device_name - 1] = 0;
+    { char tmp[sizeof c->device_name]; memcpy(tmp, c->device_name, sizeof tmp); ps_cfg_set_device_name(c, tmp); }
 }
 
 int ps_cfg_load(ps_cfg_t *c)
@@ -240,14 +302,14 @@ int ps_cfg_load(ps_cfg_t *c)
     nvs_handle_t h;
     esp_err_t err = nvs_open(PS_CFG_NVS_NS, NVS_READONLY, &h);
     if (err != ESP_OK) { ESP_LOGI(TAG, "no config namespace yet, defaults"); return 0; }
-    union { ps_cfg_t cur; ps_cfg_v3_t v3; ps_cfg_v2_t v2; ps_cfg_v1_t v1; uint32_t magic; uint8_t raw[PS_CFG_NVS_BUDGET]; } stored;
+    union { ps_cfg_t cur; ps_cfg_v4_t v4; ps_cfg_v3_t v3; ps_cfg_v2_t v2; ps_cfg_v1_t v1; uint32_t magic; uint8_t raw[PS_CFG_NVS_BUDGET]; } stored;
     size_t size = sizeof(stored);
     err = nvs_get_blob(h, PS_CFG_NVS_KEY, &stored, &size);
     nvs_close(h);
     if (err != ESP_OK) { ESP_LOGI(TAG, "no config blob, defaults"); return 0; }
 
-    /* newest first; a future v5 arm goes ABOVE this one */
-    if (size == sizeof(ps_cfg_t) && stored.cur.magic == PS_CFG_MAGIC_V4) {
+    /* newest first; a future v6 arm goes ABOVE this one */
+    if (size == sizeof(ps_cfg_t) && stored.cur.magic == PS_CFG_MAGIC_V5) {
         memcpy(c, &stored.cur, sizeof(*c));            /* the current layout: whole, then clamped */
         ps_cfg_clamp(c);
         return 0;
@@ -256,6 +318,27 @@ int ps_cfg_load(ps_cfg_t *c)
      * overlaid by name, never by a prefix copy, then saved back so the migration runs once.
      * The effect defaults take the H2D colours AFTER the overlay, so a migrated device's
      * effects start in the colours it already had. */
+    if (size == sizeof(ps_cfg_v4_t) && stored.v4.magic == PS_CFG_MAGIC_V4) {
+        const ps_cfg_v4_t *o = &stored.v4;
+        ps_cfg_factory_defaults(c);
+        OVERLAY_COMMON(c, o);
+        memcpy(c->state_brightness, o->state_brightness, sizeof c->state_brightness);
+        for (int s = 0; s < 3; s++) {
+            c->fx[s].effect = o->fx[s].effect; c->fx[s].brightness = o->fx[s].brightness; c->fx[s].speed = o->fx[s].speed;
+            c->fx[s].bright_end = o->fx[s].bright_end; c->fx[s].opt = o->fx[s].opt; c->fx[s].aux = o->fx[s].aux;
+            c->fx[s].fx_unlit = o->fx[s].fx_unlit; c->fx[s].flags = o->fx[s].flags;
+            for (int i = 0; i < 4; i++) c->fx[s].colour[i] = (ps_rgba_t){ o->fx[s].colour[i].r, o->fx[s].colour[i].g, o->fx[s].colour[i].b, o->fx[s].colour[i].a };
+        }
+        c->temp_lo = o->temp_lo; c->temp_hi = o->temp_hi; c->temp_src = o->temp_src; c->hot_src = o->hot_src; c->hot_c = o->hot_c;
+        c->hot_colour = (ps_rgba_t){ o->hot_colour.r, o->hot_colour.g, o->hot_colour.b, o->hot_colour.a };
+        c->err_colour = (ps_rgba_t){ o->err_colour.r, o->err_colour.g, o->err_colour.b, o->err_colour.a };
+        c->err_brightness = o->err_brightness; c->err_speed = o->err_speed; c->temp_unit = o->temp_unit;
+        /* v5 added the friendly name; the defaults left it empty, which reads as the default */
+        ps_cfg_clamp(c);
+        ESP_LOGI(TAG, "config migrated v4 -> v5");
+        ps_cfg_save(c);
+        return 0;
+    }
     if (size == sizeof(ps_cfg_v3_t) && stored.v3.magic == PS_CFG_MAGIC_V3) {
         const ps_cfg_v3_t *o = &stored.v3;
         ps_cfg_factory_defaults(c);
@@ -268,7 +351,7 @@ int ps_cfg_load(ps_cfg_t *c)
             for (int i = 0; i < 4; i++) c->fx[s].colour[i] = (ps_rgba_t){ o->fx[s].colour[i].r, o->fx[s].colour[i].g, o->fx[s].colour[i].b, o->fx[s].colour[i].a };
         }
         ps_cfg_clamp(c);
-        ESP_LOGI(TAG, "config migrated v3 -> v4");
+        ESP_LOGI(TAG, "config migrated v3 -> v5");
         ps_cfg_save(c);
         return 0;
     }
@@ -279,7 +362,7 @@ int ps_cfg_load(ps_cfg_t *c)
         memcpy(c->state_brightness, o->state_brightness, sizeof c->state_brightness);
         for (int s = 0; s < 3; s++) c->fx[s].colour[0] = c->fx[s].colour[1] = c->mode[PS_MODE_H2D].colour[s];
         ps_cfg_clamp(c);
-        ESP_LOGI(TAG, "config migrated v2 -> v4");
+        ESP_LOGI(TAG, "config migrated v2 -> v5");
         ps_cfg_save(c);
         return 0;
     }
@@ -289,7 +372,7 @@ int ps_cfg_load(ps_cfg_t *c)
         OVERLAY_COMMON(c, o);
         for (int s = 0; s < 3; s++) c->fx[s].colour[0] = c->fx[s].colour[1] = c->mode[PS_MODE_H2D].colour[s];
         ps_cfg_clamp(c);
-        ESP_LOGI(TAG, "config migrated v1 -> v4");
+        ESP_LOGI(TAG, "config migrated v1 -> v5");
         ps_cfg_save(c);
         return 0;
     }

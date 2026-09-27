@@ -46,6 +46,7 @@ void ps_wifi_connect(const char *ssid, const char *password) { (void)ssid; (void
 void ps_wifi_set_hostname(const char *h) { (void)h; rec("hostname"); }
 void ps_wifi_ap_apply(void) { rec("ap_apply"); }
 void ps_effect_notify(void) { rec("effect"); }
+void ps_bridge_notify(void) { rec("bridge"); }
 void ps_printer_bind(void) { rec("printer_bind"); }
 void ps_printer_unbind(void) { rec("printer_unbind"); }
 void ps_printer_scan(void) { rec("printer_scan"); }
@@ -151,6 +152,17 @@ int main(void)
     t("wifi.ssid+password stores both, connects, changes wifi and sta", ch == (PS_ROOT_WIFI | PS_ROOT_STA) && !strcmp(g_ps.cfg.wifi_ssid, "<T_SSID>") && !strcmp(g_ps.cfg.wifi_password, "<T_PW>") && called(calls, "wifi_connect") && g_ps.sta_state == PS_STA_CONNECTING, calls);
     ch = apply("{\"sta\":{\"hostname\":\"new-host\",\"device_wakeup\":1}}");
     t("sta.hostname stores, applies, answers set_hostname ok, pushes nothing", ch == 0 && !strcmp(g_ps.cfg.hostname, "new-host") && called(calls, "hostname") && !strcmp(last_response, "set_hostname:1:-"), calls);
+    /* D-060: the friendly name is a label. It answers like the vent's, pushes settings so every
+       open page's bar follows, tells the bridge its name changed, and touches neither the
+       hostname nor the radio: no restart, no ps_wifi_set_hostname. */
+    ch = apply("{\"settings\":{\"device_name\":\"Panda Status Two\",\"device_wakeup\":1}}");
+    t("settings.device_name stores the label, answers set_device_name ok, changes settings", ch == PS_ROOT_SETTINGS && !strcmp(g_ps.cfg.device_name, "Panda Status Two") && !strcmp(last_response, "set_device_name:1:-") && called(calls, "bridge"), calls);
+    t("  and leaves the hostname and the radio alone", !strcmp(g_ps.cfg.hostname, "new-host") && !called(calls, "hostname") && !called(calls, "restart"), calls);
+    { char *doc = ps_state_json(PS_ROOT_SETTINGS); cJSON *d = cJSON_Parse(doc); cJSON *st = cJSON_GetObjectItemCaseSensitive(d, "settings"); cJSON *dn = cJSON_GetObjectItemCaseSensitive(st, "device_name");
+      t("  and the settings root carries it as shown", dn && cJSON_IsString(dn) && !strcmp(dn->valuestring, "Panda Status Two"), doc); cJSON_Delete(d); free(doc); }
+    ch = apply("{\"settings\":{\"device_name\":\"default\",\"device_wakeup\":1}}");
+    { char *doc = ps_state_json(PS_ROOT_SETTINGS); cJSON *d = cJSON_Parse(doc); cJSON *st = cJSON_GetObjectItemCaseSensitive(d, "settings"); cJSON *dn = cJSON_GetObjectItemCaseSensitive(st, "device_name");
+      t("the word default puts the default back, and the root shows it rather than an empty string", ch == PS_ROOT_SETTINGS && g_ps.cfg.device_name[0] == 0 && dn && !strcmp(dn->valuestring, "Panda Status"), doc); cJSON_Delete(d); free(doc); }
     ch = apply("{\"ap\":{\"on\":0,\"device_wakeup\":1}}");
     t("ap.on alone stores, applies, changes ap", ch == PS_ROOT_AP && g_ps.cfg.ap_on == 0 && called(calls, "ap_apply"), calls);
     ch = apply("{\"ap\":{\"ssid\":\"<T_AP>\",\"password\":\"<T_AP_PW>\",\"ip\":\"192.168.4.1\",\"device_wakeup\":1}}");

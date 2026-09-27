@@ -1,12 +1,12 @@
 # Configuration
 
 Everything the device remembers across a power cycle lives in one NVS blob, namespace
-`ps`, key `cfg`, laid out by `ps_cfg_t` in `firmware/main/ps.h`. The layout is version 4,
-magic `0x50533034` ("PS04"), 592 bytes, pinned by `_Static_assert` to that size and to
+`ps`, key `cfg`, laid out by `ps_cfg_t` in `firmware/main/ps.h`. The layout is version 5,
+magic `0x50533035` ("PS05"), 628 bytes, pinned by `_Static_assert` to that size and to
 the offsets of its arrays so the host tests and the target agree byte for byte. Versions 1
-("PS01", 492 bytes), 2 ("PS02", 500 bytes) and 3 ("PS03", 572 bytes) are frozen inside
-`ps_cfg.c`; an older blob is migrated on its first load, field by field, and written back
-as v4, and the host test proves every field survives each path.
+("PS01", 492 bytes), 2 ("PS02", 500 bytes), 3 ("PS03", 572 bytes) and 4 ("PS04", 592 bytes)
+are frozen inside `ps_cfg.c`; an older blob is migrated on its first load, field by field,
+and written back as v5, and the host test proves every field survives each path.
 
 Defaults are **PROVISIONAL**: they are the values the factory page expects after a
 lighting reset and the mock's factory fixture, not values read off a device. Phase 2
@@ -51,6 +51,7 @@ this table with it.
 | `err_colour`, `err_brightness`, `err_speed` | RGBA, u8, u8 | any, 0 to 100, 0 to 100 | red, 50, 50 | v4 | `config.error_flash.colour`, `.brightness`, `.speed`; the layer's colour, brightness and rate, read while bit 12 is set (A12) |
 | `temp_unit` | u8 | 0 Celsius, 1 Fahrenheit | 0 | v4, in what was the first byte of `_pad2`, so every stored blob reads Celsius | `config.temp_unit` as `"c"` or `"f"`, and `temp_unit` in the settings file; the unit the page shows temperatures in (O6). Nothing on the device reads it: every temperature here stays in degrees C |
 | `fx[3].flags` | u8 | bit 0 | set | v4, in what was the effect's padding byte | not on the wire. Bit 0 says the effect's `opt` has been through a firmware that knows the kept-inside option (0x20); a blob without it gets that option turned on once on load, so a device that predates O2 comes up with the default a new one has, and a device where it was turned off keeps it off from then on |
+| `device_name` | char[33] | UTF-8, at most 32 bytes cut on a character boundary, no control characters, trimmed; empty means the default | empty, shown as "Panda Status" | v5 | `settings.device_name` on the socket and `device_name` in the settings file, always as shown (the default when nothing is stored). The friendly name (D-060): what the bar above the page and the vent bridge call this unit. A label, not an address: `hostname` is the network's name and saving this never touches it or restarts anything. Written with `{"settings":{"device_name":"..."}}`; empty or `"default"` puts the default back; answered `set_device_name` |
 
 The colour indices are 0 idle, 1 printing, 2 error. The mode indices are 0 Music,
 1 H2D. Colours are stored as four bytes and written to the wire in the format the
@@ -62,10 +63,10 @@ factory uses for each mode: bare `RRGGBB` for Music, `#RRGGBBAA` for H2D.
    and touches no global, so it can be called on a scratch struct to read a default.
 2. The stored blob is read into a buffer the size of the NVS budget.
 3. The chain, newest layout first: if the size matches the layout and the magic matches,
-   the layout is copied whole (v4, the current one) or overlaid field by field (v1, v2 and
-   v3: every stored field by name onto the defaults, the newer fields at their defaults,
-   the effects' active colours taken from the migrated H2D colours where the blob had no
-   effects, then saved back as v4).
+   the layout is copied whole (v5, the current one) or overlaid field by field (v1 to v4:
+   every stored field by name onto the defaults, the newer fields at their defaults, the
+   effects' active colours taken from the migrated H2D colours where the blob had no
+   effects, then saved back as v5).
 4. `ps_cfg_clamp()` bounds every value that is used as an index or a range: the mode,
    the block count, brightness, speed, `ap_on`, the effect ids, the temperature sources
    and degrees, and terminates every string. A blob written by a corrupt or newer image

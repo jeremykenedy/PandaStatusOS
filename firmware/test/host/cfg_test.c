@@ -169,15 +169,15 @@ int main(void)
         t("v1 blob is 492 bytes", sizeof o == 492, (long)sizeof o);
         memset(&c, 0xAA, sizeof c);
         t("load of a v1 blob returns 0", ps_cfg_load(&c) == 0, 0);
-        t("v1 -> v4: every v1 field survives", !strcmp(c.hostname, "t-host") && c.features == 0x5 && c.current_mode == PS_MODE_MUSIC && c.block_count == 3
+        t("v1 -> v5: every v1 field survives", !strcmp(c.hostname, "t-host") && c.features == 0x5 && c.current_mode == PS_MODE_MUSIC && c.block_count == 3
           && c.mode[1].speed == 65 && c.mode[1].colour[2].a == 0x81 && c.block[2].colour.b == 4 && !strcmp(c.printer_access_code, "<T_CODE>") && c.printer_ip[3] == 20, c.mode[1].speed);
-        t("v1 -> v4: the v2 field takes its default", c.state_brightness[0][0] == 50 && c.state_brightness[1][2] == 50, c.state_brightness[1][2]);
-        t("v1 -> v4: the effects take their defaults in the migrated H2D colours", c.fx[0].effect == PS_FX_STATIC && c.fx[2].colour[0].r == 102 && c.fx[2].colour[1].a == 0x81 && c.fx[1].colour[2].r == 0 && c.fx[1].speed == 100, c.fx[2].colour[0].r);
-        t("v1 -> v4: the magic is now v4", c.magic == PS_CFG_MAGIC_V4, (long)c.magic);
+        t("v1 -> v5: the v2 field takes its default", c.state_brightness[0][0] == 50 && c.state_brightness[1][2] == 50, c.state_brightness[1][2]);
+        t("v1 -> v5: the effects take their defaults in the migrated H2D colours", c.fx[0].effect == PS_FX_STATIC && c.fx[2].colour[0].r == 102 && c.fx[2].colour[1].a == 0x81 && c.fx[1].colour[2].r == 0 && c.fx[1].speed == 100, c.fx[2].colour[0].r);
+        t("v1 -> v5: the magic is now v5", c.magic == PS_CFG_MAGIC_V5, (long)c.magic);
         size_t n = 0; nvs_get_blob(1, "cfg", NULL, &n);
-        t("v1 -> v4: saved back as a v4 blob", n == sizeof(ps_cfg_t), (long)n);
+        t("v1 -> v5: saved back as a v5 blob", n == sizeof(ps_cfg_t), (long)n);
         memset(&e, 0, sizeof e); ps_cfg_load(&e);
-        t("the migrated blob loads again as v4 with the same values", !strcmp(e.hostname, "t-host") && e.magic == PS_CFG_MAGIC_V4 && e.state_brightness[0][0] == 50 && e.mode[1].speed == 65, e.mode[1].speed);
+        t("the migrated blob loads again as v5 with the same values", !strcmp(e.hostname, "t-host") && e.magic == PS_CFG_MAGIC_V5 && e.state_brightness[0][0] == 50 && e.mode[1].speed == 65, e.mode[1].speed);
     }
 
     /* 9b. the v2 layout migrates the same way, carrying its own field */
@@ -190,33 +190,86 @@ int main(void)
         t("v2 blob is 500 bytes", sizeof o == 500, (long)sizeof o);
         memset(&c, 0xAA, sizeof c);
         t("load of a v2 blob returns 0", ps_cfg_load(&c) == 0, 0);
-        t("v2 -> v4: every v2 field survives", !strcmp(c.hostname, "t-host") && c.features == 0x5 && c.state_brightness[1][1] == 77 && c.state_brightness[0][2] == 9 && c.block[2].colour.b == 4, c.state_brightness[1][1]);
-        t("v2 -> v4: the effects take their defaults in the migrated H2D colours", c.fx[1].effect == PS_FX_STATIC && c.fx[1].colour[0].r == 101 && c.fx[1].colour[1].r == 101 && c.fx[0].brightness == 50, c.fx[1].colour[0].r);
-        t("v2 -> v4: the magic is now v4", c.magic == PS_CFG_MAGIC_V4, (long)c.magic);
+        t("v2 -> v5: every v2 field survives", !strcmp(c.hostname, "t-host") && c.features == 0x5 && c.state_brightness[1][1] == 77 && c.state_brightness[0][2] == 9 && c.block[2].colour.b == 4, c.state_brightness[1][1]);
+        t("v2 -> v5: the effects take their defaults in the migrated H2D colours", c.fx[1].effect == PS_FX_STATIC && c.fx[1].colour[0].r == 101 && c.fx[1].colour[1].r == 101 && c.fx[0].brightness == 50, c.fx[1].colour[0].r);
+        t("v2 -> v5: the magic is now v5", c.magic == PS_CFG_MAGIC_V5, (long)c.magic);
         size_t n = 0; nvs_get_blob(1, "cfg", NULL, &n);
-        t("v2 -> v4: saved back as a v4 blob", n == sizeof(ps_cfg_t), (long)n);
-        t("v2 -> v4: the v4 fields take their defaults", c.temp_lo == 25 && c.temp_hi == 250 && c.temp_src == PS_TEMP_NOZZLE && c.hot_c == 50 && c.err_speed == 50 && c.err_colour.r == 0xFF, c.temp_hi);
+        t("v2 -> v5: saved back as a v5 blob", n == sizeof(ps_cfg_t), (long)n);
+        t("v2 -> v5: the v4 fields take their defaults", c.temp_lo == 25 && c.temp_hi == 250 && c.temp_src == PS_TEMP_NOZZLE && c.hot_c == 50 && c.err_speed == 50 && c.err_colour.r == 0xFF, c.temp_hi);
     }
 
     /* 9c. the v3 layout migrates: a 572-byte PS03 blob loads, every effect field survives, the v4 fields take their defaults */
     {
         ps_cfg_v3_t o; memset(&o, 0, sizeof o);
         fill_distinct(&d); d.fx[1].effect = PS_FX_CYLON; d.fx[1].brightness = 33; d.fx[2].opt = 0x15; d.fx[2].aux = 7; d.fx[0].colour[3] = (ps_rgba_t){ 9, 8, 7, 6 }; d.state_brightness[1][2] = 66;
-        memcpy(&o, &d, sizeof o);                      /* the v3 layout is the first 572 bytes of v4 */
+        memcpy(&o, &d, sizeof o);                      /* the v3 layout is the first 572 bytes of v5 */
         o.magic = PS_CFG_MAGIC_V3;
         wipe(); put(&o, sizeof o);
         t("v3 blob is 572 bytes", sizeof o == 572, (long)sizeof o);
         memset(&c, 0xAA, sizeof c);
         t("load of a v3 blob returns 0", ps_cfg_load(&c) == 0, 0);
-        t("v3 -> v4: every v3 field survives, and the kept-inside default lands on the way (opt 0x15 -> 0x35, O2)", !strcmp(c.hostname, "t-host") && c.features == 0x5 && c.state_brightness[1][2] == 66 && c.fx[1].effect == PS_FX_CYLON && c.fx[1].brightness == 33 && c.fx[2].opt == 0x35 && c.fx[2].aux == 7 && c.fx[0].colour[3].g == 8 && c.fx[0].colour[3].a == 6, c.fx[2].opt);
+        t("v3 -> v5: every v3 field survives, and the kept-inside default lands on the way (opt 0x15 -> 0x35, O2)", !strcmp(c.hostname, "t-host") && c.features == 0x5 && c.state_brightness[1][2] == 66 && c.fx[1].effect == PS_FX_CYLON && c.fx[1].brightness == 33 && c.fx[2].opt == 0x35 && c.fx[2].aux == 7 && c.fx[0].colour[3].g == 8 && c.fx[0].colour[3].a == 6, c.fx[2].opt);
         /* hot_src is the CHAMBER, not the nozzle. It watched the nozzle at 50 C, and a nozzle
            is over 50 C for the whole of every print, so with A11's switch on the warning
            pulsed red over the bar from the first minute of a job to the last. This assert
            caught that change, which is what it is for. */
-        t("v3 -> v4: the v4 fields take their defaults", c.temp_lo == 25 && c.temp_hi == 250 && c.temp_src == PS_TEMP_NOZZLE && c.hot_src == PS_TEMP_CHAMBER && c.hot_c == 50 && c.hot_colour.r == 0xFF && c.err_brightness == 50 && c.err_speed == 50, c.hot_src);
-        t("v3 -> v4: the magic is now v4", c.magic == PS_CFG_MAGIC_V4, (long)c.magic);
+        t("v3 -> v5: the v4 fields take their defaults", c.temp_lo == 25 && c.temp_hi == 250 && c.temp_src == PS_TEMP_NOZZLE && c.hot_src == PS_TEMP_CHAMBER && c.hot_c == 50 && c.hot_colour.r == 0xFF && c.err_brightness == 50 && c.err_speed == 50, c.hot_src);
+        t("v3 -> v5: the magic is now v5", c.magic == PS_CFG_MAGIC_V5, (long)c.magic);
         size_t n = 0; nvs_get_blob(1, "cfg", NULL, &n);
-        t("v3 -> v4: saved back as a v4 blob of 592 bytes", n == sizeof(ps_cfg_t) && n == 592, (long)n);
+        t("v3 -> v5: saved back as a v5 blob of 628 bytes", n == sizeof(ps_cfg_t) && n == 628, (long)n);
+    }
+
+    /* 9d. the v4 layout migrates: a 592-byte PS04 blob loads, every v4 field survives, the v5 field takes its default */
+    {
+        ps_cfg_v4_t o; memset(&o, 0, sizeof o);
+        fill_distinct(&d); d.fx[1].effect = PS_FX_CYLON; d.fx[1].fx_unlit = 6; d.fx[1].flags = PS_FX_FLAG_INPROG_SET; d.fx[1].opt = 0x11;
+        d.temp_lo = 40; d.temp_hi = 110; d.temp_src = PS_TEMP_BED; d.hot_src = PS_TEMP_CHAMBER; d.hot_c = 45; d.hot_colour = (ps_rgba_t){ 1, 2, 3, 4 };
+        d.err_colour = (ps_rgba_t){ 5, 6, 7, 8 }; d.err_brightness = 20; d.err_speed = 90; d.temp_unit = PS_UNIT_F;
+        memcpy(&o, &d, sizeof o);                      /* the v4 layout is the first 592 bytes of v5 */
+        o.magic = PS_CFG_MAGIC_V4;
+        wipe(); put(&o, sizeof o);
+        t("v4 blob is 592 bytes", sizeof o == 592, (long)sizeof o);
+        memset(&c, 0xAA, sizeof c);
+        t("load of a v4 blob returns 0", ps_cfg_load(&c) == 0, 0);
+        t("v4 -> v5: every v4 field survives, the effect's unlit part and its flag with them", !strcmp(c.hostname, "t-host") && c.features == 0x5 && c.fx[1].effect == PS_FX_CYLON && c.fx[1].fx_unlit == 6 && c.fx[1].flags == PS_FX_FLAG_INPROG_SET && c.fx[1].opt == 0x11
+          && c.temp_lo == 40 && c.temp_hi == 110 && c.temp_src == PS_TEMP_BED && c.hot_src == PS_TEMP_CHAMBER && c.hot_c == 45 && c.hot_colour.b == 3 && c.err_colour.a == 8 && c.err_brightness == 20 && c.err_speed == 90 && c.temp_unit == PS_UNIT_F, c.fx[1].opt);
+        t("v4 -> v5: the flag set in the blob keeps the kept-inside option off (opt 0x11 stays 0x11)", c.fx[1].opt == 0x11, c.fx[1].opt);
+        t("v4 -> v5: the name is empty, which reads as the default", c.device_name[0] == 0 && !strcmp(ps_cfg_device_name(&c), "Panda Status"), 0);
+        t("v4 -> v5: the magic is now v5", c.magic == PS_CFG_MAGIC_V5, (long)c.magic);
+        size_t n = 0; nvs_get_blob(1, "cfg", NULL, &n);
+        t("v4 -> v5: saved back as a v5 blob of 628 bytes", n == sizeof(ps_cfg_t) && n == 628, (long)n);
+    }
+
+    /* 9e. the v5 field: the friendly name, through its setter (D-060) */
+    {
+        ps_cfg_factory_defaults(&d);
+        t("a fresh default has no name stored and shows the default", d.device_name[0] == 0 && !strcmp(ps_cfg_device_name(&d), "Panda Status"), 0);
+        ps_cfg_set_device_name(&d, "Panda Status Two");
+        t("a name is taken as typed, spaces and case and all", !strcmp(d.device_name, "Panda Status Two") && !strcmp(ps_cfg_device_name(&d), "Panda Status Two"), 0);
+        wipe(); put(&d, sizeof d); ps_cfg_load(&c);
+        t("and round-trips through the blob", !strcmp(c.device_name, "Panda Status Two"), 0);
+        ps_cfg_set_device_name(&d, "default");
+        t("the word default clears it (the reset button's message)", d.device_name[0] == 0, 0);
+        ps_cfg_set_device_name(&d, "  Left  ");
+        t("the ends are trimmed", !strcmp(d.device_name, "Left"), 0);
+        ps_cfg_set_device_name(&d, "");
+        t("empty clears it", d.device_name[0] == 0, 0);
+        ps_cfg_set_device_name(&d, "   ");
+        t("blank is empty", d.device_name[0] == 0, 0);
+        ps_cfg_set_device_name(&d, "Le\x01" "ft\x7f");
+        t("control characters are dropped, not stored", !strcmp(d.device_name, "Left"), 0);
+        ps_cfg_set_device_name(&d, "abcdefghijklmnopqrstuvwxyz0123456789");
+        t("36 characters are cut to 32", strlen(d.device_name) == 32 && !strcmp(d.device_name, "abcdefghijklmnopqrstuvwxyz012345"), (long)strlen(d.device_name));
+        ps_cfg_set_device_name(&d, "abcdefghijklmnopqrstuvwxyz01234\xc3\xa9z");   /* 31 bytes, then a two-byte e-acute */
+        t("the cut lands between characters, never inside one", strlen(d.device_name) == 31 && d.device_name[30] == '4', (long)strlen(d.device_name));
+        ps_cfg_set_device_name(&d, "\xc3\xa9t\xc3\xa9");
+        t("a name in UTF-8 is kept whole", !strcmp(d.device_name, "\xc3\xa9t\xc3\xa9"), 0);
+        ps_cfg_set_device_name(&d, "a\xc3z");
+        t("a lead byte without its continuation is dropped", !strcmp(d.device_name, "az"), 0);
+        /* a blob written by another build: the clamp re-reads the name through the setter */
+        fill_distinct(&d); memset(d.device_name, 'x', sizeof d.device_name); d.device_name[3] = 0x02;
+        wipe(); put(&d, sizeof d); ps_cfg_load(&c);
+        t("a stored name is terminated and cleaned on load", strlen(c.device_name) <= 32 && !strchr(c.device_name, 0x02), (long)strlen(c.device_name));
     }
 
     /* 10. the v2 field: round trip and clamp */
@@ -257,7 +310,7 @@ int main(void)
       s.count = 2; strcpy(s.p[0].name, "Ocean"); s.p[0].fx.effect = PS_FX_PALETTE_SCROLL; s.p[0].fx.colour[1] = (ps_rgba_t){ 0, 255, 255, 255 }; strcpy(s.p[1].name, "Ember"); s.p[1].fx.effect = PS_FX_BREATHING;
       t("presets save", ps_presets_save(&s) == 0, 0);
       t("and load back whole", ps_presets_load(&e) == 0 && e.count == 2 && !strcmp(e.p[0].name, "Ocean") && e.p[0].fx.effect == PS_FX_PALETTE_SCROLL && e.p[0].fx.colour[1].g == 255 && !strcmp(e.p[1].name, "Ember"), e.count);
-      t("the presets blob is 328 bytes beside the 592-byte config", sizeof(ps_presets_t) == 328 && sizeof(ps_cfg_t) == 592, (long)sizeof(ps_presets_t));
+      t("the presets blob is 328 bytes beside the 628-byte config", sizeof(ps_presets_t) == 328 && sizeof(ps_cfg_t) == 628, (long)sizeof(ps_presets_t));
       s.count = 200; s.p[3].fx.effect = 250; s.p[3].fx.speed = 111; memset(s.p[2].name, 'x', PS_PRESET_NAME); ps_presets_clamp(&s);
       t("clamp bounds the count, the ids, the numbers and terminates the names", s.count == PS_PRESETS_MAX && s.p[3].fx.effect == PS_FX_STATIC && s.p[3].fx.speed == 100 && s.p[2].name[PS_PRESET_NAME - 1] == 0, s.count);
       ps_presets_t bad; memset(&bad, 0, sizeof bad); bad.magic = 0x12345678; bad.count = 3; nvs_set_blob(1, PS_PRESETS_NVS_KEY, &bad, sizeof bad);

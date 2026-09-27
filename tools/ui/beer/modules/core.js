@@ -128,6 +128,16 @@ function hexColour(c) {
 /* formatting -------------------------------------------------------- */
 
 function fmtPct(v) { return v + '%'; }
+
+/* A host name the way the device makes one (ps_netname.c): letters, digits and hyphens,
+   everything else a hyphen, runs of them one, none at the ends, 63 at most, a trailing
+   ".local" dropped first. Lower case, because mDNS does not care and a URL reads better. */
+function host_label(name) {
+  var s = String(name || '').replace(/\.local\s*$/i, '').trim();
+  s = s.replace(/[^A-Za-z0-9-]/g, '-').replace(/-+/g, '-').replace(/^-+|-+$/g, '');
+  s = s.slice(0, 63).replace(/-+$/, '');
+  return s.toLowerCase();
+}
 function deg() { return g_temp_unit === 'f' ? DEG_F : DEG; }
 function deg_shown(c) { return g_temp_unit === 'f' ? Math.round(c * 9 / 5 + 32) : c; }
 function deg_stored(v) { return g_temp_unit === 'f' ? Math.round((v - 32) * 5 / 9) : v; }
@@ -743,10 +753,11 @@ function render_chrome() {
 
   /* The top bar's left is what THIS unit is called, which on a bench with two of them is
      the useful thing to see. The product name is already centred on the bar, so repeating
-     it here says nothing. The name is sta.hostname (ps_state.c root_sta); the vent kept
-     it under settings.device_name, which this device does not send. */
+     it here says nothing. The name is settings.device_name, the friendly one (D-060), the
+     way the vent's bar shows the vent's; a device older than v5 has none and shows its
+     hostname. */
   var sta = g_state.sta || {};
-  var name = sta.hostname;
+  var name = s.device_name || sta.hostname;
   setText('ps-top-name', (name && name.length) ? name : '');
 
   /* The chip says what the printer is doing, which arrives on /api/print and not on the
@@ -1026,12 +1037,11 @@ var g_page_build = null;      /* the build id behind this page, asked for once *
 function handle_settings() {
   var s = g_state.settings || {};
   setText('ps-settings-fw-ver', s.fw_version || DASH);
-  /* This device has ONE name. ps_netname.c: a hostname is one DNS label, sanitised on the
-     way in and again on the way out, and there is no device_name anywhere in the firmware.
-     The vent had a separate friendly name; pretending there are two here would give the
-     owner a field that writes to the same place as the other one. */
+  /* The friendly name (D-060), the vent's key: a label the device holds beside the
+     hostname, never the hostname itself. Absent from a device older than v5, whose field
+     then shows what the bar shows, the hostname. */
   var _sta = g_state.sta || {};
-  setInputValue('ps-settings-device-name', _sta.hostname || '');
+  setInputValue('ps-settings-device-name', s.device_name || _sta.hostname || '');
   if (s.language) set_language(s.language);
   /* The Web app row used to show img_version, the factory's image-pack version. This unit
      has no images partition at all, so that row was a dash on every page load and said
@@ -1450,9 +1460,27 @@ function handle_response(resp) {
 
   switch (type) {
     case 'set_hostname':
-      if (ok) dialog_open('dlg_hostname_title', 'dlg_hostname_text',
-        [{ key: 'restart', fallback: 'Restart', handler: function () { ws_push('settings', { reset: 1 }); } }]);
-      else error_dialog();
+      if (ok) {
+        /* The name the device will answer to, made the way ps_netname.c makes it: one DNS
+           label, the rest hyphens. Said in the dialog, because the address this page was
+           opened by is about to stop working, and followed after the restart when this page
+           was opened by a name (a page opened by address keeps its address). Eight seconds
+           is the restart plus the radio's reassociation with a margin; too early lands on
+           a device that is not listening yet. */
+        var label = host_label(window.g_pending_host || '');
+        var url = label ? 'http://' + label + '.local/' : '';
+        var by_name = !/^[0-9.]+$|^\[/.test(location.hostname);
+        dialog_open('dlg_hostname_title', 'dlg_hostname_text',
+          [{ key: 'restart', fallback: 'Restart', handler: function () {
+              ws_push('settings', { reset: 1 });
+              if (url && by_name) setTimeout(function () { location.href = url; }, 8000);
+            } }]);
+        if (url) {
+          var sta_ = g_state.sta || {};
+          setElText(byId('ps-dialog-text'), tr('dlg_hostname_text', DLG_EN.dlg_hostname_text) + ' ' +
+            tr('dlg_hostname_after', 'Afterwards it answers at') + ' ' + url + (sta_.ip ? ' (' + sta_.ip + ')' : '') + '.');
+        }
+      } else error_dialog();
       break;
     case 'set_ap':
       if (ok) dialog_open('dlg_ap_title', 'dlg_ap_text', [{ key: 'ui_ok', fallback: 'OK' }]);
@@ -1468,7 +1496,7 @@ function handle_response(resp) {
       else error_dialog();
       break;
     case 'set_device_name':
-      if (ok) toast_show('device_name_saved', 3000);
+      if (ok) toast_show('ui_name_saved', 3000, 'Name saved');
       else toast_show('ui_command_failed', 3000);
       break;
     case 'ota_fw':

@@ -97,6 +97,9 @@ ROWS=(
   # O6: the temperature unit, chosen on the Settings card, held by the device, honoured by
   # every reading and every degree field on the page
   "p2-printing.json  | t-units.js    | PS_CLONE=1 PS_PRINT_PERCENT=37 PS_PRINT_NOZZLE=220 PS_PRINT_BED=60 PS_PRINT_CHAMBER=35"
+  # D-060: the two names. The label on the Settings card (a toast, the bar, no restart) and
+  # the host name on the Network page (a restart, and the dialog names the address to come)
+  "p2-idle.json      | t-name.js     | PS_CLONE=1"
 )
 
 pass=0; fail=0; failed=()

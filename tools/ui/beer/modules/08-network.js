@@ -173,11 +173,15 @@ function net_wifi_connect() {
 }
 
 /* {"sta":{"hostname"}}. The device answers response set_hostname, whose
-   OK (module 1) restarts it. Empty is refused with a toast. */
+   OK (module 1) restarts it and, when this page was opened by name, follows
+   the device to its new one: the name it was opened by stops answering the
+   moment the restart takes. Empty is refused with a toast. The name as typed
+   is kept for that, because the response carries no body. */
 function net_set_hostname() {
   if (!net_ready()) return;
   var name = net_val('ps-sta-hostname').trim();
   if (!name) { net_toast('ui_enter_a_host_name', 'Enter a host name first.'); return; }
+  window.g_pending_host = name;
   ws_push('sta', { hostname: name });
 }
 

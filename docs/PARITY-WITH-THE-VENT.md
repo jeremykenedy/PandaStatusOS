@@ -278,7 +278,10 @@ All three fixed 2026-09-27 (D-058). From the same review: the vent scan found no
 network with two vents on it, because it looked for the bridge record alone; it now finds the
 factory firmware and PandaVentOS by their stock socket and says, on a bind, that there is no
 bridge there yet (`link` 7). The Device name save sent the vent's key and took nothing; it
-sends the hostname. The Bindings page's labels and the Settings page's card spacing, both
+sends the hostname; and that was wrong too, reversed under D-060: the vent has a label and
+an address, and so does this device now (`settings.device_name`, blob v5). Saving the label
+restarts nothing; the host name's dialog says the address the device will answer at. The
+Bindings page's labels and the Settings page's card spacing, both
 called out from screenshots, are fixed in `project.css`, and a pass over every page by eye
 afterwards (D-059) made the label and spacing rules one rule for the whole app: every
 labelled field floats its label, a padded block inside a card keeps the card's rhythm, and a
